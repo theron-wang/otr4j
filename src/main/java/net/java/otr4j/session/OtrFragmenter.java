@@ -85,34 +85,11 @@ public class OtrFragmenter {
 	 */
 	public int numberOfFragments(final String message) throws IOException {
 		final SessionID session = this.session.getSessionID();
-		final FragmenterInstructions requested = this.host
-				.getFragmenterInstructions(session);
-		final FragmenterInstructions instructions = FragmenterInstructions
-				.verify(requested);
-		return numberOfFragments(message, instructions);
-	}
-
-	/**
-	 * Calculate the number of fragments that are required for the message to be
-	 * sent fragmented completely.
-	 *
-	 * @param message
-	 *            the message to fragment
-	 * @param instructions
-	 *            the fragmentation instructions
-	 * @return returns number of fragments required
-	 * @throws IOException
-	 *             throws an IOException in case fragment size is too small to
-	 *             store any content or when the provided policy does not
-	 *             support fragmentation, for example if only OTRv1 is allowed.
-	 */
-	private int numberOfFragments(final String message,
-			final FragmenterInstructions instructions) throws IOException {
-		if (instructions.maxFragmentSize == FragmenterInstructions.UNLIMITED
-				|| instructions.maxFragmentSize >= message.length()) {
+		final Integer fragmentSize = this.host.getMaxFragmentSize(session);
+		if (fragmentSize == null || fragmentSize >= message.length()) {
 			return 1;
 		}
-		return computeFragmentNumber(message, instructions);
+		return computeFragmentNumber(message, fragmentSize);
 	}
 
 	/**
@@ -124,9 +101,9 @@ public class OtrFragmenter {
 	 * @throws IOException throws an IOException if fragment size is too small.
 	 */
 	private int computeFragmentNumber(final String message,
-			final FragmenterInstructions instructions) throws IOException {
+			final int fragmentSize) throws IOException {
 		final int overhead = computeHeaderSize();
-		final int payloadSize = instructions.maxFragmentSize - overhead;
+		final int payloadSize = fragmentSize - overhead;
 		if (payloadSize <= 0) {
 			throw new IOException("Fragment size too small for storing content.");
 		}
@@ -151,11 +128,8 @@ public class OtrFragmenter {
 	 */
 	public String[] fragment(final String message) throws IOException {
 		final SessionID session = this.session.getSessionID();
-		final FragmenterInstructions requested = this.host
-				.getFragmenterInstructions(session);
-		final FragmenterInstructions instructions = FragmenterInstructions
-				.verify(requested);
-		return fragment(message, instructions);
+		final Integer fragmentSize = this.host.getMaxFragmentSize(session);
+		return fragment(message, fragmentSize);
 	}
 
 	/**
@@ -172,22 +146,18 @@ public class OtrFragmenter {
 	 *             message according to the specified instructions.
 	 */
 	private String[] fragment(final String message,
-			final FragmenterInstructions instructions) throws IOException {
-		if (instructions.maxFragmentSize == FragmenterInstructions.UNLIMITED
-				|| instructions.maxFragmentSize >= message.length()) {
+			final Integer requestedFragmentSize) throws IOException {
+		if (requestedFragmentSize == null
+				|| requestedFragmentSize >= message.length()) {
 			return new String[] { message };
 		}
-		final int num = numberOfFragments(message, instructions);
-		if (instructions.maxFragmentsAllowed != FragmenterInstructions.UNLIMITED
-				&& instructions.maxFragmentsAllowed < num) {
-			throw new IOException("Need more fragments to store full message.");
-		}
+		final int fragmentSize = requestedFragmentSize;
+		final int num = computeFragmentNumber(message, fragmentSize);
 		if (num > MAXIMUM_NUMBER_OF_FRAGMENTS) {
 			throw new IOException(
 					"Number of necessary fragments exceeds limit.");
 		}
-		final int payloadSize = instructions.maxFragmentSize
-				- computeHeaderSize();
+		final int payloadSize = fragmentSize - computeHeaderSize();
 		int previous = 0;
 		final LinkedList<String> fragments = new LinkedList<String>();
 		while (previous < message.length()) {

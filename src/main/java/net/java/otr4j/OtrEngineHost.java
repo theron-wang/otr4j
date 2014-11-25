@@ -8,7 +8,6 @@ package net.java.otr4j;
 
 import java.security.KeyPair;
 
-import net.java.otr4j.session.FragmenterInstructions;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.SessionID;
 
@@ -49,17 +48,16 @@ public abstract interface OtrEngineHost {
 	/**
 	 * Get instructions for the necessary fragmentation operations.
 	 *
-	 * If no fragmentation is necessary, return <tt>null</tt> to set the default
-	 * fragmentation instructions which are to use an unlimited number of
-	 * messages of unlimited size each. Hence fragmentation is not necessary or
-	 * applied.
+	 * If no fragmentation is necessary, return 'null' to indicate that there is
+	 * no maximum fragment size. Return a positive integer to specify a maximum
+	 * fragment size.
 	 *
 	 * @param sessionID
 	 *            the session ID of the session
-	 * @return return fragmentation instructions or null for defaults (i.e. no
-	 *         fragmentation)
+	 * @return returns the maximum fragment size allowed or null for unlimited
+	 *         fragment size.
 	 */
-	public abstract FragmenterInstructions getFragmenterInstructions(SessionID sessionID); 
+	public abstract Integer getMaxFragmentSize(SessionID sessionID);
 
 	public abstract KeyPair getLocalKeyPair(SessionID sessionID)
 			throws OtrException;
