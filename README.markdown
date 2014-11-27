@@ -34,6 +34,32 @@ Want to hack on otr4j? Awesome! Here are the guidelines we'd like you to follow:
 * Any developer can request push access and become a committer, regardless of project or organization affiliation.
 * We choose committers primarily on the Hippocratic Principle. You can find out more about the exact procedure [here][bca].
 
+## Eclipse
+
+You can use Maven to generate Eclipse project files.  First, set up the Maven
+environment (this assumes a Debian-esque machine):
+
+```
+apt-get install maven git
+git clone https://github/com/otr4j/otr4j.git
+cd otr4j
+mvn dependency:list
+mvn eclipse:eclipse
+```
+
+Now in Eclipse, run:
+
+1. _File -> Import... -> General -> Existing Projects into Workspace_
+2. Right-click on the _otr4j_ project, and choose _Properties_
+3. In _Java Build Path_, click on the _Libraries_ tab
+4. Click the _Add Variable..._ button
+5. add a new variable called **M2_REPO** with the path set to `~/.m2/repository`
+
+It is probably also possible to use the M2Eclipse Maven integration
+plugin for more direct integration.  That requires the very latest version of
+Eclipse.  The setup instructions should be more straightforward.
+
+
   [1]: https://otr.cypherpunks.ca/
   [2]: https://jitsi.org/
   [OTRv2]: https://otr.cypherpunks.ca/Protocol-v2-3.1.0.html
