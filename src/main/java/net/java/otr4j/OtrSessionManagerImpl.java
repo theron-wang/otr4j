@@ -25,7 +25,7 @@ public class OtrSessionManagerImpl implements OtrSessionManager {
 
 	public OtrSessionManagerImpl(OtrEngineHost host) {
 		if (host == null)
-			throw new IllegalArgumentException("OtrEgineHost is required.");
+			throw new IllegalArgumentException("OtrEngineHost is required.");
 
 		this.setHost(host);
 	}
