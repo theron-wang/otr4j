@@ -13,6 +13,7 @@ import static org.junit.Assert.*;
 import net.java.otr4j.crypto.OtrCryptoEngineImpl;
 import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.RevealSignatureMessage;
+import net.java.otr4j.session.Session.OTRv;
 
 public class IOTest {
 
@@ -147,7 +148,7 @@ public class IOTest {
 	public void testIODHKeyMessage() throws Exception {
 		KeyPair pair = new OtrCryptoEngineImpl().generateDHKeyPair();
 
-		DHKeyMessage source = new DHKeyMessage(0, (DHPublicKey) pair
+		DHKeyMessage source = new DHKeyMessage(OTRv.THREE, (DHPublicKey) pair
 				.getPublic());
 
 		String base64 = SerializationUtils.toString(source);
