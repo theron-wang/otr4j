@@ -5,3 +5,9 @@ target/
 .settings/
 *.orig
 otr.properties
+
+# Android build products
+gen/
+build.xml
+local.properties
+proguard-project.txt
