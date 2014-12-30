@@ -27,12 +27,28 @@ the pom.xml:
 
 ## Contributing
 
-Want to hack on otr4j? Awesome! Here are the guidelines we'd like you to follow:
+This is the friendly, community fork of jitsi/otr4j that meant to be steered
+by contributors.  It also does not require the signing of a Contributor
+License Agreement (CLA).
 
-* _All_ contributors submit code via pull requests. NOTE that before we can accept any patches from you, we need you to sign our contributor agreement available [here](http://bluejimp.com/bca.pdf).
-* New commits must be pushed by the reviewer of the pull request, not the author.
-* Any developer can request push access and become a committer, regardless of project or organization affiliation.
-* We choose committers primarily on the Hippocratic Principle. You can find out more about the exact procedure [here][bca].
+Here are the guidelines everyone follows:
+
+* any developer can request push access, regardless of project or organization affiliation
+* _all_ contributors submit code via pull requests
+* new commits must be pushed by the reviewer of the pull request, not the author
+* "lazy consensus" approach for granting push access:
+  * anyone with push access can vote/veto
+  * if about a week or so as passed after requesting push access and no one has objected, then that requester can be granted push access
+
+### Git setup
+
+Git makes this kind of workflow easy.  The core idea is to set up each
+contributor's git repo as a `git remote`, then you can get all updates using
+`git fetch --all`.  You can then view all of the remotes using a good git
+history viewer, like `gitk`, which is part of the official git.
+
+For more info: [A tag-team git workflow that incorporates auditing][TagTeamGit]
+
 
 ## Eclipse
 
@@ -64,5 +80,5 @@ Eclipse.  The setup instructions should be more straightforward.
   [2]: https://jitsi.org/
   [OTRv2]: https://otr.cypherpunks.ca/Protocol-v2-3.1.0.html
   [OTRv3]: https://otr.cypherpunks.ca/Protocol-v3-4.0.0.html
-  [bca]: https://jitsi.org/Documentation/CommitAccess
+  [TagTeamGit]: https://guardianproject.info/2013/11/21/a-tag-team-git-workflow-that-incorporates-auditing/
 
