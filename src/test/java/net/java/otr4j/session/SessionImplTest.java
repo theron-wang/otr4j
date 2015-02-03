@@ -1,12 +1,14 @@
 package net.java.otr4j.session;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
-
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.OtrPolicyImpl;
+
+import org.junit.Test;
 
 public class SessionImplTest {
 
@@ -117,17 +119,9 @@ public class SessionImplTest {
 
 	@Test
 	public void testQueryStart() throws Exception {
-		DummyClient bob = new DummyClient("Bob@Wonderland");
-		bob.setPolicy(new OtrPolicyImpl(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3
-				| OtrPolicy.ERROR_START_AKE));
-
-		DummyClient alice = new DummyClient("Alice@Wonderland");
-		alice.setPolicy(new OtrPolicyImpl(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3
-				| OtrPolicy.ERROR_START_AKE));
-
-		Server server = new PriorityServer();
-		alice.connect(server);
-		bob.connect(server);
+		DummyClient[] convo = DummyClient.getConversation();
+		DummyClient alice = convo[0];
+		DummyClient bob = convo[1];
 
 		bob.send(alice.getAccount(), "<p>?OTRv23?\n" +
 				"<span style=\"font-weight: bold;\">Bob@Wonderland/</span> has requested an <a href=\"http://otr.cypherpunks.ca/\">Off-the-Record private conversation</a>. However, you do not have a plugin to support that.\n" +
@@ -188,26 +182,11 @@ public class SessionImplTest {
 
 	@Test
 	public void testForcedStart() throws Exception {
-		DummyClient bob = new DummyClient("Bob@Wonderland");
-		bob.setPolicy(new OtrPolicyImpl(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3
-				| OtrPolicy.ERROR_START_AKE));
+		DummyClient[] convo = DummyClient.getConversation();
+		DummyClient alice = convo[0];
+		DummyClient bob = convo[1];
 
-		DummyClient alice = new DummyClient("Alice@Wonderland");
-		alice.setPolicy(new OtrPolicyImpl(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3
-				| OtrPolicy.ERROR_START_AKE));
-
-		Server server = new PriorityServer();
-		alice.connect(server);
-		bob.connect(server);
-
-		bob.secureSession(alice.getAccount());
-
-		alice.pollReceivedMessage(); // Query
-		bob.pollReceivedMessage(); // DH-Commit
-		alice.pollReceivedMessage(); // DH-Key
-		bob.pollReceivedMessage(); // Reveal signature
-		alice.pollReceivedMessage(); // Signature
-
+		DummyClient.forceStartOtr(alice, bob);
 		assertEquals("The session is not encrypted.", SessionStatus.ENCRYPTED,
 				bob.getSession().getSessionStatus());
 		assertEquals("The session is not encrypted.", SessionStatus.ENCRYPTED,
@@ -257,17 +236,9 @@ public class SessionImplTest {
 
 	@Test
 	public void testPlaintext() throws Exception {
-		DummyClient bob = new DummyClient("Bob@Wonderland");
-		bob.setPolicy(new OtrPolicyImpl(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3
-				| OtrPolicy.ERROR_START_AKE));
-
-		DummyClient alice = new DummyClient("Alice@Wonderland");
-		alice.setPolicy(new OtrPolicyImpl(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3
-				| OtrPolicy.ERROR_START_AKE));
-
-		Server server = new PriorityServer();
-		alice.connect(server);
-		bob.connect(server);
+		DummyClient[] convo = DummyClient.getConversation();
+		DummyClient alice = convo[0];
+		DummyClient bob = convo[1];
 
 		String msg;
 

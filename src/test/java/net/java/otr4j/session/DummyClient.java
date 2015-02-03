@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.OtrPolicyImpl;
 import net.java.otr4j.crypto.OtrCryptoEngineImpl;
 import net.java.otr4j.crypto.OtrCryptoException;
 
@@ -27,6 +28,38 @@ public class DummyClient {
 	private Connection connection;
 	private MessageProcessor processor;
 	private Queue<ProcessedMessage> processedMsgs = new LinkedList<ProcessedMessage>();
+
+	public static DummyClient[] getConversation() {
+		DummyClient bob = new DummyClient("Bob@Wonderland");
+		bob.setPolicy(new OtrPolicyImpl(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3
+				| OtrPolicy.ERROR_START_AKE));
+
+		DummyClient alice = new DummyClient("Alice@Wonderland");
+		alice.setPolicy(new OtrPolicyImpl(OtrPolicy.ALLOW_V2
+				| OtrPolicy.ALLOW_V3 | OtrPolicy.ERROR_START_AKE));
+
+		Server server = new PriorityServer();
+		alice.connect(server);
+		bob.connect(server);
+		return new DummyClient[] { alice, bob };
+	}
+
+	public static boolean forceStartOtr(DummyClient alice, DummyClient bob)
+			throws OtrException {
+		bob.secureSession(alice.getAccount());
+
+		alice.pollReceivedMessage(); // Query
+		bob.pollReceivedMessage(); // DH-Commit
+		alice.pollReceivedMessage(); // DH-Key
+		bob.pollReceivedMessage(); // Reveal signature
+		alice.pollReceivedMessage(); // Signature
+
+		if (bob.getSession().getSessionStatus() != SessionStatus.ENCRYPTED)
+			return false;
+		if (alice.getSession().getSessionStatus() != SessionStatus.ENCRYPTED)
+			return false;
+		return true;
+	}
 
 	public DummyClient(String account) {
 		this.account = account;
