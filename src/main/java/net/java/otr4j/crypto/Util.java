@@ -20,18 +20,6 @@
 package net.java.otr4j.crypto;
 
 public class Util {
-	public static boolean arrayEquals(byte[] b1, byte[] b2){
-		if(b1==null || b2==null || b1.length!=b2.length){
-			return false;
-		}
-		for(int i=0; i<b1.length; i++){
-			if(b1[i]!=b2[i]){
-				return false;
-			}
-		}
-		return true;
-	}
-	
 	public static void checkBytes(String s, byte[] bytes) {
 		String hexString = new String();
 		for (int i = 0; i < bytes.length; i++) {
