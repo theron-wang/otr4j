@@ -7,6 +7,10 @@ import static org.junit.Assert.assertThat;
 
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.OtrPolicyImpl;
+import net.java.otr4j.test.dummyclient.DummyClient;
+import net.java.otr4j.test.dummyclient.PriorityServer;
+import net.java.otr4j.test.dummyclient.ProcessedTestMessage;
+import net.java.otr4j.test.dummyclient.Server;
 
 import org.junit.Test;
 

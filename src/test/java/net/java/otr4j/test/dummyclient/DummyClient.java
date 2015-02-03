@@ -1,4 +1,4 @@
-package net.java.otr4j.session;
+package net.java.otr4j.test.dummyclient;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -14,6 +14,14 @@ import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.OtrPolicyImpl;
 import net.java.otr4j.crypto.OtrCryptoEngineImpl;
 import net.java.otr4j.crypto.OtrCryptoException;
+import net.java.otr4j.session.FragmenterInstructions;
+import net.java.otr4j.session.InstanceTag;
+import net.java.otr4j.session.Session;
+import net.java.otr4j.session.SessionID;
+import net.java.otr4j.session.SessionImpl;
+import net.java.otr4j.session.SessionImplTest;
+import net.java.otr4j.session.SessionStatus;
+import net.java.otr4j.session.TLV;
 
 /**
  * Created by gp on 2/5/14.

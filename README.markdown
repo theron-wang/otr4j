@@ -7,7 +7,7 @@ supports OTRv1, [OTRv2][] and [OTRv3][]. Additionally, there is support
 for fragmenting outgoing messages.
 
 For a quick introduction on how to use the library have a look at the
-[DummyClient](src/test/java/net/java/otr4j/session/DummyClient.java).
+[DummyClient](src/test/java/net/java/otr4j/test/dummyclient/DummyClient.java).
 
 ## Maven
 

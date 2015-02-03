@@ -1,4 +1,4 @@
-package net.java.otr4j.session;
+package net.java.otr4j.test.dummyclient;
 
 /**
  * Created by gp on 2/6/14.
