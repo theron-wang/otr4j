@@ -244,7 +244,7 @@ public class SessionImplTest {
 
 		alice.send(bob.getAccount(), msg = "Hello Bob, this new IM software you installed on my PC the other day says we are talking Off-the-Record, what's that supposed to mean?");
 
-		ProcessedMessage pMsg = bob.pollReceivedMessage();
+		ProcessedTestMessage pMsg = bob.pollReceivedMessage();
 
 		assertEquals("The session is not encrypted.", SessionStatus.PLAINTEXT,
 				bob.getSession().getSessionStatus());

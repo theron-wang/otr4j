@@ -27,7 +27,7 @@ public class DummyClient {
 	private OtrPolicy policy;
 	private Connection connection;
 	private MessageProcessor processor;
-	private Queue<ProcessedMessage> processedMsgs = new LinkedList<ProcessedMessage>();
+	private Queue<ProcessedTestMessage> processedMsgs = new LinkedList<ProcessedTestMessage>();
 
 	public static DummyClient[] getConversation() {
 		DummyClient bob = new DummyClient("Bob@Wonderland");
@@ -118,9 +118,9 @@ public class DummyClient {
 		return connection;
 	}
 
-	public ProcessedMessage pollReceivedMessage() {
+	public ProcessedTestMessage pollReceivedMessage() {
 		synchronized (processedMsgs) {
-			ProcessedMessage m;
+			ProcessedTestMessage m;
 			while ((m = processedMsgs.poll()) == null) {
 				try {
 					processedMsgs.wait();
@@ -133,10 +133,10 @@ public class DummyClient {
 	}
 
 	class MessageProcessor implements Runnable {
-		private final Queue<Message> messageQueue = new LinkedList<Message>();
+		private final Queue<TestMessage> messageQueue = new LinkedList<TestMessage>();
 		private boolean stopped;
 
-		private void process(Message m) throws OtrException {
+		private void process(TestMessage m) throws OtrException {
 			if (session == null) {
 				final SessionID sessionID = new SessionID(account, m.getSender(), "DummyProtocol");
 				session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
@@ -144,7 +144,7 @@ public class DummyClient {
 
 			String receivedMessage = session.transformReceiving(m.getContent());
 			synchronized (processedMsgs) {
-				processedMsgs.add(new ProcessedMessage(m, receivedMessage));
+				processedMsgs.add(new ProcessedTestMessage(m, receivedMessage));
 				processedMsgs.notify();
 			}
 		}
@@ -153,7 +153,7 @@ public class DummyClient {
 			synchronized (messageQueue) {
 				while (true) {
 
-					Message m = messageQueue.poll();
+					TestMessage m = messageQueue.poll();
 
 					if (m == null) {
 						try {
@@ -177,7 +177,7 @@ public class DummyClient {
 
 		public void enqueue(String sender, String s) {
 			synchronized (messageQueue) {
-				messageQueue.add(new Message(sender, s));
+				messageQueue.add(new TestMessage(sender, s));
 				messageQueue.notify();
 			}
 		}
