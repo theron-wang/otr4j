@@ -28,6 +28,7 @@ import javax.crypto.spec.DHPrivateKeySpec;
 import javax.crypto.spec.DHPublicKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.io.SerializationUtils;
 
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
@@ -163,7 +164,7 @@ public class OtrCryptoEngineImpl implements OtrCryptoEngine {
 	}
 
 	public byte[] sha256Hmac160(byte[] b, byte[] key) throws OtrCryptoException {
-		return sha256Hmac(b, key, 20);
+		return sha256Hmac(b, key, SerializationConstants.TYPE_LEN_MAC);
 	}
 
 	public byte[] sha256Hash(byte[] b) throws OtrCryptoException {
