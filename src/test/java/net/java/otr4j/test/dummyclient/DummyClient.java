@@ -112,6 +112,18 @@ public class DummyClient {
 		this.connection = server.connect(this);
 	}
 
+    public void stop() {
+        this.processor.stop();
+    }
+
+    public void stopBeforeProcessingNextMessage() {
+        this.processor.stopBeforeProcessingNextMessage();
+    }
+
+    public TestMessage getNextTestMessage() {
+        return this.processor.getNextTestMessage();
+    }
+
 	public void secureSession(String recipient) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
@@ -129,6 +141,7 @@ public class DummyClient {
 		synchronized (processedMsgs) {
 			ProcessedTestMessage m;
 			while ((m = processedMsgs.poll()) == null) {
+                logger.finest("polling");
 				try {
 					processedMsgs.wait();
 				} catch (InterruptedException e) {
@@ -142,6 +155,8 @@ public class DummyClient {
 	class MessageProcessor implements Runnable {
 		private final Queue<TestMessage> messageQueue = new LinkedList<TestMessage>();
 		private boolean stopped;
+        private boolean stopBeforeProcessingNextMessage;
+        private TestMessage m;
 
 		private void process(TestMessage m) throws OtrException {
 			if (session == null) {
@@ -160,7 +175,7 @@ public class DummyClient {
 			synchronized (messageQueue) {
 				while (true) {
 
-					TestMessage m = messageQueue.poll();
+                    m = messageQueue.poll();
 
 					if (m == null) {
 						try {
@@ -170,7 +185,11 @@ public class DummyClient {
 						}
 					} else {
 						try {
+                            if (stopBeforeProcessingNextMessage) {
+                                break;
+                            } else {
 							process(m);
+                            }
 						} catch (OtrException e) {
 							e.printStackTrace();
 						}
@@ -196,12 +215,32 @@ public class DummyClient {
 				messageQueue.notify();
 			}
 		}
+
+        public void stopBeforeProcessingNextMessage() {
+            stopBeforeProcessingNextMessage = true;
+        }
+
+        public TestMessage getNextTestMessage() {
+            while (true) {
+                if (m == null) {
+                    logger.finest("polling");
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                    }
+                } else {
+                    return m;
+                }
+
+                if (stopped)
+                    return null;
+            }
+        }
 	}
 
 	class DummyOtrEngineHostImpl implements OtrEngineHost {
 
 		public void injectMessage(SessionID sessionID, String msg) throws OtrException {
-
 			connection.send(sessionID.getUserID(), msg);
 
 			String msgDisplay = (msg.length() > 10) ? msg.substring(0, 10)
