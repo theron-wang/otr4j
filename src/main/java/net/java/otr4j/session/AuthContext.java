@@ -51,6 +51,8 @@ public class AuthContext {
     public static final byte M2p_START = (byte) 0x05;
 
     public AuthContext(Session session) {
+        SessionID sID = session.getSessionID();
+        logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
         this.setSession(session);
         this.reset();
     }
@@ -86,7 +88,7 @@ public class AuthContext {
     private KeyPair localLongTermKeyPair;
     private Boolean isSecure = false;
 
-    private static Logger logger = Logger.getLogger(AuthContext.class.getName());
+    private Logger logger;
 
     class MessageFactory {
 

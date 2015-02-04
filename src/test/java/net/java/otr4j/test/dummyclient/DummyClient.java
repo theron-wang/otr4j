@@ -1,3 +1,4 @@
+
 package net.java.otr4j.test.dummyclient;
 
 import java.security.KeyPair;
@@ -26,8 +27,7 @@ import net.java.otr4j.session.TLV;
  */
 public class DummyClient {
 
-	private static Logger logger = Logger.getLogger(SessionImplTest.class
-			.getName());
+    private Logger logger;
 	private final String account;
 	private Session session;
 	private OtrPolicy policy;
@@ -68,6 +68,7 @@ public class DummyClient {
 	}
 
 	public DummyClient(String account) {
+        logger = Logger.getLogger(account);
 		this.account = account;
 	}
 

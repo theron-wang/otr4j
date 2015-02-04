@@ -75,7 +75,7 @@ public class Session {
     private AuthContext authContext;
     private SessionKeys[][] sessionKeys;
     private Vector<byte[]> oldMacKeys;
-    private static Logger logger = Logger.getLogger(Session.class.getName());
+    private Logger logger;
     private final OtrSm otrSm;
     private BigInteger ess;
     private OfferStatus offerStatus;
@@ -297,6 +297,7 @@ public class Session {
     }
 
     private void setSessionID(SessionID sessionID) {
+        logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.sessionID = sessionID;
     }
 
