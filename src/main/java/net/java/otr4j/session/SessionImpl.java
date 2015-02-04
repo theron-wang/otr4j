@@ -328,7 +328,7 @@ public class SessionImpl implements Session {
 
 	private AuthContext getAuthContext() {
 		if (authContext == null)
-			authContext = new AuthContextImpl(this);
+			authContext = new AuthContext(this);
 		return authContext;
 	}
 
