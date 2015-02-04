@@ -18,7 +18,6 @@ import net.java.otr4j.session.FragmenterInstructions;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.Session;
 import net.java.otr4j.session.SessionID;
-import net.java.otr4j.session.SessionImpl;
 import net.java.otr4j.session.SessionStatus;
 import net.java.otr4j.session.TLV;
 
@@ -87,7 +86,7 @@ public class DummyClient {
 	public void send(String recipient, String s) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
-			session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
+			session = new Session(sessionID, new DummyOtrEngineHostImpl());
 		}
 
 		String[] outgoingMessage = session.transformSending(s, (List<TLV>) null);
@@ -115,7 +114,7 @@ public class DummyClient {
 	public void secureSession(String recipient) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
-			session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
+			session = new Session(sessionID, new DummyOtrEngineHostImpl());
 		}
 
 		session.startSession();
@@ -146,7 +145,7 @@ public class DummyClient {
 		private void process(TestMessage m) throws OtrException {
 			if (session == null) {
 				final SessionID sessionID = new SessionID(account, m.getSender(), "DummyProtocol");
-				session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
+				session = new Session(sessionID, new DummyOtrEngineHostImpl());
 			}
 
 			String receivedMessage = session.transformReceiving(m.getContent());
@@ -332,7 +331,7 @@ public class DummyClient {
 		public String getFallbackMessage() {
 			return "Off-the-Record private conversation has been requested. However, you do not have a plugin to support that.";
 		}
-		
+
 		public FragmenterInstructions getFragmenterInstructions(SessionID sessionID) {
 			return new FragmenterInstructions(FragmenterInstructions.UNLIMITED,
 					FragmenterInstructions.UNLIMITED);
