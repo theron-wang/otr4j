@@ -37,7 +37,7 @@ import net.java.otr4j.session.Session.OTRv;
 /**
  * @author George Politis
  */
-class AuthContext {
+public class AuthContext {
 
     public static final int NONE = 0;
     public static final int AWAITING_DHKEY = 1;
@@ -339,7 +339,7 @@ class AuthContext {
         return m1;
     }
 
-    private byte[] getM2() throws OtrException {
+    byte[] getM2() throws OtrException {
         if (m2 != null)
             return m2;
 
@@ -379,7 +379,7 @@ class AuthContext {
         return m1p;
     }
 
-    private byte[] getM2p() throws OtrException {
+    byte[] getM2p() throws OtrException {
         if (m2p != null)
             return m2p;
 

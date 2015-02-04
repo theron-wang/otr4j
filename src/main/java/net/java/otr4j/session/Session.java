@@ -318,7 +318,7 @@ public class Session {
         return sessionKeys;
     }
 
-    private AuthContext getAuthContext() {
+    AuthContext getAuthContext() {
         if (authContext == null)
             authContext = new AuthContext(this);
         return authContext;
