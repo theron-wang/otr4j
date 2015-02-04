@@ -1,4 +1,5 @@
-package net.java.otr4j.session;
+
+package net.java.otr4j.test.dummyclient;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -11,24 +12,63 @@ import java.util.logging.Logger;
 import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.OtrPolicyImpl;
 import net.java.otr4j.crypto.OtrCryptoEngineImpl;
 import net.java.otr4j.crypto.OtrCryptoException;
+import net.java.otr4j.session.FragmenterInstructions;
+import net.java.otr4j.session.InstanceTag;
+import net.java.otr4j.session.Session;
+import net.java.otr4j.session.SessionID;
+import net.java.otr4j.session.SessionStatus;
+import net.java.otr4j.session.TLV;
 
 /**
  * Created by gp on 2/5/14.
  */
 public class DummyClient {
 
-	private static Logger logger = Logger.getLogger(SessionImplTest.class
-			.getName());
+    private Logger logger;
 	private final String account;
 	private Session session;
 	private OtrPolicy policy;
 	private Connection connection;
 	private MessageProcessor processor;
-	private Queue<ProcessedMessage> processedMsgs = new LinkedList<ProcessedMessage>();
+	private Queue<ProcessedTestMessage> processedMsgs = new LinkedList<ProcessedTestMessage>();
+
+	public static DummyClient[] getConversation() {
+		DummyClient bob = new DummyClient("Bob@Wonderland");
+		bob.setPolicy(new OtrPolicyImpl(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3
+				| OtrPolicy.ERROR_START_AKE));
+
+		DummyClient alice = new DummyClient("Alice@Wonderland");
+		alice.setPolicy(new OtrPolicyImpl(OtrPolicy.ALLOW_V2
+				| OtrPolicy.ALLOW_V3 | OtrPolicy.ERROR_START_AKE));
+
+		Server server = new PriorityServer();
+		alice.connect(server);
+		bob.connect(server);
+		return new DummyClient[] { alice, bob };
+	}
+
+	public static boolean forceStartOtr(DummyClient alice, DummyClient bob)
+			throws OtrException {
+		bob.secureSession(alice.getAccount());
+
+		alice.pollReceivedMessage(); // Query
+		bob.pollReceivedMessage(); // DH-Commit
+		alice.pollReceivedMessage(); // DH-Key
+		bob.pollReceivedMessage(); // Reveal signature
+		alice.pollReceivedMessage(); // Signature
+
+		if (bob.getSession().getSessionStatus() != SessionStatus.ENCRYPTED)
+			return false;
+		if (alice.getSession().getSessionStatus() != SessionStatus.ENCRYPTED)
+			return false;
+		return true;
+	}
 
 	public DummyClient(String account) {
+        logger = Logger.getLogger(account);
 		this.account = account;
 	}
 
@@ -47,7 +87,7 @@ public class DummyClient {
 	public void send(String recipient, String s) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
-			session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
+			session = new Session(sessionID, new DummyOtrEngineHostImpl());
 		}
 
 		String[] outgoingMessage = session.transformSending(s, (List<TLV>) null);
@@ -72,10 +112,22 @@ public class DummyClient {
 		this.connection = server.connect(this);
 	}
 
+    public void stop() {
+        this.processor.stop();
+    }
+
+    public void stopBeforeProcessingNextMessage() {
+        this.processor.stopBeforeProcessingNextMessage();
+    }
+
+    public TestMessage getNextTestMessage() {
+        return this.processor.getNextTestMessage();
+    }
+
 	public void secureSession(String recipient) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
-			session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
+			session = new Session(sessionID, new DummyOtrEngineHostImpl());
 		}
 
 		session.startSession();
@@ -85,10 +137,11 @@ public class DummyClient {
 		return connection;
 	}
 
-	public ProcessedMessage pollReceivedMessage() {
+	public ProcessedTestMessage pollReceivedMessage() {
 		synchronized (processedMsgs) {
-			ProcessedMessage m;
+			ProcessedTestMessage m;
 			while ((m = processedMsgs.poll()) == null) {
+                logger.finest("polling");
 				try {
 					processedMsgs.wait();
 				} catch (InterruptedException e) {
@@ -100,18 +153,20 @@ public class DummyClient {
 	}
 
 	class MessageProcessor implements Runnable {
-		private final Queue<Message> messageQueue = new LinkedList<Message>();
+		private final Queue<TestMessage> messageQueue = new LinkedList<TestMessage>();
 		private boolean stopped;
+        private boolean stopBeforeProcessingNextMessage;
+        private TestMessage m;
 
-		private void process(Message m) throws OtrException {
+		private void process(TestMessage m) throws OtrException {
 			if (session == null) {
 				final SessionID sessionID = new SessionID(account, m.getSender(), "DummyProtocol");
-				session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
+				session = new Session(sessionID, new DummyOtrEngineHostImpl());
 			}
 
 			String receivedMessage = session.transformReceiving(m.getContent());
 			synchronized (processedMsgs) {
-				processedMsgs.add(new ProcessedMessage(m, receivedMessage));
+				processedMsgs.add(new ProcessedTestMessage(m, receivedMessage));
 				processedMsgs.notify();
 			}
 		}
@@ -120,7 +175,7 @@ public class DummyClient {
 			synchronized (messageQueue) {
 				while (true) {
 
-					Message m = messageQueue.poll();
+                    m = messageQueue.poll();
 
 					if (m == null) {
 						try {
@@ -130,7 +185,11 @@ public class DummyClient {
 						}
 					} else {
 						try {
+                            if (stopBeforeProcessingNextMessage) {
+                                break;
+                            } else {
 							process(m);
+                            }
 						} catch (OtrException e) {
 							e.printStackTrace();
 						}
@@ -144,7 +203,7 @@ public class DummyClient {
 
 		public void enqueue(String sender, String s) {
 			synchronized (messageQueue) {
-				messageQueue.add(new Message(sender, s));
+				messageQueue.add(new TestMessage(sender, s));
 				messageQueue.notify();
 			}
 		}
@@ -156,12 +215,32 @@ public class DummyClient {
 				messageQueue.notify();
 			}
 		}
+
+        public void stopBeforeProcessingNextMessage() {
+            stopBeforeProcessingNextMessage = true;
+        }
+
+        public TestMessage getNextTestMessage() {
+            while (true) {
+                if (m == null) {
+                    logger.finest("polling");
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                    }
+                } else {
+                    return m;
+                }
+
+                if (stopped)
+                    return null;
+            }
+        }
 	}
 
 	class DummyOtrEngineHostImpl implements OtrEngineHost {
 
 		public void injectMessage(SessionID sessionID, String msg) throws OtrException {
-
 			connection.send(sessionID.getUserID(), msg);
 
 			String msgDisplay = (msg.length() > 10) ? msg.substring(0, 10)
@@ -292,7 +371,7 @@ public class DummyClient {
 		public String getFallbackMessage() {
 			return "Off-the-Record private conversation has been requested. However, you do not have a plugin to support that.";
 		}
-		
+
 		public FragmenterInstructions getFragmenterInstructions(SessionID sessionID) {
 			return new FragmenterInstructions(FragmenterInstructions.UNLIMITED,
 					FragmenterInstructions.UNLIMITED);

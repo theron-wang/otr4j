@@ -14,7 +14,6 @@ import java.util.Vector;
 
 import net.java.otr4j.session.Session;
 import net.java.otr4j.session.SessionID;
-import net.java.otr4j.session.SessionImpl;
 
 /**
  * 
@@ -42,7 +41,7 @@ public class OtrSessionManagerImpl implements OtrSessionManager {
 			sessions = new Hashtable<SessionID, Session>();
 
 		if (!sessions.containsKey(sessionID)) {
-			Session session = new SessionImpl(sessionID, getHost());
+			Session session = new Session(sessionID, getHost());
 			sessions.put(sessionID, session);
 
 			session.addOtrEngineListener(new OtrEngineListener() {

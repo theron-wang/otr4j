@@ -1,11 +1,11 @@
-package net.java.otr4j.session;
+package net.java.otr4j.test.dummyclient;
 
 /**
  * Created by gp on 2/6/14.
  */
-public class Message {
+public class TestMessage {
 
-	public Message(String sender, String content){
+	public TestMessage(String sender, String content){
 		this.sender = sender;
 		this.content = content;
 	}

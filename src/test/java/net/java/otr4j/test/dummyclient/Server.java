@@ -1,4 +1,4 @@
-package net.java.otr4j.session;
+package net.java.otr4j.test.dummyclient;
 
 import net.java.otr4j.OtrException;
 
