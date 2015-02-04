@@ -43,6 +43,7 @@ import net.java.otr4j.session.Session.OTRv;
  * @author George Politis
  */
 public class SerializationUtils {
+
 	/**
 	 * Charset for base64-encoded content.
 	 */

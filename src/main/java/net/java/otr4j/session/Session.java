@@ -677,8 +677,12 @@ public class Session {
         } catch (IOException e) {
             throw new OtrException(e);
         }
-        if (m instanceof QueryMessage)
-            msg += getHost().getFallbackMessage(getSessionID());
+        if (m instanceof QueryMessage) {
+            String fallback = getHost().getFallbackMessage(getSessionID());
+            if (fallback == null || fallback.equals(""))
+                fallback = SerializationConstants.DEFAULT_FALLBACK_MESSAGE;
+            msg += fallback;
+        }
 
         if (SerializationUtils.otrEncoded(msg)) {
             // Content is OTR encoded, so we are allowed to partition.

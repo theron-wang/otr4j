@@ -366,10 +366,6 @@ public class DummyClient {
 
 		}
 
-		public String getFallbackMessage() {
-			return "Off-the-Record private conversation has been requested. However, you do not have a plugin to support that.";
-		}
-
 		public int getMaxFragmentSize(SessionID sessionID) {
 			return Integer.MAX_VALUE;
 		}
