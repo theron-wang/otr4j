@@ -12,12 +12,11 @@ import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.SessionID;
 
 /**
- * 
  * This interface should be implemented by the host application. It is required
- * for otr4j to work properly.
- * 
+ * for otr4j to work properly. This provides the core interface between the app
+ * and otr4j.
+ *
  * @author George Politis
- * 
  */
 public abstract interface OtrEngineHost {
 	public abstract void injectMessage(SessionID sessionID, String msg)
@@ -71,8 +70,26 @@ public abstract interface OtrEngineHost {
 
 	public abstract void askForSecret(SessionID sessionID, InstanceTag receiverTag, String question);
 
+    /**
+     * When a remote user's key is verified via the Socialist Millionaire's
+     * Protocol (SMP) shared passphrase or question/answer, this method will be
+     * called upon successful completion of that process.
+     *
+     * @param sessionID of the session where the SMP happened.
+     * @param fingerprint of the key to verify
+     * @param approved
+     */
+
 	public abstract void verify(SessionID sessionID, String fingerprint, boolean approved);
 
+    /**
+     * If the Socialist Millionaire's Protocol (SMP) process fails, then this
+     * method will be called to make sure that the session is marked as
+     * untrustworthy.
+     *
+     * @param sessionID of the session where the SMP happened.
+     * @param fingerprint of the key to unverify
+     */
 	public abstract void unverify(SessionID sessionID, String fingerprint);
 
 	public abstract String getReplyForUnreadableMessage(SessionID sessionID);
