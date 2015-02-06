@@ -105,6 +105,31 @@
                 </systemPropertyVariables>
               </configuration>
             </plugin>
+            <plugin>
+              <artifactId>maven-project-info-reports-plugin</artifactId>
+              <version>2.7</version>
+            </plugin>
         </plugins>
     </build>
+    <reporting>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>2.14</version>
+          <configuration>
+            <configLocation>codecheck/checkstyle.xml</configLocation>
+            <propertyExpansion>config_loc=codecheck</propertyExpansion>
+            <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          </configuration>
+          <reportSets>
+            <reportSet>
+              <reports>
+                <report>checkstyle</report>
+              </reports>
+            </reportSet>
+          </reportSets>
+        </plugin>
+      </plugins>
+    </reporting>
 </project>
