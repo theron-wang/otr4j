@@ -102,8 +102,12 @@
                 <version>2.17</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <java.util.logging.SimpleFormatter.format>%1$tH:%1$tM:%1$tS
-                            %4$-6s %2$s(): %3$s "%5$s%6$s"%n</java.util.logging.SimpleFormatter.format>
+                        <java.util.logging.SimpleFormatter.format>
+                            %1$tH:%1$tM:%1$tS %4$-6s %2$s(): %3$s "%5$s%6$s"%n
+                        </java.util.logging.SimpleFormatter.format>
+                        <java.util.logging.config.file>
+                            ${basedir}/logging.properties
+                        </java.util.logging.config.file>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
