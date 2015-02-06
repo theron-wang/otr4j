@@ -174,22 +174,20 @@ public class OtrSm {
 	public boolean isSmpInProgress() {
 	    return smstate.nextExpected > SM.EXPECT1;
 	}
-	
-	public boolean doProcessTlv(TLV tlv) throws OtrException {
-		/* If TLVs contain SMP data, process it */
-		int nextMsg = smstate.nextExpected;
 
-		int tlvType = tlv.getType();
-
+	public String getFingerprint() {
 		PublicKey pubKey = session.getRemotePublicKey();
-		String fingerprint = null;
 		try {
-			fingerprint = new OtrCryptoEngine().getFingerprint(pubKey);
+			return new OtrCryptoEngine().getFingerprint(pubKey);
         } catch (OtrCryptoException e) {
             e.printStackTrace();
         }
+		return null;
+	}
 
-		if (tlvType == TLV.SMP1Q && nextMsg == SM.EXPECT1) {
+	public void processTlvSMP1Q(TLV tlv) throws OtrException {
+	    int tlvType = tlv.getType();
+	    if (smstate.nextExpected == SM.EXPECT1) {
 			/* We can only do the verification half now.
 			 * We must wait for the secret to be entered
 			 * to continue. */
@@ -223,9 +221,14 @@ public class OtrSm {
 			    engineHost.smpError(session.getSessionID(), tlvType, true);
 			    reset();
 			}
-		} else if (tlvType == TLV.SMP1Q) {
+		} else {
 		    engineHost.smpError(session.getSessionID(), tlvType, false);
-		} else if (tlvType == TLV.SMP1 && nextMsg == SM.EXPECT1) {
+		}
+	}
+
+	public void processTlvSMP1(TLV tlv) throws OtrException {
+	    int tlvType = tlv.getType();
+	    if (smstate.nextExpected == SM.EXPECT1) {
 			/* We can only do the verification half now.
 			 * We must wait for the secret to be entered
 			 * to continue. */
@@ -241,9 +244,14 @@ public class OtrSm {
 			    engineHost.smpError(session.getSessionID(), tlvType, true);
 			    reset();
 			}
-		} else if (tlvType == TLV.SMP1) {
+		} else {
 		    engineHost.smpError(session.getSessionID(), tlvType, false);
-		} else if (tlvType == TLV.SMP2 && nextMsg == SM.EXPECT2) {
+		}
+    }
+
+	public void processTlvSMP2(TLV tlv) throws OtrException {
+	    int tlvType = tlv.getType();
+	    if (smstate.nextExpected == SM.EXPECT2) {
 			byte[] nextmsg;
 			try {
 				nextmsg = SM.step3(smstate, tlv.getValue());
@@ -262,22 +270,26 @@ public class OtrSm {
 			    engineHost.smpError(session.getSessionID(), tlvType, true);
 			    reset();
 			}
-		} else if (tlvType == TLV.SMP2){
+		} else {
 		    engineHost.smpError(session.getSessionID(), tlvType, false);
-		} else if (tlvType == TLV.SMP3 && nextMsg == SM.EXPECT3) {
+		}
+    }
+
+    public void processTlvSMP3(TLV tlv) throws OtrException {
+        int tlvType = tlv.getType();
+        if (smstate.nextExpected == SM.EXPECT3) {
 			byte[] nextmsg;
 			try {
 				nextmsg = SM.step4(smstate, tlv.getValue());
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
-			
+
 			/* Set trust level based on result */
 			if (smstate.smProgState == SM.PROG_SUCCEEDED){
-				
-				engineHost.verify(session.getSessionID(), fingerprint, smstate.approved);
+				engineHost.verify(session.getSessionID(), getFingerprint(), smstate.approved);
 			} else {
-				engineHost.unverify(session.getSessionID(), fingerprint);
+				engineHost.unverify(session.getSessionID(), getFingerprint());
 			}
 			if (smstate.smProgState != SM.PROG_CHEATED){
 				/* Send msg with next smp msg content */
@@ -290,9 +302,14 @@ public class OtrSm {
 			    engineHost.smpError(session.getSessionID(), tlvType, true);
 			}
 			reset();
-		} else if (tlvType == TLV.SMP3){
+		} else {
 		    engineHost.smpError(session.getSessionID(), tlvType, false);
-		} else if (tlvType == TLV.SMP4 && nextMsg == SM.EXPECT4) {
+		}
+    }
+
+    public void processTlvSMP4(TLV tlv) throws OtrException {
+        int tlvType = tlv.getType();
+        if (smstate.nextExpected == SM.EXPECT4) {
 
 			try {
 				SM.step5(smstate, tlv.getValue());
@@ -300,26 +317,24 @@ public class OtrSm {
 				throw new OtrException(e);
 			}
 			if (smstate.smProgState == SM.PROG_SUCCEEDED){
-				engineHost.verify(session.getSessionID(), fingerprint, smstate.approved);
+				engineHost.verify(session.getSessionID(), getFingerprint(), smstate.approved);
 			} else {
-				engineHost.unverify(session.getSessionID(), fingerprint);
+				engineHost.unverify(session.getSessionID(), getFingerprint());
 			}
 			if (smstate.smProgState != SM.PROG_CHEATED){
 			} else {
 			    engineHost.smpError(session.getSessionID(), tlvType, true);
 			}
 			reset();
-
-		} else if (tlvType == TLV.SMP4){
+		} else {
 		    engineHost.smpError(session.getSessionID(), tlvType, false);
-		} else if (tlvType == TLV.SMP_ABORT){
-			engineHost.smpAborted(session.getSessionID());
-			reset();
-		} else
-			return false;
+		}
+    }
 
-		return true;
-	}
+    public void processTlvSMP_ABORT(TLV tlv) throws OtrException {
+        engineHost.smpAborted(session.getSessionID());
+        reset();
+    }
 
     private List<TLV> makeTlvList(TLV sendtlv) {
         List<TLV> tlvs = new ArrayList<TLV>(1);

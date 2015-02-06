@@ -648,12 +648,33 @@ public class Session {
                 if (tlvs != null && tlvs.size() > 0) {
                     for (TLV tlv : tlvs) {
                         switch (tlv.getType()) {
-                            case TLV.DISCONNECTED:
+                            case TLV.PADDING: // TLV0
+                                // nothing to do here, just ignore the padding
+                                break;
+                            case TLV.DISCONNECTED: // TLV1
                                 this.setSessionStatus(SessionStatus.FINISHED);
-                                return null;
+                                break;
+                            case TLV.SMP1Q: //TLV7
+                                otrSm.processTlvSMP1Q(tlv);
+                                break;
+                            case TLV.SMP1: // TLV2
+                                otrSm.processTlvSMP1(tlv);
+                                break;
+                            case TLV.SMP2: // TLV3
+                                otrSm.processTlvSMP2(tlv);
+                                break;
+                            case TLV.SMP3: // TLV4
+                                otrSm.processTlvSMP3(tlv);
+                                break;
+                            case TLV.SMP4: // TLV5
+                                otrSm.processTlvSMP4(tlv);
+                                break;
+                            case TLV.SMP_ABORT: //TLV6
+                                otrSm.processTlvSMP_ABORT(tlv);
+                                break;
                             default:
-                                if (otrSm.doProcessTlv(tlv))
-                                    return null;
+                                logger.warning("Unsupported TLV #" + tlv.getType() + " received!");
+                                break;
                         }
                     }
                 }
