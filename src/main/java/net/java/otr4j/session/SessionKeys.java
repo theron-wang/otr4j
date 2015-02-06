@@ -17,7 +17,6 @@ import javax.crypto.interfaces.DHPublicKey;
 
 import net.java.otr4j.OtrException;
 import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.crypto.OtrCryptoEngineImpl;
 import net.java.otr4j.io.SerializationUtils;
 
 /**
@@ -126,7 +125,7 @@ public class SessionKeys {
             ByteBuffer buff = ByteBuffer.allocate(len);
             buff.put(b);
             buff.put(secbytes);
-            byte[] result = new OtrCryptoEngineImpl().sha1Hash(buff.array());
+            byte[] result = new OtrCryptoEngine().sha1Hash(buff.array());
             return result;
         } catch (Exception e) {
             throw new OtrException(e);
@@ -174,14 +173,14 @@ public class SessionKeys {
         if (sendingMACKey != null)
             return sendingMACKey;
 
-        sendingMACKey = new OtrCryptoEngineImpl().sha1Hash(getSendingAESKey());
+        sendingMACKey = new OtrCryptoEngine().sha1Hash(getSendingAESKey());
         logger.finest("Calculated sending MAC key.");
         return sendingMACKey;
     }
 
     public byte[] getReceivingMACKey() throws OtrException {
         if (receivingMACKey == null) {
-            receivingMACKey = new OtrCryptoEngineImpl()
+            receivingMACKey = new OtrCryptoEngine()
                     .sha1Hash(getReceivingAESKey());
             logger.finest("Calculated receiving AES key.");
         }
@@ -190,7 +189,7 @@ public class SessionKeys {
 
     private BigInteger getS() throws OtrException {
         if (s == null) {
-            s = new OtrCryptoEngineImpl().generateSecret(getLocalPair()
+            s = new OtrCryptoEngine().generateSecret(getLocalPair()
                     .getPrivate(), getRemoteKey());
             logger.finest("Calculating shared secret S.");
         }
