@@ -261,11 +261,6 @@ public class DummyClient {
 					+ sessionID);
 		}
 
-		public void finishedSessionMessage(SessionID sessionID) throws OtrException {
-			logger.severe("SM session was finished. You shouldn't send messages to: "
-					+ sessionID);
-		}
-
 		public void requireEncryptedMessage(SessionID sessionID, String msgText)
 				throws OtrException {
 			logger.severe("Message can't be sent while encrypted session is not established: "
@@ -288,14 +283,6 @@ public class DummyClient {
 			logger.severe("IM shows error to user: " + error);
 		}
 
-		public String getReplyForUnreadableMessage() {
-			return "You sent me an unreadable encrypted message.";
-		}
-
-		public void sessionStatusChanged(SessionID sessionID) {
-			// don't care.
-		}
-
 		public KeyPair getLocalKeyPair(SessionID paramSessionID) {
 			KeyPairGenerator kg;
 			try {
@@ -311,22 +298,6 @@ public class DummyClient {
 			return policy;
 		}
 
-		public void askForSecret(SessionID sessionID, String question) {
-			logger.finest("Ask for secret from: " + sessionID + ", question: "
-					+ question);
-		}
-
-		public void verify(SessionID sessionID, boolean approved) {
-			logger.finest("Session was verified: " + sessionID);
-			if (!approved)
-				logger.finest("Your answer for the question was verified."
-						+ "You should ask your opponent too or check shared secret.");
-		}
-
-		public void unverify(SessionID sessionID) {
-			logger.finest("Session was not verified: " + sessionID);
-		}
-
 		public byte[] getLocalFingerprintRaw(SessionID sessionID) {
 			try {
 				return new OtrCryptoEngine()
@@ -339,23 +310,27 @@ public class DummyClient {
 		}
 
 		public void askForSecret(SessionID sessionID, InstanceTag receiverTag, String question) {
-
+            logger.finer("Ask for secret from: " + sessionID
+                    + ", instanceTag: " + receiverTag + ", question: " + question);
 		}
 
 		public void verify(SessionID sessionID, String fingerprint, boolean approved) {
-
+            logger.finer("Session was verified: " + sessionID);
+            if (!approved)
+                logger.fine("Your answer for the question was verified."
+                        + "You should ask your opponent too or check shared secret.");
 		}
 
 		public void unverify(SessionID sessionID, String fingerprint) {
-
+            logger.fine("Session was not verified: " + sessionID);
 		}
 
 		public String getReplyForUnreadableMessage(SessionID sessionID) {
-			return null;
+            return "You sent me an unreadable encrypted message.";
 		}
 
 		public String getFallbackMessage(SessionID sessionID) {
-			return null;
+            return "Off-the-Record private conversation has been requested. However, you do not have a plugin to support that.";
 		}
 
 		public void messageFromAnotherInstanceReceived(SessionID sessionID) {
@@ -364,10 +339,6 @@ public class DummyClient {
 
 		public void multipleInstancesDetected(SessionID sessionID) {
 
-		}
-
-		public String getFallbackMessage() {
-			return "Off-the-Record private conversation has been requested. However, you do not have a plugin to support that.";
 		}
 
 		public int getMaxFragmentSize(SessionID sessionID) {
