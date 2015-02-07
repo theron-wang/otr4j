@@ -29,6 +29,14 @@
         <developerConnection>scm:git:git@github.com:jitsi/otr4j.git</developerConnection>
         <url>git@github.com:jitsi/otr4j.git</url>
     </scm>
+    <issueManagement>
+	<url>https://github.com/otr4j/otr4j/issues</url>
+	<system>GitHub Issues</system>
+    </issueManagement>
+    <ciManagement>
+	<system>Travis</system>
+	<url>https://travis-ci.org/otr4j/otr4j</url>
+    </ciManagement>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
