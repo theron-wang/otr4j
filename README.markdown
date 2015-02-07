@@ -9,22 +9,6 @@ for fragmenting outgoing messages.
 For a quick introduction on how to use the library have a look at the
 [DummyClient](src/test/java/net/java/otr4j/test/dummyclient/DummyClient.java).
 
-## Maven
-
-If you use maven for managing your project lifecycle and you want to
-use otr4j in your project, just add the following repository entry to
-the pom.xml:
-
-**IMPORTANT** Repository URL has changed !
-
-```xml
-<repository>
-  <id>otr4j-repo</id>
-  <name>otr4j repository on GitHub</name>
-  <url>http://jitsi.github.com/otr4j/repository/</url>
-</repository>
-```
-
 ## Contributing
 
 This is the friendly, community fork of jitsi/otr4j that meant to be steered
