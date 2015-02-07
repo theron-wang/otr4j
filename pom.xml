@@ -99,10 +99,4 @@
             </plugin>
         </plugins>
     </build>
-    <distributionManagement>
-        <repository>
-            <id>gh-pages</id>
-            <url>file:///${basedir}/../gh-pages/repository/</url>
-        </repository>
-    </distributionManagement>
 </project>
