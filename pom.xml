@@ -26,7 +26,7 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:git:git://github.com/otr4j/otr4j.git</connection>
+        <connection>scm:git:https://github.com/otr4j/otr4j.git</connection>
         <developerConnection>scm:git:git@github.com:otr4j/otr4j.git</developerConnection>
         <url>https://github.com/otr4j/otr4j</url>
     </scm>
