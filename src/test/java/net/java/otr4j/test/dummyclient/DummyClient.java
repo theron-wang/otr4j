@@ -15,7 +15,6 @@ import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.OtrPolicyImpl;
 import net.java.otr4j.crypto.OtrCryptoEngineImpl;
 import net.java.otr4j.crypto.OtrCryptoException;
-import net.java.otr4j.session.FragmenterInstructions;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.Session;
 import net.java.otr4j.session.SessionID;
@@ -372,9 +371,8 @@ public class DummyClient {
 			return "Off-the-Record private conversation has been requested. However, you do not have a plugin to support that.";
 		}
 
-		public FragmenterInstructions getFragmenterInstructions(SessionID sessionID) {
-			return new FragmenterInstructions(FragmenterInstructions.UNLIMITED,
-					FragmenterInstructions.UNLIMITED);
+		public int getMaxFragmentSize(SessionID sessionID) {
+			return Integer.MAX_VALUE;
 		}
 	}
 }
