@@ -281,7 +281,7 @@ public class OtrFragmenterTest {
 	@Test
 	public void testFragmentNullInstructionsCompute() throws IOException {
 		final OtrEngineHost host = mock(OtrEngineHost.class);
-		when(host.getMaxFragmentSize(any(SessionID.class))).thenReturn(null);
+		when(host.getMaxFragmentSize(any(SessionID.class))).thenReturn(Integer.MAX_VALUE);
 		final String message = "Some message that shouldn't be fragmented.";
 		
 		final OtrFragmenter fragmenter = new OtrFragmenter(this.createSessionMock(POLICY_V3, 0, 0), host);
@@ -293,7 +293,7 @@ public class OtrFragmenterTest {
 	@Test
 	public void testFragmentNullInstructionsFragment() throws IOException {
 		final OtrEngineHost host = mock(OtrEngineHost.class);
-		when(host.getMaxFragmentSize(any(SessionID.class))).thenReturn(null);
+		when(host.getMaxFragmentSize(any(SessionID.class))).thenReturn(Integer.MAX_VALUE);
 		final String message = "Some message that shouldn't be fragmented.";
 		
 		final OtrFragmenter fragmenter = new OtrFragmenter(this.createSessionMock(POLICY_V3, 0, 0), host);
@@ -305,7 +305,7 @@ public class OtrFragmenterTest {
 	@Test
 	public void testUnlimitedSizedFragmentToSingleMessage() throws IOException {
 		final Session session = createSessionMock(POLICY_V3, 0, 0);
-		final OtrEngineHost host = host(null);
+		final OtrEngineHost host = host(Integer.MAX_VALUE);
 		
 		OtrFragmenter fragmenter = new OtrFragmenter(session, host);
 		String[] msg = fragmenter.fragment(specV3MessageFull);
@@ -316,7 +316,7 @@ public class OtrFragmenterTest {
 	@Test
 	public void testUnlimitedSizedFragmentToSingleMessageV2() throws IOException {
 		final Session session = createSessionMock(POLICY_V2, 0, 0);
-		final OtrEngineHost host = host(null);
+		final OtrEngineHost host = host(Integer.MAX_VALUE);
 		
 		OtrFragmenter fragmenter = new OtrFragmenter(session, host);
 		String[] msg = fragmenter.fragment(specV2MessageFull);
@@ -349,7 +349,7 @@ public class OtrFragmenterTest {
 	@Test
 	public void testCalculateNumberOfFragmentsUnlimitedSize() throws IOException {
 		final Session session = createSessionMock(POLICY_V3, 0, 0);
-		final OtrEngineHost host = host(null);
+		final OtrEngineHost host = host(Integer.MAX_VALUE);
 		
 		OtrFragmenter fragmenter = new OtrFragmenter(session, host);
 		int num = fragmenter.numberOfFragments(specV3MessageFull);
@@ -508,7 +508,7 @@ public class OtrFragmenterTest {
 	 * @param instructions the fragmentation instructions
 	 * @return returns mock host
 	 */
-	private OtrEngineHost host(final Integer maxFragmentSize) {
+	private OtrEngineHost host(final int maxFragmentSize) {
 		final OtrEngineHost host = mock(OtrEngineHost.class);
 		when(host.getMaxFragmentSize(any(SessionID.class)))
 				.thenReturn(maxFragmentSize);

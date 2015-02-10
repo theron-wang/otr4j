@@ -44,20 +44,25 @@ public abstract interface OtrEngineHost {
 			String msgText) throws OtrException;
 
 	public abstract OtrPolicy getSessionPolicy(SessionID sessionID);
-	
+
 	/**
 	 * Get instructions for the necessary fragmentation operations.
 	 *
-	 * If no fragmentation is necessary, return 'null' to indicate that there is
-	 * no maximum fragment size. Return a positive integer to specify a maximum
-	 * fragment size.
+	 * If no fragmentation is necessary, return {@link Integer#MAX_VALUE} to
+	 * indicate the largest possible fragment size. Return any positive
+	 * integer to specify a maximum fragment size and enable fragmentation
+	 * using that boundary condition. If specified max fragment size is too
+	 * small to fit at least the fragmentation overhead + some part of the
+	 * message, fragmentation will fail with an IOException when
+	 * fragmentation is attempted during message encryption.
 	 *
 	 * @param sessionID
 	 *            the session ID of the session
-	 * @return returns the maximum fragment size allowed or null for unlimited
-	 *         fragment size.
+	 * @return Returns the maximum fragment size allowed. Or return the
+	 * maximum value possible, {@link Integer#MAX_VALUE}, if fragmentation
+	 * is not necessary.
 	 */
-	public abstract Integer getMaxFragmentSize(SessionID sessionID);
+	public abstract int getMaxFragmentSize(SessionID sessionID);
 
 	public abstract KeyPair getLocalKeyPair(SessionID sessionID)
 			throws OtrException;

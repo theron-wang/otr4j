@@ -371,8 +371,8 @@ public class DummyClient {
 			return "Off-the-Record private conversation has been requested. However, you do not have a plugin to support that.";
 		}
 
-		public Integer getMaxFragmentSize(SessionID sessionID) {
-			return null;
+		public int getMaxFragmentSize(SessionID sessionID) {
+			return Integer.MAX_VALUE;
 		}
 	}
 }

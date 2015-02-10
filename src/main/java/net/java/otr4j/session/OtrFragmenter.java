@@ -61,7 +61,7 @@ public class OtrFragmenter {
 		}
 		this.host = host;
 	}
-	
+
 	/**
 	 * Get instructions for fragmentation behaviour.
 	 *
@@ -84,9 +84,9 @@ public class OtrFragmenter {
 	 *             support fragmentation, for example if only OTRv1 is allowed.
 	 */
 	public int numberOfFragments(final String message) throws IOException {
-		final SessionID session = this.session.getSessionID();
-		final Integer fragmentSize = this.host.getMaxFragmentSize(session);
-		if (fragmentSize == null || fragmentSize >= message.length()) {
+		final SessionID sessionId = this.session.getSessionID();
+		final int fragmentSize = this.host.getMaxFragmentSize(sessionId);
+		if (fragmentSize >= message.length()) {
 			return 1;
 		}
 		return computeFragmentNumber(message, fragmentSize);
@@ -127,8 +127,8 @@ public class OtrFragmenter {
 	 *             the maximum number of fragments is exceeded.
 	 */
 	public String[] fragment(final String message) throws IOException {
-		final SessionID session = this.session.getSessionID();
-		final Integer fragmentSize = this.host.getMaxFragmentSize(session);
+		final SessionID sessionId = this.session.getSessionID();
+		final int fragmentSize = this.host.getMaxFragmentSize(sessionId);
 		return fragment(message, fragmentSize);
 	}
 
@@ -137,21 +137,19 @@ public class OtrFragmenter {
 	 * 
 	 * @param message
 	 *            the message
-	 * @param instructions
-	 *            the instructions
+	 * @param requestedFragmentSize
+	 *            the maximum fragment size
 	 * @return returns the fragmented message. The array will contain at least 1
 	 *         message fragment, or more if fragmentation is necessary.
 	 * @throws IOException
 	 *             Exception in the case when it is impossible to fragment the
 	 *             message according to the specified instructions.
 	 */
-	private String[] fragment(final String message,
-			final Integer requestedFragmentSize) throws IOException {
-		if (requestedFragmentSize == null
-				|| requestedFragmentSize >= message.length()) {
+	private String[] fragment(final String message, final int fragmentSize)
+                        throws IOException {
+		if (fragmentSize >= message.length()) {
 			return new String[] { message };
 		}
-		final int fragmentSize = requestedFragmentSize;
 		final int num = computeFragmentNumber(message, fragmentSize);
 		if (num > MAXIMUM_NUMBER_OF_FRAGMENTS) {
 			throw new IOException(
@@ -281,7 +279,7 @@ public class OtrFragmenter {
 	private OtrPolicy getPolicy() {
 		return this.session.getSessionPolicy();
 	}
-	
+
 	/**
 	 * Get the sender instance.
 	 *
@@ -290,7 +288,7 @@ public class OtrFragmenter {
 	private int getSenderInstance() {
 		return this.session.getSenderInstanceTag().getValue();
 	}
-	
+
 	/**
 	 * Get the receiver instance.
 	 *
