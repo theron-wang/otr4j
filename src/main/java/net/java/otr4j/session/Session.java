@@ -871,7 +871,7 @@ public class Session {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 if (msgText != null && msgText.length() > 0) {
                     try {
-                        out.write(msgText.getBytes(SerializationUtils.UTF8));
+                        out.write(SerializationUtils.convertTextToBytes(msgText));
                     } catch (IOException e) {
                         throw new OtrException(e);
                     }
