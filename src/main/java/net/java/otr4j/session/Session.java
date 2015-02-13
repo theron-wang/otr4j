@@ -943,10 +943,7 @@ public class Session {
                 getHost().finishedSessionMessage(sessionID, msgText);
                 return null;
             default:
-                logger.finest("Unknown message state, not processing.");
-                return new String[] {
-                        msgText
-                };
+                throw new OtrException("Unknown message state, not processing");
         }
     }
 
