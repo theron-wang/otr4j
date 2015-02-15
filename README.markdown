@@ -33,6 +33,18 @@ history viewer, like `gitk`, which is part of the official git.
 
 For more info: [A tag-team git workflow that incorporates auditing][TagTeamGit]
 
+## Code Style
+
+otr4j uses a code style comparable to the [Android code style
+guidelines][AndroidStyle]. The one major exception is that no prefixes for
+members and static variables are used. In order to verify that this style and
+several additional requirements are met, [Checkstyle] and [PMD] are integrated
+into the maven build. As a contributor, please check that your changes adhere
+to the style by running `mvn site` and observing the generated HTML outputs at
+the location `target/site/index.html`. All major IDEs have plugins to support
+inline checks with [Checkstyle] and [PMD], which makes it much easier to verify
+the rules already while coding. The respective configuration files can be found
+in the `codecheck` folder.
 
 ## Eclipse
 
@@ -65,4 +77,7 @@ Eclipse.  The setup instructions should be more straightforward.
   [OTRv2]: https://otr.cypherpunks.ca/Protocol-v2-3.1.0.html
   [OTRv3]: https://otr.cypherpunks.ca/Protocol-v3-4.0.0.html
   [TagTeamGit]: https://guardianproject.info/2013/11/21/a-tag-team-git-workflow-that-incorporates-auditing/
+  [AndroidStyle]: https://source.android.com/source/code-style.html
+  [Checkstyle]: http://checkstyle.sourceforge.net/
+  [PMD]: http://pmd.sourceforge.net/
 
