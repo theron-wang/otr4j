@@ -4,6 +4,7 @@ package net.java.otr4j.test.dummyclient;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -238,6 +239,8 @@ public class DummyClient {
 
 	class DummyOtrEngineHostImpl implements OtrEngineHost {
 
+	    private HashMap<SessionID, KeyPair> keypairs = new HashMap<SessionID, KeyPair>();
+
 		public void injectMessage(SessionID sessionID, String msg) throws OtrException {
 			connection.send(sessionID.getUserID(), msg);
 
@@ -283,16 +286,19 @@ public class DummyClient {
 			logger.severe("IM shows error to user: " + error);
 		}
 
-		public KeyPair getLocalKeyPair(SessionID paramSessionID) {
-			KeyPairGenerator kg;
-			try {
-				kg = KeyPairGenerator.getInstance("DSA");
-			} catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
-				return null;
-			}
-			return kg.genKeyPair();
-		}
+        public KeyPair getLocalKeyPair(SessionID paramSessionID) {
+            KeyPair keypair = this.keypairs.get(paramSessionID);
+            if (keypair == null) {
+                try {
+                    KeyPairGenerator kg = KeyPairGenerator.getInstance("DSA");
+                    keypair = kg.genKeyPair();
+                    this.keypairs.put(paramSessionID, keypair);
+                } catch (NoSuchAlgorithmException e) {
+                    logger.severe(e.getMessage());
+                }
+            }
+            return keypair;
+        }
 
 		public OtrPolicy getSessionPolicy(SessionID ctx) {
 			return policy;
