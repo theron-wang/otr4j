@@ -474,7 +474,7 @@ public class Session {
                 return null;
             default:
                 throw new UnsupportedOperationException(
-                        "Received an uknown message type.");
+                        "Received an unknown message type.");
         }
     }
 
@@ -526,7 +526,8 @@ public class Session {
         getHost().showError(this.getSessionID(), errorMessage.error);
 
         OtrPolicy policy = getSessionPolicy();
-        if (policy.getErrorStartAKE()) {
+        // Re-negotiate if we got an error and we are encrypted
+        if (policy.getErrorStartAKE() && getSessionStatus() == SessionStatus.ENCRYPTED) {
             logger.finest("Error message starts AKE.");
             Vector<Integer> versions = new Vector<Integer>();
             if (policy.getAllowV1())
@@ -677,8 +678,12 @@ public class Session {
         } catch (IOException e) {
             throw new OtrException(e);
         }
-        if (m instanceof QueryMessage)
-            msg += getHost().getFallbackMessage(getSessionID());
+        if (m instanceof QueryMessage) {
+            String fallback = getHost().getFallbackMessage(getSessionID());
+            if (fallback == null || fallback.equals(""))
+                fallback = SerializationConstants.DEFAULT_FALLBACK_MESSAGE;
+            msg += fallback;
+        }
 
         if (SerializationUtils.otrEncoded(msg)) {
             // Content is OTR encoded, so we are allowed to partition.
@@ -866,7 +871,7 @@ public class Session {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 if (msgText != null && msgText.length() > 0) {
                     try {
-                        out.write(msgText.getBytes(SerializationUtils.UTF8));
+                        out.write(SerializationUtils.convertTextToBytes(msgText));
                     } catch (IOException e) {
                         throw new OtrException(e);
                     }
@@ -938,10 +943,7 @@ public class Session {
                 getHost().finishedSessionMessage(sessionID, msgText);
                 return null;
             default:
-                logger.finest("Uknown message state, not processing.");
-                return new String[] {
-                        msgText
-                };
+                throw new OtrException("Unknown message state, not processing");
         }
     }
 

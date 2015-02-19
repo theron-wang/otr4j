@@ -8,6 +8,7 @@ package net.java.otr4j;
 
 import java.security.KeyPair;
 
+import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.SessionID;
 
@@ -20,12 +21,29 @@ import net.java.otr4j.session.SessionID;
  * 
  */
 public abstract interface OtrEngineHost {
+
 	public abstract void injectMessage(SessionID sessionID, String msg)
 			throws OtrException;
 
+    /**
+     * Warn the user that an encrypted message was received that could not be
+     * unencrypted, most likely because it was encrypted to a different session,
+     * or an old session.
+     *
+     * @param sessionID
+     * @throws OtrException
+     */
 	public abstract void unreadableMessageReceived(SessionID sessionID)
 			throws OtrException;
 
+    /**
+     * Display the message to the user, but warn him that the message was
+     * received unencrypted.
+     *
+     * @param sessionID
+     * @param msg the body of the received message that was not encrypted
+     * @throws OtrException
+     */
 	public abstract void unencryptedMessageReceived(SessionID sessionID,
 			String msg) throws OtrException;
 
@@ -77,6 +95,17 @@ public abstract interface OtrEngineHost {
 
 	public abstract String getReplyForUnreadableMessage(SessionID sessionID);
 
+    /**
+     * Return the localized message that explains to the recipient how to get an
+     * OTR-enabled client. This is sent as part of the initial OTR Query message
+     * that prompts the other side to set up an OTR session. If this returns
+     * {@code null} or {@code ""}, then otr4j will use the built-in default
+     * message specified in
+     * {@link SerializationConstants#DEFAULT_FALLBACK_MESSAGE}
+     *
+     * @param sessionID
+     * @return String the localized message
+     */
 	public abstract String getFallbackMessage(SessionID sessionID);
 
 	public abstract void messageFromAnotherInstanceReceived(SessionID sessionID);

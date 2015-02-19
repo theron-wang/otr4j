@@ -43,6 +43,7 @@ import net.java.otr4j.session.Session.OTRv;
  * @author George Politis
  */
 public class SerializationUtils {
+
 	/**
 	 * Charset for base64-encoded content.
 	 */
@@ -468,6 +469,20 @@ public class SerializationUtils {
 		}
 		return out.toByteArray();
 	}
+
+	/**
+     * Convert the {@code String} text to a {@code byte[]}, including sanitizing
+     * it to make sure no corrupt characters conflict with bytes that have
+     * special meaning in OTR. Mostly, this means removing NULL bytes, since
+     * {@code 0x00) is used as the separator between the message and the TLVs
+     * in an OTR Data Message.
+     *
+     * @param msg the plain text message being sent
+     * @return byte[] the incoming message converted to OTR-safe bytes
+     */
+    public static byte[] convertTextToBytes(String msg) {
+        return msg.replace('\0', '?').getBytes(SerializationUtils.UTF8);
+    }
 
 	/**
 	 * Check whether the provided content is OTR encoded.
