@@ -4,9 +4,11 @@ package net.java.otr4j.test.dummyclient;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Logger;
 
 import net.java.otr4j.OtrEngineHost;
@@ -33,12 +35,33 @@ public class DummyClient {
 	private MessageProcessor processor;
 	private Queue<ProcessedTestMessage> processedMsgs = new LinkedList<ProcessedTestMessage>();
 
-	public static DummyClient[] getConversation() {
-		DummyClient bob = new DummyClient("Bob@Wonderland");
+    private CountDownLatch lock;
+    private int verified = NOTSET;
+    public static final int NOTSET = 0;
+    public static final int UNVERIFIED = 1;
+    public static final int VERIFIED = 2;
+
+    public static DummyClient[] getConversation() {
+        DummyClient bob = new DummyClient("Bob@Wonderland");
+        bob.setPolicy(new OtrPolicy(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3
+                | OtrPolicy.ERROR_START_AKE));
+
+        DummyClient alice = new DummyClient("Alice@Wonderland");
+        alice.setPolicy(new OtrPolicy(OtrPolicy.ALLOW_V2
+                | OtrPolicy.ALLOW_V3 | OtrPolicy.ERROR_START_AKE));
+
+        Server server = new PriorityServer();
+        alice.connect(server);
+        bob.connect(server);
+        return new DummyClient[] { alice, bob };
+    }
+
+    public static DummyClient[] getConversation(CountDownLatch aliceLock, CountDownLatch bobLock) {
+		DummyClient bob = new DummyClient("Bob@Wonderland", aliceLock);
 		bob.setPolicy(new OtrPolicy(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3
 				| OtrPolicy.ERROR_START_AKE));
 
-		DummyClient alice = new DummyClient("Alice@Wonderland");
+		DummyClient alice = new DummyClient("Alice@Wonderland", bobLock);
 		alice.setPolicy(new OtrPolicy(OtrPolicy.ALLOW_V2
 				| OtrPolicy.ALLOW_V3 | OtrPolicy.ERROR_START_AKE));
 
@@ -66,7 +89,12 @@ public class DummyClient {
 	}
 
 	public DummyClient(String account) {
-        logger = Logger.getLogger(account);
+	    this(account, null);
+	}
+
+	public DummyClient(String account, CountDownLatch lock) {
+	    this.lock = lock;
+	    logger = Logger.getLogger(account);
 		this.account = account;
 	}
 
@@ -76,6 +104,10 @@ public class DummyClient {
 
 	public String getAccount() {
 		return account;
+	}
+
+	public int getVerified() {
+	    return verified;
 	}
 
 	public void setPolicy(OtrPolicy policy) {
@@ -236,7 +268,9 @@ public class DummyClient {
         }
 	}
 
-	class DummyOtrEngineHostImpl implements OtrEngineHost {
+	public class DummyOtrEngineHostImpl implements OtrEngineHost {
+
+	    private HashMap<SessionID, KeyPair> keypairs = new HashMap<SessionID, KeyPair>();
 
 		public void injectMessage(SessionID sessionID, String msg) throws OtrException {
 			connection.send(sessionID.getUserID(), msg);
@@ -257,11 +291,6 @@ public class DummyClient {
 		}
 
 		public void finishedSessionMessage(SessionID sessionID, String msgText) throws OtrException {
-			logger.severe("SM session was finished. You shouldn't send messages to: "
-					+ sessionID);
-		}
-
-		public void finishedSessionMessage(SessionID sessionID) throws OtrException {
 			logger.severe("SM session was finished. You shouldn't send messages to: "
 					+ sessionID);
 		}
@@ -288,43 +317,22 @@ public class DummyClient {
 			logger.severe("IM shows error to user: " + error);
 		}
 
-		public String getReplyForUnreadableMessage() {
-			return "You sent me an unreadable encrypted message.";
-		}
-
-		public void sessionStatusChanged(SessionID sessionID) {
-			// don't care.
-		}
-
-		public KeyPair getLocalKeyPair(SessionID paramSessionID) {
-			KeyPairGenerator kg;
-			try {
-				kg = KeyPairGenerator.getInstance("DSA");
-			} catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
-				return null;
-			}
-			return kg.genKeyPair();
-		}
+        public KeyPair getLocalKeyPair(SessionID paramSessionID) {
+            KeyPair keypair = this.keypairs.get(paramSessionID);
+            if (keypair == null) {
+                try {
+                    KeyPairGenerator kg = KeyPairGenerator.getInstance("DSA");
+                    keypair = kg.genKeyPair();
+                    this.keypairs.put(paramSessionID, keypair);
+                } catch (NoSuchAlgorithmException e) {
+                    logger.severe(e.getMessage());
+                }
+            }
+            return keypair;
+        }
 
 		public OtrPolicy getSessionPolicy(SessionID ctx) {
 			return policy;
-		}
-
-		public void askForSecret(SessionID sessionID, String question) {
-			logger.finest("Ask for secret from: " + sessionID + ", question: "
-					+ question);
-		}
-
-		public void verify(SessionID sessionID, boolean approved) {
-			logger.finest("Session was verified: " + sessionID);
-			if (!approved)
-				logger.finest("Your answer for the question was verified."
-						+ "You should ask your opponent too or check shared secret.");
-		}
-
-		public void unverify(SessionID sessionID) {
-			logger.finest("Session was not verified: " + sessionID);
 		}
 
 		public byte[] getLocalFingerprintRaw(SessionID sessionID) {
@@ -339,23 +347,37 @@ public class DummyClient {
 		}
 
 		public void askForSecret(SessionID sessionID, InstanceTag receiverTag, String question) {
-
+            logger.finer("Ask for secret from: " + sessionID
+                    + ", instanceTag: " + receiverTag + ", question: " + question);
+            if (lock != null)
+                lock.countDown();
 		}
 
 		public void verify(SessionID sessionID, String fingerprint, boolean approved) {
-
+            logger.finer("Session was verified: " + sessionID);
+            if (approved)
+                logger.fine("Your answer was approved");
+            else
+                logger.fine("Your answer for the question was verified."
+                        + "You should ask your opponent too or check shared secret.");
+            verified = VERIFIED;
+            if (lock != null)
+                lock.countDown();
 		}
 
 		public void unverify(SessionID sessionID, String fingerprint) {
-
+            logger.fine("Session was not verified: " + sessionID + "  fingerprint: " + fingerprint);
+            verified = UNVERIFIED;
+            if (lock != null)
+                lock.countDown();
 		}
 
 		public String getReplyForUnreadableMessage(SessionID sessionID) {
-			return null;
+            return "You sent me an unreadable encrypted message.";
 		}
 
 		public String getFallbackMessage(SessionID sessionID) {
-			return null;
+            return "Off-the-Record private conversation has been requested. However, you do not have a plugin to support that.";
 		}
 
 		public void messageFromAnotherInstanceReceived(SessionID sessionID) {
