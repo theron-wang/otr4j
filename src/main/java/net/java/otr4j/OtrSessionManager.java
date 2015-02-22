@@ -30,6 +30,10 @@ public class OtrSessionManager {
     private OtrEngineHost host;
     private Map<SessionID, Session> sessions;
 
+    /**
+     * Get an OTR session.
+     * @return MVN_PASS_JAVADOC_INSPECTION
+     */
     public Session getSession(SessionID sessionID) {
 
         if (sessionID == null || sessionID.equals(SessionID.Empty))
