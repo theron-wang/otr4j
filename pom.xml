@@ -7,7 +7,7 @@
     <version>0.21</version>
     <packaging>jar</packaging>
     <name>otr4j library</name>
-    <url>http://github.com/otr4j/otr4j</url>
+    <url>https://github.com/otr4j/otr4j</url>
     <description>
         otr4j is an implementation of the OTR (Off The Record) protocol in java.
 
@@ -41,6 +41,25 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    <!-- force HTTPS access for downloading jars -->
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
