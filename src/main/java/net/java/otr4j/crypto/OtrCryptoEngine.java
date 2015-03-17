@@ -57,8 +57,7 @@ public class OtrCryptoEngine {
     public static final String MODULUS_TEXT = "00FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF";
     public static final BigInteger MODULUS = new BigInteger(MODULUS_TEXT, 16);
     public static final BigInteger BIGINTEGER_TWO = BigInteger.valueOf(2);
-    public static final BigInteger MODULUS_MINUS_TWO = MODULUS
-            .subtract(BIGINTEGER_TWO);
+    public static final BigInteger MODULUS_MINUS_TWO = MODULUS.subtract(BIGINTEGER_TWO);
 
     public static String GENERATOR_TEXT = "2";
     public static BigInteger GENERATOR = new BigInteger(GENERATOR_TEXT, 10);
@@ -74,7 +73,11 @@ public class OtrCryptoEngine {
 
     public static final int DSA_PUB_TYPE = 0;
 
-    public KeyPair generateDHKeyPair() throws OtrCryptoException {
+    private OtrCryptoEngine() {
+        // this class is never instantiated, it only has static methods
+    }
+
+    public static KeyPair generateDHKeyPair() throws OtrCryptoException {
 
         // Generate a AsymmetricCipherKeyPair using BC.
         DHParameters dhParams = new DHParameters(MODULUS, GENERATOR, null,
@@ -111,12 +114,12 @@ public class OtrCryptoEngine {
         }
     }
 
-    public DHPublicKey getDHPublicKey(byte[] mpiBytes)
+    public static DHPublicKey getDHPublicKey(byte[] mpiBytes)
             throws OtrCryptoException {
         return getDHPublicKey(new BigInteger(mpiBytes));
     }
 
-    public DHPublicKey getDHPublicKey(BigInteger mpi) throws OtrCryptoException {
+    public static DHPublicKey getDHPublicKey(BigInteger mpi) throws OtrCryptoException {
         DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(mpi, MODULUS,
                 GENERATOR);
         try {
@@ -127,11 +130,11 @@ public class OtrCryptoEngine {
         }
     }
 
-    public byte[] sha256Hmac(byte[] b, byte[] key) throws OtrCryptoException {
-        return this.sha256Hmac(b, key, 0);
+    public static byte[] sha256Hmac(byte[] b, byte[] key) throws OtrCryptoException {
+        return sha256Hmac(b, key, 0);
     }
 
-    public byte[] sha256Hmac(byte[] b, byte[] key, int length)
+    public static byte[] sha256Hmac(byte[] b, byte[] key, int length)
             throws OtrCryptoException {
 
         SecretKeySpec keyspec = new SecretKeySpec(key, "HmacSHA256");
@@ -159,7 +162,7 @@ public class OtrCryptoEngine {
         }
     }
 
-    public byte[] sha1Hmac(byte[] b, byte[] key, int length)
+    public static byte[] sha1Hmac(byte[] b, byte[] key, int length)
             throws OtrCryptoException {
 
         try {
@@ -182,11 +185,11 @@ public class OtrCryptoEngine {
         }
     }
 
-    public byte[] sha256Hmac160(byte[] b, byte[] key) throws OtrCryptoException {
+    public static byte[] sha256Hmac160(byte[] b, byte[] key) throws OtrCryptoException {
         return sha256Hmac(b, key, SerializationConstants.TYPE_LEN_MAC);
     }
 
-    public byte[] sha256Hash(byte[] b) throws OtrCryptoException {
+    public static byte[] sha256Hash(byte[] b) throws OtrCryptoException {
         try {
             MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
             sha256.update(b, 0, b.length);
@@ -196,7 +199,7 @@ public class OtrCryptoEngine {
         }
     }
 
-    public byte[] sha1Hash(byte[] b) throws OtrCryptoException {
+    public static byte[] sha1Hash(byte[] b) throws OtrCryptoException {
         try {
             MessageDigest sha256 = MessageDigest.getInstance("SHA-1");
             sha256.update(b, 0, b.length);
@@ -206,7 +209,7 @@ public class OtrCryptoEngine {
         }
     }
 
-    public byte[] aesDecrypt(byte[] key, byte[] ctr, byte[] b)
+    public static byte[] aesDecrypt(byte[] key, byte[] ctr, byte[] b)
             throws OtrCryptoException {
 
         AESFastEngine aesDec = new AESFastEngine();
@@ -229,7 +232,7 @@ public class OtrCryptoEngine {
         return aesOutLwDec;
     }
 
-    public byte[] aesEncrypt(byte[] key, byte[] ctr, byte[] b)
+    public static byte[] aesEncrypt(byte[] key, byte[] ctr, byte[] b)
             throws OtrCryptoException {
 
         AESFastEngine aesEnc = new AESFastEngine();
@@ -251,7 +254,7 @@ public class OtrCryptoEngine {
         return aesOutLwEnc;
     }
 
-    public BigInteger generateSecret(PrivateKey privKey, PublicKey pubKey)
+    public static BigInteger generateSecret(PrivateKey privKey, PublicKey pubKey)
             throws OtrCryptoException {
         try {
             KeyAgreement ka = KeyAgreement.getInstance("DH");
@@ -266,7 +269,7 @@ public class OtrCryptoEngine {
         }
     }
 
-    public byte[] sign(byte[] b, PrivateKey privatekey)
+    public static byte[] sign(byte[] b, PrivateKey privatekey)
             throws OtrCryptoException {
 
         if (!(privatekey instanceof DSAPrivateKey))
@@ -306,7 +309,7 @@ public class OtrCryptoEngine {
         return sig;
     }
 
-    public boolean verify(byte[] b, PublicKey pubKey, byte[] rs)
+    public static boolean verify(byte[] b, PublicKey pubKey, byte[] rs)
             throws OtrCryptoException {
 
         if (!(pubKey instanceof DSAPublicKey))
@@ -322,14 +325,14 @@ public class OtrCryptoEngine {
         return verify(b, pubKey, r, s);
     }
 
-    private Boolean verify(byte[] b, PublicKey pubKey, byte[] r, byte[] s)
+    private static Boolean verify(byte[] b, PublicKey pubKey, byte[] r, byte[] s)
             throws OtrCryptoException {
         Boolean result = verify(b, pubKey, new BigInteger(1, r),
                 new BigInteger(1, s));
         return result;
     }
 
-    private Boolean verify(byte[] b, PublicKey pubKey, BigInteger r,
+    private static Boolean verify(byte[] b, PublicKey pubKey, BigInteger r,
             BigInteger s) throws OtrCryptoException {
 
         if (!(pubKey instanceof DSAPublicKey))
@@ -359,12 +362,12 @@ public class OtrCryptoEngine {
         return result;
     }
 
-    public String getFingerprint(PublicKey pubKey) throws OtrCryptoException {
+    public static String getFingerprint(PublicKey pubKey) throws OtrCryptoException {
         byte[] b = getFingerprintRaw(pubKey);
         return SerializationUtils.byteArrayToHexString(b);
     }
 
-    public byte[] getFingerprintRaw(PublicKey pubKey)
+    public static byte[] getFingerprintRaw(PublicKey pubKey)
             throws OtrCryptoException {
         byte[] b;
         try {
@@ -373,9 +376,9 @@ public class OtrCryptoEngine {
             if (pubKey.getAlgorithm().equals("DSA")) {
                 byte[] trimmed = new byte[bRemotePubKey.length - 2];
                 System.arraycopy(bRemotePubKey, 2, trimmed, 0, trimmed.length);
-                b = new OtrCryptoEngine().sha1Hash(trimmed);
+                b = OtrCryptoEngine.sha1Hash(trimmed);
             } else
-                b = new OtrCryptoEngine().sha1Hash(bRemotePubKey);
+                b = OtrCryptoEngine.sha1Hash(bRemotePubKey);
         } catch (IOException e) {
             throw new OtrCryptoException(e);
         }
