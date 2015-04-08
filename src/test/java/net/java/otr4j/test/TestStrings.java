@@ -31,4 +31,10 @@ public class TestStrings {
             "திபெத்துக்கு வெகள்",
             "អក្សរសាស្រ្តខែ្មរមានប្រវ៌ត្តជាងពីរពាន់ឆ្នាំមកហើយ ",
     };
+
+    public static final String otrQuery = "<p>?OTRv23?\n"
+            + "<span style=\"font-weight: bold;\">Bob@Wonderland/</span> has requested an <a href=\"http://otr.cypherpunks.ca/\">Off-the-Record private conversation</a>. However, you do not have a plugin to support that.\n"
+            + "See <a href=\"http://otr.cypherpunks.ca/\">http://otr.cypherpunks.ca/</a> for more information.</p>";
+    public static final String anotherOtrQuery = "?OTRv23? Message from another client !";
+    public static final String yetAnotherOtrQuery = "?OTRv23? Another message from another client !!";
 }

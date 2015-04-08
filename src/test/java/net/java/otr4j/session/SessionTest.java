@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.test.TestStrings;
 import net.java.otr4j.test.dummyclient.DummyClient;
 import net.java.otr4j.test.dummyclient.PriorityServer;
 import net.java.otr4j.test.dummyclient.ProcessedTestMessage;
@@ -40,13 +41,7 @@ public class SessionTest {
         bob2.connect(server);
         bob3.connect(server);
 
-        bob1.send(
-                alice.getAccount(),
-                "<p>?OTRv23?\n"
-                        +
-                        "<span style=\"font-weight: bold;\">Bob@Wonderland/</span> has requested an <a href=\"http://otr.cypherpunks.ca/\">Off-the-Record private conversation</a>. However, you do not have a plugin to support that.\n"
-                        +
-                        "See <a href=\"http://otr.cypherpunks.ca/\">http://otr.cypherpunks.ca/</a> for more information.</p>");
+        bob1.send(alice.getAccount(), TestStrings.otrQuery);
 
         alice.pollReceivedMessage(); // Query
         bob1.pollReceivedMessage(); // DH-Commit
@@ -66,7 +61,7 @@ public class SessionTest {
         assertEquals("Received message is different from the sent message.",
                 msg, bob1.pollReceivedMessage().getContent());
 
-        bob2.send(alice.getAccount(), msg = "?OTRv23? Message from another client !");
+        bob2.send(alice.getAccount(), msg = TestStrings.anotherOtrQuery);
 
         alice.pollReceivedMessage();
         bob2.pollReceivedMessage();
@@ -81,7 +76,7 @@ public class SessionTest {
         assertEquals("Received message is different from the sent message.",
                 msg, alice.pollReceivedMessage().getContent());
 
-        bob3.send(alice.getAccount(), msg = "?OTRv23? Another message from another client !!");
+        bob3.send(alice.getAccount(), msg = TestStrings.yetAnotherOtrQuery);
         alice.pollReceivedMessage();
         bob3.pollReceivedMessage();
         alice.pollReceivedMessage();
@@ -136,13 +131,7 @@ public class SessionTest {
         DummyClient alice = convo[0];
         DummyClient bob = convo[1];
 
-        bob.send(
-                alice.getAccount(),
-                "<p>?OTRv23?\n"
-                        +
-                        "<span style=\"font-weight: bold;\">Bob@Wonderland/</span> has requested an <a href=\"http://otr.cypherpunks.ca/\">Off-the-Record private conversation</a>. However, you do not have a plugin to support that.\n"
-                        +
-                        "See <a href=\"http://otr.cypherpunks.ca/\">http://otr.cypherpunks.ca/</a> for more information.</p>");
+        bob.send(alice.getAccount(), TestStrings.otrQuery);
 
         alice.pollReceivedMessage(); // Query
         bob.pollReceivedMessage(); // DH-Commit
