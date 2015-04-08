@@ -34,6 +34,7 @@ public class DummyClient {
 	private Connection connection;
 	private MessageProcessor processor;
 	private Queue<ProcessedTestMessage> processedMsgs = new LinkedList<ProcessedTestMessage>();
+	private HashMap<SessionID, String>smpQuestions = new HashMap<SessionID, String>();
 
     private CountDownLatch lock;
     private int verified = NOTSET;
@@ -167,6 +168,10 @@ public class DummyClient {
 		return connection;
 	}
 
+	public String getSmpQuestion(SessionID sessionId) {
+	    return smpQuestions.get(sessionId);
+	}
+
 	public ProcessedTestMessage pollReceivedMessage() {
 		synchronized (processedMsgs) {
 			ProcessedTestMessage m;
@@ -283,11 +288,13 @@ public class DummyClient {
 		public void smpError(SessionID sessionID, int tlvType, boolean cheated)
 				throws OtrException {
 			logger.severe("SM verification error with user: " + sessionID);
+			smpQuestions.remove(sessionID);
 		}
 
 		public void smpAborted(SessionID sessionID) throws OtrException {
 			logger.severe("SM verification has been aborted by user: "
 					+ sessionID);
+			smpQuestions.remove(sessionID);
 		}
 
 		public void finishedSessionMessage(SessionID sessionID, String msgText) throws OtrException {
@@ -349,6 +356,7 @@ public class DummyClient {
 		public void askForSecret(SessionID sessionID, InstanceTag receiverTag, String question) {
             logger.finer("Ask for secret from: " + sessionID
                     + ", instanceTag: " + receiverTag + ", question: " + question);
+            smpQuestions.put(sessionID, question);
             if (lock != null)
                 lock.countDown();
 		}

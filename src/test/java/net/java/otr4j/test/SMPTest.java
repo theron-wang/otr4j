@@ -11,6 +11,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import net.java.otr4j.OtrException;
+import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.session.Session;
 import net.java.otr4j.test.dummyclient.DummyClient;
 
@@ -113,6 +114,16 @@ public class SMPTest {
         // wait for the password prompt that is triggered by:
         // OtrEngineHost.askForSecret()
         assertTrue(bobLock.await(DEFAULT_TIMEOUT_MS, TimeUnit.MILLISECONDS));
+
+        // make sure that the SMP question arrived intact
+        String bobReceivedQuestion = bob.getSmpQuestion(bobSession.getSessionID());
+        assertEquals(question, bobReceivedQuestion);
+        if (question != null) {
+            assertEquals(question.length(), bobReceivedQuestion.length());
+            assertEquals(question.getBytes().length, bobReceivedQuestion.getBytes().length);
+            assertEquals(question.getBytes(SerializationUtils.UTF8).length,
+                    bobReceivedQuestion.getBytes(SerializationUtils.UTF8).length);
+        }
 
         bobSession.respondSmp(question, bobPassword);
         assertTrue(aliceSession.isSmpInProgress());
