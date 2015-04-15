@@ -28,7 +28,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class SMPTest {
 
-    private static final int DEFAULT_TIMEOUT_MS = 2000;
+    private static final int DEFAULT_TIMEOUT_MS = 10000;
     private static final String SIMPLE_PASSWORD = "MATCH";
     private final String snippet;
 
