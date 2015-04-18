@@ -10,7 +10,6 @@ package net.java.otr4j.session;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.nio.ByteBuffer;
@@ -551,8 +550,7 @@ public class Session {
 
         switch (this.getSessionStatus()) {
             case ENCRYPTED:
-                logger
-                        .finest("Message state is ENCRYPTED. Trying to decrypt message.");
+                logger.finest("Message state is ENCRYPTED. Trying to decrypt message.");
                 // Find matching session keys.
                 int senderKeyID = data.senderKeyID;
                 int receipientKeyID = data.recipientKeyID;
@@ -601,15 +599,6 @@ public class Session {
                 byte[] dmc = otrCryptoEngine.aesDecrypt(matchingKeys
                         .getReceivingAESKey(), matchingKeys.getReceivingCtr(),
                         data.encryptedMessage);
-                String decryptedMsgContent;
-                try {
-                    // Expect bytes to be text encoded in UTF-8.
-                    decryptedMsgContent = new String(dmc, "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    throw new OtrException(e);
-                }
-
-                logger.finest("Decrypted message: \"" + decryptedMsgContent + "\"");
 
                 // Rotate keys if necessary.
                 SessionKeys mostRecent = this.getMostRecentSessionKeys();
@@ -619,13 +608,22 @@ public class Session {
                 if (mostRecent.getRemoteKeyID() == senderKeyID)
                     this.rotateRemoteSessionKeys(data.nextDH);
 
-                // Handle TLVs
+                // find the null TLV separator in the package, or just use the end value
+                int tlvIndex = dmc.length;
+                for (int i = 0; i < dmc.length; i++) {
+                    if (dmc[i] == 0x00) {
+                        tlvIndex = i;
+                        break;
+                    }
+                }
+
+                // get message body without trailing 0x00, expect UTF-8 bytes
+                String decryptedMsgContent = new String(dmc, 0, tlvIndex, SerializationUtils.UTF8);
+
+                // if the null TLV separator is somewhere in the middle, there are TLVs
                 List<TLV> tlvs = null;
-                int tlvIndex = decryptedMsgContent.indexOf((char) 0x0);
-                if (tlvIndex > -1) {
-                    decryptedMsgContent = decryptedMsgContent
-                            .substring(0, tlvIndex);
-                    tlvIndex++;
+                tlvIndex++;  // to ignore the null
+                if (tlvIndex < dmc.length) {
                     byte[] tlvsb = new byte[dmc.length - tlvIndex];
                     System.arraycopy(dmc, tlvIndex, tlvsb, 0, tlvsb.length);
 
