@@ -5,12 +5,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import net.java.otr4j.OtrException;
+import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.session.Session;
 import net.java.otr4j.test.dummyclient.DummyClient;
 
@@ -27,7 +28,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class SMPTest {
 
-    private static final int DEFAULT_TIMEOUT_MS = 2000;
+    private static final int DEFAULT_TIMEOUT_MS = 10000;
     private static final String SIMPLE_PASSWORD = "MATCH";
     private final String snippet;
 
@@ -35,36 +36,16 @@ public class SMPTest {
         this.snippet = snippet;
     }
 
-    // TODO these currently cause an Exception when used as question:
-    // "nullshere:\0\0andhere:\0",
-    // "tabbackslashT\t",
-    // "backslashR\r",
-    // "NEWLINE\n",
     @Parameters
     public static Collection<Object[]> data() {
-        return Arrays
-                .asList(new Object[][] {
-                        { "plainAscii" },
-                        { "" },
-                        { "བོད་རིགས་ཀྱི་བོད་སྐད་བརྗོད་པ་དང་ "
-                                + "བོད་རིགས་མང་ཆེ་བ་ནི་ནང་ཆོས་བྱེད་པ་དང་" },
-                        { "تبتی قوم (Tibetan people)" },
-                        { "Учените твърдят, че тибетците нямат" },
-                        { "Câung-cŭk (藏族, Câung-ngṳ̄: བོད་པ་)" },
-                        { "チベット系民族（チベットけいみんぞく）" },
-                        { "原始汉人与原始藏缅人约在公元前4000年左右分开。" },
-                        { "Տիբեթացիներ (ինքնանվանումը՝ պյոբա)," },
-                        { "... Gezginci olarak" },
-                        { "شْتَن Xotan" },
-                        { "Tibeťané jsou" },
-                        { "ئاچاڭ- تىبەت مىللىتى" },
-                        { "Miscellaneous Symbols and Pictographs[1][2]"
-                                + "Official Unicode Consortium code chart (PDF)" },
-                        { "Royal Thai (ราชาศัพท์)" }, { "טיילאנדיש123 (ภาษาไทย)" },
-                        { "ជើងអក្សរ cheung âksâr" }, { "중화인민공화국에서는 기본적으로 한족은 " },
-                        { "पाठ्यांशः अत्र उपलभ्यतेसर्जनसामान्यलक्षणम्/Share-" },
-                        { "திபெத்துக்கு வெகள்" },
-                        { "អក្សរសាស្រ្តខែ្មរមានប្រវ៌ត្តជាងពីរពាន់ឆ្នាំមកហើយ " }, });
+        // this crazy format is needed by JUnit:
+        // https://github.com/junit-team/junit/wiki/Parameterized-tests
+        ArrayList<Object[]> list = new ArrayList<Object[]>(TestStrings.unicodes.length);
+        for (String string : TestStrings.unicodes)
+            list.add(new Object[] {
+                    string
+            });
+        return list;
     }
 
     private static class SMPTestResult {
@@ -113,6 +94,16 @@ public class SMPTest {
         // wait for the password prompt that is triggered by:
         // OtrEngineHost.askForSecret()
         assertTrue(bobLock.await(DEFAULT_TIMEOUT_MS, TimeUnit.MILLISECONDS));
+
+        // make sure that the SMP question arrived intact
+        String bobReceivedQuestion = bob.getSmpQuestion(bobSession.getSessionID());
+        assertEquals(question, bobReceivedQuestion);
+        if (question != null) {
+            assertEquals(question.length(), bobReceivedQuestion.length());
+            assertEquals(question.getBytes().length, bobReceivedQuestion.getBytes().length);
+            assertEquals(question.getBytes(SerializationUtils.UTF8).length,
+                    bobReceivedQuestion.getBytes(SerializationUtils.UTF8).length);
+        }
 
         bobSession.respondSmp(question, bobPassword);
         assertTrue(aliceSession.isSmpInProgress());
