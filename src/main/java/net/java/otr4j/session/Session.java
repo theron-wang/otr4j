@@ -74,7 +74,7 @@ public class Session {
     private SessionKeys[][] sessionKeys;
     private Vector<byte[]> oldMacKeys;
     private Logger logger;
-    private final OtrSm otrSm;
+    private SmpTlvHandler smpTlvHandler;
     private BigInteger ess;
     private OfferStatus offerStatus;
     private final InstanceTag senderTag;
@@ -95,7 +95,6 @@ public class Session {
         this.sessionStatus = SessionStatus.PLAINTEXT;
         this.offerStatus = OfferStatus.idle;
 
-        otrSm = new OtrSm(this, listener);
         this.senderTag = new InstanceTag();
         this.receiverTag = InstanceTag.ZERO_TAG;
 
@@ -119,7 +118,6 @@ public class Session {
         this.sessionStatus = SessionStatus.PLAINTEXT;
         this.offerStatus = OfferStatus.idle;
 
-        otrSm = new OtrSm(this, listener);
         this.senderTag = senderTag;
         this.receiverTag = receiverTag;
 
@@ -228,7 +226,7 @@ public class Session {
                 SessionKeys.Previous);
         sess2.setLocalPair(sess4.getLocalPair(), sess4.getLocalKeyID());
 
-        KeyPair newPair = new OtrCryptoEngine().generateDHKeyPair();
+        KeyPair newPair = OtrCryptoEngine.generateDHKeyPair();
         sess3.setLocalPair(newPair, sess3.getLocalKeyID() + 1);
         sess4.setLocalPair(newPair, sess4.getLocalKeyID() + 1);
     }
@@ -262,7 +260,7 @@ public class Session {
                     current.setS(auth.getS());
                 }
 
-                KeyPair nextDH = new OtrCryptoEngine().generateDHKeyPair();
+                KeyPair nextDH = OtrCryptoEngine.generateDHKeyPair();
                 for (int i = 0; i < this.getSessionKeys()[1].length; i++) {
                     SessionKeys current = getSessionKeysByIndex(1, i);
                     current.setRemoteDHPublicKey(auth.getRemoteDHPublicKey(), 1);
@@ -272,7 +270,7 @@ public class Session {
                 this.setRemotePublicKey(auth.getRemoteLongTermPublicKey());
 
                 auth.reset();
-                otrSm.reset();
+                getSmpTlvHandler().reset();
                 break;
             case FINISHED:
             case PLAINTEXT:
@@ -307,8 +305,14 @@ public class Session {
         this.host = host;
     }
 
-    private OtrEngineHost getHost() {
+    OtrEngineHost getHost() {
         return host;
+    }
+
+    private SmpTlvHandler getSmpTlvHandler() {
+        if (smpTlvHandler == null)
+            smpTlvHandler = new SmpTlvHandler(this);
+        return smpTlvHandler;
     }
 
     private SessionKeys[][] getSessionKeys() {
@@ -576,9 +580,7 @@ public class Session {
                     throw new OtrException(e);
                 }
 
-                OtrCryptoEngine otrCryptoEngine = new OtrCryptoEngine();
-
-                byte[] computedMAC = otrCryptoEngine.sha1Hmac(serializedT,
+                byte[] computedMAC = OtrCryptoEngine.sha1Hmac(serializedT,
                         matchingKeys.getReceivingMACKey(),
                         SerializationConstants.TYPE_LEN_MAC);
                 if (!Arrays.equals(computedMAC, data.mac)) {
@@ -596,7 +598,7 @@ public class Session {
 
                 matchingKeys.setReceivingCtr(data.ctr);
 
-                byte[] dmc = otrCryptoEngine.aesDecrypt(matchingKeys
+                byte[] dmc = OtrCryptoEngine.aesDecrypt(matchingKeys
                         .getReceivingAESKey(), matchingKeys.getReceivingCtr(),
                         data.encryptedMessage);
 
@@ -654,22 +656,22 @@ public class Session {
                                 this.setSessionStatus(SessionStatus.FINISHED);
                                 break;
                             case TLV.SMP1Q: //TLV7
-                                otrSm.processTlvSMP1Q(tlv);
+                                getSmpTlvHandler().processTlvSMP1Q(tlv);
                                 break;
                             case TLV.SMP1: // TLV2
-                                otrSm.processTlvSMP1(tlv);
+                                getSmpTlvHandler().processTlvSMP1(tlv);
                                 break;
                             case TLV.SMP2: // TLV3
-                                otrSm.processTlvSMP2(tlv);
+                                getSmpTlvHandler().processTlvSMP2(tlv);
                                 break;
                             case TLV.SMP3: // TLV4
-                                otrSm.processTlvSMP3(tlv);
+                                getSmpTlvHandler().processTlvSMP3(tlv);
                                 break;
                             case TLV.SMP4: // TLV5
-                                otrSm.processTlvSMP4(tlv);
+                                getSmpTlvHandler().processTlvSMP4(tlv);
                                 break;
                             case TLV.SMP_ABORT: //TLV6
-                                otrSm.processTlvSMP_ABORT(tlv);
+                                getSmpTlvHandler().processTlvSMP_ABORT(tlv);
                                 break;
                             default:
                                 logger.warning("Unsupported TLV #" + tlv.getType() + " received!");
@@ -912,13 +914,11 @@ public class Session {
                     }
                 }
 
-                OtrCryptoEngine otrCryptoEngine = new OtrCryptoEngine();
-
                 byte[] data = out.toByteArray();
                 // Encrypt message.
                 logger.finest("Encrypting message with keyids (localKeyID, remoteKeyID) = ("
                         + senderKeyID + ", " + receipientKeyID + ")");
-                byte[] encryptedMsg = otrCryptoEngine.aesEncrypt(encryptionKeys
+                byte[] encryptedMsg = OtrCryptoEngine.aesEncrypt(encryptionKeys
                         .getSendingAESKey(), ctr, data);
 
                 // Get most recent keys to get the next D-H public key.
@@ -943,7 +943,7 @@ public class Session {
                     throw new OtrException(e);
                 }
 
-                byte[] mac = otrCryptoEngine.sha1Hmac(serializedT, sendingMACKey,
+                byte[] mac = OtrCryptoEngine.sha1Hmac(serializedT, sendingMACKey,
                         SerializationConstants.TYPE_LEN_MAC);
 
                 // Get old MAC keys to be revealed.
@@ -1053,7 +1053,7 @@ public class Session {
         }
         if (this.getSessionStatus() != SessionStatus.ENCRYPTED)
             return;
-        List<TLV> tlvs = otrSm.initRespondSmp(question, secret, true);
+        List<TLV> tlvs = getSmpTlvHandler().initRespondSmp(question, secret, true);
         String[] msg = transformSending("", tlvs);
         for (String part : msg) {
             getHost().injectMessage(getSessionID(), part);
@@ -1067,7 +1067,7 @@ public class Session {
         }
         if (this.getSessionStatus() != SessionStatus.ENCRYPTED)
             return;
-        List<TLV> tlvs = otrSm.initRespondSmp(question, secret, false);
+        List<TLV> tlvs = getSmpTlvHandler().initRespondSmp(question, secret, false);
         String[] msg = transformSending("", tlvs);
         for (String part : msg) {
             getHost().injectMessage(getSessionID(), part);
@@ -1081,7 +1081,7 @@ public class Session {
         }
         if (this.getSessionStatus() != SessionStatus.ENCRYPTED)
             return;
-        List<TLV> tlvs = otrSm.abortSmp();
+        List<TLV> tlvs = getSmpTlvHandler().abortSmp();
         String[] msg = transformSending("", tlvs);
         for (String part : msg) {
             getHost().injectMessage(getSessionID(), part);
@@ -1091,7 +1091,7 @@ public class Session {
     public boolean isSmpInProgress() {
         if (this != outgoingSession && getProtocolVersion() == OTRv.THREE)
             return outgoingSession.isSmpInProgress();
-        return otrSm.isSmpInProgress();
+        return getSmpTlvHandler().isSmpInProgress();
     }
 
     public InstanceTag getSenderInstanceTag() {
