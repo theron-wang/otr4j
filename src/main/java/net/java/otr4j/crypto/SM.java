@@ -36,6 +36,11 @@ import net.java.otr4j.io.SerializationUtils;
 
 
 public class SM {
+
+    private SM() {
+        // SM does not need to be instantiated.
+    }
+
     static public class SMState{
         BigInteger secret, x2, x3, g1, g2, g3, g3o, p, q, pab, qab;
         public int nextExpected;

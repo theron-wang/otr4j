@@ -50,7 +50,7 @@ public class AuthContext {
 
     public AuthContext(Session session) {
         SessionID sID = session.getSessionID();
-        logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
+        this.logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
         this.setSession(session);
         this.reset();
     }
