@@ -251,10 +251,7 @@ public class SM {
 	    final BigInteger c = hash(version, temp, null);
 	    temp = x.multiply(c).mod(ORDER_S);
 	    final BigInteger d = r.subtract(temp).mod(ORDER_S);
-	    final BigInteger[] ret = new BigInteger[2];
-	    ret[0]=c;
-	    ret[1]=d;
-	    return ret;
+	    return new BigInteger[] {c, d};
 	}
 	
 	/**
@@ -309,12 +306,7 @@ public class SM {
 	    temp1 = state.secret.multiply(c).mod(ORDER_S);
 	    final BigInteger d2 = r2.subtract(temp1).mod(ORDER_S);
 
-        // TODO write shorthand, as there is no real point in writing it out in several lines
-	    final BigInteger[] ret = new BigInteger[3];
-	    ret[0]=c;
-	    ret[1]=d1;
-	    ret[2]=d2;
-	    return ret;
+	    return new BigInteger[] {c, d1, d2};
 	}
 	
 	/**
@@ -382,11 +374,7 @@ public class SM {
 	    temp1 = state.x3.multiply(c).mod(ORDER_S);
 	    final BigInteger d = r.subtract(temp1).mod(ORDER_S);
 
-        // TODO write shorthand for result
-	    BigInteger[] ret = new BigInteger[2];
-	    ret[0]=c;
-	    ret[1]=d;
-	    return ret;
+	    return new BigInteger[] {c, d};
 	}
 	
 	/**
