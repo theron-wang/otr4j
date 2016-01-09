@@ -52,7 +52,9 @@ public class Util {
 	
 	static byte[] hexStringToBytes(final String s){
 		final byte[] sbytes = s.getBytes(SerializationUtils.ASCII);
-		if(sbytes.length%2!=0) return null;
+		if(sbytes.length%2!=0) {
+            return null;
+        }
 		final byte[] ret = new byte[sbytes.length/2];
 		for(int i=0; i<ret.length; i++){
 			if(sbytes[2*i]>='A' && sbytes[2*i]<='F'){

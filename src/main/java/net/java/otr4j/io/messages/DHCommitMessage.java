@@ -38,17 +38,22 @@ public class DHCommitMessage extends AbstractEncodedMessage {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) {
+            return true;
+        }
+		if (!super.equals(obj)) {
+            return false;
+        }
+		if (getClass() != obj.getClass()) {
+            return false;
+        }
 		DHCommitMessage other = (DHCommitMessage) obj;
-		if (!Arrays.equals(dhPublicKeyEncrypted, other.dhPublicKeyEncrypted))
-			return false;
-		if (!Arrays.equals(dhPublicKeyHash, other.dhPublicKeyHash))
-			return false;
+		if (!Arrays.equals(dhPublicKeyEncrypted, other.dhPublicKeyEncrypted)) {
+            return false;
+        }
+		if (!Arrays.equals(dhPublicKeyHash, other.dhPublicKeyHash)) {
+            return false;
+        }
 		return true;
 	}
 

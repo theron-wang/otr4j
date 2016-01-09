@@ -42,8 +42,9 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		private final String filepath;
 
 		public DefaultPropertiesStore(final String filepath) throws IOException {
-			if (filepath == null || filepath.length() < 1)
-				throw new IllegalArgumentException();
+			if (filepath == null || filepath.length() < 1) {
+                throw new IllegalArgumentException();
+            }
 			this.filepath = filepath;
 			properties.clear();
 
@@ -58,8 +59,9 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
 		private File getConfigurationFile() throws IOException {
 			final File configFile = new File(filepath);
-			if (!configFile.exists())
-				configFile.createNewFile();
+			if (!configFile.exists()) {
+                configFile.createNewFile();
+            }
 			return configFile;
 		}
 
@@ -68,6 +70,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 			try {
 				this.store();
 			} catch (Exception e) {
+                // TODO replace printStackTrace() call
 				e.printStackTrace();
 			}
 		}
@@ -83,6 +86,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 			try {
 				this.store();
 			} catch (Exception e) {
+                // TODO replace printStackTrace() call
 				e.printStackTrace();
 			}
 		}
@@ -93,8 +97,9 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
 		public byte[] getPropertyBytes(final String id) {
 			final String value = properties.getProperty(id);
-			if (value == null)
-			    return null;
+			if (value == null) {
+                return null;
+            }
 			return Base64.decode(value);
 		}
 
@@ -113,8 +118,9 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
 	public void addListener(final OtrKeyManagerListener l) {
 		synchronized (listeners) {
-			if (!listeners.contains(l))
-				listeners.add(l);
+			if (!listeners.contains(l)) {
+                listeners.add(l);
+            }
 		}
 	}
 
@@ -125,8 +131,9 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 	}
 
 	public void generateLocalKeyPair(final SessionID sessionID) {
-		if (sessionID == null)
-			return;
+		if (sessionID == null) {
+            return;
+        }
 
 		final String accountID = sessionID.getAccountID();
 		final KeyPair keyPair;
@@ -158,8 +165,9 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 	public String getLocalFingerprint(final SessionID sessionID) {
 		final KeyPair keyPair = loadLocalKeyPair(sessionID);
 
-		if (keyPair == null)
-			return null;
+		if (keyPair == null) {
+            return null;
+        }
 
 		final PublicKey pubKey = keyPair.getPublic();
 
@@ -175,8 +183,9 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 	public byte[] getLocalFingerprintRaw(final SessionID sessionID) {
 		final KeyPair keyPair = loadLocalKeyPair(sessionID);
 
-		if (keyPair == null)
-			return null;
+		if (keyPair == null) {
+            return null;
+        }
 
 		final PublicKey pubKey = keyPair.getPublic();
 
@@ -191,8 +200,9 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
 	public String getRemoteFingerprint(final SessionID sessionID) {
 		final PublicKey remotePublicKey = loadRemotePublicKey(sessionID);
-		if (remotePublicKey == null)
-			return null;
+		if (remotePublicKey == null) {
+            return null;
+        }
 		try {
 			return OtrCryptoEngine.getFingerprint(remotePublicKey);
 		} catch (OtrCryptoException e) {
@@ -203,31 +213,35 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 	}
 
 	public boolean isVerified(final SessionID sessionID) {
-		if (sessionID == null)
-			return false;
+		if (sessionID == null) {
+            return false;
+        }
 
 		return this.store.getPropertyBoolean(sessionID.getUserID()
 				+ ".publicKey.verified", false);
 	}
 
 	public KeyPair loadLocalKeyPair(final SessionID sessionID) {
-		if (sessionID == null)
-			return null;
+		if (sessionID == null) {
+            return null;
+        }
 
 		final String accountID = sessionID.getAccountID();
 		// Load Private Key.
 		final byte[] b64PrivKey = this.store.getPropertyBytes(accountID
 				+ ".privateKey");
-		if (b64PrivKey == null)
-			return null;
+		if (b64PrivKey == null) {
+            return null;
+        }
 
 		final PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(b64PrivKey);
 
 		// Load Public Key.
 		final byte[] b64PubKey = this.store
 				.getPropertyBytes(accountID + ".publicKey");
-		if (b64PubKey == null)
-			return null;
+		if (b64PubKey == null) {
+            return null;
+        }
 
 		final X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(b64PubKey);
 
@@ -253,14 +267,16 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 	}
 
 	public PublicKey loadRemotePublicKey(final SessionID sessionID) {
-		if (sessionID == null)
-			return null;
+		if (sessionID == null) {
+            return null;
+        }
 
 		final String userID = sessionID.getUserID();
 
 		final byte[] b64PubKey = this.store.getPropertyBytes(userID + ".publicKey");
-		if (b64PubKey == null)
-			return null;
+		if (b64PubKey == null) {
+            return null;
+        }
 
 		final X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(b64PubKey);
 
@@ -280,8 +296,9 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 	}
 
 	public void savePublicKey(final SessionID sessionID, final PublicKey pubKey) {
-		if (sessionID == null)
-			return;
+		if (sessionID == null) {
+            return;
+        }
 
         final X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(pubKey
                 .getEncoded());
@@ -294,34 +311,40 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 	}
 
 	public void unverify(final SessionID sessionID) {
-		if (sessionID == null)
-			return;
+		if (sessionID == null) {
+            return;
+        }
 
-		if (!isVerified(sessionID))
-			return;
+		if (!isVerified(sessionID)) {
+            return;
+        }
 
 		this.store
 				.removeProperty(sessionID.getUserID() + ".publicKey.verified");
 
         // TODO do we need synchronization on listeners here?
-		for (final OtrKeyManagerListener l : listeners)
+		for (final OtrKeyManagerListener l : listeners) {
             // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
             l.verificationStatusChanged(sessionID);
+        }
 	}
 
 	public void verify(final SessionID sessionID) {
-		if (sessionID == null)
-			return;
+		if (sessionID == null) {
+            return;
+        }
 
-		if (this.isVerified(sessionID))
-			return;
+		if (this.isVerified(sessionID)) {
+            return;
+        }
 
 		this.store.setProperty(sessionID.getUserID() + ".publicKey.verified",
 				true);
 
         // TODO do we need synchronization on listeners here?
-		for (final OtrKeyManagerListener l : listeners)
+		for (final OtrKeyManagerListener l : listeners) {
             // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
 			l.verificationStatusChanged(sessionID);
+        }
 	}
 }

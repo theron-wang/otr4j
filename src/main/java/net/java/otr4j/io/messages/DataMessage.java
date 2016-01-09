@@ -73,32 +73,44 @@ public class DataMessage extends AbstractEncodedMessage {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) {
+            return true;
+        }
+		if (!super.equals(obj)) {
+            return false;
+        }
+		if (getClass() != obj.getClass()) {
+            return false;
+        }
 		DataMessage other = (DataMessage) obj;
-		if (!Arrays.equals(ctr, other.ctr))
-			return false;
-		if (!Arrays.equals(encryptedMessage, other.encryptedMessage))
-			return false;
-		if (flags != other.flags)
-			return false;
-		if (!Arrays.equals(mac, other.mac))
-			return false;
+		if (!Arrays.equals(ctr, other.ctr)) {
+            return false;
+        }
+		if (!Arrays.equals(encryptedMessage, other.encryptedMessage)) {
+            return false;
+        }
+		if (flags != other.flags) {
+            return false;
+        }
+		if (!Arrays.equals(mac, other.mac)) {
+            return false;
+        }
 		if (nextDH == null) {
-			if (other.nextDH != null)
-				return false;
-		} else if (!nextDH.equals(other.nextDH))
-			return false;
-		if (!Arrays.equals(oldMACKeys, other.oldMACKeys))
-			return false;
-		if (recipientKeyID != other.recipientKeyID)
-			return false;
-		if (senderKeyID != other.senderKeyID)
-			return false;
+			if (other.nextDH != null) {
+                return false;
+            }
+		} else if (!nextDH.equals(other.nextDH)) {
+            return false;
+        }
+		if (!Arrays.equals(oldMACKeys, other.oldMACKeys)) {
+            return false;
+        }
+		if (recipientKeyID != other.recipientKeyID) {
+            return false;
+        }
+		if (senderKeyID != other.senderKeyID) {
+            return false;
+        }
 		return true;
 	}
 }

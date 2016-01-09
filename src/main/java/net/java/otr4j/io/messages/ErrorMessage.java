@@ -31,18 +31,23 @@ public class ErrorMessage extends AbstractMessage {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) {
+            return true;
+        }
+		if (!super.equals(obj)) {
+            return false;
+        }
+		if (getClass() != obj.getClass()) {
+            return false;
+        }
 		ErrorMessage other = (ErrorMessage) obj;
 		if (error == null) {
-			if (other.error != null)
-				return false;
-		} else if (!error.equals(other.error))
-			return false;
+			if (other.error != null) {
+                return false;
+            }
+		} else if (!error.equals(other.error)) {
+            return false;
+        }
 		return true;
 	}
 }

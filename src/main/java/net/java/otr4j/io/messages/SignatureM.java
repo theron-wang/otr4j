@@ -52,30 +52,40 @@ public class SignatureM {
 	@Override
 	public boolean equals(Object obj) {
 		// TODO: Needs work.
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) {
+            return true;
+        }
+		if (obj == null) {
+            return false;
+        }
+		if (getClass() != obj.getClass()) {
+            return false;
+        }
 		SignatureM other = (SignatureM) obj;
-		if (keyPairID != other.keyPairID)
-			return false;
+		if (keyPairID != other.keyPairID) {
+            return false;
+        }
 		if (localLongTermPubKey == null) {
-			if (other.localLongTermPubKey != null)
-				return false;
-		} else if (!localLongTermPubKey.equals(other.localLongTermPubKey))
-			return false;
+			if (other.localLongTermPubKey != null) {
+                return false;
+            }
+		} else if (!localLongTermPubKey.equals(other.localLongTermPubKey)) {
+            return false;
+        }
 		if (localPubKey == null) {
-			if (other.localPubKey != null)
-				return false;
-		} else if (!localPubKey.equals(other.localPubKey))
-			return false;
+			if (other.localPubKey != null) {
+                return false;
+            }
+		} else if (!localPubKey.equals(other.localPubKey)) {
+            return false;
+        }
 		if (remotePubKey == null) {
-			if (other.remotePubKey != null)
-				return false;
-		} else if (!remotePubKey.equals(other.remotePubKey))
-			return false;
+			if (other.remotePubKey != null) {
+                return false;
+            }
+		} else if (!remotePubKey.equals(other.remotePubKey)) {
+            return false;
+        }
 		return true;
 	}
 

@@ -30,15 +30,19 @@ public abstract class AbstractMessage {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) {
+            return true;
+        }
+		if (obj == null) {
+            return false;
+        }
+		if (getClass() != obj.getClass()) {
+            return false;
+        }
 		AbstractMessage other = (AbstractMessage) obj;
-		if (messageType != other.messageType)
-			return false;
+		if (messageType != other.messageType) {
+            return false;
+        }
 		return true;
 	}
 

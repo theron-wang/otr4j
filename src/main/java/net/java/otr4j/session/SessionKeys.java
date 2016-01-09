@@ -51,16 +51,17 @@ public class SessionKeys {
     private Boolean isHigh;
 
     public SessionKeys(final int localKeyIndex, final int remoteKeyIndex) {
-        if (localKeyIndex == 0)
+        if (localKeyIndex == 0) {
             keyDescription = "(Previous local, ";
-        else
+        } else {
             keyDescription = "(Most recent local, ";
+        }
 
-        if (remoteKeyIndex == 0)
+        if (remoteKeyIndex == 0) {
             keyDescription += "Previous remote)";
-        else
+        } else {
             keyDescription += "Most recent remote)";
-
+        }
     }
 
     public void setLocalPair(final KeyPair keyPair, final int localPairKeyID) {
@@ -85,9 +86,11 @@ public class SessionKeys {
     public void incrementSendingCtr() {
         logger.finest("Incrementing counter for (localkeyID, remoteKeyID) = ("
                 + getLocalKeyID() + "," + getRemoteKeyID() + ")");
-        for (int i = 7; i >= 0; i--)
-            if (++sendingCtr[i] != 0)
+        for (int i = 7; i >= 0; i--) {
+            if (++sendingCtr[i] != 0) {
                 break;
+            }
+        }
     }
 
     public byte[] getSendingCtr() {
@@ -135,8 +138,9 @@ public class SessionKeys {
     }
 
     public byte[] getSendingAESKey() throws OtrException {
-        if (sendingAESKey != null)
+        if (sendingAESKey != null) {
             return sendingAESKey;
+        }
 
         final byte sendbyte;
         if (this.isHigh) {
@@ -156,8 +160,9 @@ public class SessionKeys {
     }
 
     public byte[] getReceivingAESKey() throws OtrException {
-        if (receivingAESKey != null)
+        if (receivingAESKey != null) {
             return receivingAESKey;
+        }
 
         final byte receivebyte;
         if (this.isHigh) {
@@ -178,8 +183,9 @@ public class SessionKeys {
     }
 
     public byte[] getSendingMACKey() throws OtrException {
-        if (sendingMACKey != null)
+        if (sendingMACKey != null) {
             return sendingMACKey;
+        }
 
         sendingMACKey = OtrCryptoEngine.sha1Hash(getSendingAESKey());
         logger.finest("Calculated sending MAC key.");

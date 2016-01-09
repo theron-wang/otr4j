@@ -39,6 +39,7 @@ public class SM {
 
     private SM() {
         // SM does not need to be instantiated.
+        // TODO instantiate with SecureRandom instance?
     }
 
     static public class SMState{
@@ -160,8 +161,9 @@ public class SM {
 			final MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
 			sha256.update((byte)version);
 			sha256.update(SerializationUtils.writeMpi(a));
-			if (b != null)
-				sha256.update(SerializationUtils.writeMpi(b));
+			if (b != null) {
+                sha256.update(SerializationUtils.writeMpi(b));
+            }
 			return new BigInteger(1, sha256.digest());
 		} catch (NoSuchAlgorithmException e) {
 			throw new SMException("cannot find SHA-256");
@@ -623,8 +625,9 @@ public class SM {
 	    //Util.checkBytes("g3a", astate.g3.getValue());
 	    
 	    /* Verify Bob's coordinate equality proof */
-	    if (checkEqualCoords(msg2[8], msg2[9], msg2[10], msg2[6], msg2[7], astate, 5)!=0)
-	    	throw new SMException("Invalid Parameter");
+	    if (checkEqualCoords(msg2[8], msg2[9], msg2[10], msg2[6], msg2[7], astate, 5)!=0) {
+            throw new SMException("Invalid Parameter");
+        }
 
 	    /* Calculate P and Q values for Alice */
 	    final BigInteger r = randomExponent(sr);
@@ -696,8 +699,9 @@ public class SM {
 	    }
 
 	    /* Verify Alice's coordinate equality proof */
-	    if (checkEqualCoords(msg3[2], msg3[3], msg3[4], msg3[0], msg3[1], bstate, 6)!=0)
-	    	throw new SMException("Invalid Parameter");
+	    if (checkEqualCoords(msg3[2], msg3[3], msg3[4], msg3[0], msg3[1], bstate, 6)!=0) {
+            throw new SMException("Invalid Parameter");
+        }
 	    
 	    /* Find Pa/Pb and Qa/Qb */
 	    BigInteger inv = bstate.p.modInverse(MODULUS_S);
@@ -750,8 +754,9 @@ public class SM {
 	    }
 
 	    /* Verify Bob's log equality proof */
-	    if (checkEqualLogs(msg4[1], msg4[2], msg4[0], astate, 8)!=0)
-	    	throw new SMException("Invalid Parameter");
+	    if (checkEqualLogs(msg4[1], msg4[2], msg4[0], astate, 8)!=0) {
+            throw new SMException("Invalid Parameter");
+        }
 
 	    /* Calculate Rab and verify that secrets match */
 	    

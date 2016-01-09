@@ -117,10 +117,12 @@ public class InstanceTag {
 
 	@Override
 	public boolean equals(final Object other) {
-		if (this == other)
-			return true;
-		if (!(other instanceof InstanceTag))
-			return false;
+		if (this == other) {
+            return true;
+        }
+		if (!(other instanceof InstanceTag)) {
+            return false;
+        }
 
 		final InstanceTag otherInstanceTag = (InstanceTag) other;
 

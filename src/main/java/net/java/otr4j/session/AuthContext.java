@@ -317,8 +317,9 @@ public class AuthContext {
     }
 
     private byte[] getC() throws OtrException {
-        if (c != null)
+        if (c != null) {
             return c;
+        }
 
         final byte[] h2 = h2(C_START);
         final ByteBuffer buff = ByteBuffer.wrap(h2);
@@ -329,8 +330,9 @@ public class AuthContext {
     }
 
     private byte[] getM1() throws OtrException {
-        if (m1 != null)
+        if (m1 != null) {
             return m1;
+        }
 
         final byte[] h2 = h2(M1_START);
         final ByteBuffer buff = ByteBuffer.wrap(h2);
@@ -342,8 +344,9 @@ public class AuthContext {
     }
 
     byte[] getM2() throws OtrException {
-        if (m2 != null)
+        if (m2 != null) {
             return m2;
+        }
 
         final byte[] h2 = h2(M2_START);
         final ByteBuffer buff = ByteBuffer.wrap(h2);
@@ -355,8 +358,9 @@ public class AuthContext {
     }
 
     private byte[] getCp() throws OtrException {
-        if (cp != null)
+        if (cp != null) {
             return cp;
+        }
 
         final byte[] h2 = h2(C_START);
         final ByteBuffer buff = ByteBuffer.wrap(h2);
@@ -369,8 +373,9 @@ public class AuthContext {
     }
 
     private byte[] getM1p() throws OtrException {
-        if (m1p != null)
+        if (m1p != null) {
             return m1p;
+        }
 
         final byte[] h2 = h2(M1p_START);
         final ByteBuffer buff = ByteBuffer.wrap(h2);
@@ -382,8 +387,9 @@ public class AuthContext {
     }
 
     byte[] getM2p() throws OtrException {
-        if (m2p != null)
+        if (m2p != null) {
             return m2p;
+        }
 
         final byte[] h2 = h2(M2p_START);
         final ByteBuffer buff = ByteBuffer.wrap(h2);
@@ -787,8 +793,9 @@ public class AuthContext {
     }
 
     public DHCommitMessage respondAuth(final Integer version) throws OtrException {
-        if (version != OTRv.TWO && version != OTRv.THREE)
+        if (version != OTRv.TWO && version != OTRv.THREE) {
             throw new OtrException(new Exception("Only allowed versions are: 2, 3"));
+        }
 
         logger.finest("Responding to Query Message");
         this.reset();

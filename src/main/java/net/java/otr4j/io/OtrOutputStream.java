@@ -45,8 +45,9 @@ public class OtrOutputStream extends FilterOutputStream implements
 	public void writeData(final byte[] b) throws IOException {
 		final int len = (b == null || b.length < 0) ? 0 : b.length;
 		writeNumber(len, DATA_LEN);
-		if (len > 0)
-			write(b);
+		if (len > 0) {
+            write(b);
+        }
 	}
 
 	public void writeInt(final int i) throws IOException {
@@ -60,15 +61,17 @@ public class OtrOutputStream extends FilterOutputStream implements
 	}
 
 	public void writeMac(final byte[] mac) throws IOException {
-		if (mac == null || mac.length != TYPE_LEN_MAC)
-			throw new IllegalArgumentException();
+		if (mac == null || mac.length != TYPE_LEN_MAC) {
+            throw new IllegalArgumentException();
+        }
 
 		write(mac);
 	}
 
 	public void writeCtr(final byte[] ctr) throws IOException {
-		if (ctr == null || ctr.length < 1)
-			return;
+		if (ctr == null || ctr.length < 1) {
+            return;
+        }
 
 		int i = 0;
 		while (i < TYPE_LEN_CTR && i < ctr.length) {
@@ -83,9 +86,10 @@ public class OtrOutputStream extends FilterOutputStream implements
 	}
 
 	public void writePublicKey(final PublicKey pubKey) throws IOException {
-		if (!(pubKey instanceof DSAPublicKey))
-			throw new UnsupportedOperationException(
-					"Key types other than DSA are not supported at the moment.");
+		if (!(pubKey instanceof DSAPublicKey)) {
+            throw new UnsupportedOperationException(
+                    "Key types other than DSA are not supported at the moment.");
+        }
 
 		final DSAPublicKey dsaKey = (DSAPublicKey) pubKey;
 
@@ -102,14 +106,16 @@ public class OtrOutputStream extends FilterOutputStream implements
 	public void writeTlvData(final byte[] b) throws IOException {
 		final int len = (b == null || b.length < 0) ? 0 : b.length;
 		writeNumber(len, TLV_LEN);
-		if (len > 0)
-			write(b);
+		if (len > 0) {
+            write(b);
+        }
 	}
 
 	public void writeSignature(final byte[] signature, final PublicKey pubKey)
 			throws IOException {
-		if (!pubKey.getAlgorithm().equals("DSA"))
-			throw new UnsupportedOperationException();
+		if (!pubKey.getAlgorithm().equals("DSA")) {
+            throw new UnsupportedOperationException();
+        }
 		out.write(signature);
 	}
 

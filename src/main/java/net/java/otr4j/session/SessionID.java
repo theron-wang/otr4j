@@ -71,28 +71,37 @@ public final class SessionID {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         SessionID other = (SessionID) obj;
         if (localAccountID == null) {
-            if (other.localAccountID != null)
+            if (other.localAccountID != null) {
                 return false;
-        } else if (!localAccountID.equals(other.localAccountID))
+            }
+        } else if (!localAccountID.equals(other.localAccountID)) {
             return false;
+        }
         if (protocolName == null) {
-            if (other.protocolName != null)
+            if (other.protocolName != null) {
                 return false;
-        } else if (!protocolName.equals(other.protocolName))
+            }
+        } else if (!protocolName.equals(other.protocolName)) {
             return false;
+        }
         if (remoteUserID == null) {
-            if (other.remoteUserID != null)
+            if (other.remoteUserID != null) {
                 return false;
-        } else if (!remoteUserID.equals(other.remoteUserID))
+            }
+        } else if (!remoteUserID.equals(other.remoteUserID)) {
             return false;
+        }
         return true;
     }
 

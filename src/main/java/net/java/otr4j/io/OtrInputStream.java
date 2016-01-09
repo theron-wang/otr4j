@@ -136,8 +136,9 @@ public class OtrInputStream extends FilterInputStream implements
 	}
 
 	public byte[] readSignature(final PublicKey pubKey) throws IOException {
-		if (!pubKey.getAlgorithm().equals("DSA"))
-			throw new UnsupportedOperationException();
+		if (!pubKey.getAlgorithm().equals("DSA")) {
+            throw new UnsupportedOperationException();
+        }
 
 		final DSAPublicKey dsaPubKey = (DSAPublicKey) pubKey;
 		final DSAParams dsaParams = dsaPubKey.getParams();

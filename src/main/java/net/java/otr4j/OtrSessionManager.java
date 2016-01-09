@@ -21,8 +21,9 @@ import net.java.otr4j.session.SessionID;
 public class OtrSessionManager {
 
     public OtrSessionManager(final OtrEngineHost host) {
-        if (host == null)
+        if (host == null) {
             throw new IllegalArgumentException("OtrEngineHost is required.");
+        }
 
         this.setHost(host);
     }
@@ -39,11 +40,13 @@ public class OtrSessionManager {
      */
     public Session getSession(final SessionID sessionID) {
 
-        if (sessionID == null || sessionID.equals(SessionID.Empty))
+        if (sessionID == null || sessionID.equals(SessionID.Empty)) {
             throw new IllegalArgumentException();
+        }
 
-        if (sessions == null)
+        if (sessions == null) {
             sessions = new Hashtable<SessionID, Session>();
+        }
 
         if (!sessions.containsKey(sessionID)) {
             final Session session = new Session(sessionID, getHost());
@@ -52,21 +55,24 @@ public class OtrSessionManager {
             session.addOtrEngineListener(new OtrEngineListener() {
 
                 public void sessionStatusChanged(final SessionID sessionID) {
-                    for (final OtrEngineListener l : listeners)
+                    for (final OtrEngineListener l : listeners) {
                         // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
                         l.sessionStatusChanged(sessionID);
+                    }
                 }
 
                 public void multipleInstancesDetected(final SessionID sessionID) {
-                    for (final OtrEngineListener l : listeners)
+                    for (final OtrEngineListener l : listeners) {
                         // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
                         l.multipleInstancesDetected(sessionID);
+                    }
                 }
 
                 public void outgoingSessionChanged(final SessionID sessionID) {
-                    for (final OtrEngineListener l : listeners)
+                    for (final OtrEngineListener l : listeners) {
                         // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
                         l.outgoingSessionChanged(sessionID);
+                    }
                 }
             });
             return session;
@@ -87,8 +93,9 @@ public class OtrSessionManager {
 
     public void addOtrEngineListener(final OtrEngineListener l) {
         synchronized (listeners) {
-            if (!listeners.contains(l))
+            if (!listeners.contains(l)) {
                 listeners.add(l);
+            }
         }
     }
 

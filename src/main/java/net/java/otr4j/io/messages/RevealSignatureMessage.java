@@ -35,15 +35,19 @@ public class RevealSignatureMessage extends SignatureMessage {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) {
+            return true;
+        }
+		if (!super.equals(obj)) {
+            return false;
+        }
+		if (getClass() != obj.getClass()) {
+            return false;
+        }
 		RevealSignatureMessage other = (RevealSignatureMessage) obj;
-		if (!Arrays.equals(revealedKey, other.revealedKey))
-			return false;
+		if (!Arrays.equals(revealedKey, other.revealedKey)) {
+            return false;
+        }
 		return true;
 	}
 }

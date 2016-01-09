@@ -133,8 +133,9 @@ public class SerializationUtils {
 	// Message IO.
 	public static String toString(final AbstractMessage m) throws IOException {
 		final StringWriter writer = new StringWriter();
-		if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT)
-			writer.write(SerializationConstants.HEAD);
+		if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT) {
+            writer.write(SerializationConstants.HEAD);
+        }
 
 		switch (m.messageType) {
 			case AbstractMessage.MESSAGE_ERROR:
@@ -149,14 +150,17 @@ public class SerializationUtils {
 				if (plaintxt.versions != null && plaintxt.versions.size() > 0) {
 					writer.write(" \t  \t\t\t\t \t \t \t  ");
 					for (int version : plaintxt.versions) {
-						if (version == OTRv.ONE)
-							writer.write(" \t \t  \t ");
+						if (version == OTRv.ONE) {
+                            writer.write(" \t \t  \t ");
+                        }
 
-						if (version == OTRv.TWO)
-							writer.write("  \t\t  \t ");
+						if (version == OTRv.TWO) {
+                            writer.write("  \t\t  \t ");
+                        }
 
-						if (version == OTRv.THREE)
-							writer.write("  \t\t  \t\t");
+						if (version == OTRv.THREE) {
+                            writer.write("  \t\t  \t\t");
+                        }
 					}
 				}
 				break;
@@ -166,8 +170,9 @@ public class SerializationUtils {
 					writer.write(SerializationConstants.HEAD_QUERY_Q);
 				} else {
 					writer.write(SerializationConstants.HEAD_QUERY_V);
-					for (int version : query.versions)
-						writer.write(String.valueOf(version));
+					for (int version : query.versions) {
+                        writer.write(String.valueOf(version));
+                    }
 
 					writer.write(SerializationConstants.HEAD_QUERY_Q);
 				}
@@ -270,8 +275,9 @@ public class SerializationUtils {
 	 *             or real IO error
 	 */
 	public static AbstractMessage toMessage(final String s) throws IOException {
-		if (s == null || s.length() == 0)
-			return null;
+		if (s == null || s.length() == 0) {
+            return null;
+        }
 
 		final int idxHead = s.indexOf(SerializationConstants.HEAD);
 		if (idxHead > -1) {
@@ -308,10 +314,12 @@ public class SerializationUtils {
 				if (versionString != null) {
 					StringReader sr = new StringReader(versionString);
 					int c;
-					while ((c = sr.read()) != -1)
-						if (!versions.contains(c))
-							versions.add(Integer.parseInt(String
-									.valueOf((char) c)));
+					while ((c = sr.read()) != -1) {
+                        if (!versions.contains(c)) {
+                            versions.add(Integer.parseInt(String
+                                    .valueOf((char) c)));
+                        }
+                    }
 				}
 				return new QueryMessage(versions);
 			} else if (idxHead == 0 && contentType == SerializationConstants.HEAD_ENCODED) {
@@ -412,29 +420,36 @@ public class SerializationUtils {
 		boolean v2 = false;
 		boolean v3 = false;
 		while (matcher.find()) {
-			if (!v1 && matcher.start(2) > -1)
-				v1 = true;
+			if (!v1 && matcher.start(2) > -1) {
+                v1 = true;
+            }
 
-			if (!v2 && matcher.start(3) > -1)
-				v2 = true;
+			if (!v2 && matcher.start(3) > -1) {
+                v2 = true;
+            }
 
-			if (!v3 && matcher.start(3) > -1)
-				v3 = true;
+			if (!v3 && matcher.start(3) > -1) {
+                v3 = true;
+            }
 
-			if (v1 && v2 && v3)
-				break;
+			if (v1 && v2 && v3) {
+                break;
+            }
 		}
 
 		final String cleanText = matcher.replaceAll("");
 		List<Integer> versions = null;
 		if (v1 || v2 || v3) {
 			versions = new ArrayList<Integer>();
-			if (v1)
-				versions.add(OTRv.ONE);
-			if (v2) 
-				versions.add(OTRv.TWO);
-			if (v3)
-				versions.add(OTRv.THREE);
+			if (v1) {
+                versions.add(OTRv.ONE);
+            }
+			if (v2) {
+                versions.add(OTRv.TWO);
+            }
+			if (v3) {
+                versions.add(OTRv.THREE);
+            }
 		}
 
 		return new PlainTextMessage(versions, cleanText);
@@ -444,8 +459,9 @@ public class SerializationUtils {
 			'6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
 	public static String byteArrayToHexString(final byte in[]) {
-		if (in == null || in.length <= 0)
-			return null;
+		if (in == null || in.length <= 0) {
+            return null;
+        }
         // TODO replace with StringBuilder as this is only executed locally
 		final StringBuffer out = new StringBuffer(in.length * 2);
 		int i = 0;

@@ -45,22 +45,29 @@ public class SignatureX {
 	@Override
 	public boolean equals(Object obj) {
 		// TODO: Needs work.
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) {
+            return true;
+        }
+		if (obj == null) {
+            return false;
+        }
+		if (getClass() != obj.getClass()) {
+            return false;
+        }
 		SignatureX other = (SignatureX) obj;
-		if (dhKeyID != other.dhKeyID)
-			return false;
+		if (dhKeyID != other.dhKeyID) {
+            return false;
+        }
 		if (longTermPublicKey == null) {
-			if (other.longTermPublicKey != null)
-				return false;
-		} else if (!longTermPublicKey.equals(other.longTermPublicKey))
-			return false;
-		if (!Arrays.equals(signature, other.signature))
-			return false;
+			if (other.longTermPublicKey != null) {
+                return false;
+            }
+		} else if (!longTermPublicKey.equals(other.longTermPublicKey)) {
+            return false;
+        }
+		if (!Arrays.equals(signature, other.signature)) {
+            return false;
+        }
 		return true;
 	}
 

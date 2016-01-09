@@ -51,19 +51,25 @@ public abstract class AbstractEncodedMessage extends AbstractMessage {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) {
+            return true;
+        }
+		if (!super.equals(obj)) {
+            return false;
+        }
+		if (getClass() != obj.getClass()) {
+            return false;
+        }
 		AbstractEncodedMessage other = (AbstractEncodedMessage) obj;
-		if (protocolVersion != other.protocolVersion)
-			return false;
-		if (senderInstanceTag != other.senderInstanceTag)
-			return false;
-		if (receiverInstanceTag != other.receiverInstanceTag)
-			return false;
+		if (protocolVersion != other.protocolVersion) {
+            return false;
+        }
+		if (senderInstanceTag != other.senderInstanceTag) {
+            return false;
+        }
+		if (receiverInstanceTag != other.receiverInstanceTag) {
+            return false;
+        }
 		return true;
 	}
 

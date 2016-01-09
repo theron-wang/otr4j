@@ -187,6 +187,7 @@ public class OtrCryptoEngine {
                 return macBytes;
             }
         } catch (Exception e) {
+            // TODO consider catching specific exceptions and letting RTEs through as signal of programming error
             throw new OtrCryptoException(e);
         }
     }
@@ -226,8 +227,9 @@ public class OtrCryptoEngine {
         final BufferedBlockCipher bufSicAesDec = new BufferedBlockCipher(sicAesDec);
 
         // Create initial counter value 0.
-        if (ctr == null)
+        if (ctr == null) {
             ctr = ZERO_CTR;
+        }
         bufSicAesDec.init(false, new ParametersWithIV(new KeyParameter(key),
                 ctr));
         final byte[] aesOutLwDec = new byte[b.length];
@@ -235,7 +237,7 @@ public class OtrCryptoEngine {
         try {
             bufSicAesDec.doFinal(aesOutLwDec, done);
         } catch (Exception e) {
-            // TODO consider catching specific exceptions
+            // TODO consider catching specific exceptions and letting RTEs through as signal of programming error
             throw new OtrCryptoException(e);
         }
 
@@ -250,8 +252,9 @@ public class OtrCryptoEngine {
         final BufferedBlockCipher bufSicAesEnc = new BufferedBlockCipher(sicAesEnc);
 
         // Create initial counter value 0.
-        if (ctr == null)
+        if (ctr == null) {
             ctr = ZERO_CTR;
+        }
         bufSicAesEnc.init(true,
                 new ParametersWithIV(new KeyParameter(key), ctr));
         final byte[] aesOutLwEnc = new byte[b.length];
@@ -259,7 +262,7 @@ public class OtrCryptoEngine {
         try {
             bufSicAesEnc.doFinal(aesOutLwEnc, done);
         } catch (Exception e) {
-            // TODO consider catching specific exceptions
+            // TODO consider catching specific exceptions and letting RTEs through as signal of programming error
             throw new OtrCryptoException(e);
         }
         return aesOutLwEnc;
@@ -275,7 +278,7 @@ public class OtrCryptoEngine {
             return new BigInteger(1, sb);
 
         } catch (Exception e) {
-            // TODO consider catching specific exceptions
+            // TODO consider catching specific exceptions and letting RTEs through as signal of programming error
             throw new OtrCryptoException(e);
         }
     }
@@ -283,8 +286,9 @@ public class OtrCryptoEngine {
     public static byte[] sign(final byte[] b, final PrivateKey privatekey)
             throws OtrCryptoException {
 
-        if (!(privatekey instanceof DSAPrivateKey))
+        if (!(privatekey instanceof DSAPrivateKey)) {
             throw new IllegalArgumentException();
+        }
 
         final DSAParams dsaParams = ((DSAPrivateKey) privatekey).getParams();
         final DSAParameters bcDSAParameters = new DSAParameters(dsaParams.getP(),
@@ -332,8 +336,9 @@ public class OtrCryptoEngine {
     public static boolean verify(final byte[] b, final PublicKey pubKey, final byte[] rs)
             throws OtrCryptoException {
 
-        if (!(pubKey instanceof DSAPublicKey))
+        if (!(pubKey instanceof DSAPublicKey)) {
             throw new IllegalArgumentException();
+        }
 
         final DSAParams dsaParams = ((DSAPublicKey) pubKey).getParams();
         final int qlen = dsaParams.getQ().bitLength() / 8;
@@ -353,8 +358,9 @@ public class OtrCryptoEngine {
     private static boolean verify(final byte[] b, final PublicKey pubKey, final BigInteger r,
             final BigInteger s) throws OtrCryptoException {
 
-        if (!(pubKey instanceof DSAPublicKey))
+        if (!(pubKey instanceof DSAPublicKey)) {
             throw new IllegalArgumentException();
+        }
 
         final DSAParams dsaParams = ((DSAPublicKey) pubKey).getParams();
 

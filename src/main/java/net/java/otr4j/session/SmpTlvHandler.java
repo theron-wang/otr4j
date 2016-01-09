@@ -87,9 +87,10 @@ public class SmpTlvHandler {
      *  @throws OtrException MVN_PASS_JAVADOC_INSPECTION
 	 */
 	public List<TLV> initRespondSmp(final String question, final String secret, final boolean initiating) throws OtrException {
-		if (!initiating && !smstate.asked)
-			throw new OtrException(new IllegalStateException(
-					"There is no question to be answered."));
+		if (!initiating && !smstate.asked) {
+            throw new OtrException(new IllegalStateException(
+                    "There is no question to be answered."));
+        }
 
 		/*
 		 * Construct the combined secret as a SHA256 hash of:
@@ -200,8 +201,11 @@ public class SmpTlvHandler {
 			int qlen=0;
 			for(; qlen!=question.length && question[qlen]!=0; qlen++){
 			}
-			if (qlen == question.length) qlen=0;
-			else qlen++;
+			if (qlen == question.length) {
+                qlen=0;
+            } else {
+                qlen++;
+            }
 			final byte[] input = new byte[question.length-qlen];
 			System.arraycopy(question, qlen, input, 0, question.length-qlen);
 			try {
@@ -209,7 +213,9 @@ public class SmpTlvHandler {
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
-			if (qlen != 0) qlen--;
+			if (qlen != 0) {
+                qlen--;
+            }
 			final byte[] plainq = new byte[qlen];
 			System.arraycopy(question, 0, plainq, 0, qlen);
 			if (smstate.smProgState != SM.PROG_CHEATED){

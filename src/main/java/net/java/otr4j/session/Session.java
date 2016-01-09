@@ -193,9 +193,10 @@ public class Session {
 
     private SessionKeys getSessionKeysByIndex(final int localKeyIndex,
             final int remoteKeyIndex) {
-        if (getSessionKeys()[localKeyIndex][remoteKeyIndex] == null)
+        if (getSessionKeys()[localKeyIndex][remoteKeyIndex] == null) {
             getSessionKeys()[localKeyIndex][remoteKeyIndex] = new SessionKeys(
                     localKeyIndex, remoteKeyIndex);
+        }
 
         return getSessionKeys()[localKeyIndex][remoteKeyIndex];
     }
@@ -264,12 +265,14 @@ public class Session {
     private byte[] collectOldMacKeys() {
         logger.finest("Collecting old MAC keys to be revealed.");
         int len = 0;
-        for (int i = 0; i < getOldMacKeys().size(); i++)
+        for (int i = 0; i < getOldMacKeys().size(); i++) {
             len += getOldMacKeys().get(i).length;
+        }
 
         final ByteBuffer buff = ByteBuffer.allocate(len);
-        for (int i = 0; i < getOldMacKeys().size(); i++)
+        for (int i = 0; i < getOldMacKeys().size(); i++) {
             buff.put(getOldMacKeys().get(i));
+        }
 
         getOldMacKeys().clear();
         return buff.array();
@@ -307,19 +310,21 @@ public class Session {
                 break;
         }
 
-        if (sessionStatus == this.sessionStatus)
+        if (sessionStatus == this.sessionStatus) {
             return;
+        }
 
         this.sessionStatus = sessionStatus;
 
-        // TODO add braces
-        for (final OtrEngineListener l : this.listeners)
+        for (final OtrEngineListener l : this.listeners) {
             l.sessionStatusChanged(getSessionID());
+        }
     }
 
     public SessionStatus getSessionStatus() {
-        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE)
+        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
             return outgoingSession.getSessionStatus();
+        }
         return sessionStatus;
     }
 
@@ -341,26 +346,30 @@ public class Session {
     }
 
     private SmpTlvHandler getSmpTlvHandler() {
-        if (smpTlvHandler == null)
+        if (smpTlvHandler == null) {
             smpTlvHandler = new SmpTlvHandler(this);
+        }
         return smpTlvHandler;
     }
 
     private SessionKeys[][] getSessionKeys() {
-        if (sessionKeys == null)
+        if (sessionKeys == null) {
             sessionKeys = new SessionKeys[2][2];
+        }
         return sessionKeys;
     }
 
     AuthContext getAuthContext() {
-        if (authContext == null)
+        if (authContext == null) {
             authContext = new AuthContext(this);
+        }
         return authContext;
     }
 
     private Vector<byte[]> getOldMacKeys() {
-        if (oldMacKeys == null)
+        if (oldMacKeys == null) {
             oldMacKeys = new Vector<byte[]>();
+        }
         return oldMacKeys;
     }
 
@@ -385,8 +394,9 @@ public class Session {
             return null;
         }
 
-        if (msgText == null)
+        if (msgText == null) {
             return null; // Not a complete message (yet).
+        }
 
         final AbstractMessage m;
         try {
@@ -394,13 +404,15 @@ public class Session {
         } catch (IOException e) {
             throw new OtrException(e);
         }
-        if (m == null)
+        if (m == null) {
             return msgText; // Propably null or empty.
+        }
 
-        if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT)
+        if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT) {
             offerStatus = OfferStatus.accepted;
-        else if (offerStatus == OfferStatus.sent)
+        } else if (offerStatus == OfferStatus.sent) {
             offerStatus = OfferStatus.rejected;
+        }
 
         if (m instanceof AbstractEncodedMessage && isMasterSession) {
 
@@ -462,8 +474,9 @@ public class Session {
                             session.addOtrEngineListener(new OtrEngineListener() {
 
                                 public void sessionStatusChanged(final SessionID sessionID) {
-                                    for (final OtrEngineListener l : listeners)
+                                    for (final OtrEngineListener l : listeners) {
                                         l.sessionStatusChanged(sessionID);
+                                    }
                                 }
 
                                 public void multipleInstancesDetected(final SessionID sessionID) {
@@ -476,9 +489,9 @@ public class Session {
                             slaveSessions.put(newReceiverTag, session);
 
                             getHost().multipleInstancesDetected(sessionID);
-                            // TODO add braces
-                            for (final OtrEngineListener l : listeners)
+                            for (final OtrEngineListener l : listeners) {
                                 l.multipleInstancesDetected(sessionID);
+                            }
                         }
                     }
                     return slaveSessions.get(newReceiverTag).transformReceiving(msgText);
@@ -567,14 +580,17 @@ public class Session {
         if (policy.getErrorStartAKE() && getSessionStatus() == SessionStatus.ENCRYPTED) {
             logger.finest("Error message starts AKE.");
             final Vector<Integer> versions = new Vector<Integer>();
-            if (policy.getAllowV1())
+            if (policy.getAllowV1()) {
                 versions.add(OTRv.ONE);
+            }
 
-            if (policy.getAllowV2())
+            if (policy.getAllowV2()) {
                 versions.add(OTRv.TWO);
+            }
 
-            if (policy.getAllowV3())
+            if (policy.getAllowV3()) {
                 versions.add(OTRv.THREE);
+            }
 
             logger.finest("Sending Query");
             injectMessage(new QueryMessage(versions));
@@ -638,11 +654,13 @@ public class Session {
 
                 // Rotate keys if necessary.
                 final SessionKeys mostRecent = this.getMostRecentSessionKeys();
-                if (mostRecent.getLocalKeyID() == receipientKeyID)
+                if (mostRecent.getLocalKeyID() == receipientKeyID) {
                     this.rotateLocalSessionKeys();
+                }
 
-                if (mostRecent.getRemoteKeyID() == senderKeyID)
+                if (mostRecent.getRemoteKeyID() == senderKeyID) {
                     this.rotateRemoteSessionKeys(data.nextDH);
+                }
 
                 // find the null TLV separator in the package, or just use the end value
                 int tlvIndex = dmc.length;
@@ -736,8 +754,9 @@ public class Session {
         }
         if (m instanceof QueryMessage) {
             String fallback = getHost().getFallbackMessage(getSessionID());
-            if (fallback == null || fallback.equals(""))
+            if (fallback == null || fallback.equals("")) {
                 fallback = SerializationConstants.DEFAULT_FALLBACK_MESSAGE;
+            }
             msg += fallback;
         }
 
@@ -811,9 +830,10 @@ public class Session {
                      * user. If REQUIRE_ENCRYPTION is set, warn him that the
                      * message was received unencrypted.
                      */
-                    if (policy.getRequireEncryption())
+                    if (policy.getRequireEncryption()) {
                         getHost().unencryptedMessageReceived(sessionID,
                                 plainTextMessage.cleanText);
+                    }
             }
 
             if (policy.getWhitespaceStartAKE()) {
@@ -888,14 +908,18 @@ public class Session {
                             && offerStatus != OfferStatus.rejected) {
                         offerStatus = OfferStatus.sent;
                         List<Integer> versions = new Vector<Integer>();
-                        if (otrPolicy.getAllowV1())
+                        if (otrPolicy.getAllowV1()) {
                             versions.add(OTRv.ONE);
-                        if (otrPolicy.getAllowV2())
+                        }
+                        if (otrPolicy.getAllowV2()) {
                             versions.add(OTRv.TWO);
-                        if (otrPolicy.getAllowV3())
+                        }
+                        if (otrPolicy.getAllowV3()) {
                             versions.add(OTRv.THREE);
-                        if (versions.isEmpty())
+                        }
+                        if (versions.isEmpty()) {
                             versions = null;
+                        }
                         final AbstractMessage abstractMessage = new PlainTextMessage(
                                 versions, msgText);
                         try {
@@ -944,6 +968,7 @@ public class Session {
                         try {
                             eoos.writeShort(tlv.type);
                             eoos.writeTlvData(tlv.value);
+                            // TODO consider closing eoos in finally-block
                             eoos.close();
                         } catch (IOException e) {
                             throw new OtrException(e);
@@ -1008,11 +1033,13 @@ public class Session {
             outgoingSession.startSession();
             return;
         }
-        if (this.getSessionStatus() == SessionStatus.ENCRYPTED)
+        if (this.getSessionStatus() == SessionStatus.ENCRYPTED) {
             return;
+        }
 
-        if (!getSessionPolicy().getAllowV2() || !getSessionPolicy().getAllowV3())
+        if (!getSessionPolicy().getAllowV2() || !getSessionPolicy().getAllowV3()) {
             throw new UnsupportedOperationException();
+        }
 
         this.getAuthContext().startAuth();
     }
@@ -1055,8 +1082,9 @@ public class Session {
     }
 
     public PublicKey getRemotePublicKey() {
-        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE)
+        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
             return outgoingSession.getRemotePublicKey();
+        }
         return remotePublicKey;
     }
 
@@ -1064,8 +1092,9 @@ public class Session {
 
     public void addOtrEngineListener(OtrEngineListener l) {
         synchronized (listeners) {
-            if (!listeners.contains(l))
+            if (!listeners.contains(l)) {
                 listeners.add(l);
+            }
         }
     }
 
@@ -1088,8 +1117,9 @@ public class Session {
             outgoingSession.initSmp(question, secret);
             return;
         }
-        if (this.getSessionStatus() != SessionStatus.ENCRYPTED)
+        if (this.getSessionStatus() != SessionStatus.ENCRYPTED) {
             return;
+        }
         final List<TLV> tlvs = getSmpTlvHandler().initRespondSmp(question, secret, true);
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
@@ -1102,8 +1132,9 @@ public class Session {
             outgoingSession.respondSmp(question, secret);
             return;
         }
-        if (this.getSessionStatus() != SessionStatus.ENCRYPTED)
+        if (this.getSessionStatus() != SessionStatus.ENCRYPTED) {
             return;
+        }
         final List<TLV> tlvs = getSmpTlvHandler().initRespondSmp(question, secret, false);
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
@@ -1116,8 +1147,9 @@ public class Session {
             outgoingSession.abortSmp();
             return;
         }
-        if (this.getSessionStatus() != SessionStatus.ENCRYPTED)
+        if (this.getSessionStatus() != SessionStatus.ENCRYPTED) {
             return;
+        }
         final List<TLV> tlvs = getSmpTlvHandler().abortSmp();
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
@@ -1126,8 +1158,9 @@ public class Session {
     }
 
     public boolean isSmpInProgress() {
-        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE)
+        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
             return outgoingSession.isSmpInProgress();
+        }
         return getSmpTlvHandler().isSmpInProgress();
     }
 
@@ -1141,15 +1174,17 @@ public class Session {
 
     public void setReceiverInstanceTag(final InstanceTag receiverTag) {
         // ReceiverInstanceTag of a slave session is not supposed to change
-        if (!isMasterSession)
+        if (!isMasterSession) {
             return;
+        }
         this.receiverTag = receiverTag;
     }
 
     public void setProtocolVersion(final int protocolVersion) {
         // Protocol version of a slave session is not supposed to change
-        if (!isMasterSession)
+        if (!isMasterSession) {
             return;
+        }
         this.protocolVersion = protocolVersion;
     }
 
@@ -1166,22 +1201,23 @@ public class Session {
 
     public boolean setOutgoingInstance(final InstanceTag tag) {
         // Only master session can set the outgoing session.
-        if (!isMasterSession)
+        if (!isMasterSession) {
             return false;
+        }
         if (tag.equals(getReceiverInstanceTag())) {
             outgoingSession = this;
-            // TODO add braces
-            for (final OtrEngineListener l : listeners)
+            for (final OtrEngineListener l : listeners) {
                 l.outgoingSessionChanged(sessionID);
+            }
             return true;
         }
 
         final Session newActiveSession = slaveSessions.get(tag);
         if (newActiveSession != null) {
             outgoingSession = newActiveSession;
-            // TODO add braces
-            for (final OtrEngineListener l : listeners)
+            for (final OtrEngineListener l : listeners) {
                 l.outgoingSessionChanged(sessionID);
+            }
             return true;
         } else {
             outgoingSession = this;
@@ -1200,28 +1236,27 @@ public class Session {
         else
         {
             final Session slave = slaveSessions.get(receiverTag);
-            if (slave != null)
+            if (slave != null) {
                 slave.respondSmp(question, secret);
-            else
+            } else {
                 respondSmp(question, secret);
+            }
         }
     }
 
     public SessionStatus getSessionStatus(final InstanceTag tag) {
-        if (tag.equals(getReceiverInstanceTag()))
+        if (tag.equals(getReceiverInstanceTag())) {
             return sessionStatus;
-        else
-        {
+        } else {
             final Session slave = slaveSessions.get(tag);
             return slave != null ? slave.getSessionStatus() : sessionStatus;
         }
     }
 
     public PublicKey getRemotePublicKey(final InstanceTag tag) {
-        if (tag.equals(getReceiverInstanceTag()))
+        if (tag.equals(getReceiverInstanceTag())) {
             return remotePublicKey;
-        else
-        {
+        } else {
             final Session slave = slaveSessions.get(tag);
             return slave != null ? slave.getRemotePublicKey() : remotePublicKey;
         }

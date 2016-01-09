@@ -38,18 +38,23 @@ public class QueryMessage extends AbstractMessage {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) {
+            return true;
+        }
+		if (!super.equals(obj)) {
+            return false;
+        }
+		if (getClass() != obj.getClass()) {
+            return false;
+        }
 		QueryMessage other = (QueryMessage) obj;
 		if (versions == null) {
-			if (other.versions != null)
-				return false;
-		} else if (!versions.equals(other.versions))
-			return false;
+			if (other.versions != null) {
+                return false;
+            }
+		} else if (!versions.equals(other.versions)) {
+            return false;
+        }
 		return true;
 	}
 

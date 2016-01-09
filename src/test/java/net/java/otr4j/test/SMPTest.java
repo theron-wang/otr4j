@@ -41,10 +41,11 @@ public class SMPTest {
         // this crazy format is needed by JUnit:
         // https://github.com/junit-team/junit/wiki/Parameterized-tests
         ArrayList<Object[]> list = new ArrayList<Object[]>(TestStrings.unicodes.length);
-        for (String string : TestStrings.unicodes)
+        for (String string : TestStrings.unicodes) {
             list.add(new Object[] {
-                    string
+                string
             });
+        }
         return list;
     }
 

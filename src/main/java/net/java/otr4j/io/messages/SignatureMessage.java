@@ -66,17 +66,22 @@ public class SignatureMessage extends AbstractEncodedMessage {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) {
+            return true;
+        }
+		if (!super.equals(obj)) {
+            return false;
+        }
+		if (getClass() != obj.getClass()) {
+            return false;
+        }
 		SignatureMessage other = (SignatureMessage) obj;
-		if (!Arrays.equals(xEncrypted, other.xEncrypted))
-			return false;
-		if (!Arrays.equals(xEncryptedMAC, other.xEncryptedMAC))
-			return false;
+		if (!Arrays.equals(xEncrypted, other.xEncrypted)) {
+            return false;
+        }
+		if (!Arrays.equals(xEncryptedMAC, other.xEncryptedMAC)) {
+            return false;
+        }
 		return true;
 	}
 }

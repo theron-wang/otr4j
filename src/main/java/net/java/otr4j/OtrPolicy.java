@@ -81,52 +81,59 @@ public class OtrPolicy {
     }
 
     public void setAllowV1(final boolean value) {
-        if (value)
+        if (value) {
             policy |= ALLOW_V1;
-        else
+        } else {
             policy &= ~ALLOW_V1;
+        }
     }
 
     public void setAllowV2(final boolean value) {
-        if (value)
+        if (value) {
             policy |= ALLOW_V2;
-        else
+        } else {
             policy &= ~ALLOW_V2;
+        }
     }
 
     public void setAllowV3(final boolean value) {
-        if (value)
+        if (value) {
             policy |= ALLOW_V3;
-        else
+        } else {
             policy &= ~ALLOW_V3;
+        }
     }
 
     public void setErrorStartAKE(final boolean value) {
-        if (value)
+        if (value) {
             policy |= ERROR_START_AKE;
-        else
+        } else {
             policy &= ~ERROR_START_AKE;
+        }
     }
 
     public void setRequireEncryption(final boolean value) {
-        if (value)
+        if (value) {
             policy |= REQUIRE_ENCRYPTION;
-        else
+        } else {
             policy &= ~REQUIRE_ENCRYPTION;
+        }
     }
 
     public void setSendWhitespaceTag(final boolean value) {
-        if (value)
+        if (value) {
             policy |= SEND_WHITESPACE_TAG;
-        else
+        } else {
             policy &= ~SEND_WHITESPACE_TAG;
+        }
     }
 
     public void setWhitespaceStartAKE(final boolean value) {
-        if (value)
+        if (value) {
             policy |= WHITESPACE_START_AKE;
-        else
+        } else {
             policy &= ~WHITESPACE_START_AKE;
+        }
     }
 
     public boolean getEnableAlways() {
@@ -135,8 +142,9 @@ public class OtrPolicy {
     }
 
     public void setEnableAlways(final boolean value) {
-        if (value)
+        if (value) {
             setEnableManual(true);
+        }
 
         setErrorStartAKE(value);
         setSendWhitespaceTag(value);
@@ -156,10 +164,12 @@ public class OtrPolicy {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this)
+        if (obj == this) {
             return true;
-        if (obj == null || obj.getClass() != this.getClass())
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
             return false;
+        }
 
         OtrPolicy policy = (OtrPolicy) obj;
 

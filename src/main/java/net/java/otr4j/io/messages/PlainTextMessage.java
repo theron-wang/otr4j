@@ -34,18 +34,23 @@ public class PlainTextMessage extends QueryMessage {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) {
+            return true;
+        }
+		if (!super.equals(obj)) {
+            return false;
+        }
+		if (getClass() != obj.getClass()) {
+            return false;
+        }
 		PlainTextMessage other = (PlainTextMessage) obj;
 		if (cleanText == null) {
-			if (other.cleanText != null)
-				return false;
-		} else if (!cleanText.equals(other.cleanText))
-			return false;
+			if (other.cleanText != null) {
+                return false;
+            }
+		} else if (!cleanText.equals(other.cleanText)) {
+            return false;
+        }
 		return true;
 	}
 
