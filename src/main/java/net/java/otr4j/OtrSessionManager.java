@@ -40,7 +40,7 @@ public class OtrSessionManager {
      */
     public Session getSession(final SessionID sessionID) {
 
-        if (sessionID == null || sessionID.equals(SessionID.Empty)) {
+        if (sessionID == null || sessionID.equals(SessionID.EMPTY)) {
             throw new IllegalArgumentException();
         }
 
