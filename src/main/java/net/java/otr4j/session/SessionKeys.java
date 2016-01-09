@@ -24,17 +24,14 @@ import net.java.otr4j.io.SerializationUtils;
  */
 public class SessionKeys {
 
-    // TODO rename constant
-    public static final int Previous = 0;
-    // TODO rename constant
-    public static final int Current = 1;
+    public static final int PREVIOUS = 0;
+    public static final int CURRENT = 1;
     public static final byte HIGH_SEND_BYTE = (byte) 0x01;
     public static final byte HIGH_RECEIVE_BYTE = (byte) 0x02;
     public static final byte LOW_SEND_BYTE = (byte) 0x02;
     public static final byte LOW_RECEIVE_BYTE = (byte) 0x01;
 
-    // TODO rename constant
-    private static final Logger logger = Logger.getLogger(SessionKeys.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(SessionKeys.class.getName());
     private String keyDescription;
 
     private int localKeyID;
@@ -67,7 +64,7 @@ public class SessionKeys {
     public void setLocalPair(final KeyPair keyPair, final int localPairKeyID) {
         this.localPair = keyPair;
         this.setLocalKeyID(localPairKeyID);
-        logger.finest(keyDescription + " current local key ID: "
+        LOGGER.finest(keyDescription + " current local key ID: "
                 + this.getLocalKeyID());
         this.reset();
     }
@@ -75,7 +72,7 @@ public class SessionKeys {
     public void setRemoteDHPublicKey(final DHPublicKey pubKey, final int remoteKeyID) {
         this.setRemoteKey(pubKey);
         this.setRemoteKeyID(remoteKeyID);
-        logger.finest(keyDescription + " current remote key ID: "
+        LOGGER.finest(keyDescription + " current remote key ID: "
                 + this.getRemoteKeyID());
         this.reset();
     }
@@ -84,7 +81,7 @@ public class SessionKeys {
     private final byte[] receivingCtr = new byte[16];
 
     public void incrementSendingCtr() {
-        logger.finest("Incrementing counter for (localkeyID, remoteKeyID) = ("
+        LOGGER.finest("Incrementing counter for (localkeyID, remoteKeyID) = ("
                 + getLocalKeyID() + "," + getRemoteKeyID() + ")");
         for (int i = 7; i >= 0; i--) {
             if (++sendingCtr[i] != 0) {
@@ -106,7 +103,7 @@ public class SessionKeys {
     }
 
     private void reset() {
-        logger.finest("Resetting " + keyDescription + " session keys.");
+        LOGGER.finest("Resetting " + keyDescription + " session keys.");
         Arrays.fill(this.sendingCtr, (byte) 0x00);
         Arrays.fill(this.receivingCtr, (byte) 0x00);
         this.sendingAESKey = null;
@@ -154,7 +151,7 @@ public class SessionKeys {
         final byte[] key = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
         final ByteBuffer buff = ByteBuffer.wrap(h1);
         buff.get(key);
-        logger.finest("Calculated sending AES key.");
+        LOGGER.finest("Calculated sending AES key.");
         this.sendingAESKey = key;
         return sendingAESKey;
     }
@@ -176,7 +173,7 @@ public class SessionKeys {
         final byte[] key = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
         final ByteBuffer buff = ByteBuffer.wrap(h1);
         buff.get(key);
-        logger.finest("Calculated receiving AES key.");
+        LOGGER.finest("Calculated receiving AES key.");
         this.receivingAESKey = key;
 
         return receivingAESKey;
@@ -188,14 +185,14 @@ public class SessionKeys {
         }
 
         sendingMACKey = OtrCryptoEngine.sha1Hash(getSendingAESKey());
-        logger.finest("Calculated sending MAC key.");
+        LOGGER.finest("Calculated sending MAC key.");
         return sendingMACKey;
     }
 
     public byte[] getReceivingMACKey() throws OtrException {
         if (receivingMACKey == null) {
             receivingMACKey = OtrCryptoEngine.sha1Hash(getReceivingAESKey());
-            logger.finest("Calculated receiving AES key.");
+            LOGGER.finest("Calculated receiving AES key.");
         }
         return receivingMACKey;
     }
@@ -204,7 +201,7 @@ public class SessionKeys {
         if (s == null) {
             s = OtrCryptoEngine.generateSecret(getLocalPair()
                     .getPrivate(), getRemoteKey());
-            logger.finest("Calculating shared secret S.");
+            LOGGER.finest("Calculating shared secret S.");
         }
         return s;
     }

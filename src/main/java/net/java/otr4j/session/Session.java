@@ -161,12 +161,12 @@ public class Session {
 
     private SessionKeys getEncryptionSessionKeys() {
         logger.finest("Getting encryption keys");
-        return getSessionKeysByIndex(SessionKeys.Previous, SessionKeys.Current);
+        return getSessionKeysByIndex(SessionKeys.PREVIOUS, SessionKeys.CURRENT);
     }
 
     private SessionKeys getMostRecentSessionKeys() {
         logger.finest("Getting most recent keys.");
-        return getSessionKeysByIndex(SessionKeys.Current, SessionKeys.Current);
+        return getSessionKeysByIndex(SessionKeys.CURRENT, SessionKeys.CURRENT);
     }
 
     private SessionKeys getSessionKeysByID(final int localKeyID, final int remoteKeyID) {
@@ -202,28 +202,28 @@ public class Session {
             throws OtrException {
 
         logger.finest("Rotating remote keys.");
-        final SessionKeys sess1 = getSessionKeysByIndex(SessionKeys.Current,
-                SessionKeys.Previous);
+        final SessionKeys sess1 = getSessionKeysByIndex(SessionKeys.CURRENT,
+                SessionKeys.PREVIOUS);
         if (sess1.getIsUsedReceivingMACKey()) {
             logger
                     .finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
             getOldMacKeys().add(sess1.getReceivingMACKey());
         }
 
-        final SessionKeys sess2 = getSessionKeysByIndex(SessionKeys.Previous,
-                SessionKeys.Previous);
+        final SessionKeys sess2 = getSessionKeysByIndex(SessionKeys.PREVIOUS,
+                SessionKeys.PREVIOUS);
         if (sess2.getIsUsedReceivingMACKey()) {
             logger
                     .finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
             getOldMacKeys().add(sess2.getReceivingMACKey());
         }
 
-        final SessionKeys sess3 = getSessionKeysByIndex(SessionKeys.Current,
-                SessionKeys.Current);
+        final SessionKeys sess3 = getSessionKeysByIndex(SessionKeys.CURRENT,
+                SessionKeys.CURRENT);
         sess1.setRemoteDHPublicKey(sess3.getRemoteKey(), sess3.getRemoteKeyID());
 
-        final SessionKeys sess4 = getSessionKeysByIndex(SessionKeys.Previous,
-                SessionKeys.Current);
+        final SessionKeys sess4 = getSessionKeysByIndex(SessionKeys.PREVIOUS,
+                SessionKeys.CURRENT);
         sess2.setRemoteDHPublicKey(sess4.getRemoteKey(), sess4.getRemoteKeyID());
 
         sess3.setRemoteDHPublicKey(pubKey, sess3.getRemoteKeyID() + 1);
@@ -233,25 +233,25 @@ public class Session {
     private void rotateLocalSessionKeys() throws OtrException {
 
         logger.finest("Rotating local keys.");
-        final SessionKeys sess1 = getSessionKeysByIndex(SessionKeys.Previous,
-                SessionKeys.Current);
+        final SessionKeys sess1 = getSessionKeysByIndex(SessionKeys.PREVIOUS,
+                SessionKeys.CURRENT);
         if (sess1.getIsUsedReceivingMACKey()) {
             logger.finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
             getOldMacKeys().add(sess1.getReceivingMACKey());
         }
 
-        final SessionKeys sess2 = getSessionKeysByIndex(SessionKeys.Previous,
-                SessionKeys.Previous);
+        final SessionKeys sess2 = getSessionKeysByIndex(SessionKeys.PREVIOUS,
+                SessionKeys.PREVIOUS);
         if (sess2.getIsUsedReceivingMACKey()) {
             logger.finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
             getOldMacKeys().add(sess2.getReceivingMACKey());
         }
 
-        final SessionKeys sess3 = getSessionKeysByIndex(SessionKeys.Current,
-                SessionKeys.Current);
+        final SessionKeys sess3 = getSessionKeysByIndex(SessionKeys.CURRENT,
+                SessionKeys.CURRENT);
         sess1.setLocalPair(sess3.getLocalPair(), sess3.getLocalKeyID());
-        final SessionKeys sess4 = getSessionKeysByIndex(SessionKeys.Current,
-                SessionKeys.Previous);
+        final SessionKeys sess4 = getSessionKeysByIndex(SessionKeys.CURRENT,
+                SessionKeys.PREVIOUS);
         sess2.setLocalPair(sess4.getLocalPair(), sess4.getLocalKeyID());
 
         final KeyPair newPair = OtrCryptoEngine.generateDHKeyPair(this.secureRandom);
