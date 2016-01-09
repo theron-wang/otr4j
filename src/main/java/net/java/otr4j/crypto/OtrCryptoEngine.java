@@ -60,7 +60,7 @@ public class OtrCryptoEngine {
     public static final BigInteger MODULUS_MINUS_TWO = MODULUS.subtract(BIGINTEGER_TWO);
 
     public static final String GENERATOR_TEXT = "2";
-    public static BigInteger GENERATOR = new BigInteger(GENERATOR_TEXT, 10);
+    public static final BigInteger GENERATOR = new BigInteger(GENERATOR_TEXT, 10);
 
     public static final int AES_KEY_BYTE_LENGTH = 16;
     public static final int SHA256_HMAC_KEY_BYTE_LENGTH = 32;
