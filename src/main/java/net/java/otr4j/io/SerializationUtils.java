@@ -260,8 +260,7 @@ public class SerializationUtils {
 		return writer.toString();
 	}
 
-    // TODO rename whitespace pattern constant
-	static final Pattern patternWhitespace = Pattern
+	static final Pattern PATTERN_WHITESPACE = Pattern
 			.compile("( \\t  \\t\\t\\t\\t \\t \\t \\t  )( \\t \\t  \\t )?(  \\t\\t  \\t )?(  \\t\\t  \\t\\t)?");
 
 	/**
@@ -414,7 +413,7 @@ public class SerializationUtils {
 
 
 		// Try to detect whitespace tag.
-		final Matcher matcher = patternWhitespace.matcher(s);
+		final Matcher matcher = PATTERN_WHITESPACE.matcher(s);
 
 		boolean v1 = false;
 		boolean v2 = false;
