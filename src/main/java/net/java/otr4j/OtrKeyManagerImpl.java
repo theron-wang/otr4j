@@ -31,6 +31,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
 	private final OtrKeyManagerStore store;
 
+    // TODO consider replacing Vector with ArrayList (need to ensure correct synchronization everywhere)
 	private final List<OtrKeyManagerListener> listeners = new Vector<OtrKeyManagerListener>();
 
 	public OtrKeyManagerImpl(final OtrKeyManagerStore store) {
@@ -65,6 +66,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 			return configFile;
 		}
 
+        @Override
 		public void setProperty(final String id, final boolean value) {
 			properties.setProperty(id, "true");
 			try {
@@ -84,6 +86,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
             }
 		}
 
+        @Override
 		public void setProperty(final String id, final byte[] value) {
 			properties.setProperty(id, new String(Base64.encode(value)));
 			try {
@@ -94,10 +97,12 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 			}
 		}
 
+        @Override
 		public void removeProperty(final String id) {
 			properties.remove(id);
 		}
 
+        @Override
 		public byte[] getPropertyBytes(final String id) {
 			final String value = properties.getProperty(id);
 			if (value == null) {
@@ -106,6 +111,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 			return Base64.decode(value);
 		}
 
+        @Override
 		public boolean getPropertyBoolean(final String id, final boolean defaultValue) {
 			try {
 				return Boolean.valueOf(properties.get(id).toString());
@@ -119,6 +125,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		this.store = new DefaultPropertiesStore(filepath);
 	}
 
+    @Override
 	public void addListener(final OtrKeyManagerListener l) {
 		synchronized (listeners) {
 			if (!listeners.contains(l)) {
@@ -127,12 +134,14 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		}
 	}
 
+    @Override
 	public void removeListener(final OtrKeyManagerListener l) {
 		synchronized (listeners) {
 			listeners.remove(l);
 		}
 	}
 
+    @Override
 	public void generateLocalKeyPair(final SessionID sessionID) {
 		if (sessionID == null) {
             return;
@@ -165,6 +174,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 				.getEncoded());
 	}
 
+    @Override
 	public String getLocalFingerprint(final SessionID sessionID) {
 		final KeyPair keyPair = loadLocalKeyPair(sessionID);
 
@@ -183,6 +193,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		}
 	}
 
+    @Override
 	public byte[] getLocalFingerprintRaw(final SessionID sessionID) {
 		final KeyPair keyPair = loadLocalKeyPair(sessionID);
 
@@ -201,6 +212,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		}
 	}
 
+    @Override
 	public String getRemoteFingerprint(final SessionID sessionID) {
 		final PublicKey remotePublicKey = loadRemotePublicKey(sessionID);
 		if (remotePublicKey == null) {
@@ -215,6 +227,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		}
 	}
 
+    @Override
 	public boolean isVerified(final SessionID sessionID) {
 		if (sessionID == null) {
             return false;
@@ -224,6 +237,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 				+ ".publicKey.verified", false);
 	}
 
+    @Override
 	public KeyPair loadLocalKeyPair(final SessionID sessionID) {
 		if (sessionID == null) {
             return null;
@@ -269,6 +283,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		return new KeyPair(publicKey, privateKey);
 	}
 
+    @Override
 	public PublicKey loadRemotePublicKey(final SessionID sessionID) {
 		if (sessionID == null) {
             return null;
@@ -298,6 +313,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		}
 	}
 
+    @Override
 	public void savePublicKey(final SessionID sessionID, final PublicKey pubKey) {
 		if (sessionID == null) {
             return;
@@ -313,6 +329,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		this.store.removeProperty(userID + ".publicKey.verified");
 	}
 
+    @Override
 	public void unverify(final SessionID sessionID) {
 		if (sessionID == null) {
             return;
@@ -332,6 +349,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
         }
 	}
 
+    @Override
 	public void verify(final SessionID sessionID) {
 		if (sessionID == null) {
             return;

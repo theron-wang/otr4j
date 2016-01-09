@@ -45,6 +45,7 @@ public class OtrSessionManager {
         }
 
         if (sessions == null) {
+            // TODO Hashtable is obsolete collection. Should we use HashMap for this?
             sessions = new Hashtable<SessionID, Session>();
         }
 
@@ -54,6 +55,7 @@ public class OtrSessionManager {
 
             session.addOtrEngineListener(new OtrEngineListener() {
 
+                @Override
                 public void sessionStatusChanged(final SessionID sessionID) {
                     for (final OtrEngineListener l : listeners) {
                         // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
@@ -61,6 +63,7 @@ public class OtrSessionManager {
                     }
                 }
 
+                @Override
                 public void multipleInstancesDetected(final SessionID sessionID) {
                     for (final OtrEngineListener l : listeners) {
                         // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
@@ -68,6 +71,7 @@ public class OtrSessionManager {
                     }
                 }
 
+                @Override
                 public void outgoingSessionChanged(final SessionID sessionID) {
                     for (final OtrEngineListener l : listeners) {
                         // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
@@ -89,6 +93,7 @@ public class OtrSessionManager {
         return host;
     }
 
+    // TODO consider converting Vector to ArrayList (check synchronization)
     private final List<OtrEngineListener> listeners = new Vector<OtrEngineListener>();
 
     public void addOtrEngineListener(final OtrEngineListener l) {

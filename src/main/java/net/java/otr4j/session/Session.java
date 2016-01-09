@@ -470,15 +470,18 @@ public class Session {
                             }
                             session.addOtrEngineListener(new OtrEngineListener() {
 
+                                @Override
                                 public void sessionStatusChanged(final SessionID sessionID) {
                                     for (final OtrEngineListener l : listeners) {
                                         l.sessionStatusChanged(sessionID);
                                     }
                                 }
 
+                                @Override
                                 public void multipleInstancesDetected(final SessionID sessionID) {
                                 }
 
+                                @Override
                                 public void outgoingSessionChanged(final SessionID sessionID) {
                                 }
                             });
