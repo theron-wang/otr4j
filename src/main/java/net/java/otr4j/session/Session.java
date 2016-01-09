@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -60,7 +59,7 @@ public class Session {
                 Arrays.asList(ONE, TWO, THREE));
     }
 
-    private Map<InstanceTag, Session> slaveSessions;
+    private HashMap<InstanceTag, Session> slaveSessions;
 
     private volatile Session outgoingSession;
 
