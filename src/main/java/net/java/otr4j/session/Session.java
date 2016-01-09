@@ -57,9 +57,7 @@ public class Session {
         public static final int TWO = 2;
         public static final int THREE = 3;
         public static final Set<Integer> ALL = new HashSet<Integer>(
-                Arrays.asList(new Integer[] {
-                        ONE, TWO, THREE
-                }));
+                Arrays.asList(ONE, TWO, THREE));
     }
 
     private Map<InstanceTag, Session> slaveSessions;
