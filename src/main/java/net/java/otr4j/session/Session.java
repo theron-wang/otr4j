@@ -142,7 +142,7 @@ public class Session {
         isMasterSession = false;
         protocolVersion = OTRv.THREE;
 
-        assembler = new OtrAssembler(getSenderInstanceTag());
+        assembler = new OtrAssembler(this.senderTag);
         fragmenter = new OtrFragmenter(outgoingSession, listener);
     }
 
