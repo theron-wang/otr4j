@@ -11,8 +11,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import net.java.otr4j.session.Session;
 import net.java.otr4j.session.SessionID;
@@ -21,8 +19,6 @@ import net.java.otr4j.session.SessionID;
  * @author George Politis
  */
 public class OtrSessionManager {
-
-    private static final Logger LOGGER = Logger.getLogger(OtrSessionManager.class.getName());
 
     public OtrSessionManager(final OtrEngineHost host) {
         if (host == null) {
@@ -61,47 +57,17 @@ public class OtrSessionManager {
 
                 @Override
                 public void sessionStatusChanged(final SessionID sessionID) {
-                    // TODO consider writing util for safely handing listeners
-                    for (final OtrEngineListener l : listeners) {
-                        try {
-                            // Calling the listeners in order to inform of
-                            // events. As a service to the user we log any
-                            // problems that occur while calling listeners.
-                            l.sessionStatusChanged(sessionID);
-                        } catch (RuntimeException e) {
-                            LOGGER.log(Level.WARNING, "Faulty listener! Runtime exception thrown while calling 'sessionStatusChanged' on listener '" + l.getClass().getCanonicalName() + "' for session " + sessionID, e);
-                        }
-                    }
+                    OtrEngineListenerUtil.sessionStatusChanged(listeners, sessionID);
                 }
 
                 @Override
                 public void multipleInstancesDetected(final SessionID sessionID) {
-                    // TODO consider writing util for safely handing listeners
-                    for (final OtrEngineListener l : listeners) {
-                        try {
-                            // Calling the listeners in order to inform of
-                            // events. As a service to the user we log any
-                            // problems that occur while calling listeners.
-                            l.multipleInstancesDetected(sessionID);
-                        } catch (RuntimeException e) {
-                            LOGGER.log(Level.WARNING, "Faulty listener! Runtime exception thrown while calling 'multipleInstancesDetected' on listener '" + l.getClass().getCanonicalName() + "' for session " + sessionID, e);
-                        }
-                    }
+                    OtrEngineListenerUtil.multipleInstancesDetected(listeners, sessionID);
                 }
 
                 @Override
                 public void outgoingSessionChanged(final SessionID sessionID) {
-                    // TODO consider writing util for safely handing listeners
-                    for (final OtrEngineListener l : listeners) {
-                        try {
-                            // Calling the listeners in order to inform of
-                            // events. As a service to the user we log any
-                            // problems that occur while calling listeners.
-                            l.outgoingSessionChanged(sessionID);
-                        } catch (RuntimeException e) {
-                            LOGGER.log(Level.WARNING, "Faulty listener! Runtime exception thrown while calling 'outgoingSessionChanged' on listener '" + l.getClass().getCanonicalName() + "' for session " + sessionID, e);
-                        }
-                    }
+                    OtrEngineListenerUtil.outgoingSessionChanged(listeners, sessionID);
                 }
             });
             return session;

@@ -23,13 +23,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.crypto.interfaces.DHPublicKey;
 
 import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrEngineListener;
+import net.java.otr4j.OtrEngineListenerUtil;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.crypto.OtrCryptoEngine;
@@ -314,15 +314,7 @@ public class Session {
 
         this.sessionStatus = sessionStatus;
 
-        // TODO consider writing util for safely handing listeners
-        for (final OtrEngineListener l : this.listeners) {
-            final SessionID currentSessionID = getSessionID();
-            try {
-                l.sessionStatusChanged(currentSessionID);
-            } catch (RuntimeException e) {
-                logger.log(Level.WARNING, "Faulty listener! Runtime exception thrown while calling 'sessionStatusChanged' on listener '" + l.getClass().getCanonicalName() + "' for session " + currentSessionID, e);
-            }
-        }
+        OtrEngineListenerUtil.sessionStatusChanged(this.listeners, getSessionID());
     }
 
     public SessionStatus getSessionStatus() {
@@ -479,14 +471,7 @@ public class Session {
 
                                 @Override
                                 public void sessionStatusChanged(final SessionID sessionID) {
-                                    // TODO consider writing util for safely handing listeners
-                                    for (final OtrEngineListener l : listeners) {
-                                        try {
-                                            l.sessionStatusChanged(sessionID);
-                                        } catch (RuntimeException e) {
-                                            logger.log(Level.WARNING, "Faulty listener! Runtime exception thrown while calling 'sessionStatusChanged' on listener '" + l.getClass().getCanonicalName() + "' for session " + sessionID, e);
-                                        }
-                                    }
+                                    OtrEngineListenerUtil.sessionStatusChanged(listeners, sessionID);
                                 }
 
                                 @Override
@@ -502,14 +487,7 @@ public class Session {
 
                             // TODO consider catching RTEs for host callbacks to prevent premature exit from logic
                             getHost().multipleInstancesDetected(sessionID);
-                            // TODO consider writing util for safely handing listeners
-                            for (final OtrEngineListener l : listeners) {
-                                try {
-                                    l.multipleInstancesDetected(sessionID);
-                                } catch (RuntimeException e) {
-                                    logger.log(Level.WARNING, "Faulty listener! Runtime exception thrown while calling 'multipleInstancesDetected' on listener '" + l.getClass().getCanonicalName() + "' for session " + sessionID, e);
-                                }
-                            }
+                            OtrEngineListenerUtil.multipleInstancesDetected(this.listeners, sessionID);
                         }
                     }
                     return slaveSessions.get(newReceiverTag).transformReceiving(msgText);
@@ -1224,28 +1202,14 @@ public class Session {
         }
         if (tag.equals(getReceiverInstanceTag())) {
             outgoingSession = this;
-            // TODO consider writing util for safely handing listeners
-            for (final OtrEngineListener l : listeners) {
-                try {
-                    l.outgoingSessionChanged(sessionID);
-                } catch (RuntimeException e) {
-                    logger.log(Level.WARNING, "Faulty listener! Runtime exception thrown while calling 'outgoingSessionChanged' on listener '" + l.getClass().getCanonicalName() + "' for session " + sessionID, e);
-                }
-            }
+            OtrEngineListenerUtil.outgoingSessionChanged(this.listeners, sessionID);
             return true;
         }
 
         final Session newActiveSession = slaveSessions.get(tag);
         if (newActiveSession != null) {
             outgoingSession = newActiveSession;
-            // TODO consider writing util for safely handing listeners
-            for (final OtrEngineListener l : listeners) {
-                try {
-                    l.outgoingSessionChanged(sessionID);
-                } catch (RuntimeException e) {
-                    logger.log(Level.WARNING, "Faulty listener! Runtime exception thrown while calling 'outgoingSessionChanged' on listener '" + l.getClass().getCanonicalName() + "' for session " + sessionID, e);
-                }
-            }
+            OtrEngineListenerUtil.outgoingSessionChanged(this.listeners, sessionID);
             return true;
         } else {
             outgoingSession = this;
