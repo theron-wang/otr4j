@@ -213,12 +213,14 @@ public class SM {
 	 * element.
      *
      * @param g the BigInteger to check.
-     * @return true if the BigInteger is in the right range, false otherwise.
+     * @throws net.java.otr4j.crypto.SM.SMException Throws SMException if check fails.
      */
-	public static boolean checkGroupElem(final BigInteger g)
+	public static void checkGroupElem(final BigInteger g) throws SMException
 	{
-        // TODO convert to throwing SMException for invalid group element
-		return g.compareTo(BigInteger.valueOf(2)) < 0 || g.compareTo(SM.MODULUS_MINUS_2) > 0;
+        // TODO Does this really need to be public?
+		if(g.compareTo(BigInteger.valueOf(2)) < 0 || g.compareTo(SM.MODULUS_MINUS_2) > 0) {
+            throw new SMException("Invalid parameter");
+        }
 	}
 	
 	/**
@@ -226,12 +228,14 @@ public class SM {
      * exponent.
      *
      * @param x The BigInteger to check.
-     * @return true if the BigInteger is in the right range, false otherwise.
+     * @throws net.java.otr4j.crypto.SM.SMException Throws SMException if check fails.
      */
-	public static boolean checkExpon(final BigInteger x)
+	public static void checkExpon(final BigInteger x) throws SMException
 	{
-        // TODO convert to throwing SMException for invalid exponent
-		return x.compareTo(BigInteger.ONE) < 0 || x.compareTo(SM.ORDER_S) >= 0;
+        // TODO Does this really need to be public?
+		if (x.compareTo(BigInteger.ONE) < 0 || x.compareTo(SM.ORDER_S) >= 0) {
+            throw new SMException("Invalid parameter");
+        }
 	}
 	
 	/**
@@ -268,6 +272,7 @@ public class SM {
 	 */
 	public static int checkKnowLog(final BigInteger c, final BigInteger d, final BigInteger g, final BigInteger x, final int version) throws SMException
 	{
+        // TODO consider making checkKnowLog throw an exception in case of bad outcome. Verification is the same in both cases and throwing an exception makes the code more readable and more true to the name of the method.
 
 	    final BigInteger gd = g.modPow(d, MODULUS_S);
 	    final BigInteger xc = x.modPow(c, MODULUS_S);
@@ -327,6 +332,8 @@ public class SM {
 	public static int checkEqualCoords(final BigInteger c, final BigInteger d1, final BigInteger d2, final BigInteger p,
 			final BigInteger q, final SMState state, final int version) throws SMException
 	{
+        // TODO consider making checkEqualCoords throw an exception in case of bad outcome. Verification is the same in both cases and throwing an exception makes the code more readable and more true to the name of the method.
+
 
 	    /* To verify, we test that hash(g3^d1 * p^c, g1^d1 * g2^d2 * q^c) = c
 	     * If indeed c = hash(g3^r1, g1^r1 g2^r2), d1 = r1 - r*c,
@@ -392,6 +399,7 @@ public class SM {
 	 */
 	public static int checkEqualLogs(final BigInteger c, final BigInteger d, final BigInteger r, final SMState state, final int version) throws SMException
 	{
+        // TODO consider making checkEqualLogs throw an exception in case of bad outcome. Verification is the same in both cases and throwing an exception makes the code more readable and more true to the name of the method.
 
 	    /* Here, we recall the exponents used to create g3.
 	     * If we have previously seen g3o = g1^x where x is unknown
@@ -481,10 +489,12 @@ public class SM {
 	    /* Read from input to find the mpis */
 	    final BigInteger[] msg1 = unserialize(input);
 
-	    if (checkGroupElem(msg1[0]) || checkExpon(msg1[2]) ||
-	    		checkGroupElem(msg1[3]) || checkExpon(msg1[5])) {
-	        throw new SMException("Invalid parameter");
-	    }
+        /* Verify parameters and let checks throw exceptions in case of failure.*/
+        // FIXME CONTINUE HERE VERIFY checkGroupElem and checkExpon are now correct!!!
+        checkGroupElem(msg1[0]);
+        checkExpon(msg1[2]);
+        checkGroupElem(msg1[3]);
+        checkExpon(msg1[5]);
 
 	    /* Store Alice's g3a value for later in the protocol */
 	    bstate.g3o=msg1[3];
@@ -588,12 +598,17 @@ public class SM {
 	    astate.smProgState = PROG_CHEATED;
 	    
 	    final BigInteger[] msg2 = unserialize(input);
-	    if (checkGroupElem(msg2[0]) || checkGroupElem(msg2[3]) ||
-		    checkGroupElem(msg2[6]) || checkGroupElem(msg2[7]) ||
-		    checkExpon(msg2[2]) || checkExpon(msg2[5]) ||
-		    checkExpon(msg2[9]) || checkExpon(msg2[10])) {
-	        throw new SMException("Invalid Parameter");
-	    }
+
+        /* Verify parameters and let checks throw exceptions in case of failure.*/
+        // FIXME CONTINUE HERE VERIFY checkGroupElem and checkExpon are now correct!!!
+        checkGroupElem(msg2[0]);
+        checkGroupElem(msg2[3]);
+        checkGroupElem(msg2[6]);
+        checkGroupElem(msg2[7]);
+        checkExpon(msg2[2]);
+        checkExpon(msg2[5]);
+        checkExpon(msg2[9]);
+        checkExpon(msg2[10]);
 
 	    final BigInteger[] msg3 = new BigInteger[8];
 
@@ -680,11 +695,14 @@ public class SM {
 	    
 	    final BigInteger[] msg4 = new BigInteger[3];
 
-	    if (checkGroupElem(msg3[0]) || checkGroupElem(msg3[1]) ||
-		    checkGroupElem(msg3[5]) || checkExpon(msg3[3]) ||
-		    checkExpon(msg3[4]) || checkExpon(msg3[7]))  {
-	    	throw new SMException("Invalid Parameter");
-	    }
+        /* Verify parameters and let checks throw exceptions in case of failure.*/
+        // FIXME CONTINUE HERE VERIFY checkGroupElem and checkExpon are now correct!!!
+	    checkGroupElem(msg3[0]);
+        checkGroupElem(msg3[1]);
+		checkGroupElem(msg3[5]);
+        checkExpon(msg3[3]);
+        checkExpon(msg3[4]);
+        checkExpon(msg3[7]);
 
 	    /* Verify Alice's coordinate equality proof */
 	    if (checkEqualCoords(msg3[2], msg3[3], msg3[4], msg3[0], msg3[1], bstate, 6)!=0) {
@@ -737,9 +755,10 @@ public class SM {
 	    final BigInteger[] msg4 = unserialize(input);
 	    astate.smProgState = PROG_CHEATED;
 
-	    if (checkGroupElem(msg4[0])|| checkExpon(msg4[2])) {
-	    	throw new SMException("Invalid Parameter");
-	    }
+        /* Verify parameters and let checks throw exceptions in case of failure.*/
+        // FIXME CONTINUE HERE VERIFY checkGroupElem and checkExpon are now correct!!!
+	    checkGroupElem(msg4[0]);
+        checkExpon(msg4[2]);
 
 	    /* Verify Bob's log equality proof */
 	    if (checkEqualLogs(msg4[1], msg4[2], msg4[0], astate, 8)!=0) {

@@ -2,7 +2,6 @@ package net.java.otr4j.crypto;
 
 import java.math.BigInteger;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  * Tests for Socialist Millionaire Protocol.
@@ -13,51 +12,51 @@ public class SMTest {
 
     @Test
     public void testCheckGroupElemValid() throws SM.SMException {
-        assertFalse(SM.checkGroupElem(BigInteger.TEN));
+        SM.checkGroupElem(BigInteger.TEN);
     }
 
     @Test
     public void testCheckGroupElemJustValidLowerBound() throws SM.SMException {
-        assertFalse(SM.checkGroupElem(BigInteger.valueOf(2l)));
+        SM.checkGroupElem(BigInteger.valueOf(2l));
     }
 
-    @Test
+    @Test(expected = SM.SMException.class)
     public void testCheckGroupElemTooSmall() throws SM.SMException {
-        assertTrue(SM.checkGroupElem(BigInteger.ONE));
+        SM.checkGroupElem(BigInteger.ONE);
     }
 
     @Test
     public void testCheckGroupElemJustValidUpperBound() throws SM.SMException {
-        assertFalse(SM.checkGroupElem(SM.MODULUS_MINUS_2));
+        SM.checkGroupElem(SM.MODULUS_MINUS_2);
     }
 
-    @Test
+    @Test(expected = SM.SMException.class)
     public void testCheckGroupElemTooLarge() throws SM.SMException {
-        assertTrue(SM.checkGroupElem(SM.MODULUS_MINUS_2.add(BigInteger.ONE)));
+        SM.checkGroupElem(SM.MODULUS_MINUS_2.add(BigInteger.ONE));
     }
 
     @Test
     public void testCheckExponValid() throws SM.SMException {
-        assertFalse(SM.checkExpon(BigInteger.TEN));
+        SM.checkExpon(BigInteger.TEN);
     }
 
     @Test
     public void testCheckExponJustValidLowerBound() throws SM.SMException {
-        assertFalse(SM.checkExpon(BigInteger.ONE));
+        SM.checkExpon(BigInteger.ONE);
     }
 
-    @Test
+    @Test(expected = SM.SMException.class)
     public void testCheckExponTooSmall() throws SM.SMException {
-        assertTrue(SM.checkExpon(BigInteger.ZERO));
+        SM.checkExpon(BigInteger.ZERO);
     }
 
     @Test
     public void testCheckExponJustValidUpperBound() throws SM.SMException {
-        assertFalse(SM.checkExpon(SM.ORDER_S.subtract(BigInteger.ONE)));
+        SM.checkExpon(SM.ORDER_S.subtract(BigInteger.ONE));
     }
 
-    @Test
+    @Test(expected = SM.SMException.class)
     public void testCheckExponTooLarge() throws SM.SMException {
-        assertTrue(SM.checkExpon(SM.ORDER_S));
+        SM.checkExpon(SM.ORDER_S);
     }
 }
