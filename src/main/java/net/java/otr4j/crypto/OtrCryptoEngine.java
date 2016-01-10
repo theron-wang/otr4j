@@ -211,9 +211,9 @@ public class OtrCryptoEngine {
     public static byte[] sha1Hash(final byte[] b) throws OtrCryptoException {
         // TODO consider moving this to Util, as it is not dependent on any instance or class field
         try {
-            MessageDigest sha256 = MessageDigest.getInstance("SHA-1");
-            sha256.update(b, 0, b.length);
-            return sha256.digest();
+            MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+            sha1.update(b, 0, b.length);
+            return sha1.digest();
         } catch (Exception e) {
             throw new OtrCryptoException(e);
         }
