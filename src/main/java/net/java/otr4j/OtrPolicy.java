@@ -169,13 +169,11 @@ public class OtrPolicy {
 
         OtrPolicy policy = (OtrPolicy) obj;
 
-        // TODO consider using fields directly for comparison
-        return policy.getPolicy() == this.getPolicy();
+        return policy.policy == this.policy;
     }
 
     @Override
     public int hashCode() {
-        // TODO consider modifying hash code to returning this.policy directly
-        return this.getPolicy();
+        return this.policy;
     }
 }
