@@ -25,10 +25,10 @@ public class OtrSessionManager {
             throw new IllegalArgumentException("OtrEngineHost is required.");
         }
 
-        this.setHost(host);
+        this.host = host;
     }
 
-    private OtrEngineHost host;
+    private final OtrEngineHost host;
     private Map<SessionID, Session> sessions;
 
     /**
@@ -50,7 +50,7 @@ public class OtrSessionManager {
         }
 
         if (!sessions.containsKey(sessionID)) {
-            final Session session = new Session(sessionID, getHost());
+            final Session session = new Session(sessionID, this.host);
             sessions.put(sessionID, session);
 
             session.addOtrEngineListener(new OtrEngineListener() {
@@ -83,14 +83,6 @@ public class OtrSessionManager {
         } else {
             return sessions.get(sessionID);
         }
-    }
-
-    private void setHost(final OtrEngineHost host) {
-        this.host = host;
-    }
-
-    private OtrEngineHost getHost() {
-        return host;
     }
 
     // TODO consider converting Vector to ArrayList (check synchronization)
