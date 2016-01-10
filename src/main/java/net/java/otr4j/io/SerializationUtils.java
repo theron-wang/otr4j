@@ -461,8 +461,7 @@ public class SerializationUtils {
 		if (in == null || in.length <= 0) {
             return null;
         }
-        // TODO replace with StringBuilder as this is only executed locally
-		final StringBuffer out = new StringBuffer(in.length * 2);
+		final StringBuilder out = new StringBuilder(in.length * 2);
 		int i = 0;
 		while (i < in.length) {
 			out.append(HEX_ENCODER[(in[i] >>> 4) & 0x0F]);
