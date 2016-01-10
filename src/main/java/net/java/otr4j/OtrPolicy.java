@@ -34,21 +34,17 @@ public class OtrPolicy {
     public static final int OTRL_POLICY_DEFAULT = OPPORTUNISTIC;
 
     public OtrPolicy() {
-        this.setPolicy(NEVER);
+        this(NEVER);
     }
 
     public OtrPolicy(final int policy) {
-        this.setPolicy(policy);
+        this.policy = policy;
     }
 
     private int policy;
 
     public int getPolicy() {
         return policy;
-    }
-
-    private void setPolicy(final int policy) {
-        this.policy = policy;
     }
 
     public boolean getAllowV1() {
@@ -173,11 +169,13 @@ public class OtrPolicy {
 
         OtrPolicy policy = (OtrPolicy) obj;
 
+        // TODO consider using fields directly for comparison
         return policy.getPolicy() == this.getPolicy();
     }
 
     @Override
     public int hashCode() {
+        // TODO consider modifying hash code to returning this.policy directly
         return this.getPolicy();
     }
 }
