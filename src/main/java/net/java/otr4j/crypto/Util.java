@@ -25,6 +25,7 @@ import net.java.otr4j.io.SerializationUtils;
  * Byte utilities.
  */
 public class Util {
+    // TODO consider renaming to ByteUtil such that we can distinguish between these utilities and potential future CryptoUtil
 
 	public static void checkBytes(final String s, final byte[] bytes) {
 		String hexString = new String();

@@ -230,6 +230,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
     @Override
 	public boolean isVerified(final SessionID sessionID) {
 		if (sessionID == null) {
+            // TODO what about SessionID.EMPTY? SessionID.EMPTY has user id 'null', so seems like that is not a good key for the properties store.
             return false;
         }
 
@@ -240,6 +241,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
     @Override
 	public KeyPair loadLocalKeyPair(final SessionID sessionID) {
 		if (sessionID == null) {
+            // TODO what about SessionID.EMPTY? SessionID.EMPTY has account id 'null', so seems like that is not a good key for the properties store.
             return null;
         }
 
@@ -267,6 +269,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
 		// Generate KeyPair.
 		try {
+            // TODO extract constant for DSA sig alg
 			final KeyFactory keyFactory = KeyFactory.getInstance("DSA");
 			publicKey = keyFactory.generatePublic(publicKeySpec);
 			privateKey = keyFactory.generatePrivate(privateKeySpec);
@@ -286,6 +289,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
     @Override
 	public PublicKey loadRemotePublicKey(final SessionID sessionID) {
 		if (sessionID == null) {
+            // TODO what about SessionID.EMPTY? SessionID.EMPTY has user id 'null', so seems like that is not a good key for the properties store.
             return null;
         }
 
@@ -332,6 +336,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
     @Override
 	public void unverify(final SessionID sessionID) {
 		if (sessionID == null) {
+            // TODO what about SessionID.EMPTY? SessionID.EMPTY has user id 'null', so seems like that is not a good key for the properties store.
             return;
         }
 
@@ -352,6 +357,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
     @Override
 	public void verify(final SessionID sessionID) {
 		if (sessionID == null) {
+            // TODO what about SessionID.EMPTY? SessionID.EMPTY has user id 'null', so seems like that is not a good key for the properties store.
             return;
         }
 
