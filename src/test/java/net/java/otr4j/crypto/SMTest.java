@@ -1,6 +1,9 @@
 package net.java.otr4j.crypto;
 
 import java.math.BigInteger;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 /**
@@ -77,5 +80,30 @@ public class SMTest {
         final SM.SMState state = new SM.SMState();
         state.g1 = state.g3o = state.qab = BigInteger.ONE;
         SM.checkEqualLogs(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, state, 0);
+    }
+
+    @Test
+    public void testUnserializeSerializedBigIntArray() throws SM.SMException {
+        final BigInteger[] target = new BigInteger[] {
+            BigInteger.ZERO,
+            BigInteger.ONE,
+            BigInteger.valueOf(125L),
+            BigInteger.valueOf(2500000L),
+        };
+        assertArrayEquals(target, SM.unserialize(SM.serialize(target)));
+    }
+
+    @Test
+    public void testUnserializeZeroLength() throws SM.SMException {
+        final byte[] data = new byte[] { 0, 0, 0, 0 };
+        final BigInteger[] result = SM.unserialize(data);
+        assertNotNull(result);
+        assertEquals(0, result.length);
+    }
+
+    @Test(expected = SM.SMException.class)
+    public void testUnserializeLargeSignedLength() throws SM.SMException {
+        final byte[] data = new byte[] { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
+        SM.unserialize(data);
     }
 }

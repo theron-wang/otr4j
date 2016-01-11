@@ -35,7 +35,7 @@ import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 
 
-// TODO verify against C and java-otr implementation. (DONE: checks, proofs, TODO: primitives, steps)
+// TODO verify against C and java-otr implementation. (DONE: checks, proofs, primitives, TODO: steps)
 public class SM {
 
     private SM() {
@@ -193,7 +193,16 @@ public class SM {
 		try {
 			final ByteArrayInputStream in = new ByteArrayInputStream(bytes);
 			final OtrInputStream ois = new OtrInputStream(in);
+            // TODO wrap code below in try-finally block and ois.close() in finally
 			final int len = ois.readInt();
+            if (len < 0) {
+                // Length is read into (signed) int. Bit shifting is used to
+                // compose the final int value, but bit shifting does not
+                // prevent Java from interpreting the value as a signed int,
+                // thus negative for values where sign bit is set.
+                ois.close();
+                throw new SMException("Invalid number of ints: " + len);
+            }
 			if (len > 100) {
 			    ois.close();
 				throw new SMException("Too many ints");

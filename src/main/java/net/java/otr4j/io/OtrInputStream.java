@@ -59,7 +59,7 @@ public class OtrInputStream extends FilterInputStream implements
 			final int shift = (b.length - 1 - i) * 8;
 			value += (b[i] & 0x000000FF) << shift;
 		}
-
+        // TODO what to do with (signed) ints > 0x7fffffff? This will be interpreted as negative by Java.
 		return value;
 	}
 
