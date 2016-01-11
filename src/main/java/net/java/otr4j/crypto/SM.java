@@ -35,6 +35,7 @@ import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 
 
+// TODO verify against C and java-otr implementation. (DONE: checks, proofs, TODO: primitives, steps)
 public class SM {
 
     private SM() {
@@ -266,26 +267,24 @@ public class SM {
      * @param g the group generator
      * @param x our secret information
      * @param version the prefix to use
-     * @return -1, 0 or 1 as our locally calculated value of c is numerically
-     * less than, equal to, or greater than {@code c}.
-	 * @throws SMException when something goes wrong
+	 * @throws SMException when proof check fails
 	 */
-	public static int checkKnowLog(final BigInteger c, final BigInteger d, final BigInteger g, final BigInteger x, final int version) throws SMException
+	public static void checkKnowLog(final BigInteger c, final BigInteger d, final BigInteger g, final BigInteger x, final int version) throws SMException
 	{
-        // TODO consider making checkKnowLog throw an exception in case of bad outcome. Verification is the same in both cases and throwing an exception makes the code more readable and more true to the name of the method.
-
 	    final BigInteger gd = g.modPow(d, MODULUS_S);
 	    final BigInteger xc = x.modPow(c, MODULUS_S);
 	    final BigInteger gdxc = gd.multiply(xc).mod(MODULUS_S);
 	    final BigInteger hgdxc = hash(version, gdxc, null);
-	    
-	    return hgdxc.compareTo(c);
+
+        if (hgdxc.compareTo(c) != 0) {
+            throw new SMException("Proof checking failed");
+        }
 	}
 	
 	/**
 	 * Proof of knowledge of coordinates with first components being equal
      *
-     * @param state MVN_PASS_JAVADOC_INSPECTION
+     * @param state State of SMP
      * @param r MVN_PASS_JAVADOC_INSPECTION
      * @param version MVN_PASS_JAVADOC_INSPECTION
      * @param sr SecureRandom instance
@@ -317,24 +316,18 @@ public class SM {
 	/**
 	 * Verify a proof of knowledge of coordinates with first components being equal
      * 
-     * TODO Consider making this void and throwing an exception in case of bad result. The checking actually refers to verifying the result rather than this method just doing a computation. The behavior based on the result is the same everywhere?
-     * 
      * @param c MVN_PASS_JAVADOC_INSPECTION
      * @param d1 MVN_PASS_JAVADOC_INSPECTION
      * @param d2 MVN_PASS_JAVADOC_INSPECTION
      * @param p MVN_PASS_JAVADOC_INSPECTION
      * @param q MVN_PASS_JAVADOC_INSPECTION
-     * @param state MVN_PASS_JAVADOC_INSPECTION
+     * @param state State of SMP
      * @param version MVN_PASS_JAVADOC_INSPECTION
-     * @return MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
+	 * @throws SMException Throws SMException in case of invalid parameters.
 	 */
-	public static int checkEqualCoords(final BigInteger c, final BigInteger d1, final BigInteger d2, final BigInteger p,
+	public static void checkEqualCoords(final BigInteger c, final BigInteger d1, final BigInteger d2, final BigInteger p,
 			final BigInteger q, final SMState state, final int version) throws SMException
 	{
-        // TODO consider making checkEqualCoords throw an exception in case of bad outcome. Verification is the same in both cases and throwing an exception makes the code more readable and more true to the name of the method.
-
-
 	    /* To verify, we test that hash(g3^d1 * p^c, g1^d1 * g2^d2 * q^c) = c
 	     * If indeed c = hash(g3^r1, g1^r1 g2^r2), d1 = r1 - r*c,
 	     * d2 = r2 - secret*c.  And if indeed p = g3^r, q = g1^r * g2^secret
@@ -357,7 +350,9 @@ public class SM {
 		
 	    final BigInteger cprime=hash(version, temp1, temp2);
 
-	    return c.compareTo(cprime);
+	    if (c.compareTo(cprime) != 0) {
+            throw new SMException("Proof checking failed");
+        }
 	}
 	
 	/**
@@ -387,20 +382,15 @@ public class SM {
 	/**
 	 * Verify a proof of knowledge of logs with exponents being equal
      * 
-     * TODO consider returning void and throwing an exception in case of unexpected results. The method name already refers to verifying an actual result instead of just doing a computation.
-     * 
      * @param c MVN_PASS_JAVADOC_INSPECTION
      * @param d MVN_PASS_JAVADOC_INSPECTION
      * @param r MVN_PASS_JAVADOC_INSPECTION
      * @param state MVN_PASS_JAVADOC_INSPECTION
      * @param version MVN_PASS_JAVADOC_INSPECTION
-     * @return MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
+	 * @throws SMException Throws SMException in case of invalid parameter.
 	 */
-	public static int checkEqualLogs(final BigInteger c, final BigInteger d, final BigInteger r, final SMState state, final int version) throws SMException
+	public static void checkEqualLogs(final BigInteger c, final BigInteger d, final BigInteger r, final SMState state, final int version) throws SMException
 	{
-        // TODO consider making checkEqualLogs throw an exception in case of bad outcome. Verification is the same in both cases and throwing an exception makes the code more readable and more true to the name of the method.
-
 	    /* Here, we recall the exponents used to create g3.
 	     * If we have previously seen g3o = g1^x where x is unknown
 	     * during the DH exchange to produce g3, then we may proceed with:
@@ -425,7 +415,9 @@ public class SM {
 
 	    final BigInteger cprime = hash(version, temp1, temp2);
 
-	    return c.compareTo(cprime);
+        if (c.compareTo(cprime) != 0) {
+            throw new SMException("Proof checking failed");
+        }
 	}
 	
 	/** Create first message in SMP exchange.  Input is Alice's secret value
@@ -490,7 +482,6 @@ public class SM {
 	    final BigInteger[] msg1 = unserialize(input);
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-        // FIXME CONTINUE HERE VERIFY checkGroupElem and checkExpon are now correct!!!
         checkGroupElem(msg1[0]);
         checkExpon(msg1[2]);
         checkGroupElem(msg1[3]);
@@ -500,10 +491,8 @@ public class SM {
 	    bstate.g3o=msg1[3];
 	    
 	    /* Verify Alice's proofs */
-	    if (checkKnowLog(msg1[1], msg1[2], bstate.g1, msg1[0], 1)!=0
-	    	||checkKnowLog(msg1[4], msg1[5], bstate.g1, msg1[3], 2)!=0) {
-	        throw new SMException("Proof checking failed");
-	    }
+        checkKnowLog(msg1[1], msg1[2], bstate.g1, msg1[0], 1);
+        checkKnowLog(msg1[4], msg1[5], bstate.g1, msg1[3], 2);
 
 	    /* Create Bob's half of the generators g2 and g3 */
 	    
@@ -600,7 +589,6 @@ public class SM {
 	    final BigInteger[] msg2 = unserialize(input);
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-        // FIXME CONTINUE HERE VERIFY checkGroupElem and checkExpon are now correct!!!
         checkGroupElem(msg2[0]);
         checkGroupElem(msg2[3]);
         checkGroupElem(msg2[6]);
@@ -616,10 +604,8 @@ public class SM {
 	    astate.g3o = msg2[3];
 
 	    /* Verify Bob's knowledge of discreet log proofs */
-	    if (checkKnowLog(msg2[1], msg2[2], astate.g1, msg2[0], 3)!=0 || 
-	        checkKnowLog(msg2[4], msg2[5], astate.g1, msg2[3], 4)!=0) {
-	    	throw new SMException("Proof checking failed");
-	    }
+        checkKnowLog(msg2[1], msg2[2], astate.g1, msg2[0], 3);
+        checkKnowLog(msg2[4], msg2[5], astate.g1, msg2[3], 4);
 
 	    /* Combine the two halves from Bob and Alice and determine g2 and g3 */
 	    astate.g2 = msg2[0].modPow(astate.x2, MODULUS_S);
@@ -628,9 +614,7 @@ public class SM {
 	    //Util.checkBytes("g3a", astate.g3.getValue());
 	    
 	    /* Verify Bob's coordinate equality proof */
-	    if (checkEqualCoords(msg2[8], msg2[9], msg2[10], msg2[6], msg2[7], astate, 5)!=0) {
-            throw new SMException("Invalid Parameter");
-        }
+	    checkEqualCoords(msg2[8], msg2[9], msg2[10], msg2[6], msg2[7], astate, 5);
 
 	    /* Calculate P and Q values for Alice */
 	    final BigInteger r = randomExponent(sr);
@@ -696,7 +680,6 @@ public class SM {
 	    final BigInteger[] msg4 = new BigInteger[3];
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-        // FIXME CONTINUE HERE VERIFY checkGroupElem and checkExpon are now correct!!!
 	    checkGroupElem(msg3[0]);
         checkGroupElem(msg3[1]);
 		checkGroupElem(msg3[5]);
@@ -705,9 +688,7 @@ public class SM {
         checkExpon(msg3[7]);
 
 	    /* Verify Alice's coordinate equality proof */
-	    if (checkEqualCoords(msg3[2], msg3[3], msg3[4], msg3[0], msg3[1], bstate, 6)!=0) {
-            throw new SMException("Invalid Parameter");
-        }
+	    checkEqualCoords(msg3[2], msg3[3], msg3[4], msg3[0], msg3[1], bstate, 6);
 	    
 	    /* Find Pa/Pb and Qa/Qb */
 	    BigInteger inv = bstate.p.modInverse(MODULUS_S);
@@ -717,9 +698,7 @@ public class SM {
    
 
 	    /* Verify Alice's log equality proof */
-	    if (checkEqualLogs(msg3[6], msg3[7], msg3[5], bstate, 7)!=0){
-	    	throw new SMException("Proof checking failed");
-	    }
+	    checkEqualLogs(msg3[6], msg3[7], msg3[5], bstate, 7);
 
 	    /* Calculate Rb and proof */
 	    msg4[0] = bstate.qab.modPow(bstate.x3, MODULUS_S);
@@ -756,14 +735,11 @@ public class SM {
 	    astate.smProgState = PROG_CHEATED;
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-        // FIXME CONTINUE HERE VERIFY checkGroupElem and checkExpon are now correct!!!
 	    checkGroupElem(msg4[0]);
         checkExpon(msg4[2]);
 
 	    /* Verify Bob's log equality proof */
-	    if (checkEqualLogs(msg4[1], msg4[2], msg4[0], astate, 8)!=0) {
-            throw new SMException("Invalid Parameter");
-        }
+	    checkEqualLogs(msg4[1], msg4[2], msg4[0], astate, 8);
 
 	    /* Calculate Rab and verify that secrets match */
 	    
