@@ -59,7 +59,7 @@ public class OtrInputStream extends FilterInputStream implements
 			final int shift = (b.length - 1 - i) * 8;
 			value += (b[i] & 0x000000FF) << shift;
 		}
-        // TODO what to do with (signed) ints > 0x7fffffff? This will be interpreted as negative by Java.
+        // FIXME what to do with (signed) ints > 0x7fffffff? This will be interpreted as negative by Java.
 		return value;
 	}
 
@@ -68,6 +68,7 @@ public class OtrInputStream extends FilterInputStream implements
 	}
 
 	public int readInt() throws IOException {
+        // FIXME any users of readInt will risk using int value > 0x7fffffff that will be interpreted as negative by Java. Sometimes directly after is this used to create an array (thus with negative length causing an exception)!
 		return readNumber(TYPE_LEN_INT);
 	}
 
@@ -90,6 +91,7 @@ public class OtrInputStream extends FilterInputStream implements
 
 	public byte[] readData() throws IOException {
 		final int dataLen = readNumber(DATA_LEN);
+        // FIXME for dataLen > 0x7fffffff, negative number will be used. This will result in exceptions.
 		return checkedRead(dataLen);
 	}
 

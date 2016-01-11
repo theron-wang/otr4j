@@ -66,19 +66,21 @@ public class SM {
 	static public class SMException extends Exception {
 		private static final long serialVersionUID = 1L;
 
-		public SMException()
-		{
+		public SMException() {
 			super("");
 		}
 
 		public SMException(final Throwable cause) {
 			super(cause);
 		}
-		
-		public SMException(final String message)
-		{
+
+		public SMException(final String message) {
 			super(message);
 		}
+
+        public SMException(final String message, final Throwable cause) {
+            super(message, cause);
+        }
 	}
 	
 	public static final int EXPECT1 = 0;
@@ -190,32 +192,34 @@ public class SM {
 	}
 	
 	public static BigInteger[] unserialize(final byte[] bytes) throws SMException {
+        final ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        final OtrInputStream ois = new OtrInputStream(in);
 		try {
-			final ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-			final OtrInputStream ois = new OtrInputStream(in);
-            // TODO wrap code below in try-finally block and ois.close() in finally
 			final int len = ois.readInt();
             if (len < 0) {
                 // Length is read into (signed) int. Bit shifting is used to
                 // compose the final int value, but bit shifting does not
                 // prevent Java from interpreting the value as a signed int,
                 // thus negative for values where sign bit is set.
-                ois.close();
                 throw new SMException("Invalid number of ints: " + len);
             }
 			if (len > 100) {
-			    ois.close();
 				throw new SMException("Too many ints");
 			}
 			final BigInteger[] ints = new BigInteger[len];
 			for (int i = 0 ; i < len ; i++) {
 				ints[i] = ois.readBigInt();
 			}
-			ois.close();
 			return ints;
 		} catch (IOException ex) {
 			throw new SMException("cannot unserialize bigints");
-		}
+		} finally {
+            try {
+                ois.close();
+            } catch (IOException e) {
+                throw new SMException("failed to close OtrInputStream", e);
+            }
+        }
 	}
 	
 	/**
