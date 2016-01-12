@@ -232,7 +232,8 @@ public class SM {
 	public static void checkGroupElem(final BigInteger g) throws SMException
 	{
         // TODO Does this really need to be public?
-		if(g.compareTo(BigInteger.valueOf(2)) < 0 || g.compareTo(SM.MODULUS_MINUS_2) > 0) {
+		if(g.compareTo(BigInteger.valueOf(2)) < 0 ||
+				g.compareTo(SM.MODULUS_MINUS_2) > 0) {
             throw new SMException("Invalid parameter");
         }
 	}
