@@ -204,6 +204,7 @@ public class SM {
                 throw new SMException("Invalid number of ints: " + len);
             }
 			if (len > 100) {
+                // TODO is this a specified limit of OTR or a custom limit set by otr4j? Depending on the answer, we may need to interpret the len value above differently and is the (len < 0) check above not correct for all use cases of OTR.
 				throw new SMException("Too many ints");
 			}
 			final BigInteger[] ints = new BigInteger[len];
@@ -252,7 +253,7 @@ public class SM {
             throw new SMException("Invalid parameter");
         }
 	}
-	
+
 	/**
 	 * Proof of knowledge of a discrete logarithm.
      *

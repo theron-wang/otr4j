@@ -47,6 +47,7 @@ public class SmpTlvHandler {
 
 	/* Compute secret session ID as hash of agreed secret */
 	private static byte[] computeSessionId(final BigInteger s) throws SMException {
+        // TODO put 'close()' in finally block()
 		final byte[] sdata;
 		try {
 			final ByteArrayOutputStream out = new ByteArrayOutputStream();

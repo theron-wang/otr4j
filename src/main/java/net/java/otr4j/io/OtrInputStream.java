@@ -134,6 +134,7 @@ public class OtrInputStream extends FilterInputStream implements
 
 	public byte[] readTlvData() throws IOException {
 		final int len = readNumber(TYPE_LEN_SHORT);
+        // FIXME verify len is within ranges of data type Short (0 - 0xffff)
 		return checkedRead(len);
 	}
 
