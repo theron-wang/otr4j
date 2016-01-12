@@ -23,6 +23,8 @@ import org.junit.runners.Parameterized.Parameters;
 /**
  * Test that Socialist Millionaire Protocol verification is working.
  *
+ * TODO Move SMPTest content in with SMTest. Make sure Test file is named as class with 'Test' suffix.
+ *
  * @author Hans-Christoph Steiner
  */
 @RunWith(Parameterized.class)
