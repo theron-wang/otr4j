@@ -19,7 +19,6 @@ import net.java.otr4j.io.messages.SignatureX;
 
 public class OtrInputStream extends FilterInputStream implements
 		SerializationConstants {
-    // TODO consider making OtrInputStream class final
 
 	public OtrInputStream(final InputStream in) {
 		super(in);
@@ -59,7 +58,7 @@ public class OtrInputStream extends FilterInputStream implements
 			final int shift = (b.length - 1 - i) * 8;
 			value += (b[i] & 0x000000FF) << shift;
 		}
-        // FIXME what to do with (signed) ints > 0x7fffffff? This will be interpreted as negative by Java.
+
 		return value;
 	}
 
@@ -67,10 +66,20 @@ public class OtrInputStream extends FilterInputStream implements
 		return readNumber(TYPE_LEN_BYTE);
 	}
 
-	public int readInt() throws IOException {
-        // FIXME any users of readInt will risk using int value > 0x7fffffff that will be interpreted as negative by Java. Sometimes directly after is this used to create an array (thus with negative length causing an exception)!
-		return readNumber(TYPE_LEN_INT);
-	}
+    /**
+     * Read an integer value from OtrInputStream.
+     *
+     * NOTE that OTR specifies 4-byte unsigned int values are supported.
+     * However, Java by default interprets these values as signed. When using
+     * readInt, make sure that your use case will consider negative values and
+     * interpret them correctly.
+     *
+     * @return Returns int value as read from input stream.
+     * @throws IOException Throws IOException in case of read errors.
+     */
+    public int readInt() throws IOException {
+        return readNumber(TYPE_LEN_INT);
+    }
 
 	public int readShort() throws IOException {
 		return readNumber(TYPE_LEN_SHORT);
@@ -89,10 +98,28 @@ public class OtrInputStream extends FilterInputStream implements
 		return new BigInteger(1, b);
 	}
 
+    /**
+     * Read data (bytes) from OtrInputStream.
+     *
+     * NOTE that at this time, the maximum data length supported by otr4j is
+     * limited by the Java max. integer size. Data lengths that use full 32
+     * bits, will be interpreted as negative values and furthermore array are
+     * limited (approx.) to {@link Integer#MAX_VALUE} length. Therefore, any
+     * data of length > {@link Integer#MAX_VALUE} will be rejected and
+     * {@link UnsupportedLengthException} is thrown.
+     *
+     * @return Returns byte[] with data read.
+     * @throws IOException Throws IOException in case of read errors.
+     * @throws UnsupportedLengthException Throws UnsupportedLengthException in
+     * case of data with length > {@link Integer#MAX_VALUE}, as this is
+     * currently unsupported by otr4j.
+     */
 	public byte[] readData() throws IOException {
-		final int dataLen = readNumber(DATA_LEN);
-        // FIXME for dataLen > 0x7fffffff, negative number will be used. This will result in exceptions.
-		return checkedRead(dataLen);
+        final int dataLen = readNumber(DATA_LEN);
+        if (dataLen < 0) {
+            throw new UnsupportedLengthException(dataLen);
+        }
+        return checkedRead(dataLen);
 	}
 
 	public PublicKey readPublicKey() throws IOException {
@@ -134,7 +161,6 @@ public class OtrInputStream extends FilterInputStream implements
 
 	public byte[] readTlvData() throws IOException {
 		final int len = readNumber(TYPE_LEN_SHORT);
-        // FIXME verify len is within ranges of data type Short (0 - 0xffff)
 		return checkedRead(len);
 	}
 
@@ -154,4 +180,13 @@ public class OtrInputStream extends FilterInputStream implements
 		final byte[] sig = readSignature(pubKey);
 		return new SignatureX(pubKey, dhKeyID, sig);
 	}
+
+    public static final class UnsupportedLengthException extends IOException {
+
+        private static final long serialVersionUID = 3929379089911298862L;
+
+        private UnsupportedLengthException(final int length) {
+            super("An unsupported length is encountered. This is a limitation in the current implementation of otr4j. (Length: " + length + ", should be interpreted as an unsigned int.)");
+        }
+    }
 }

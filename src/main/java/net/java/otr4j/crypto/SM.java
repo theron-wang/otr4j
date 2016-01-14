@@ -35,8 +35,9 @@ import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 
 
-// TODO verify against C and java-otr implementation. (DONE: checks, proofs, primitives, TODO: steps)
 public class SM {
+    // TODO Consider converting this to State Machine pattern.
+    // TODO Are there checks for Pa != Pb, and Qa != Qb?
 
     private SM() {
         // SM does not need to be instantiated.
@@ -184,6 +185,7 @@ public class SM {
 				oos.writeBigInt(i);
 			}
 			final byte[] b = out.toByteArray();
+            // TODO move oos.close() into 'finally' block
 			oos.close();
 			return b;
 		} catch (IOException ex) {
