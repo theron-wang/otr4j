@@ -65,6 +65,7 @@ public class AuthContext {
     byte[] localDHPublicKeyHash;
     byte[] localDHPublicKeyEncrypted;
 
+    // TODO most likely session instance can be made final
     private Session session;
 
     private int authenticationState;
@@ -75,6 +76,7 @@ public class AuthContext {
 
     private int localDHPrivateKeyID;
 
+    // TODO consider storing this data in a separate container such that it is impossible to accidentally access an uninitialized field directly, i.e. access through accessor method is enforced. (We can still initialize everything to zero to avoid unnecessary memory overhead if not/hardly used.)
     private BigInteger s;
     private byte[] c;
     private byte[] m1;
@@ -217,6 +219,7 @@ public class AuthContext {
     }
 
     private void setIsSecure(Boolean isSecure) {
+        // TODO dumb private setter is useless. Direct field access is available.
         this.isSecure = isSecure;
     }
 
@@ -457,6 +460,7 @@ public class AuthContext {
     }
 
     private void handleSignatureMessage(final SignatureMessage m) throws OtrException {
+        // TODO use of getSession() getter is redundant. Local variable might be needed to ensure all method calls are on the same instance of Session.
         final Session session = getSession();
         final SessionID sessionID = session.getSessionID();
         logger.finest(sessionID.getAccountID()
@@ -523,6 +527,7 @@ public class AuthContext {
 
     private void handleRevealSignatureMessage(final RevealSignatureMessage m)
             throws OtrException {
+        // TODO use of getSession() getter is redundant. Local variable might be needed to ensure all method calls are on the same instance of Session.
         final Session session = getSession();
         final SessionID sessionID = session.getSessionID();
         logger.finest(sessionID.getAccountID()
@@ -635,6 +640,7 @@ public class AuthContext {
     }
 
     private void handleDHKeyMessage(final DHKeyMessage m) throws OtrException {
+        // TODO use of getSession() getter is redundant. Local variable might be needed to ensure all method calls are on the same instance of Session.
         final Session session = getSession();
         final SessionID sessionID = session.getSessionID();
         logger.finest(sessionID.getAccountID()
@@ -806,10 +812,12 @@ public class AuthContext {
     }
 
     private void setSession(final Session session) {
+        // TODO dumb private setter is useless. Direct field access is available.
         this.session = session;
     }
 
     private Session getSession() {
+        // TODO dumb private getter is useless. Direct field access is available.
         return session;
     }
 
@@ -820,6 +828,7 @@ public class AuthContext {
     }
 
     private void setRemoteLongTermPublicKey(final PublicKey pubKey) {
+        // TODO dumb private setter is useless. Direct field access is available.
         this.remoteLongTermPublicKey = pubKey;
     }
 }

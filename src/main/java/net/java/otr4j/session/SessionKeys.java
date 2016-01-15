@@ -23,8 +23,10 @@ import net.java.otr4j.io.SerializationUtils;
 
 /**
  * @author George Politis
+ * @author Danny van Heumen
  */
 public class SessionKeys {
+    // TODO consider using fields instead of dumb (public) getters
 
     public static final int PREVIOUS = 0;
     public static final int CURRENT = 1;
@@ -108,13 +110,18 @@ public class SessionKeys {
         LOGGER.finest("Resetting " + keyDescription + " session keys.");
         Arrays.fill(this.sendingCtr, (byte) 0x00);
         Arrays.fill(this.receivingCtr, (byte) 0x00);
+        // TODO null AESKey bytes before clearing reference?
         this.sendingAESKey = null;
+        // TODO null AESKey bytes before clearing reference?
         this.receivingAESKey = null;
+        // TODO null MACKey bytes before clearing reference?
         this.sendingMACKey = null;
+        // TODO null MACKey bytes before clearing reference?
         this.receivingMACKey = null;
         this.setIsUsedReceivingMACKey(false);
         this.s = null;
         if (getLocalPair() != null && getRemoteKey() != null) {
+            // TODO consider using fields instead of getters as this is a private method
             this.isHigh = ((DHPublicKey) getLocalPair().getPublic()).getY()
                     .abs().compareTo(getRemoteKey().getY().abs()) == 1;
         }
@@ -211,6 +218,7 @@ public class SessionKeys {
     }
 
     public void setIsUsedReceivingMACKey(final Boolean isUsedReceivingMACKey) {
+        // TODO consider removing dumb private setter
         this.isUsedReceivingMACKey = isUsedReceivingMACKey;
     }
 
@@ -219,6 +227,7 @@ public class SessionKeys {
     }
 
     private void setLocalKeyID(final int localKeyID) {
+        // TODO consider removing dumb private setter
         this.localKeyID = localKeyID;
     }
 
@@ -227,6 +236,7 @@ public class SessionKeys {
     }
 
     private void setRemoteKeyID(final int remoteKeyID) {
+        // TODO consider removing dumb private setter
         this.remoteKeyID = remoteKeyID;
     }
 
@@ -235,6 +245,7 @@ public class SessionKeys {
     }
 
     private void setRemoteKey(final DHPublicKey remoteKey) {
+        // TODO consider removing dumb private setter
         this.remoteKey = remoteKey;
     }
 
