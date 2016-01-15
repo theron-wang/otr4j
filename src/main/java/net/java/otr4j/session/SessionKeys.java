@@ -7,6 +7,7 @@
 
 package net.java.otr4j.session;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
@@ -17,6 +18,7 @@ import javax.crypto.interfaces.DHPublicKey;
 
 import net.java.otr4j.OtrException;
 import net.java.otr4j.crypto.OtrCryptoEngine;
+import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.SerializationUtils;
 
 /**
@@ -119,19 +121,17 @@ public class SessionKeys {
     }
 
     private byte[] h1(final byte b) throws OtrException {
-
+        final byte[] secbytes;
         try {
-            final byte[] secbytes = SerializationUtils.writeMpi(getS());
-
-            final int len = secbytes.length + 1;
-            final ByteBuffer buff = ByteBuffer.allocate(len);
-            buff.put(b);
-            buff.put(secbytes);
-            return OtrCryptoEngine.sha1Hash(buff.array());
-        } catch (Exception e) {
-            // TODO consider catching specific exceptions
-            throw new OtrException(e);
+            secbytes = SerializationUtils.writeMpi(getS());
+        } catch (IOException ex) {
+            throw new OtrCryptoException(ex);
         }
+        final int len = secbytes.length + 1;
+        final ByteBuffer buff = ByteBuffer.allocate(len);
+        buff.put(b);
+        buff.put(secbytes);
+        return OtrCryptoEngine.sha1Hash(buff.array());
     }
 
     public byte[] getSendingAESKey() throws OtrException {
