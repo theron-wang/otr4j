@@ -28,7 +28,6 @@ public class DHKeyMessage extends AbstractEncodedMessage {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		// TODO: Needs work.
 		result = prime * result
 				+ ((dhPublicKey == null) ? 0 : dhPublicKey.hashCode());
 		return result;

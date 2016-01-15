@@ -30,7 +30,6 @@ public class SignatureX {
 	// Methods.
 	@Override
 	public int hashCode() {
-		// TODO: Needs work.
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + dhKeyID;
@@ -44,7 +43,6 @@ public class SignatureX {
 
 	@Override
 	public boolean equals(Object obj) {
-		// TODO: Needs work.
 		if (this == obj) {
             return true;
         }

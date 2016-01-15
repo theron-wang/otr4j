@@ -63,7 +63,6 @@ public class DataMessage extends AbstractEncodedMessage {
 		result = prime * result + Arrays.hashCode(encryptedMessage);
 		result = prime * result + flags;
 		result = prime * result + Arrays.hashCode(mac);
-		// TODO: Needs work.
 		result = prime * result + ((nextDH == null) ? 0 : nextDH.hashCode());
 		result = prime * result + Arrays.hashCode(oldMACKeys);
 		result = prime * result + recipientKeyID;

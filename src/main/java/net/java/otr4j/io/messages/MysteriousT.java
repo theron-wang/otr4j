@@ -38,7 +38,6 @@ public class MysteriousT {
 	// Methods.
 	@Override
 	public int hashCode() {
-		// TODO: Needs work.
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + Arrays.hashCode(ctr);
@@ -56,7 +55,6 @@ public class MysteriousT {
 
 	@Override
 	public boolean equals(Object obj) {
-		// TODO: Needs work.
 		if (this == obj) {
             return true;
         }

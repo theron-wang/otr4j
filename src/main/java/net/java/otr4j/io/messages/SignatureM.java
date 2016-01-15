@@ -37,7 +37,6 @@ public class SignatureM {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + keyPairID;
-		// TODO: Needs work.
 		result = prime
 				* result
 				+ ((localLongTermPubKey == null) ? 0 : localLongTermPubKey
@@ -51,7 +50,6 @@ public class SignatureM {
 
 	@Override
 	public boolean equals(Object obj) {
-		// TODO: Needs work.
 		if (this == obj) {
             return true;
         }
