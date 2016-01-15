@@ -137,12 +137,14 @@ public class OtrInputStream extends FilterInputStream implements
 				keyFactory = KeyFactory.getInstance("DSA");
 			} catch (NoSuchAlgorithmException e) {
                 // TODO consider including the root cause in the IOException
+                // TODO consider throwing IllegalStateException, as this is about availability of classes not IO operation failure.
 				throw new IOException();
 			}
 			try {
 				return keyFactory.generatePublic(keySpec);
 			} catch (InvalidKeySpecException e) {
                 // TODO consider including the root cause in the IOException
+                // TODO consider throwing IllegalStateException, as this is about availability of classes not IO operation failure.
 				throw new IOException();
 			}
 		default:
@@ -151,6 +153,7 @@ public class OtrInputStream extends FilterInputStream implements
 	}
 
 	public DHPublicKey readDHPublicKey() throws IOException {
+        // TODO consider adding throws OtrCryptoException as some errors clearly are not IOExceptions
 		final BigInteger gyMpi = readBigInt();
 		try {
 			return OtrCryptoEngine.getDHPublicKey(gyMpi);
