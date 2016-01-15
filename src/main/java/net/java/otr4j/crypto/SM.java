@@ -142,7 +142,7 @@ public class SM {
      * @param sr SecureRandom instance to use for random data
      * @return the generated random exponent.
      */
-	public static BigInteger randomExponent(final SecureRandom sr) {
+	static BigInteger randomExponent(final SecureRandom sr) {
 		final byte[] sb = new byte[MOD_LEN_BYTES];
 		sr.nextBytes(sb);
 		return new BigInteger(1, sb);
@@ -159,7 +159,7 @@ public class SM {
      * @throws net.java.otr4j.crypto.SM.SMException when the SHA-256 algorithm
      * is missing or when the biginteger can't be serialized.
 	 */
-	public static BigInteger hash(final int version, final BigInteger a, final BigInteger b) throws SMException
+	static BigInteger hash(final int version, final BigInteger a, final BigInteger b) throws SMException
 	{
 		try {
 			final MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
@@ -176,7 +176,7 @@ public class SM {
 		}
 	}
 	
-	public static byte[] serialize(final BigInteger[] ints) throws SMException {
+	static byte[] serialize(final BigInteger[] ints) throws SMException {
 		try {
 			final ByteArrayOutputStream out = new ByteArrayOutputStream();
 			final OtrOutputStream oos = new OtrOutputStream(out);
@@ -193,7 +193,7 @@ public class SM {
 		}
 	}
 	
-	public static BigInteger[] unserialize(final byte[] bytes) throws SMException {
+	static BigInteger[] unserialize(final byte[] bytes) throws SMException {
         final ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         final OtrInputStream ois = new OtrInputStream(in);
 		try {
@@ -232,9 +232,8 @@ public class SM {
      * @param g the BigInteger to check.
      * @throws net.java.otr4j.crypto.SM.SMException Throws SMException if check fails.
      */
-	public static void checkGroupElem(final BigInteger g) throws SMException
+	static void checkGroupElem(final BigInteger g) throws SMException
 	{
-        // TODO Does this really need to be public?
 		if(g.compareTo(BigInteger.valueOf(2)) < 0 ||
 				g.compareTo(SM.MODULUS_MINUS_2) > 0) {
             throw new SMException("Invalid parameter");
@@ -248,9 +247,8 @@ public class SM {
      * @param x The BigInteger to check.
      * @throws net.java.otr4j.crypto.SM.SMException Throws SMException if check fails.
      */
-	public static void checkExpon(final BigInteger x) throws SMException
+	static void checkExpon(final BigInteger x) throws SMException
 	{
-        // TODO Does this really need to be public?
 		if (x.compareTo(BigInteger.ONE) < 0 || x.compareTo(SM.ORDER_S) >= 0) {
             throw new SMException("Invalid parameter");
         }
@@ -266,7 +264,7 @@ public class SM {
      * @return c and d.
 	 * @throws SMException when c and d could not be calculated
 	 */
-	public static BigInteger[] proofKnowLog(final BigInteger g, final BigInteger x, final int version, final SecureRandom sr) throws SMException
+	static BigInteger[] proofKnowLog(final BigInteger g, final BigInteger x, final int version, final SecureRandom sr) throws SMException
 	{
 	    final BigInteger r = randomExponent(sr);
 	    BigInteger temp = g.modPow(r, SM.MODULUS_S);
@@ -286,7 +284,7 @@ public class SM {
      * @param version the prefix to use
 	 * @throws SMException when proof check fails
 	 */
-	public static void checkKnowLog(final BigInteger c, final BigInteger d, final BigInteger g, final BigInteger x, final int version) throws SMException
+	static void checkKnowLog(final BigInteger c, final BigInteger d, final BigInteger g, final BigInteger x, final int version) throws SMException
 	{
 	    final BigInteger gd = g.modPow(d, MODULUS_S);
 	    final BigInteger xc = x.modPow(c, MODULUS_S);
@@ -308,7 +306,7 @@ public class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	public static BigInteger[] proofEqualCoords(final SMState state, final BigInteger r, final int version, final SecureRandom sr) throws SMException
+	static BigInteger[] proofEqualCoords(final SMState state, final BigInteger r, final int version, final SecureRandom sr) throws SMException
 	{
 	    final BigInteger r1 = randomExponent(sr);
 	    final BigInteger r2 = randomExponent(sr);
@@ -342,7 +340,7 @@ public class SM {
      * @param version MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException Throws SMException in case of invalid parameters.
 	 */
-	public static void checkEqualCoords(final BigInteger c, final BigInteger d1, final BigInteger d2, final BigInteger p,
+	static void checkEqualCoords(final BigInteger c, final BigInteger d1, final BigInteger d2, final BigInteger p,
 			final BigInteger q, final SMState state, final int version) throws SMException
 	{
 	    /* To verify, we test that hash(g3^d1 * p^c, g1^d1 * g2^d2 * q^c) = c
@@ -380,7 +378,7 @@ public class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	public static BigInteger[] proofEqualLogs(final SMState state, final int version, final SecureRandom sr) throws SMException
+	static BigInteger[] proofEqualLogs(final SMState state, final int version, final SecureRandom sr) throws SMException
 	{
 	    final BigInteger r = randomExponent(sr);
 
@@ -406,7 +404,7 @@ public class SM {
      * @param version MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException Throws SMException in case of invalid parameter.
 	 */
-	public static void checkEqualLogs(final BigInteger c, final BigInteger d, final BigInteger r, final SMState state, final int version) throws SMException
+	static void checkEqualLogs(final BigInteger c, final BigInteger d, final BigInteger r, final SMState state, final int version) throws SMException
 	{
 	    /* Here, we recall the exponents used to create g3.
 	     * If we have previously seen g3o = g1^x where x is unknown
