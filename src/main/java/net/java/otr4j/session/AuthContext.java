@@ -214,12 +214,7 @@ public class AuthContext {
         c = m1 = m2 = cp = m1p = m2p = null;
 
         localLongTermKeyPair = null;
-        setIsSecure(false);
-    }
-
-    private void setIsSecure(Boolean isSecure) {
-        // TODO dumb private setter is useless. Direct field access is available.
-        this.isSecure = isSecure;
+        isSecure = false;
     }
 
     public boolean getIsSecure() {
@@ -512,7 +507,7 @@ public class AuthContext {
                     return;
                 }
 
-                this.setIsSecure(true);
+                this.isSecure = true;
                 this.setRemoteLongTermPublicKey(remoteLongTermPublicKey);
                 break;
             default:
@@ -624,7 +619,7 @@ public class AuthContext {
                 logger.finest("Signature verification succeeded.");
 
                 this.setAuthenticationState(AuthContext.NONE);
-                this.setIsSecure(true);
+                this.isSecure = true;
                 this.setRemoteLongTermPublicKey(remoteLongTermPublicKey);
                 session.injectMessage(messageFactory.getSignatureMessage());
                 break;
