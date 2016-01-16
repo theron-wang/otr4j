@@ -508,7 +508,7 @@ public class AuthContext {
                 }
 
                 this.isSecure = true;
-                this.setRemoteLongTermPublicKey(remoteLongTermPublicKey);
+                this.remoteLongTermPublicKey = remoteLongTermPublicKey;
                 break;
             default:
                 logger.finest("We were not expecting a signature, ignoring message.");
@@ -620,7 +620,7 @@ public class AuthContext {
 
                 this.setAuthenticationState(AuthContext.NONE);
                 this.isSecure = true;
-                this.setRemoteLongTermPublicKey(remoteLongTermPublicKey);
+                this.remoteLongTermPublicKey = remoteLongTermPublicKey;
                 session.injectMessage(messageFactory.getSignatureMessage());
                 break;
             default:
@@ -800,10 +800,5 @@ public class AuthContext {
 
     public PublicKey getRemoteLongTermPublicKey() {
         return remoteLongTermPublicKey;
-    }
-
-    private void setRemoteLongTermPublicKey(final PublicKey pubKey) {
-        // TODO dumb private setter is useless. Direct field access is available.
-        this.remoteLongTermPublicKey = pubKey;
     }
 }
