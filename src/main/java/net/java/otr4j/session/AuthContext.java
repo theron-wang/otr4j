@@ -51,7 +51,7 @@ public class AuthContext {
     public AuthContext(final Session session) {
         SessionID sID = session.getSessionID();
         this.logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
-        this.setSession(session);
+        this.session = session;
         this.reset();
     }
 
@@ -65,8 +65,7 @@ public class AuthContext {
     byte[] localDHPublicKeyHash;
     byte[] localDHPublicKeyEncrypted;
 
-    // TODO most likely session instance can be made final
-    private Session session;
+    private final Session session;
 
     private int authenticationState;
 
@@ -100,7 +99,7 @@ public class AuthContext {
         }
 
         DHCommitMessage getDHCommitMessage() throws OtrException {
-            final DHCommitMessage message = new DHCommitMessage(getSession().getProtocolVersion(),
+            final DHCommitMessage message = new DHCommitMessage(session.getProtocolVersion(),
                     getLocalDHPublicKeyHash(), getLocalDHPublicKeyEncrypted());
             message.senderInstanceTag = session.getSenderInstanceTag().getValue();
             message.receiverInstanceTag = InstanceTag.ZERO_VALUE;
@@ -109,10 +108,10 @@ public class AuthContext {
 
         DHKeyMessage getDHKeyMessage() throws OtrException {
             final DHKeyMessage dhKeyMessage =
-                    new DHKeyMessage(getSession().getProtocolVersion(),
+                    new DHKeyMessage(session.getProtocolVersion(),
                             (DHPublicKey) getLocalDHKeyPair().getPublic());
-            dhKeyMessage.senderInstanceTag = getSession().getSenderInstanceTag().getValue();
-            dhKeyMessage.receiverInstanceTag = getSession().getReceiverInstanceTag().getValue();
+            dhKeyMessage.senderInstanceTag = session.getSenderInstanceTag().getValue();
+            dhKeyMessage.receiverInstanceTag = session.getReceiverInstanceTag().getValue();
             return dhKeyMessage;
         }
 
@@ -138,12 +137,12 @@ public class AuthContext {
 
                 final byte[] xEncryptedHash = OtrCryptoEngine.sha256Hmac160(tmp, getM2());
                 final RevealSignatureMessage revealSignatureMessage =
-                        new RevealSignatureMessage(getSession().getProtocolVersion(),
+                        new RevealSignatureMessage(session.getProtocolVersion(),
                                 xEncrypted, xEncryptedHash, getR());
                 revealSignatureMessage.senderInstanceTag =
-                        getSession().getSenderInstanceTag().getValue();
+                        session.getSenderInstanceTag().getValue();
                 revealSignatureMessage.receiverInstanceTag =
-                        getSession().getReceiverInstanceTag().getValue();
+                        session.getReceiverInstanceTag().getValue();
                 return revealSignatureMessage;
             } catch (IOException e) {
                 throw new OtrException(e);
@@ -175,12 +174,12 @@ public class AuthContext {
                 final byte[] tmp = SerializationUtils.writeData(xEncrypted);
                 final byte[] xEncryptedHash = OtrCryptoEngine.sha256Hmac160(tmp, getM2p());
                 final SignatureMessage signatureMessage =
-                        new SignatureMessage(getSession().getProtocolVersion(), xEncrypted,
+                        new SignatureMessage(session.getProtocolVersion(), xEncrypted,
                                 xEncryptedHash);
                 signatureMessage.senderInstanceTag =
-                        getSession().getSenderInstanceTag().getValue();
+                        session.getSenderInstanceTag().getValue();
                 signatureMessage.receiverInstanceTag =
-                        getSession().getReceiverInstanceTag().getValue();
+                        session.getReceiverInstanceTag().getValue();
                 return signatureMessage;
             } catch (IOException e) {
                 throw new OtrException(e);
@@ -405,7 +404,7 @@ public class AuthContext {
 
     public KeyPair getLocalLongTermKeyPair() throws OtrException {
         if (localLongTermKeyPair == null) {
-            localLongTermKeyPair = getSession().getLocalKeyPair();
+            localLongTermKeyPair = session.getLocalKeyPair();
         }
         return localLongTermKeyPair;
     }
@@ -460,8 +459,6 @@ public class AuthContext {
     }
 
     private void handleSignatureMessage(final SignatureMessage m) throws OtrException {
-        // TODO use of getSession() getter is redundant. Local variable might be needed to ensure all method calls are on the same instance of Session.
-        final Session session = getSession();
         final SessionID sessionID = session.getSessionID();
         logger.finest(sessionID.getAccountID()
                 + " received a signature message from " + sessionID.getUserID()
@@ -527,8 +524,6 @@ public class AuthContext {
 
     private void handleRevealSignatureMessage(final RevealSignatureMessage m)
             throws OtrException {
-        // TODO use of getSession() getter is redundant. Local variable might be needed to ensure all method calls are on the same instance of Session.
-        final Session session = getSession();
         final SessionID sessionID = session.getSessionID();
         logger.finest(sessionID.getAccountID()
                 + " received a reveal signature message from "
@@ -631,7 +626,7 @@ public class AuthContext {
                 this.setAuthenticationState(AuthContext.NONE);
                 this.setIsSecure(true);
                 this.setRemoteLongTermPublicKey(remoteLongTermPublicKey);
-                getSession().injectMessage(messageFactory.getSignatureMessage());
+                session.injectMessage(messageFactory.getSignatureMessage());
                 break;
             default:
                 logger.finest("Ignoring message.");
@@ -640,8 +635,6 @@ public class AuthContext {
     }
 
     private void handleDHKeyMessage(final DHKeyMessage m) throws OtrException {
-        // TODO use of getSession() getter is redundant. Local variable might be needed to ensure all method calls are on the same instance of Session.
-        final Session session = getSession();
         final SessionID sessionID = session.getSessionID();
         logger.finest(sessionID.getAccountID()
                 + " received a D-H key message from " + sessionID.getUserID()
@@ -669,8 +662,7 @@ public class AuthContext {
                 // AUTHSTATE_AWAITING_SIG
                 this.setRemoteDHPublicKey(m.dhPublicKey);
                 this.setAuthenticationState(AuthContext.AWAITING_SIG);
-                getSession().injectMessage(
-                        messageFactory.getRevealSignatureMessage());
+                session.injectMessage(messageFactory.getRevealSignatureMessage());
                 logger.finest("Sent Reveal Signature.");
                 break;
             case AWAITING_SIG:
@@ -680,8 +672,7 @@ public class AuthContext {
                     // earlier (when you entered AUTHSTATE_AWAITING_SIG):
                     // Retransmit
                     // your Reveal Signature Message.
-                    getSession().injectMessage(
-                            messageFactory.getRevealSignatureMessage());
+                    session.injectMessage(messageFactory.getRevealSignatureMessage());
                     logger.finest("Resent Reveal Signature.");
                 } else {
                     // Otherwise: Ignore the message.
@@ -695,7 +686,6 @@ public class AuthContext {
     }
 
     private void handleDHCommitMessage(final DHCommitMessage m) throws OtrException {
-        final Session session = getSession();
         final SessionID sessionID = session.getSessionID();
         logger.finest(sessionID.getAccountID()
                 + " received a D-H commit message from "
@@ -723,11 +713,11 @@ public class AuthContext {
                 // Reply with a D-H Key Message, and transition authstate to
                 // AUTHSTATE_AWAITING_REVEALSIG.
                 this.reset();
-                getSession().setProtocolVersion(m.protocolVersion);
+                session.setProtocolVersion(m.protocolVersion);
                 this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                 this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
                 this.setAuthenticationState(AuthContext.AWAITING_REVEALSIG);
-                getSession().injectMessage(messageFactory.getDHKeyMessage());
+                session.injectMessage(messageFactory.getDHKeyMessage());
                 logger.finest("Sent D-H key.");
                 break;
 
@@ -750,7 +740,7 @@ public class AuthContext {
                 if (theirHash.compareTo(ourHash) == -1) {
                     // Ignore the incoming D-H Commit message, but resend your
                     // D-H Commit message.
-                    getSession().injectMessage(messageFactory.getDHCommitMessage());
+                    session.injectMessage(messageFactory.getDHCommitMessage());
                     logger.finest("Ignored the incoming D-H Commit message, but resent our D-H Commit message.");
                 } else {
                     // *Forget* your old gx value that you sent (encrypted)
@@ -759,11 +749,11 @@ public class AuthContext {
                     // D-H Key Message, and transition authstate to
                     // AUTHSTATE_AWAITING_REVEALSIG.
                     this.reset();
-                    getSession().setProtocolVersion(m.protocolVersion);
+                    session.setProtocolVersion(m.protocolVersion);
                     this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                     this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
                     this.setAuthenticationState(AuthContext.AWAITING_REVEALSIG);
-                    getSession().injectMessage(messageFactory.getDHKeyMessage());
+                    session.injectMessage(messageFactory.getDHKeyMessage());
                     logger.finest("Forgot our old gx value that we sent (encrypted) earlier, and pretended we're in AUTHSTATE_NONE -> Sent D-H key.");
                 }
                 break;
@@ -775,7 +765,7 @@ public class AuthContext {
                 // Commit message, and use this new one instead.
                 this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                 this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
-                getSession().injectMessage(messageFactory.getDHKeyMessage());
+                session.injectMessage(messageFactory.getDHKeyMessage());
                 logger.finest("Sent D-H key.");
                 break;
             case AWAITING_SIG:
@@ -785,7 +775,7 @@ public class AuthContext {
                 this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                 this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
                 this.setAuthenticationState(AuthContext.AWAITING_REVEALSIG);
-                getSession().injectMessage(messageFactory.getDHKeyMessage());
+                session.injectMessage(messageFactory.getDHKeyMessage());
                 logger.finest("Sent D-H key.");
                 break;
             case V1_SETUP:
@@ -795,7 +785,7 @@ public class AuthContext {
 
     public void startAuth() throws OtrException {
         logger.finest("Starting Authenticated Key Exchange, sending query message");
-        getSession().injectMessage(messageFactory.getQueryMessage());
+        session.injectMessage(messageFactory.getQueryMessage());
     }
 
     public DHCommitMessage respondAuth(final Integer version) throws OtrException {
@@ -805,20 +795,10 @@ public class AuthContext {
 
         logger.finest("Responding to Query Message");
         this.reset();
-        getSession().setProtocolVersion(version);
+        session.setProtocolVersion(version);
         this.setAuthenticationState(AuthContext.AWAITING_DHKEY);
         logger.finest("Generating D-H Commit.");
         return messageFactory.getDHCommitMessage();
-    }
-
-    private void setSession(final Session session) {
-        // TODO dumb private setter is useless. Direct field access is available.
-        this.session = session;
-    }
-
-    private Session getSession() {
-        // TODO dumb private getter is useless. Direct field access is available.
-        return session;
     }
 
     private PublicKey remoteLongTermPublicKey;
