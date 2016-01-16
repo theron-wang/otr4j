@@ -8,7 +8,8 @@
 package net.java.otr4j;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import net.java.otr4j.session.Session;
@@ -39,8 +40,7 @@ public class OtrSessionManager {
      * As the session map is needed as soon as we get/create our first session,
      * we might as well construct it immediately.
      */
-    // TODO Hashtable is obsolete collection. Should we use HashMap for this? There might be some concurrency here ...
-    private final Map<SessionID, Session> sessions = new Hashtable<SessionID, Session>();
+    private final Map<SessionID, Session> sessions = Collections.synchronizedMap(new HashMap<SessionID, Session>());
 
     /**
      * List for keeping track of listeners.
