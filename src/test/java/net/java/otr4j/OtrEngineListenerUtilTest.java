@@ -1,13 +1,30 @@
 package net.java.otr4j;
 
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.java.otr4j.session.SessionID;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class OtrEngineListenerUtilTest {
+
+    private Level originalLoggingLevel;
+
+    @Before
+    public void setUp() {
+        originalLoggingLevel = Logger.getGlobal().getLevel();
+        Logger.getLogger("net.java.otr4j").setLevel(Level.SEVERE);
+    }
+
+    @After
+    public void tearDown() {
+        Logger.getLogger("net.java.otr4j").setLevel(originalLoggingLevel);
+    }
 
     @Test
     public void testSessionStatusChangedGoodListeners() {
