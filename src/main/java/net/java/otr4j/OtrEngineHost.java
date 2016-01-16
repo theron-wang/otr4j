@@ -107,7 +107,6 @@ public abstract interface OtrEngineHost {
      * @param fingerprint of the key to verify
      * @param approved
      */
-
 	public abstract void verify(SessionID sessionID, String fingerprint, boolean approved);
 
     /**

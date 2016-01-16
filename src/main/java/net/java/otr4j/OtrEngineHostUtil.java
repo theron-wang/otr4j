@@ -31,9 +31,15 @@ import net.java.otr4j.session.SessionID;
  *
  * @author Danny van Heumen
  */
-// TODO what to do with verify(...)
-// TODO what to do with unverify(...)
+// TODO implement support method for verify(...). Log exceptions as SEVERE but continue execution as the protocol state already progressed.
+// TODO implement support method for unverify(...). Log exceptions as SEVERE but continue execution as the protocol state already progressed.
 // TODO what to do with askForSecret(...)
+// TODO implement support method for smpError(...). Needed to ensure that *reset* is called even if a runtime exception occurs.
+// TODO implement support method for smpAborted(...). Needed to ensure that *reset* is called even if a runtime exception occurs.
+// TODO implement support method for showError(...).
+// TODO implement support method for finishedSessionMessage(...).
+// TODO implement support method for requireEncryptedMessage(...).
+// TODO implement support method for getReplyForUnreadableMessage(...).
 public final class OtrEngineHostUtil {
 
     private static final Logger LOGGER = Logger.getLogger(OtrEngineHostUtil.class.getCanonicalName());

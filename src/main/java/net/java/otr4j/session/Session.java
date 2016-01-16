@@ -565,6 +565,7 @@ public class Session {
 
     private void handleErrorMessage(final ErrorMessage errorMessage)
             throws OtrException {
+        // TODO mistake in log message: getUserID() used twice, instead of protocol name
         logger.finest(getSessionID().getAccountID()
                 + " received an error message from "
                 + getSessionID().getUserID() + " through "
