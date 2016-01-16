@@ -35,9 +35,12 @@ public class OtrSessionManager {
 
     /**
      * Map with known sessions.
+     *
+     * As the session map is needed as soon as we get/create our first session,
+     * we might as well construct it immediately.
      */
-    // TODO consider creating a map on construction and making it final. Map could be minimum-sized to avoid large overhead in memory usage.
-    private Map<SessionID, Session> sessions;
+    // TODO Hashtable is obsolete collection. Should we use HashMap for this? There might be some concurrency here ...
+    private final Map<SessionID, Session> sessions = new Hashtable<SessionID, Session>();
 
     /**
      * List for keeping track of listeners.
@@ -104,12 +107,8 @@ public class OtrSessionManager {
             throw new IllegalArgumentException();
         }
 
-        if (sessions == null) {
-            // TODO Hashtable is obsolete collection. Should we use HashMap for this? There might be some concurrency here ...
-            sessions = new Hashtable<SessionID, Session>();
-        }
-
         if (!sessions.containsKey(sessionID)) {
+            // TODO no synchronization between containsKey and put of new session. Should we really synchronize this?
             final Session session = new Session(sessionID, this.host);
             sessions.put(sessionID, session);
             session.addOtrEngineListener(sessionManagerListener);
