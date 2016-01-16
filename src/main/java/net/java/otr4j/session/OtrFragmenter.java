@@ -261,9 +261,6 @@ public class OtrFragmenter {
 	 * extra characters per message if an exact calculation of the number of
 	 * required chars is used.
 	 *
-	 * TODO I think this is dependent on the number of chars in a decimal
-	 * representation of the current and total number of fragments.
-	 *
 	 * @return returns size of v2 header
 	 */
 	static int computeHeaderV2Size() {

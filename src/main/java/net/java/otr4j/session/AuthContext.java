@@ -514,7 +514,6 @@ public class AuthContext {
                 logger.finest("We were not expecting a signature, ignoring message.");
                 return;
         }
-        // TODO consider throwing IllegalStateException as we should never get here
     }
 
     private void handleRevealSignatureMessage(final RevealSignatureMessage m)

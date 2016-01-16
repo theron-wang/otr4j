@@ -110,13 +110,9 @@ public class SessionKeys {
         LOGGER.finest("Resetting " + keyDescription + " session keys.");
         Arrays.fill(this.sendingCtr, (byte) 0x00);
         Arrays.fill(this.receivingCtr, (byte) 0x00);
-        // TODO null AESKey bytes before clearing reference?
         this.sendingAESKey = null;
-        // TODO null AESKey bytes before clearing reference?
         this.receivingAESKey = null;
-        // TODO null MACKey bytes before clearing reference?
         this.sendingMACKey = null;
-        // TODO null MACKey bytes before clearing reference?
         this.receivingMACKey = null;
         this.setIsUsedReceivingMACKey(false);
         this.s = null;
@@ -218,7 +214,6 @@ public class SessionKeys {
     }
 
     public void setIsUsedReceivingMACKey(final Boolean isUsedReceivingMACKey) {
-        // TODO consider removing dumb private setter
         this.isUsedReceivingMACKey = isUsedReceivingMACKey;
     }
 
