@@ -385,7 +385,7 @@ public class Session {
         } catch (UnknownInstanceException e) {
             // The fragment is not intended for us
             logger.finest(e.getMessage());
-            getHost().messageFromAnotherInstanceReceived(getSessionID());
+            OtrEngineHostUtil.messageFromAnotherInstanceReceived(getHost(), getSessionID());
             return null;
         } catch (ProtocolException e) {
             logger.warning("An invalid message fragment was discarded.");
@@ -425,7 +425,7 @@ public class Session {
                         // The message is not intended for us. Discarding...
                         logger.finest("Received an encoded message with receiver instance tag" +
                                 " that is different from ours, ignore this message");
-                        getHost().messageFromAnotherInstanceReceived(getSessionID());
+                        OtrEngineHostUtil.messageFromAnotherInstanceReceived(getHost(), getSessionID());
                         return null;
                     }
                 }
@@ -610,7 +610,8 @@ public class Session {
 
                 if (matchingKeys == null) {
                     logger.finest("No matching keys found.");
-                    getHost().unreadableMessageReceived(this.getSessionID());
+                    OtrEngineHostUtil.unreadableMessageReceived(getHost(),
+                            this.getSessionID());
                     injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR,
                             getHost().getReplyForUnreadableMessage(getSessionID())));
                     return null;
@@ -632,7 +633,8 @@ public class Session {
                         SerializationConstants.TYPE_LEN_MAC);
                 if (!Arrays.equals(computedMAC, data.mac)) {
                     logger.finest("MAC verification failed, ignoring message");
-                    getHost().unreadableMessageReceived(this.getSessionID());
+                    OtrEngineHostUtil.unreadableMessageReceived(getHost(),
+                            this.getSessionID());
                     injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR,
                             getHost().getReplyForUnreadableMessage(getSessionID())));
                     return null;
@@ -733,7 +735,8 @@ public class Session {
 
             case FINISHED:
             case PLAINTEXT:
-                getHost().unreadableMessageReceived(this.getSessionID());
+                OtrEngineHostUtil.unreadableMessageReceived(getHost(),
+                        this.getSessionID());
                 injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR,
                         getHost().getReplyForUnreadableMessage(getSessionID())));
                 break;
@@ -750,7 +753,8 @@ public class Session {
             throw new OtrException(e);
         }
         if (m instanceof QueryMessage) {
-            String fallback = getHost().getFallbackMessage(getSessionID());
+            String fallback = OtrEngineHostUtil.getFallbackMessage(getHost(),
+                    getSessionID());
             if (fallback == null || fallback.equals("")) {
                 fallback = SerializationConstants.DEFAULT_FALLBACK_MESSAGE;
             }
@@ -793,8 +797,8 @@ public class Session {
                      * Display the message to the user, but warn him that the
                      * message was received unencrypted.
                      */
-                    getHost().unencryptedMessageReceived(sessionID,
-                            plainTextMessage.cleanText);
+                    OtrEngineHostUtil.unencryptedMessageReceived(getHost(),
+                            sessionID, plainTextMessage.cleanText);
                     return plainTextMessage.cleanText;
                 case PLAINTEXT:
                     /*
@@ -803,8 +807,8 @@ public class Session {
                      * received unencrypted.
                      */
                     if (policy.getRequireEncryption()) {
-                        getHost().unencryptedMessageReceived(sessionID,
-                                plainTextMessage.cleanText);
+                        OtrEngineHostUtil.unencryptedMessageReceived(getHost(),
+                                sessionID, plainTextMessage.cleanText);
                     }
                     return plainTextMessage.cleanText;
             }
@@ -819,8 +823,8 @@ public class Session {
                      * user, but warn him that the message was received
                      * unencrypted.
                      */
-                    getHost().unencryptedMessageReceived(sessionID,
-                            plainTextMessage.cleanText);
+                    OtrEngineHostUtil.unencryptedMessageReceived(getHost(),
+                            sessionID, plainTextMessage.cleanText);
                 case PLAINTEXT:
                     /*
                      * Remove the whitespace tag and display the message to the
@@ -828,8 +832,8 @@ public class Session {
                      * message was received unencrypted.
                      */
                     if (policy.getRequireEncryption()) {
-                        getHost().unencryptedMessageReceived(sessionID,
-                                plainTextMessage.cleanText);
+                        OtrEngineHostUtil.unencryptedMessageReceived(getHost(),
+                                sessionID, plainTextMessage.cleanText);
                     }
             }
 
