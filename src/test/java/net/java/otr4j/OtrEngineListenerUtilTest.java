@@ -17,8 +17,9 @@ public class OtrEngineListenerUtilTest {
 
     @Before
     public void setUp() {
-        originalLoggingLevel = Logger.getGlobal().getLevel();
-        Logger.getLogger("net.java.otr4j").setLevel(Level.SEVERE);
+        final Logger logger = Logger.getLogger("net.java.otr4j");
+        originalLoggingLevel = logger.getLevel();
+        logger.setLevel(Level.SEVERE);
     }
 
     @After

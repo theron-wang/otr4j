@@ -17,6 +17,8 @@ import net.java.otr4j.session.SessionID;
  * for otr4j to work properly. This provides the core interface between the app
  * and otr4j.
  *
+ * TODO handle calls to OtrEngineHost methods safely, i.e. catch and log exceptions.
+ *
  * @author George Politis
  */
 public abstract interface OtrEngineHost {

@@ -23,11 +23,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.crypto.interfaces.DHPublicKey;
 
 import net.java.otr4j.OtrEngineHost;
+import net.java.otr4j.OtrEngineHostUtil;
 import net.java.otr4j.OtrEngineListener;
 import net.java.otr4j.OtrEngineListenerUtil;
 import net.java.otr4j.OtrException;
@@ -485,8 +487,7 @@ public class Session {
 
                             slaveSessions.put(newReceiverTag, session);
 
-                            // TODO consider catching RTEs for host callbacks to prevent premature exit from logic
-                            getHost().multipleInstancesDetected(sessionID);
+                            OtrEngineHostUtil.multipleInstancesDetected(getHost(), sessionID);
                             OtrEngineListenerUtil.multipleInstancesDetected(this.listeners, sessionID);
                         }
                     }
