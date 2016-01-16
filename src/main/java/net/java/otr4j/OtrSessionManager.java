@@ -58,7 +58,7 @@ public class OtrSessionManager {
         }
 
         if (sessions == null) {
-            // TODO Hashtable is obsolete collection. Should we use HashMap for this?
+            // TODO Hashtable is obsolete collection. Should we use HashMap for this? There might be some concurrency here ...
             sessions = new Hashtable<SessionID, Session>();
         }
 
@@ -71,20 +71,36 @@ public class OtrSessionManager {
 
                 @Override
                 public void sessionStatusChanged(final SessionID sessionID) {
-                    // FIXME consider copying 'listeners' to avoid incidental ConcurrentModificationExceptions while iterating over elements (thread-safety)
-                    OtrEngineListenerUtil.sessionStatusChanged(listeners, sessionID);
+                    final ArrayList<OtrEngineListener> lsrs = copyListeners();
+                    OtrEngineListenerUtil.sessionStatusChanged(lsrs, sessionID);
                 }
 
                 @Override
                 public void multipleInstancesDetected(final SessionID sessionID) {
-                    // FIXME consider copying 'listeners' to avoid incidental ConcurrentModificationExceptions while iterating over elements (thread-safety)
-                    OtrEngineListenerUtil.multipleInstancesDetected(listeners, sessionID);
+                    final ArrayList<OtrEngineListener> lsrs = copyListeners();
+                    OtrEngineListenerUtil.multipleInstancesDetected(lsrs, sessionID);
                 }
 
                 @Override
                 public void outgoingSessionChanged(final SessionID sessionID) {
-                    // FIXME consider copying 'listeners' to avoid incidental ConcurrentModificationExceptions while iterating over elements (thread-safety)
-                    OtrEngineListenerUtil.outgoingSessionChanged(listeners, sessionID);
+                    final ArrayList<OtrEngineListener> lsrs = copyListeners();
+                    OtrEngineListenerUtil.outgoingSessionChanged(lsrs, sessionID);
+                }
+
+                /**
+                 * Make a consistent copy of current listeners such that there
+                 * is no risk for ConcurrentModificationException during
+                 * iteration. Copy is made in a synchronized context.
+                 *
+                 * @return Returns copy of listeners.
+                 */
+                private ArrayList<OtrEngineListener> copyListeners() {
+                    final ArrayList<OtrEngineListener> lsrs;
+                    synchronized (listeners) {
+                        // make copy in synchronized context such that we can be sure of consistent list and no ConcurrentModificationExceptions are thrown.
+                        lsrs = new ArrayList(listeners);
+                    }
+                    return lsrs;
                 }
             });
             return session;
