@@ -84,6 +84,7 @@ public final class OtrEngineHostUtil {
      * @throws net.java.otr4j.OtrException Throws OtrException in case of expected failure cases.
      */
     public static void unencryptedMessageReceived(final OtrEngineHost host, final SessionID sessionID, final String message) throws OtrException {
+        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
         try {
             host.unencryptedMessageReceived(sessionID, message);
         } catch (RuntimeException e) {
@@ -101,6 +102,7 @@ public final class OtrEngineHostUtil {
      * @throws OtrException Throws OtrException in case of expected failure cases.
      */
     public static void unreadableMessageReceived(final OtrEngineHost host, final SessionID sessionID) throws OtrException {
+        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
         try {
             host.unreadableMessageReceived(sessionID);
         } catch (RuntimeException e) {
@@ -184,6 +186,7 @@ public final class OtrEngineHostUtil {
      * @throws OtrException OtrExceptions
      */
     public static void showError(final OtrEngineHost host, final SessionID sessionID, final String error) throws OtrException {
+        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
         try {
             host.showError(sessionID, error);
         } catch (RuntimeException e) {
@@ -207,8 +210,8 @@ public final class OtrEngineHostUtil {
      * @param cheated
      * @throws OtrException
      */
-    // TODO OtrException unintentionally interrupts next call (reset())?
     public static void smpError(final OtrEngineHost host, final SessionID sessionID, final int tlvType, final boolean cheated) throws OtrException {
+        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
         try {
             host.smpError(sessionID, tlvType, cheated);
         } catch (RuntimeException e) {
@@ -230,8 +233,8 @@ public final class OtrEngineHostUtil {
      * @param sessionID
      * @throws OtrException
      */
-    // TODO OtrException unintentionally interrupts next call (reset())?
     public static void smpAborted(final OtrEngineHost host, final SessionID sessionID) throws OtrException {
+        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
         try {
             host.smpAborted(sessionID);
         } catch (RuntimeException e) {
@@ -252,6 +255,7 @@ public final class OtrEngineHostUtil {
      * @throws OtrException OtrException
      */
     public static void finishedSessionMessage(final OtrEngineHost host, final SessionID sessionID, final String msgText) throws OtrException {
+        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process. (Not critically in this use case.)
         try {
             host.finishedSessionMessage(sessionID, msgText);
         } catch (RuntimeException e) {
@@ -269,6 +273,7 @@ public final class OtrEngineHostUtil {
      * @throws OtrException OtrException
      */
     public static void requireEncryptedMessage(final OtrEngineHost host, final SessionID sessionID, final String msgText) throws OtrException {
+        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
         try {
             host.requireEncryptedMessage(sessionID, msgText);
         } catch (RuntimeException e) {

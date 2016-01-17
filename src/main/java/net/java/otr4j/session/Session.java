@@ -688,6 +688,7 @@ public class Session {
                     while (tin.available() > 0) {
                         final int type;
                         final byte[] tdata;
+                        // FIXME refactor OtrInputStream to be outside of while-loop
                         final OtrInputStream eois = new OtrInputStream(tin);
                         try {
                             type = eois.readShort();
@@ -1048,6 +1049,7 @@ public class Session {
         }
 
         if (!getSessionPolicy().getAllowV2() || !getSessionPolicy().getAllowV3()) {
+            // FIXME does this make sense? Shouldn't this be '&&'???
             throw new UnsupportedOperationException();
         }
 
