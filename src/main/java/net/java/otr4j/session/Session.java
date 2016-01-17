@@ -571,7 +571,7 @@ public class Session {
                 + getSessionID().getUserID() + " through "
                 + getSessionID().getUserID() + ".");
 
-        getHost().showError(this.getSessionID(), errorMessage.error);
+        OtrEngineHostUtil.showError(getHost(), this.getSessionID(), errorMessage.error);
 
         final OtrPolicy policy = getSessionPolicy();
         // Re-negotiate if we got an error and we are encrypted
@@ -903,7 +903,7 @@ public class Session {
                 final OtrPolicy otrPolicy = getSessionPolicy();
                 if (otrPolicy.getRequireEncryption()) {
                     this.startSession();
-                    getHost().requireEncryptedMessage(sessionID, msgText);
+                    OtrEngineHostUtil.requireEncryptedMessage(getHost(), sessionID, msgText);
                     return null;
                 } else {
                     if (otrPolicy.getSendWhitespaceTag()
@@ -1023,7 +1023,7 @@ public class Session {
                     throw new OtrException(e);
                 }
             case FINISHED:
-                getHost().finishedSessionMessage(sessionID, msgText);
+                OtrEngineHostUtil.finishedSessionMessage(getHost(), sessionID, msgText);
                 return null;
             default:
                 throw new OtrException("Unknown message state, not processing");

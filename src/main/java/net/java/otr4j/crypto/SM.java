@@ -57,6 +57,7 @@ public class SM {
          * Ctor.
          */
         public SMState(){
+            // TODO consider making BigInteger(1, SM.GENERATOR_S) a constant to reuse
             g1 = new BigInteger(1, SM.GENERATOR_S);
             smProgState = SM.PROG_OK;
             approved = false;

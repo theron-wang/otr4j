@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.java.otr4j.OtrEngineHost;
+import net.java.otr4j.OtrEngineHostUtil;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
@@ -222,13 +223,13 @@ public class SmpTlvHandler {
 			if (smstate.smProgState != SM.PROG_CHEATED){
 				smstate.asked = true;
 				final String questionUTF = new String(plainq, SerializationUtils.UTF8);
-			    engineHost.askForSecret(session.getSessionID(), session.getReceiverInstanceTag(), questionUTF);
+                OtrEngineHostUtil.askForSecret(engineHost, session.getSessionID(), session.getReceiverInstanceTag(), questionUTF);
 			} else {
-			    engineHost.smpError(session.getSessionID(), tlvType, true);
+                OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, true);
 			    reset();
 			}
 		} else {
-		    engineHost.smpError(session.getSessionID(), tlvType, false);
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, false);
 		}
 	}
 
@@ -245,13 +246,13 @@ public class SmpTlvHandler {
 			}
 			if (smstate.smProgState!=SM.PROG_CHEATED) {
 				smstate.asked = true;
-                engineHost.askForSecret(session.getSessionID(), session.getReceiverInstanceTag(), null);
+                OtrEngineHostUtil.askForSecret(engineHost, session.getSessionID(), session.getReceiverInstanceTag(), null);
 			} else {
-			    engineHost.smpError(session.getSessionID(), tlvType, true);
+                OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, true);
 			    reset();
 			}
 		} else {
-		    engineHost.smpError(session.getSessionID(), tlvType, false);
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, false);
 		}
     }
 
@@ -273,11 +274,11 @@ public class SmpTlvHandler {
 					engineHost.injectMessage(session.getSessionID(), part);
 				}
 			} else {
-			    engineHost.smpError(session.getSessionID(), tlvType, true);
+                OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, true);
 			    reset();
 			}
 		} else {
-		    engineHost.smpError(session.getSessionID(), tlvType, false);
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, false);
 		}
     }
 
@@ -293,9 +294,9 @@ public class SmpTlvHandler {
 
 			/* Set trust level based on result */
 			if (smstate.smProgState == SM.PROG_SUCCEEDED){
-				engineHost.verify(session.getSessionID(), getFingerprint(), smstate.approved);
+                OtrEngineHostUtil.verify(engineHost, session.getSessionID(), getFingerprint(), smstate.approved);
 			} else {
-				engineHost.unverify(session.getSessionID(), getFingerprint());
+                OtrEngineHostUtil.unverify(engineHost, session.getSessionID(), getFingerprint());
 			}
 			if (smstate.smProgState != SM.PROG_CHEATED){
 				/* Send msg with next smp msg content */
@@ -305,11 +306,14 @@ public class SmpTlvHandler {
 					engineHost.injectMessage(session.getSessionID(), part);
 				}
 			} else {
-			    engineHost.smpError(session.getSessionID(), tlvType, true);
+                OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, true);
 			}
+            // The SMP session has completed (either successfully or otherwise).
+            // We have an answer to the authentication session. Now, clean the
+            // SMP state as there is no use for it anymore.
 			reset();
 		} else {
-		    engineHost.smpError(session.getSessionID(), tlvType, false);
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, false);
 		}
     }
 
@@ -323,23 +327,26 @@ public class SmpTlvHandler {
 				throw new OtrException(e);
 			}
 			if (smstate.smProgState == SM.PROG_SUCCEEDED){
-				engineHost.verify(session.getSessionID(), getFingerprint(), smstate.approved);
+                OtrEngineHostUtil.verify(engineHost, session.getSessionID(), getFingerprint(), smstate.approved);
 			} else {
-				engineHost.unverify(session.getSessionID(), getFingerprint());
+                OtrEngineHostUtil.unverify(engineHost, session.getSessionID(), getFingerprint());
 			}
 			if (smstate.smProgState != SM.PROG_CHEATED){
                 // TODO if this is truly empty, why express it like this?
 			} else {
-			    engineHost.smpError(session.getSessionID(), tlvType, true);
+                OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, true);
 			}
+            // The SMP session has completed (either successfully or otherwise).
+            // We have an answer to the authentication session. Now, clean the
+            // SMP state as there is no use for it anymore.
 			reset();
 		} else {
-		    engineHost.smpError(session.getSessionID(), tlvType, false);
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, false);
 		}
     }
 
     public void processTlvSMP_ABORT(final TLV tlv) throws OtrException {
-        engineHost.smpAborted(session.getSessionID());
+        OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         reset();
     }
 
