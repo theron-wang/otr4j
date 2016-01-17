@@ -48,18 +48,24 @@ public class SmpTlvHandler {
 
 	/* Compute secret session ID as hash of agreed secret */
 	private static byte[] computeSessionId(final BigInteger s) throws SMException {
-        // TODO put 'close()' in finally block()
 		final byte[] sdata;
+
+        /* convert agreed secret to bytes */
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final OtrOutputStream oos = new OtrOutputStream(out);
 		try {
-			final ByteArrayOutputStream out = new ByteArrayOutputStream();
-			final OtrOutputStream oos = new OtrOutputStream(out);
 			oos.write(0x00);
 			oos.writeBigInt(s);
 			sdata = out.toByteArray();
-			oos.close();
 		} catch (IOException e1) {
 			throw new SMException(e1);
-		}
+		} finally {
+            try {
+                oos.close();
+            } catch (IOException ex) {
+                throw new SMException(ex);
+            }
+        }
 
 		/* Calculate the session id */
 		final MessageDigest sha256;
