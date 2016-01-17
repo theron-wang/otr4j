@@ -337,11 +337,9 @@ public class SmpTlvHandler {
 			} else {
                 OtrEngineHostUtil.unverify(engineHost, session.getSessionID(), getFingerprint());
 			}
-			if (smstate.smProgState != SM.PROG_CHEATED){
-                // TODO if this is truly empty, why express it like this?
-			} else {
+			if (smstate.smProgState == SM.PROG_CHEATED){
                 OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, true);
-			}
+            }
             // The SMP session has completed (either successfully or otherwise).
             // We have an answer to the authentication session. Now, clean the
             // SMP state as there is no use for it anymore.

@@ -966,6 +966,7 @@ public class Session {
 
                 // Append tlvs
                 if (tlvs != null && tlvs.size() > 0) {
+                    // TODO consider changing code such that tlvs must always be an instance (don't allow null)
                     out.write((byte) 0x00);
 
                     final OtrOutputStream eoos = new OtrOutputStream(out);
