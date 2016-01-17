@@ -54,6 +54,14 @@ import org.bouncycastle.util.BigIntegers;
  */
 public class OtrCryptoEngine {
 
+    private static final String ALGORITHM_DSA = "DSA";
+    private static final String KA_DH = "DH";
+    private static final String KF_DH = "DH";
+    private static final String MD_SHA1 = "SHA-1";
+    private static final String MD_SHA256 = "SHA-256";
+    private static final String HMAC_SHA1 = "HmacSHA1";
+    private static final String HMAC_SHA256 = "HmacSHA256";
+
     public static final String MODULUS_TEXT = "00FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF";
     public static final BigInteger MODULUS = new BigInteger(MODULUS_TEXT, 16);
     public static final BigInteger BIGINTEGER_TWO = BigInteger.valueOf(2);
@@ -95,7 +103,7 @@ public class OtrCryptoEngine {
                 .getPrivate();
 
         try {
-            final KeyFactory keyFac = KeyFactory.getInstance("DH");
+            final KeyFactory keyFac = KeyFactory.getInstance(KF_DH);
 
             final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(pub.getY(),
                     MODULUS, GENERATOR);
@@ -124,7 +132,7 @@ public class OtrCryptoEngine {
         final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(mpi, MODULUS,
                 GENERATOR);
         try {
-            final KeyFactory keyFac = KeyFactory.getInstance("DH");
+            final KeyFactory keyFac = KeyFactory.getInstance(KF_DH);
             return (DHPublicKey) keyFac.generatePublic(pubKeySpecs);
         } catch (Exception e) {
             // TODO consider catching specific exceptions and letting RTEs through as signal of programming error
@@ -133,19 +141,16 @@ public class OtrCryptoEngine {
     }
 
     public static byte[] sha256Hmac(final byte[] b, final byte[] key) throws OtrCryptoException {
-        // TODO consider moving this to Util, as it is not dependent on any instance or class field
         return sha256Hmac(b, key, 0);
     }
 
     public static byte[] sha256Hmac(final byte[] b, final byte[] key, final int length)
             throws OtrCryptoException {
-        // TODO consider moving this to Util, as it is not dependent on any instance or class field
 
-        // TODO extract constant
-        final SecretKeySpec keyspec = new SecretKeySpec(key, "HmacSHA256");
+        final SecretKeySpec keyspec = new SecretKeySpec(key, HMAC_SHA256);
         final javax.crypto.Mac mac;
         try {
-            mac = javax.crypto.Mac.getInstance("HmacSHA256");
+            mac = javax.crypto.Mac.getInstance(HMAC_SHA256);
         } catch (NoSuchAlgorithmException e) {
             throw new OtrCryptoException(e);
         }
@@ -172,8 +177,8 @@ public class OtrCryptoEngine {
 
         try {
             // TODO consider catching individual statement errors instead of single large try-catch block
-            final SecretKeySpec keyspec = new SecretKeySpec(key, "HmacSHA1");
-            final javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA1");
+            final SecretKeySpec keyspec = new SecretKeySpec(key, HMAC_SHA1);
+            final javax.crypto.Mac mac = javax.crypto.Mac.getInstance(HMAC_SHA1);
             mac.init(keyspec);
 
             final byte[] macBytes = mac.doFinal(b);
@@ -193,14 +198,12 @@ public class OtrCryptoEngine {
     }
 
     public static byte[] sha256Hmac160(final byte[] b, final byte[] key) throws OtrCryptoException {
-        // TODO consider moving this to Util, as it is not dependent on any instance or class field
         return sha256Hmac(b, key, SerializationConstants.TYPE_LEN_MAC);
     }
 
     public static byte[] sha256Hash(final byte[] b) throws OtrCryptoException {
-        // TODO consider moving this to Util, as it is not dependent on any instance or class field
         try {
-            final MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+            final MessageDigest sha256 = MessageDigest.getInstance(MD_SHA256);
             sha256.update(b, 0, b.length);
             return sha256.digest();
         } catch (Exception e) {
@@ -211,7 +214,7 @@ public class OtrCryptoEngine {
     public static byte[] sha1Hash(final byte[] b) throws OtrCryptoException {
         // TODO consider moving this to Util, as it is not dependent on any instance or class field
         try {
-            MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+            final MessageDigest sha1 = MessageDigest.getInstance(MD_SHA1);
             sha1.update(b, 0, b.length);
             return sha1.digest();
         } catch (Exception e) {
@@ -271,7 +274,7 @@ public class OtrCryptoEngine {
     public static BigInteger generateSecret(final PrivateKey privKey, final PublicKey pubKey)
             throws OtrCryptoException {
         try {
-            final KeyAgreement ka = KeyAgreement.getInstance("DH");
+            final KeyAgreement ka = KeyAgreement.getInstance(KA_DH);
             ka.init(privKey);
             ka.doPhase(pubKey, true);
             final byte[] sb = ka.generateSecret();
@@ -394,21 +397,21 @@ public class OtrCryptoEngine {
     public static byte[] getFingerprintRaw(final PublicKey pubKey)
             throws OtrCryptoException {
         // TODO consider moving to Util class as it uses no instance or class fields or methods
-        final byte[] b;
         try {
             final byte[] bRemotePubKey = SerializationUtils.writePublicKey(pubKey);
 
-            if (pubKey.getAlgorithm().equals("DSA")) {
+            final byte[] b;
+            if (pubKey.getAlgorithm().equals(ALGORITHM_DSA)) {
                 byte[] trimmed = new byte[bRemotePubKey.length - 2];
                 System.arraycopy(bRemotePubKey, 2, trimmed, 0, trimmed.length);
                 b = OtrCryptoEngine.sha1Hash(trimmed);
             } else {
                 b = OtrCryptoEngine.sha1Hash(bRemotePubKey);
             }
+            return b;
         } catch (IOException e) {
             throw new OtrCryptoException(e);
         }
-        return b;
     }
 
 }
