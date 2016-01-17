@@ -32,7 +32,6 @@ import net.java.otr4j.session.SessionID;
  *
  * @author Danny van Heumen
  */
-// TODO implement support method for getReplyForUnreadableMessage(...).
 // TODO consider modifying implementation in fashion of a decorator over OtrEngineHost.
 public final class OtrEngineHostUtil {
 
@@ -291,5 +290,23 @@ public final class OtrEngineHostUtil {
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'askForSecret' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
+    }
+
+    /**
+     * Query Engine Host to create suitable reply to send back as reply to an
+     * unreadable message.
+     *
+     * @param host the Engine Host
+     * @param sessionID the session ID
+     * @return Returns the reply for unreadable message to send as error to other party.
+     */
+    public static String getReplyForUnreadableMessage(final OtrEngineHost host, final SessionID sessionID) {
+        try {
+            return host.getReplyForUnreadableMessage(sessionID);
+        } catch (RuntimeException e) {
+            LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'getReplyForUnreadableMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
+        }
+        // FIXME what default message to use? (Or rather may just fix this in the calling code!)
+        return "This message cannot be read.";
     }
 }

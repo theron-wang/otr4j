@@ -613,8 +613,9 @@ public class Session {
                     logger.finest("No matching keys found.");
                     OtrEngineHostUtil.unreadableMessageReceived(getHost(),
                             this.getSessionID());
-                    injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR,
-                            getHost().getReplyForUnreadableMessage(getSessionID())));
+                    // TODO no fallback message in case an error occurs in getReplyForUnreadableMessage.
+                    final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(getHost(), getSessionID());
+                    injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
                     return null;
                 }
 
@@ -636,8 +637,9 @@ public class Session {
                     logger.finest("MAC verification failed, ignoring message");
                     OtrEngineHostUtil.unreadableMessageReceived(getHost(),
                             this.getSessionID());
-                    injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR,
-                            getHost().getReplyForUnreadableMessage(getSessionID())));
+                    // TODO no fallback message in case an error occurs in getReplyForUnreadableMessage.
+                    final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(getHost(), getSessionID());
+                    injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
                     return null;
                 }
 
@@ -738,8 +740,9 @@ public class Session {
             case PLAINTEXT:
                 OtrEngineHostUtil.unreadableMessageReceived(getHost(),
                         this.getSessionID());
-                injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR,
-                        getHost().getReplyForUnreadableMessage(getSessionID())));
+                // TODO no fallback message in case an error occurs in getReplyForUnreadableMessage.
+                final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(getHost(), getSessionID());
+                injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
                 break;
         }
 

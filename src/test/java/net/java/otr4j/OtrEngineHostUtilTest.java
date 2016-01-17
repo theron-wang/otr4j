@@ -344,4 +344,23 @@ public class OtrEngineHostUtilTest {
         OtrEngineHostUtil.askForSecret(host, sessionID, sender, question);
         verify(host).askForSecret(sessionID, sender, question);
     }
+
+    @Test
+    public void testGetReplyForUnreadableMessageOnGoodHost() throws OtrException {
+        final String replyMsg = "Hey dude, I can't ready you're message!";
+        final SessionID sessionID = new SessionID(null, null, null);
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        when(host.getReplyForUnreadableMessage(sessionID)).thenReturn(replyMsg);
+        assertEquals(replyMsg, OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionID));
+        verify(host).getReplyForUnreadableMessage(sessionID);
+    }
+
+    @Test
+    public void testGetReplyForUnreadableMessageOnFaultyHost() throws OtrException {
+        final SessionID sessionID = new SessionID(null, null, null);
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        doThrow(new IllegalArgumentException("programming error occurred")).when(host).getReplyForUnreadableMessage(sessionID);
+        assertEquals("This message cannot be read.", OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionID));
+        verify(host).getReplyForUnreadableMessage(sessionID);
+    }
 }

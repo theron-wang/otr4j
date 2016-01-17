@@ -194,7 +194,6 @@ public abstract interface OtrEngineHost {
      * @param sessionID the session ID
      * @return Returns an error message.
      */
-    // TODO the way getReplyForUnreadableMessage is used now, there is no "backup message" in case of failure. If this call fails, then replying with an error message is interrupted.
 	public abstract String getReplyForUnreadableMessage(SessionID sessionID);
 
     /**
