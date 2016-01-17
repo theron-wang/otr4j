@@ -969,11 +969,15 @@ public class Session {
                     out.write((byte) 0x00);
 
                     final OtrOutputStream eoos = new OtrOutputStream(out);
-                    for (TLV tlv : tlvs) {
-                        try {
+                    try {
+                        for (TLV tlv : tlvs) {
                             eoos.writeShort(tlv.type);
                             eoos.writeTlvData(tlv.value);
-                            // TODO consider closing eoos in finally-block
+                        }
+                    } catch (IOException ex) {
+                        throw new OtrException(ex);
+                    } finally {
+                        try {
                             eoos.close();
                         } catch (IOException e) {
                             throw new OtrException(e);
