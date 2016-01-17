@@ -178,20 +178,23 @@ public class SM {
 	}
 	
 	static byte[] serialize(final BigInteger[] ints) throws SMException {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final OtrOutputStream oos = new OtrOutputStream(out);
 		try {
-			final ByteArrayOutputStream out = new ByteArrayOutputStream();
-			final OtrOutputStream oos = new OtrOutputStream(out);
 			oos.writeInt(ints.length);
 			for (final BigInteger i : ints) {
 				oos.writeBigInt(i);
 			}
-			final byte[] b = out.toByteArray();
-            // TODO move oos.close() into 'finally' block
-			oos.close();
-			return b;
+			return out.toByteArray();
 		} catch (IOException ex) {
 			throw new SMException("cannot serialize bigints");
-		}
+		} finally {
+            try {
+                oos.close();
+            } catch (IOException ex) {
+                throw new SMException(ex);
+            }
+        }
 	}
 	
 	static BigInteger[] unserialize(final byte[] bytes) throws SMException {
