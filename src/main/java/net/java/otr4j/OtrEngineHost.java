@@ -18,6 +18,7 @@ import net.java.otr4j.session.SessionID;
  * and otr4j.
  *
  * TODO handle calls to OtrEngineHost methods safely, i.e. catch and log exceptions.
+ * TODO verify that OtrException throws are really expected for each of the methods. SMP methods 'smpError' and 'smpAborted' seem to interrupt a crucial step in the process: reset().
  *
  * @author George Politis
  */
@@ -56,20 +57,64 @@ public abstract interface OtrEngineHost {
 	public abstract void unencryptedMessageReceived(SessionID sessionID,
 			String msg) throws OtrException;
 
+    /**
+     * Ask Engine Host to show provided error message that was received over
+     * OTR.
+     *
+     * @param sessionID the session ID
+     * @param error the error message
+     * @throws OtrException
+     */
 	public abstract void showError(SessionID sessionID, String error)
 			throws OtrException;
 
+    /**
+     * Call Engine Host to inform of SMP error during authentication.
+     *
+     * @param sessionID the session ID
+     * @param tlvType the TLV type
+     * @param cheated status indicator for cheating (interruption before SMP
+     * verification step was able to complete)
+     * @throws OtrException OtrException
+     */
 	public abstract void smpError(SessionID sessionID, int tlvType,
 			boolean cheated) throws OtrException;
 
+    /**
+     * Call Engine Host to inform of SMP abort.
+     *
+     * @param sessionID the session ID
+     * @throws OtrException OtrException
+     */
 	public abstract void smpAborted(SessionID sessionID) throws OtrException;
 
+    /**
+     * Signal Engine Host that OTR secure session is finished.
+     *
+     * @param sessionID the session ID
+     * @param msgText message text
+     * @throws OtrException OtrException
+     */
 	public abstract void finishedSessionMessage(SessionID sessionID,
 			String msgText) throws OtrException;
 
+    /**
+     * Signal Engine Host that current policy dictates that a secure session is
+     * required for messages to be sent.
+     *
+     * @param sessionID the session ID
+     * @param msgText the encryption required message
+     * @throws OtrException OtrException
+     */
 	public abstract void requireEncryptedMessage(SessionID sessionID,
 			String msgText) throws OtrException;
 
+    /**
+     * Request the current session policy for provided session ID.
+     *
+     * @param sessionID the session ID
+     * @return Returns the current policy for specified session.
+     */
 	public abstract OtrPolicy getSessionPolicy(SessionID sessionID);
 
 	/**
@@ -91,11 +136,32 @@ public abstract interface OtrEngineHost {
 	 */
 	public abstract int getMaxFragmentSize(SessionID sessionID);
 
+    /**
+     * Request local key pair from Engine Host.
+     *
+     * @param sessionID the session ID
+     * @return Returns the local key pair.
+     * @throws OtrException OtrException
+     */
 	public abstract KeyPair getLocalKeyPair(SessionID sessionID)
 			throws OtrException;
 
+    /**
+     * Request local fingerprint in raw byte form.
+     *
+     * @param sessionID the session ID
+     * @return Returns the raw fingerprint bytes.
+     */
 	public abstract byte[] getLocalFingerprintRaw(SessionID sessionID);
 
+    /**
+     * Signal Engine Host to ask user for answer to the question provided by the
+     * other party in the authentication session.
+     *
+     * @param sessionID the session ID
+     * @param receiverTag the receiver instance tag
+     * @param question the question to be asked to the user by the Engine Host
+     */
 	public abstract void askForSecret(SessionID sessionID, InstanceTag receiverTag, String question);
 
     /**
@@ -119,6 +185,16 @@ public abstract interface OtrEngineHost {
      */
 	public abstract void unverify(SessionID sessionID, String fingerprint);
 
+    /**
+     * When a message is received that is unreadable for some reason, for
+     * example the session keys are lost/deleted already, then the Engine Host
+     * is asked to provide a suitable reply to send back as an OTR error
+     * message.
+     *
+     * @param sessionID the session ID
+     * @return Returns an error message.
+     */
+    // TODO the way getReplyForUnreadableMessage is used now, there is no "backup message" in case of failure. If this call fails, then replying with an error message is interrupted.
 	public abstract String getReplyForUnreadableMessage(SessionID sessionID);
 
     /**
@@ -134,7 +210,21 @@ public abstract interface OtrEngineHost {
      */
 	public abstract String getFallbackMessage(SessionID sessionID);
 
+    /**
+     * Signal the Engine Host that a message is received that is intended for
+     * another instance. The (local) user may have multiple OTR capable chat
+     * clients active on this account.
+     *
+     * @param sessionID the session ID
+     */
 	public abstract void messageFromAnotherInstanceReceived(SessionID sessionID);
 
+    /**
+     * Signal the Engine Host that we have received a message that is intended
+     * for us, but is sent from another instance. Our chat buddy may be logged
+     * in at multiple locations.
+     *
+     * @param sessionID the session ID
+     */
 	public abstract void multipleInstancesDetected(SessionID sessionID);
 }
