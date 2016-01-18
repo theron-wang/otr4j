@@ -84,7 +84,6 @@ public class OtrSessionManager {
          * @return Returns copy of listeners.
          */
         private ArrayList<OtrEngineListener> copyListeners() {
-            // TODO move this OtrEngineListener implementation outside of OtrSessionManager to avoid direct access to listeners-list instance.
             final ArrayList<OtrEngineListener> lsrs;
             synchronized (listeners) {
                 // make copy in synchronized context such that we can be sure of consistent list and no ConcurrentModificationExceptions are thrown.
