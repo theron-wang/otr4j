@@ -67,15 +67,15 @@ public class SessionKeys {
 
     public void setLocalPair(final KeyPair keyPair, final int localPairKeyID) {
         this.localPair = keyPair;
-        this.setLocalKeyID(localPairKeyID);
+        this.localKeyID = localPairKeyID;
         LOGGER.finest(keyDescription + " current local key ID: "
                 + this.getLocalKeyID());
         this.reset();
     }
 
     public void setRemoteDHPublicKey(final DHPublicKey pubKey, final int remoteKeyID) {
-        this.setRemoteKey(pubKey);
-        this.setRemoteKeyID(remoteKeyID);
+        this.remoteKey = pubKey;
+        this.remoteKeyID = remoteKeyID;
         LOGGER.finest(keyDescription + " current remote key ID: "
                 + this.getRemoteKeyID());
         this.reset();
@@ -221,27 +221,12 @@ public class SessionKeys {
         return isUsedReceivingMACKey;
     }
 
-    private void setLocalKeyID(final int localKeyID) {
-        // TODO consider removing dumb private setter
-        this.localKeyID = localKeyID;
-    }
-
     public int getLocalKeyID() {
         return localKeyID;
     }
 
-    private void setRemoteKeyID(final int remoteKeyID) {
-        // TODO consider removing dumb private setter
-        this.remoteKeyID = remoteKeyID;
-    }
-
     public int getRemoteKeyID() {
         return remoteKeyID;
-    }
-
-    private void setRemoteKey(final DHPublicKey remoteKey) {
-        // TODO consider removing dumb private setter
-        this.remoteKey = remoteKey;
     }
 
     public DHPublicKey getRemoteKey() {
