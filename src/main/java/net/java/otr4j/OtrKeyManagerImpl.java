@@ -28,6 +28,8 @@ import net.java.otr4j.session.SessionID;
 import org.bouncycastle.util.encoders.Base64;
 
 public class OtrKeyManagerImpl implements OtrKeyManager {
+    private static final String KF_DSA = "DSA";
+    private static final String KPG_DSA = "DSA";
 
 	private final OtrKeyManagerStore store;
 
@@ -150,7 +152,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		final String accountID = sessionID.getAccountID();
 		final KeyPair keyPair;
 		try {
-			keyPair = KeyPairGenerator.getInstance("DSA").genKeyPair();
+			keyPair = KeyPairGenerator.getInstance(KPG_DSA).genKeyPair();
 		} catch (NoSuchAlgorithmException e) {
             // TODO replace printStackTrace() call
 			e.printStackTrace();
@@ -269,8 +271,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
 		// Generate KeyPair.
 		try {
-            // TODO extract constant for DSA sig alg
-			final KeyFactory keyFactory = KeyFactory.getInstance("DSA");
+			final KeyFactory keyFactory = KeyFactory.getInstance(KF_DSA);
 			publicKey = keyFactory.generatePublic(publicKeySpec);
 			privateKey = keyFactory.generatePrivate(privateKeySpec);
 		} catch (NoSuchAlgorithmException e) {
@@ -304,7 +305,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
 		// Generate KeyPair.
 		try {
-			final KeyFactory keyFactory = KeyFactory.getInstance("DSA");
+			final KeyFactory keyFactory = KeyFactory.getInstance(KF_DSA);
 			return keyFactory.generatePublic(publicKeySpec);
 		} catch (NoSuchAlgorithmException e) {
             // TODO replace printStackTrace() call
