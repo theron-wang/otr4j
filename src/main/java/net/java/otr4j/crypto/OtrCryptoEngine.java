@@ -212,7 +212,6 @@ public class OtrCryptoEngine {
     }
 
     public static byte[] sha1Hash(final byte[] b) throws OtrCryptoException {
-        // TODO consider moving this to Util, as it is not dependent on any instance or class field
         try {
             final MessageDigest sha1 = MessageDigest.getInstance(MD_SHA1);
             sha1.update(b, 0, b.length);
@@ -389,14 +388,12 @@ public class OtrCryptoEngine {
     }
 
     public static String getFingerprint(final PublicKey pubKey) throws OtrCryptoException {
-        // TODO consider moving to Util class as it uses no instance or class fields or methods
         final byte[] b = getFingerprintRaw(pubKey);
         return SerializationUtils.byteArrayToHexString(b);
     }
 
     public static byte[] getFingerprintRaw(final PublicKey pubKey)
             throws OtrCryptoException {
-        // TODO consider moving to Util class as it uses no instance or class fields or methods
         try {
             final byte[] bRemotePubKey = SerializationUtils.writePublicKey(pubKey);
 
