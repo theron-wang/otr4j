@@ -146,7 +146,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
     @Override
 	public void generateLocalKeyPair(final SessionID sessionID) {
-		if (sessionID == null) {
+		if (sessionID == null || sessionID.equals(SessionID.EMPTY)) {
             return;
         }
 
@@ -232,8 +232,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
     @Override
 	public boolean isVerified(final SessionID sessionID) {
-		if (sessionID == null) {
-            // TODO what about SessionID.EMPTY? SessionID.EMPTY has user id 'null', so seems like that is not a good key for the properties store.
+		if (sessionID == null || sessionID.equals(SessionID.EMPTY)) {
             return false;
         }
 
@@ -243,8 +242,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
     @Override
 	public KeyPair loadLocalKeyPair(final SessionID sessionID) {
-		if (sessionID == null) {
-            // TODO what about SessionID.EMPTY? SessionID.EMPTY has account id 'null', so seems like that is not a good key for the properties store.
+		if (sessionID == null || sessionID.equals(SessionID.EMPTY)) {
             return null;
         }
 
@@ -290,8 +288,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
     @Override
 	public PublicKey loadRemotePublicKey(final SessionID sessionID) {
-		if (sessionID == null) {
-            // TODO what about SessionID.EMPTY? SessionID.EMPTY has user id 'null', so seems like that is not a good key for the properties store.
+		if (sessionID == null || sessionID.equals(SessionID.EMPTY)) {
             return null;
         }
 
@@ -321,7 +318,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
     @Override
 	public void savePublicKey(final SessionID sessionID, final PublicKey pubKey) {
-		if (sessionID == null) {
+		if (sessionID == null || sessionID.equals(SessionID.EMPTY)) {
             return;
         }
 
@@ -337,8 +334,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
     @Override
 	public void unverify(final SessionID sessionID) {
-		if (sessionID == null) {
-            // TODO what about SessionID.EMPTY? SessionID.EMPTY has user id 'null', so seems like that is not a good key for the properties store.
+		if (sessionID == null || sessionID.equals(SessionID.EMPTY)) {
             return;
         }
 
@@ -359,8 +355,7 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 
     @Override
 	public void verify(final SessionID sessionID) {
-		if (sessionID == null) {
-            // TODO what about SessionID.EMPTY? SessionID.EMPTY has user id 'null', so seems like that is not a good key for the properties store.
+		if (sessionID == null || sessionID.equals(SessionID.EMPTY)) {
             return;
         }
 
