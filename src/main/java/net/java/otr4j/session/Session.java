@@ -676,6 +676,7 @@ public class Session {
                 // get message body without trailing 0x00, expect UTF-8 bytes
                 final String decryptedMsgContent = new String(dmc, 0, tlvIndex, SerializationUtils.UTF8);
 
+                // TODO consider using empty list as default value and fill it if TLVs are available.
                 // if the null TLV separator is somewhere in the middle, there are TLVs
                 List<TLV> tlvs = null;
                 tlvIndex++;  // to ignore the null
@@ -685,21 +686,21 @@ public class Session {
 
                     tlvs = new Vector<TLV>();
                     final ByteArrayInputStream tin = new ByteArrayInputStream(tlvsb);
-                    while (tin.available() > 0) {
-                        final int type;
-                        final byte[] tdata;
-                        // FIXME refactor OtrInputStream to be outside of while-loop
-                        final OtrInputStream eois = new OtrInputStream(tin);
+                    final OtrInputStream eois = new OtrInputStream(tin);
+                    try {
+                        while (tin.available() > 0) {
+                            final int type = eois.readShort();
+                            final byte[] tdata = eois.readTlvData();
+                            tlvs.add(new TLV(type, tdata));
+                        }
+                    } catch (IOException e) {
+                        throw new OtrException(e);
+                    } finally {
                         try {
-                            type = eois.readShort();
-                            tdata = eois.readTlvData();
-                            // TODO consider doing eois.close() inside finally
                             eois.close();
                         } catch (IOException e) {
                             throw new OtrException(e);
                         }
-
-                        tlvs.add(new TLV(type, tdata));
                     }
                 }
                 if (tlvs != null && tlvs.size() > 0) {
