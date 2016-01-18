@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.java.otr4j.OtrEngineHost;
@@ -172,7 +172,7 @@ public class SmpTlvHandler {
 				(question != null ? TLV.SMP1Q:TLV.SMP1) : TLV.SMP2, smpmsg);
 		smstate.nextExpected = initiating? SM.EXPECT2 : SM.EXPECT3;
 		smstate.approved = initiating || question == null;
-        return makeTlvList(sendtlv);
+        return Collections.singletonList(sendtlv);
 	}
 
 	/**
@@ -184,7 +184,7 @@ public class SmpTlvHandler {
 	public List<TLV> abortSmp() throws OtrException {
 		final TLV sendtlv = new TLV(TLV.SMP_ABORT, new byte[0]);
 		smstate.nextExpected = SM.EXPECT1;
-        return makeTlvList(sendtlv);
+        return Collections.singletonList(sendtlv);
 	}
 
 	public boolean isSmpInProgress() {
@@ -278,7 +278,7 @@ public class SmpTlvHandler {
 				/* Send msg with next smp msg content */
 				final TLV sendtlv = new TLV(TLV.SMP3, nextmsg);
 				smstate.nextExpected = SM.EXPECT4;
-				final String[] msg = session.transformSending("", makeTlvList(sendtlv));
+				final String[] msg = session.transformSending("", Collections.singletonList(sendtlv));
 				for (String part : msg) {
 					engineHost.injectMessage(session.getSessionID(), part);
 				}
@@ -310,7 +310,7 @@ public class SmpTlvHandler {
 			if (smstate.smProgState != SM.PROG_CHEATED){
 				/* Send msg with next smp msg content */
 				final TLV sendtlv = new TLV(TLV.SMP4, nextmsg);
-				final String[] msg = session.transformSending("", makeTlvList(sendtlv));
+                final String[] msg = session.transformSending("", Collections.singletonList(sendtlv));
 				for (final String part : msg) {
 					engineHost.injectMessage(session.getSessionID(), part);
 				}
@@ -355,12 +355,5 @@ public class SmpTlvHandler {
     public void processTlvSMP_ABORT(final TLV tlv) throws OtrException {
         OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         reset();
-    }
-
-    private List<TLV> makeTlvList(final TLV sendtlv) {
-        // TODO replace with Collections.<TLV>singletonList?
-        final List<TLV> tlvs = new ArrayList<TLV>(1);
-        tlvs.add(sendtlv);
-        return tlvs;
     }
 }
