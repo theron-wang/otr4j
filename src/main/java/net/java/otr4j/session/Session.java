@@ -18,6 +18,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -892,12 +893,24 @@ public class Session {
 
     public String[] transformSending(final String msgText)
             throws OtrException {
-        return this.transformSending(msgText, null);
+        return this.transformSending(msgText, Collections.<TLV>emptyList());
     }
 
-    public String[] transformSending(final String msgText, final List<TLV> tlvs)
+    /**
+     * Transform message to be sent to content that is sendable over the IM
+     * network.
+     *
+     * @param msgText the (normal) message content
+     * @param tlvs TLV items (must not be null, may be an empty list)
+     * @return Returns the array of messages to be sent over IM network.
+     * @throws OtrException OtrException in case of exceptions.
+     */
+    public String[] transformSending(final String msgText, List<TLV> tlvs)
             throws OtrException {
-
+        if (tlvs == null) {
+            // ensure that ttlvs is non-null
+            tlvs = Collections.<TLV>emptyList();
+        }
         if (isMasterSession && outgoingSession != this && getProtocolVersion() == OTRv.THREE) {
             return outgoingSession.transformSending(msgText, tlvs);
         }
@@ -966,8 +979,7 @@ public class Session {
                 }
 
                 // Append tlvs
-                if (tlvs != null && tlvs.size() > 0) {
-                    // TODO consider changing code such that tlvs must always be an instance (don't allow null)
+                if (!tlvs.isEmpty()) {
                     out.write((byte) 0x00);
 
                     final OtrOutputStream eoos = new OtrOutputStream(out);
@@ -1064,10 +1076,8 @@ public class Session {
         final SessionStatus status = this.getSessionStatus();
         switch (status) {
             case ENCRYPTED:
-                final Vector<TLV> tlvs = new Vector<TLV>();
-                tlvs.add(new TLV(TLV.DISCONNECTED, null));
-
-                final String[] msg = this.transformSending(null, tlvs);
+                final TLV disconnectTlv = new TLV(TLV.DISCONNECTED, null);
+                final String[] msg = this.transformSending(null, Collections.singletonList(disconnectTlv));
                 for (final String part : msg) {
                     getHost().injectMessage(getSessionID(), part);
                 }

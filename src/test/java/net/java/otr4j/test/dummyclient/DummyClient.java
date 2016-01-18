@@ -4,6 +4,7 @@ package net.java.otr4j.test.dummyclient;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -121,7 +122,7 @@ public class DummyClient {
 			session = new Session(sessionID, new DummyOtrEngineHostImpl());
 		}
 
-		String[] outgoingMessage = session.transformSending(s, (List<TLV>) null);
+		String[] outgoingMessage = session.transformSending(s, Collections.<TLV>emptyList());
 		for (String part : outgoingMessage) {
 			connection.send(recipient, part);
 		}
