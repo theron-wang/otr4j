@@ -17,8 +17,6 @@ import org.junit.Test;
 /**
  * Tests for OTR Fragmenter.
  *
- * TODO substitute nice compact mock for elaborate OtrPolicy implementations
- *
  * @author Danny van Heumen
  */
 public class OtrFragmenterTest {
