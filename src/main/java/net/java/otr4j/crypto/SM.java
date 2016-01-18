@@ -49,7 +49,6 @@ public final class SM {
     }
 
     static public class SMState{
-        // TODO Can we make this an immutable data structure?
         BigInteger secret, x2, x3, g1, g2, g3, g3o, p, q, pab, qab;
         public int nextExpected;
         int receivedQuestion;
@@ -142,8 +141,6 @@ public final class SM {
 	/**
      * Generate a random exponent
      * 
-     * TODO Move to Util class? (Has only relation with public constant MOD_LEN_BYTES ...)
-     *
      * @param sr SecureRandom instance to use for random data
      * @return the generated random exponent.
      */
