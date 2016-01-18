@@ -349,14 +349,12 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		this.store
 				.removeProperty(sessionID.getUserID() + ".publicKey.verified");
 
+        // inform all listeners of changed verification status
         final ArrayList<OtrKeyManagerListener> lsrs;
         synchronized (listeners) {
             lsrs = new ArrayList<OtrKeyManagerListener>(listeners);
         }
-		for (final OtrKeyManagerListener l : lsrs) {
-            // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
-            l.verificationStatusChanged(sessionID);
-        }
+        OtrKeyManagerListenerUtil.verificationStatusChanged(lsrs, sessionID);
 	}
 
     @Override
@@ -373,13 +371,11 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		this.store.setProperty(sessionID.getUserID() + ".publicKey.verified",
 				true);
 
+        // inform all listeners of changed verification status
         final ArrayList<OtrKeyManagerListener> lsrs;
         synchronized (listeners) {
             lsrs = new ArrayList<OtrKeyManagerListener>(listeners);
         }
-		for (final OtrKeyManagerListener l : lsrs) {
-            // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
-			l.verificationStatusChanged(sessionID);
-        }
+        OtrKeyManagerListenerUtil.verificationStatusChanged(lsrs, sessionID);
 	}
 }
