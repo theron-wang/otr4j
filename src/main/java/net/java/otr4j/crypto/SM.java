@@ -35,13 +35,17 @@ import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 
 
-public class SM {
+public final class SM {
     // TODO Consider converting this to State Machine pattern.
     // TODO Are there checks for Pa != Pb, and Qa != Qb?
+    
+    private final SecureRandom sr;
 
-    private SM() {
-        // SM does not need to be instantiated.
-        // TODO instantiate with SecureRandom instance?
+    public SM(final SecureRandom sr) {
+        if (sr == null) {
+            throw new NullPointerException("sr");
+        }
+        this.sr = sr;
     }
 
     static public class SMState{
@@ -448,11 +452,10 @@ public class SM {
 	 * [4] = c3, [5] = d3, Alice's ZK proof of knowledge of g3a exponent
      * @param astate MVN_PASS_JAVADOC_INSPECTION
      * @param secret MVN_PASS_JAVADOC_INSPECTION
-     * @param sr SecureRandom instance
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static byte[] step1(final SMState astate, final byte[] secret, final SecureRandom sr) throws SMException
+	public byte[] step1(final SMState astate, final byte[] secret) throws SMException
 	{
 	    /* Initialize the sm state or update the secret */
 		//Util.checkBytes("secret", secret);
@@ -486,10 +489,9 @@ public class SM {
      * @param bstate MVN_PASS_JAVADOC_INSPECTION
      * @param input MVN_PASS_JAVADOC_INSPECTION
      * @param received_question MVN_PASS_JAVADOC_INSPECTION
-     * @param sr SecureRandom instance
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static void step2a(final SMState bstate, final byte[] input, final int received_question, final SecureRandom sr) throws SMException
+	public void step2a(final SMState bstate, final byte[] input, final int received_question) throws SMException
 	{
 
 	    /* Initialize the sm state if needed */
@@ -539,11 +541,10 @@ public class SM {
 	 * [8] = cp, [9] = d5, [10] = d6, Bob's ZK proof that pb, qb formed correctly 
      * @param bstate MVN_PASS_JAVADOC_INSPECTION
      * @param secret MVN_PASS_JAVADOC_INSPECTION
-     * @param sr SecureRandom instance
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static byte[] step2b(final SMState bstate, final byte[] secret, final SecureRandom sr) throws SMException
+	public byte[] step2b(final SMState bstate, final byte[] secret) throws SMException
 	{
 	    /* Convert the given secret to the proper form and store it */
 		//Util.checkBytes("secret", secret);
@@ -596,11 +597,10 @@ public class SM {
 	 * [6] = cr, [7] = d7, Alice's ZK proof that ra is formed correctly 
      * @param astate MVN_PASS_JAVADOC_INSPECTION
      * @param input MVN_PASS_JAVADOC_INSPECTION
-     * @param sr SecureRandom instance
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static byte[] step3(final SMState astate, final byte[] input, final SecureRandom sr) throws SMException
+	public byte[] step3(final SMState astate, final byte[] input) throws SMException
 	{
 	    /* Read from input to find the mpis */
 	    astate.smProgState = PROG_CHEATED;
@@ -685,11 +685,10 @@ public class SM {
      *
      * @param bstate MVN_PASS_JAVADOC_INSPECTION
      * @param input MVN_PASS_JAVADOC_INSPECTION
-     * @param sr SecureRandom instance
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static byte[] step4(final SMState bstate, final byte[] input, final SecureRandom sr) throws SMException
+	public byte[] step4(final SMState bstate, final byte[] input) throws SMException
 	{
 	    /* Read from input to find the mpis */
 	    final BigInteger[] msg3 = unserialize(input);
@@ -747,7 +746,7 @@ public class SM {
      * @param input MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static void step5(final SMState astate, final byte[] input) throws SMException
+	public void step5(final SMState astate, final byte[] input) throws SMException
 	{
 	    /* Read from input to find the mpis */
 	    final BigInteger[] msg4 = unserialize(input);

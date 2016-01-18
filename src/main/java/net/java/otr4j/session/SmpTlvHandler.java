@@ -22,11 +22,13 @@ import net.java.otr4j.io.SerializationUtils;
 
 public class SmpTlvHandler {
 
-	private SMState smstate;
     private final OtrEngineHost engineHost;
 	private final Session session;
+    private final SM sm;
 
-	/**
+	private SMState smstate;
+
+    /**
 	 * Construct an OTR Socialist Millionaire handler object.
 	 * 
 	 * @param session The session reference.
@@ -34,6 +36,7 @@ public class SmpTlvHandler {
 	public SmpTlvHandler(final Session session) {
 		this.session = session;
 		this.engineHost = session.getHost();
+        this.sm = new SM(session.secureRandom());
 		reset();
 	}
 
@@ -148,9 +151,9 @@ public class SmpTlvHandler {
 		byte[] smpmsg;
 		try {
 			if (initiating) {
-				smpmsg = SM.step1(smstate, combined_secret, this.session.secureRandom());
+				smpmsg = sm.step1(smstate, combined_secret);
 			} else {
-				smpmsg = SM.step2b(smstate, combined_secret, this.session.secureRandom());
+				smpmsg = sm.step2b(smstate, combined_secret);
 			}
 		} catch (SMException ex) {
 			throw new OtrException(ex);
@@ -217,7 +220,7 @@ public class SmpTlvHandler {
 			final byte[] input = new byte[question.length-qlen];
 			System.arraycopy(question, qlen, input, 0, question.length-qlen);
 			try {
-				SM.step2a(smstate, input, 1, this.session.secureRandom());
+				sm.step2a(smstate, input, 1);
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
@@ -246,7 +249,7 @@ public class SmpTlvHandler {
 			 * We must wait for the secret to be entered
 			 * to continue. */
 			try {
-				SM.step2a(smstate, tlv.getValue(), 0, this.session.secureRandom());
+				sm.step2a(smstate, tlv.getValue(), 0);
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
@@ -267,7 +270,7 @@ public class SmpTlvHandler {
 	    if (smstate.nextExpected == SM.EXPECT2) {
 			final byte[] nextmsg;
 			try {
-				nextmsg = SM.step3(smstate, tlv.getValue(), this.session.secureRandom());
+				nextmsg = sm.step3(smstate, tlv.getValue());
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
@@ -293,7 +296,7 @@ public class SmpTlvHandler {
         if (smstate.nextExpected == SM.EXPECT3) {
 			final byte[] nextmsg;
 			try {
-				nextmsg = SM.step4(smstate, tlv.getValue(), this.session.secureRandom());
+				nextmsg = sm.step4(smstate, tlv.getValue());
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
@@ -328,7 +331,7 @@ public class SmpTlvHandler {
         if (smstate.nextExpected == SM.EXPECT4) {
 
 			try {
-				SM.step5(smstate, tlv.getValue());
+				sm.step5(smstate, tlv.getValue());
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
