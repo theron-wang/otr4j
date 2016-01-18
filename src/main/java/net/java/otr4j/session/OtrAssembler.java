@@ -118,17 +118,14 @@ public final class OtrAssembler {
 			n = Integer.parseInt(params[1]);
 		} catch (NumberFormatException e) {
 			discard();
-            // TODO consider including cause
 			throw new ProtocolException();
 		} catch (ArrayIndexOutOfBoundsException e) {
 			discard();
-            // TODO consider including cause
 			throw new ProtocolException();
 		}
 
 		if (k == 0 || n == 0 || k > n || params.length != 4 || params[3].length() != 0) {
 			discard();
-            // TODO consider including cause
 			throw new ProtocolException();
 		}
 
@@ -147,7 +144,6 @@ public final class OtrAssembler {
 		} else {
 			// out-of-order fragment
 			discard();
-            // TODO consider including cause
 			throw new ProtocolException();
 		}
 
