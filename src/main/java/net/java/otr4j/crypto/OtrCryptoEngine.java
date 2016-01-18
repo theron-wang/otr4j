@@ -174,26 +174,24 @@ public class OtrCryptoEngine {
 
     public static byte[] sha1Hmac(final byte[] b, final byte[] key, final int length)
             throws OtrCryptoException {
-
+        final byte[] macBytes;
         try {
-            // TODO consider catching individual statement errors instead of single large try-catch block
-            final SecretKeySpec keyspec = new SecretKeySpec(key, HMAC_SHA1);
             final javax.crypto.Mac mac = javax.crypto.Mac.getInstance(HMAC_SHA1);
-            mac.init(keyspec);
+            mac.init(new SecretKeySpec(key, HMAC_SHA1));
+            macBytes = mac.doFinal(b);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new OtrCryptoException(ex);
+        } catch (InvalidKeyException ex) {
+            throw new OtrCryptoException(ex);
+        }
 
-            final byte[] macBytes = mac.doFinal(b);
-
-            if (length > 0) {
-                final byte[] bytes = new byte[length];
-                final ByteBuffer buff = ByteBuffer.wrap(macBytes);
-                buff.get(bytes);
-                return bytes;
-            } else {
-                return macBytes;
-            }
-        } catch (Exception e) {
-            // TODO consider catching specific exceptions and letting RTEs through as signal of programming error
-            throw new OtrCryptoException(e);
+        if (length > 0) {
+            final byte[] bytes = new byte[length];
+            final ByteBuffer buff = ByteBuffer.wrap(macBytes);
+            buff.get(bytes);
+            return bytes;
+        } else {
+            return macBytes;
         }
     }
 
