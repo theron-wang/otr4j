@@ -17,6 +17,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
@@ -348,8 +349,11 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		this.store
 				.removeProperty(sessionID.getUserID() + ".publicKey.verified");
 
-        // TODO do we need synchronization on listeners here?
-		for (final OtrKeyManagerListener l : listeners) {
+        final ArrayList<OtrKeyManagerListener> lsrs;
+        synchronized (listeners) {
+            lsrs = new ArrayList<OtrKeyManagerListener>(listeners);
+        }
+		for (final OtrKeyManagerListener l : lsrs) {
             // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
             l.verificationStatusChanged(sessionID);
         }
@@ -369,8 +373,11 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		this.store.setProperty(sessionID.getUserID() + ".publicKey.verified",
 				true);
 
-        // TODO do we need synchronization on listeners here?
-		for (final OtrKeyManagerListener l : listeners) {
+        final ArrayList<OtrKeyManagerListener> lsrs;
+        synchronized (listeners) {
+            lsrs = new ArrayList<OtrKeyManagerListener>(listeners);
+        }
+		for (final OtrKeyManagerListener l : lsrs) {
             // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
 			l.verificationStatusChanged(sessionID);
         }
