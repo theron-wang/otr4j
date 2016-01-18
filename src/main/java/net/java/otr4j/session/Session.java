@@ -62,7 +62,13 @@ public class Session {
                 Arrays.asList(ONE, TWO, THREE));
     }
 
-    private HashMap<InstanceTag, Session> slaveSessions;
+    /**
+     * Slave sessions contain the mappings of instance tags to outgoing sessions.
+     * In case of the master session, it is initialized with an empty instance.
+     * In case of slaves the slaveSessions instance is initialized to 'null'.
+     */
+    // TODO use of slave sessions is missing a lot of synchronization
+    private final HashMap<InstanceTag, Session> slaveSessions;
 
     private volatile Session outgoingSession;
 
@@ -112,7 +118,9 @@ public class Session {
         this.senderTag = InstanceTag.random(this.secureRandom);
         this.receiverTag = InstanceTag.ZERO_TAG;
 
-        slaveSessions = new HashMap<InstanceTag, Session>();
+        // Start with initial capacity of 0. Will start to use more memory once
+        // the map is in actual use.
+        slaveSessions = new HashMap<InstanceTag, Session>(0);
         outgoingSession = this;
         isMasterSession = true;
 
@@ -140,6 +148,8 @@ public class Session {
         this.senderTag = senderTag;
         this.receiverTag = receiverTag;
 
+        // Slave sessions do not use this map. Initialize to null.
+        slaveSessions = null;
         outgoingSession = this;
         isMasterSession = false;
         protocolVersion = OTRv.THREE;
@@ -444,7 +454,6 @@ public class Session {
                             "may be logged from multiple locations.");
 
                     final InstanceTag newReceiverTag = new InstanceTag(encodedM.senderInstanceTag);
-                    // TODO consider making slaveSessions final in order to avoid slaveSessions locking fails (synchronization on non-final fields)
                     synchronized (slaveSessions) {
 
                         if (!slaveSessions.containsKey(newReceiverTag)) {
