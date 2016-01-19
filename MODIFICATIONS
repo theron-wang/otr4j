@@ -1,0 +1,15 @@
+Modifications in improvements branch:
+* More leverage of (static) type-safety.
+* More specific exception catching. This might result in more Runtime Exceptions "leaking" through (intentionally).
+* Extend size of MPI arrays to maximum Java supported capacity (OTR supports 32 bits lengths, otr4j currently supports up to Integer.MAX_VALUE-8 items.)
+* Safely calling listeners such that faulty listener implementations do not interrupt protocol/message processing.
+* Fixed potential exceptions due to negative array sizes caused by interpretation of ints as signed in unserialization.
+* Fixed issue with SM exponent and group element verification.
+* Reduce unnecessary use of null.
+* General simplification of code by removing redundant constructions.
+* Updated obsolete collections.
+* Better synchronization of containers in multi-threaded situations.
+* Use of thread-unsafe classes in local context.
+* Correct inconsistencies in javadoc/variable naming.
+* Better/correct closing of stream resources.
+* Smart use of try-finally to ensure correct closing.
