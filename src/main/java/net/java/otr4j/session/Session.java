@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
@@ -685,7 +686,7 @@ public class Session {
                 final String decryptedMsgContent = new String(dmc, 0, tlvIndex, SerializationUtils.UTF8);
 
                 // if the null TLV separator is somewhere in the middle, there are TLVs
-                final List<TLV> tlvs = new Vector<TLV>();
+                final LinkedList<TLV> tlvs = new LinkedList<TLV>();
                 tlvIndex++;  // to ignore the null
                 if (tlvIndex < dmc.length) {
                     byte[] tlvsb = new byte[dmc.length - tlvIndex];
