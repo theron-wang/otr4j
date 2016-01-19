@@ -684,15 +684,13 @@ public class Session {
                 // get message body without trailing 0x00, expect UTF-8 bytes
                 final String decryptedMsgContent = new String(dmc, 0, tlvIndex, SerializationUtils.UTF8);
 
-                // TODO consider using empty list as default value and fill it if TLVs are available.
                 // if the null TLV separator is somewhere in the middle, there are TLVs
-                List<TLV> tlvs = null;
+                final List<TLV> tlvs = new Vector<TLV>();
                 tlvIndex++;  // to ignore the null
                 if (tlvIndex < dmc.length) {
                     byte[] tlvsb = new byte[dmc.length - tlvIndex];
                     System.arraycopy(dmc, tlvIndex, tlvsb, 0, tlvsb.length);
 
-                    tlvs = new Vector<TLV>();
                     final ByteArrayInputStream tin = new ByteArrayInputStream(tlvsb);
                     final OtrInputStream eois = new OtrInputStream(tin);
                     try {
@@ -711,8 +709,8 @@ public class Session {
                         }
                     }
                 }
-                if (tlvs != null && tlvs.size() > 0) {
-                    for (TLV tlv : tlvs) {
+                if (!tlvs.isEmpty()) {
+                    for (final TLV tlv : tlvs) {
                         switch (tlv.getType()) {
                             case TLV.PADDING: // TLV0
                                 // nothing to do here, just ignore the padding
