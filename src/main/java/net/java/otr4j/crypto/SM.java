@@ -39,6 +39,14 @@ public final class SM {
     // TODO Consider converting this to State Machine pattern.
     // TODO Are there checks for Pa != Pb, and Qa != Qb?
     
+    /**
+     * Safe maximum array size. Copied from OpenJDK 7 implementation.
+     * (http://hg.openjdk.java.net/jdk7/jdk7/jdk/file/tip/src/share/classes/java/util/ArrayList.java#l190)
+     * A few bytes are reserved for overhead. This value seems to be quite
+     * universally accepted safe maximum.
+     */
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+    
     private final SecureRandom sr;
 
     public SM(final SecureRandom sr) {
@@ -210,8 +218,10 @@ public final class SM {
                 // thus negative for values where sign bit is set.
                 throw new SMException("Invalid number of ints: " + len);
             }
-			if (len > 100) {
-                // TODO is this a specified limit of OTR or a custom limit set by otr4j? Depending on the answer, we may need to interpret the len value above differently and is the (len < 0) check above not correct for all use cases of OTR.
+			if (len > MAX_ARRAY_SIZE) {
+                // The maximum supported length by otr4j. Because of the reason
+                // described above, the maximum supported value is only 2**31
+                // big (minus some overhead).
 				throw new SMException("Too many ints");
 			}
 			final BigInteger[] ints = new BigInteger[len];
