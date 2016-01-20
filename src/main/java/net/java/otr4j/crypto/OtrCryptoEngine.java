@@ -21,6 +21,7 @@ import java.security.SecureRandom;
 import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPrivateKey;
 import java.security.interfaces.DSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.KeyAgreement;
 import javax.crypto.interfaces.DHPrivateKey;
@@ -117,9 +118,10 @@ public class OtrCryptoEngine {
                     .generatePrivate(privKeySpecs);
 
             return new KeyPair(pubKey, privKey);
-        } catch (Exception e) {
-            // TODO consider catching specific exceptions and letting RTE through as signal of programming error
-            throw new OtrCryptoException(e);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new OtrCryptoException(ex);
+        } catch (InvalidKeySpecException ex) {
+            throw new OtrCryptoException(ex);
         }
     }
 
@@ -134,9 +136,10 @@ public class OtrCryptoEngine {
         try {
             final KeyFactory keyFac = KeyFactory.getInstance(KF_DH);
             return (DHPublicKey) keyFac.generatePublic(pubKeySpecs);
-        } catch (Exception e) {
-            // TODO consider catching specific exceptions and letting RTEs through as signal of programming error
-            throw new OtrCryptoException(e);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new OtrCryptoException(ex);
+        } catch (InvalidKeySpecException ex) {
+            throw new OtrCryptoException(ex);
         }
     }
 
