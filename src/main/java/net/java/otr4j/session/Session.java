@@ -78,13 +78,13 @@ public class Session {
 
     private final boolean isMasterSession;
 
-    private SessionID sessionID;
+    private final SessionID sessionID;
     private final OtrEngineHost host;
     private SessionStatus sessionStatus;
     private AuthContext authContext;
     private SessionKeys[][] sessionKeys;
     private Vector<byte[]> oldMacKeys;
-    private Logger logger;
+    private final Logger logger;
     private SmpTlvHandler smpTlvHandler;
     private BigInteger ess;
     private OfferStatus offerStatus;
@@ -109,7 +109,8 @@ public class Session {
     public Session(final SessionID sessionID, final OtrEngineHost listener) {
         this.secureRandom = new SecureRandom();
 
-        this.setSessionID(sessionID);
+        this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
+        this.sessionID = sessionID;
         this.host = listener;
 
         // client application calls OtrSessionManager.getSessionStatus()
@@ -143,7 +144,8 @@ public class Session {
         }
         this.secureRandom = secureRandom;
 
-        this.setSessionID(sessionID);
+        this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
+        this.sessionID = sessionID;
         this.host = listener;
 
         this.sessionStatus = SessionStatus.PLAINTEXT;
@@ -338,11 +340,6 @@ public class Session {
             return outgoingSession.getSessionStatus();
         }
         return sessionStatus;
-    }
-
-    private void setSessionID(final SessionID sessionID) {
-        logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
-        this.sessionID = sessionID;
     }
 
     public SessionID getSessionID() {
