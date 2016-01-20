@@ -35,6 +35,7 @@ import net.java.otr4j.io.SerializationUtils;
 
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.BufferedBlockCipher;
+import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESFastEngine;
 import org.bouncycastle.crypto.generators.DHKeyPairGenerator;
 import org.bouncycastle.crypto.modes.SICBlockCipher;
@@ -239,9 +240,8 @@ public class OtrCryptoEngine {
         final int done = bufSicAesDec.processBytes(b, 0, b.length, aesOutLwDec, 0);
         try {
             bufSicAesDec.doFinal(aesOutLwDec, done);
-        } catch (Exception e) {
-            // TODO consider catching specific exceptions and letting RTEs through as signal of programming error
-            throw new OtrCryptoException(e);
+        } catch (InvalidCipherTextException ex) {
+            throw new OtrCryptoException(ex);
         }
 
         return aesOutLwDec;
@@ -264,9 +264,8 @@ public class OtrCryptoEngine {
         final int done = bufSicAesEnc.processBytes(b, 0, b.length, aesOutLwEnc, 0);
         try {
             bufSicAesEnc.doFinal(aesOutLwEnc, done);
-        } catch (Exception e) {
-            // TODO consider catching specific exceptions and letting RTEs through as signal of programming error
-            throw new OtrCryptoException(e);
+        } catch (InvalidCipherTextException ex) {
+            throw new OtrCryptoException(ex);
         }
         return aesOutLwEnc;
     }
@@ -279,10 +278,10 @@ public class OtrCryptoEngine {
             ka.doPhase(pubKey, true);
             final byte[] sb = ka.generateSecret();
             return new BigInteger(1, sb);
-
-        } catch (Exception e) {
-            // TODO consider catching specific exceptions and letting RTEs through as signal of programming error
-            throw new OtrCryptoException(e);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new OtrCryptoException(ex);
+        } catch (InvalidKeyException ex) {
+            throw new OtrCryptoException(ex);
         }
     }
 
