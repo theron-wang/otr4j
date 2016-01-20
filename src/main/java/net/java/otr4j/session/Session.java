@@ -79,7 +79,7 @@ public class Session {
     private final boolean isMasterSession;
 
     private SessionID sessionID;
-    private OtrEngineHost host;
+    private final OtrEngineHost host;
     private SessionStatus sessionStatus;
     private AuthContext authContext;
     private SessionKeys[][] sessionKeys;
@@ -110,7 +110,7 @@ public class Session {
         this.secureRandom = new SecureRandom();
 
         this.setSessionID(sessionID);
-        this.setHost(listener);
+        this.host = listener;
 
         // client application calls OtrSessionManager.getSessionStatus()
         // -> create new session if it does not exist, end up here
@@ -144,7 +144,7 @@ public class Session {
         this.secureRandom = secureRandom;
 
         this.setSessionID(sessionID);
-        this.setHost(listener);
+        this.host = listener;
 
         this.sessionStatus = SessionStatus.PLAINTEXT;
         this.offerStatus = OfferStatus.idle;
@@ -347,10 +347,6 @@ public class Session {
 
     public SessionID getSessionID() {
         return sessionID;
-    }
-
-    private void setHost(final OtrEngineHost host) {
-        this.host = host;
     }
 
     OtrEngineHost getHost() {
