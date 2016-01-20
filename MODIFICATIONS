@@ -13,3 +13,4 @@ Modifications in improvements branch:
 * Correct inconsistencies in javadoc/variable naming.
 * Better/correct closing of stream resources.
 * Smart use of try-finally to ensure correct closing.
+* Removed OtrKeyManager* and related code. These are not used in the main otr4j implementation. Its function is already provided by OtrEngineHost.
