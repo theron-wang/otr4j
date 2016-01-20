@@ -305,13 +305,12 @@ public final class OtrEngineHostUtil {
      * @param sessionID the session ID
      * @return Returns the reply for unreadable message to send as error to other party.
      */
-    public static String getReplyForUnreadableMessage(final OtrEngineHost host, final SessionID sessionID) {
+    public static String getReplyForUnreadableMessage(final OtrEngineHost host, final SessionID sessionID, final String defaultMessage) {
         try {
             return host.getReplyForUnreadableMessage(sessionID);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'getReplyForUnreadableMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
-        // FIXME what default message to use? (Or rather may just fix this in the calling code!)
-        return "This message cannot be read.";
+        return defaultMessage;
     }
 }

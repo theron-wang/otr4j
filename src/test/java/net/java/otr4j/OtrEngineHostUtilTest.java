@@ -351,16 +351,17 @@ public class OtrEngineHostUtilTest {
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getReplyForUnreadableMessage(sessionID)).thenReturn(replyMsg);
-        assertEquals(replyMsg, OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionID));
+        assertEquals(replyMsg, OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionID, "default message"));
         verify(host).getReplyForUnreadableMessage(sessionID);
     }
 
     @Test
     public void testGetReplyForUnreadableMessageOnFaultyHost() throws OtrException {
+        final String defaultMessage = "This message cannot be read.";
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new IllegalArgumentException("programming error occurred")).when(host).getReplyForUnreadableMessage(sessionID);
-        assertEquals("This message cannot be read.", OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionID));
+        assertEquals(defaultMessage, OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionID, defaultMessage));
         verify(host).getReplyForUnreadableMessage(sessionID);
     }
 }
