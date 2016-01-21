@@ -21,6 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.crypto.interfaces.DHPublicKey;
+import net.java.otr4j.crypto.OtrCryptoException;
 
 import org.bouncycastle.util.encoders.Base64;
 
@@ -55,7 +56,7 @@ public class SerializationUtils {
 	public static Charset UTF8 = Charset.forName("UTF-8");
 
 	// Mysterious X IO.
-	public static SignatureX toMysteriousX(final byte[] b) throws IOException {
+	public static SignatureX toMysteriousX(final byte[] b) throws IOException, OtrCryptoException {
 		final ByteArrayInputStream in = new ByteArrayInputStream(b);
 		final OtrInputStream ois = new OtrInputStream(in);
 		final SignatureX x = ois.readMysteriousX();
@@ -272,8 +273,9 @@ public class SerializationUtils {
 	 * @throws IOException
 	 *             error parsing the string to a message, either format mismatch
 	 *             or real IO error
+     * @throws net.java.otr4j.crypto.OtrCryptoException error of cryptographic nature
 	 */
-	public static AbstractMessage toMessage(final String s) throws IOException {
+	public static AbstractMessage toMessage(final String s) throws IOException, OtrCryptoException {
 		if (s == null || s.length() == 0) {
             return null;
         }

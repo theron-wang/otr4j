@@ -123,7 +123,7 @@ public class OtrInputStream extends FilterInputStream implements
         return checkedRead(dataLen);
 	}
 
-	public PublicKey readPublicKey() throws IOException {
+	public PublicKey readPublicKey() throws IOException, OtrCryptoException {
 		final int type = readShort();
 		switch (type) {
 		case 0:
@@ -136,30 +136,21 @@ public class OtrInputStream extends FilterInputStream implements
 			try {
 				keyFactory = KeyFactory.getInstance("DSA");
 			} catch (NoSuchAlgorithmException e) {
-                // TODO consider including the root cause in the IOException
-                // TODO consider throwing IllegalStateException, as this is about availability of classes not IO operation failure.
-				throw new IOException();
+                throw new OtrCryptoException(e);
 			}
 			try {
 				return keyFactory.generatePublic(keySpec);
 			} catch (InvalidKeySpecException e) {
-                // TODO consider including the root cause in the IOException
-                // TODO consider throwing IllegalStateException, as this is about availability of classes not IO operation failure.
-				throw new IOException();
+				throw new OtrCryptoException(e);
 			}
 		default:
 			throw new UnsupportedOperationException();
 		}
 	}
 
-	public DHPublicKey readDHPublicKey() throws IOException {
-        // TODO consider adding throws OtrCryptoException as some errors clearly are not IOExceptions
+	public DHPublicKey readDHPublicKey() throws IOException, OtrCryptoException {
 		final BigInteger gyMpi = readBigInt();
-		try {
-			return OtrCryptoEngine.getDHPublicKey(gyMpi);
-		} catch (OtrCryptoException ex) {
-			throw new IOException(ex);
-		}
+        return OtrCryptoEngine.getDHPublicKey(gyMpi);
 	}
 
 	public byte[] readTlvData() throws IOException {
@@ -177,7 +168,7 @@ public class OtrInputStream extends FilterInputStream implements
 		return checkedRead(dsaParams.getQ().bitLength() / 4);
 	}
 
-	public SignatureX readMysteriousX() throws IOException {
+	public SignatureX readMysteriousX() throws IOException, OtrCryptoException {
 		final PublicKey pubKey = readPublicKey();
 		final int dhKeyID = readInt();
 		final byte[] sig = readSignature(pubKey);

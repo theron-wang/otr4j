@@ -108,14 +108,14 @@ public class OtrInputStreamTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testReadBadPublicKeyType() throws IOException {
+    public void testReadBadPublicKeyType() throws IOException, OtrCryptoException {
         final byte[] data = new byte[] { 0x0, 0x55 };
         final OtrInputStream ois = new OtrInputStream(new ByteArrayInputStream(data));
         assertEquals(BigInteger.valueOf(85l), ois.readPublicKey());
     }
 
     @Test
-    public void testReadPUblicKeyType() throws IOException {
+    public void testReadPUblicKeyType() throws IOException, OtrCryptoException {
         final byte[] data = new byte[] { 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x1, 0x0, 0x0, 0x0, 0x1, 0x2, 0x0, 0x0, 0x0, 0x1, 0x3, 0x0, 0x0, 0x0, 0x1, 0x4 };
         final OtrInputStream ois = new OtrInputStream(new ByteArrayInputStream(data));
         final PublicKey key = ois.readPublicKey();
@@ -130,7 +130,7 @@ public class OtrInputStreamTest {
     }
 
     @Test(expected = IOException.class)
-    public void testReadBadDHPublicKeyType() throws IOException {
+    public void testReadBadDHPublicKeyType() throws IOException, OtrCryptoException {
         final byte[] data = new byte[] { 0x0, 0x0 };
         final OtrInputStream ois = new OtrInputStream(new ByteArrayInputStream(data));
         ois.readDHPublicKey();
