@@ -18,7 +18,6 @@ import org.bouncycastle.util.BigIntegers;
 
 public class OtrOutputStream extends FilterOutputStream implements
 		SerializationConstants {
-    // TODO consider making OtrOutputStream class final
 
 	public OtrOutputStream(final OutputStream out) {
 		super(out);

@@ -298,6 +298,7 @@ public class SerializationUtils {
 					|| contentType == SerializationConstants.HEAD_QUERY_Q) {
 				// Query tag found.
 
+                // FIXME replace obsolete Vector with other type
 				final Vector<Integer> versions = new Vector<Integer>();
 				String versionString = null;
 				if (SerializationConstants.HEAD_QUERY_Q == contentType) {
