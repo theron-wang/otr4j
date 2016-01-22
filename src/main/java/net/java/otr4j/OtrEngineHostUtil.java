@@ -78,17 +78,21 @@ public final class OtrEngineHostUtil {
      * Catch any runtime exceptions and log occurrence of the exception and
      * consequently the misbehaving of the OtrEngineHost instance.
      *
+     * OtrException exceptions are caught, logged and silenced. Calling code
+     * cannot handle interruptions by exception and will result in incomplete
+     * message processing.
+     *
      * @param host the engine host instance
      * @param sessionID the session ID
      * @param message the received message
-     * @throws net.java.otr4j.OtrException Throws OtrException in case of expected failure cases.
      */
-    public static void unencryptedMessageReceived(final OtrEngineHost host, final SessionID sessionID, final String message) throws OtrException {
-        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
+    public static void unencryptedMessageReceived(final OtrEngineHost host, final SessionID sessionID, final String message) {
         try {
             host.unencryptedMessageReceived(sessionID, message);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'unencryptedMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
+        } catch (OtrException e) {
+            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'unencryptedMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -97,16 +101,20 @@ public final class OtrEngineHostUtil {
      * Catch any runtime exceptions and log occurrence of the exception and
      * consequently the misbehaving of the OtrEngineHost instance.
      *
+     * OtrException exceptions are caught, logged and silenced. Calling code
+     * cannot handle interruptions by exception and will result in incomplete
+     * message processing.
+     *
      * @param host the engine host instance
      * @param sessionID the session ID
-     * @throws OtrException Throws OtrException in case of expected failure cases.
      */
-    public static void unreadableMessageReceived(final OtrEngineHost host, final SessionID sessionID) throws OtrException {
-        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
+    public static void unreadableMessageReceived(final OtrEngineHost host, final SessionID sessionID) {
         try {
             host.unreadableMessageReceived(sessionID);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'unreadableMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
+        } catch (OtrException e) {
+            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'unreadableMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -177,20 +185,21 @@ public final class OtrEngineHostUtil {
      * current session will continue as expected, even if something went wrong
      * on the Engine Host in showing the error message.
      *
-     * Note that we still pass through OtrException instances as these are an
-     * expected class of exceptions.
+     * OtrException exceptions are caught, logged and silenced. Calling code
+     * cannot handle interruptions by exception and will result in incomplete
+     * message processing.
      *
      * @param host the Engine Host
      * @param sessionID the session ID
      * @param error the error message
-     * @throws OtrException OtrExceptions
      */
-    public static void showError(final OtrEngineHost host, final SessionID sessionID, final String error) throws OtrException {
-        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
+    public static void showError(final OtrEngineHost host, final SessionID sessionID, final String error) {
         try {
             host.showError(sessionID, error);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'showError' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
+        } catch (OtrException e) {
+            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'showError' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -201,21 +210,23 @@ public final class OtrEngineHostUtil {
      * fully and the session correctly ended, even if something went wrong on
      * the Engine Host.
      *
-     * Note that we still pass through OtrException instances as these are
-     * expected class of exceptions.
+     * OtrException exceptions are caught, logged and silenced. Calling code
+     * cannot handle interruptions by exception and will result in incomplete
+     * message processing.
      *
-     * @param host
-     * @param sessionID
-     * @param tlvType
-     * @param cheated
-     * @throws OtrException
+     * @param host the Engine Host
+     * @param sessionID the session ID
+     * @param tlvType the TLV type
+     * @param cheated indicator for nature of SMP error, whether error because
+     * of "cheat" status or for other reason.
      */
-    public static void smpError(final OtrEngineHost host, final SessionID sessionID, final int tlvType, final boolean cheated) throws OtrException {
-        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
+    public static void smpError(final OtrEngineHost host, final SessionID sessionID, final int tlvType, final boolean cheated) {
         try {
             host.smpError(sessionID, tlvType, cheated);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'smpError' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
+        } catch (OtrException e) {
+            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'smpError' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -226,19 +237,20 @@ public final class OtrEngineHostUtil {
      * fully and the session correctly ended, even if something went wrong on
      * the Engine Host.
      *
-     * Note that we still pass through OtrException instances as these are
-     * expected class of exceptions.
+     * OtrException exceptions are caught, logged and silenced. Calling code
+     * cannot handle interruptions by exception and will result in incomplete
+     * message processing.
      *
      * @param host
      * @param sessionID
-     * @throws OtrException
      */
-    public static void smpAborted(final OtrEngineHost host, final SessionID sessionID) throws OtrException {
-        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
+    public static void smpAborted(final OtrEngineHost host, final SessionID sessionID) {
         try {
             host.smpAborted(sessionID);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'smpAborted' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
+        } catch (OtrException e) {
+            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'smpAborted' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -246,20 +258,21 @@ public final class OtrEngineHostUtil {
      * Signal finished session to Engine Host with provided message. Call Engine
      * Host safely and log any runtime exceptions that are thrown.
      *
-     * Note that we still let OtrException pass through as this is an expected
-     * class of exceptions.
+     * OtrException exceptions are caught, logged and silenced. Calling code
+     * cannot handle interruptions by exception and will result in incomplete
+     * message processing.
      *
      * @param host the Engine Host
      * @param sessionID the session ID
      * @param msgText a message text about the finished session
-     * @throws OtrException OtrException
      */
-    public static void finishedSessionMessage(final OtrEngineHost host, final SessionID sessionID, final String msgText) throws OtrException {
-        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process. (Not critically in this use case.)
+    public static void finishedSessionMessage(final OtrEngineHost host, final SessionID sessionID, final String msgText) {
         try {
             host.finishedSessionMessage(sessionID, msgText);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'finishedSessionMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
+        } catch (OtrException e) {
+            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'finishedSessionMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -267,17 +280,21 @@ public final class OtrEngineHostUtil {
      * Signal require encryption to Engine Host with provided message. Call
      * Engine Host safely and log any runtime exceptions that are thrown.
      *
+     * OtrException exceptions are caught, logged and silenced. Calling code
+     * cannot handle interruptions by exception and will result in incomplete
+     * message processing.
+     *
      * @param host the Engine Host
      * @param sessionID the session ID
      * @param msgText the message
-     * @throws OtrException OtrException
      */
-    public static void requireEncryptedMessage(final OtrEngineHost host, final SessionID sessionID, final String msgText) throws OtrException {
-        // TODO consider disallowing OtrExceptions too, as they will interrupt the rest of the process.
+    public static void requireEncryptedMessage(final OtrEngineHost host, final SessionID sessionID, final String msgText) {
         try {
             host.requireEncryptedMessage(sessionID, msgText);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'requireEncryptedMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
+        } catch (OtrException e) {
+            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'requireEncryptedMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 

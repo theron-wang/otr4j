@@ -91,13 +91,14 @@ public class OtrEngineHostUtilTest {
         verify(host).unencryptedMessageReceived(sessionID, msg);
     }
 
-    @Test(expected = OtrException.class)
-    public void testUnencryptedMessageReceivedPassThroughOtrException() throws OtrException {
+    @Test
+    public void testUnencryptedMessageReceivedCannotPassThroughOtrException() throws OtrException {
         final String msg = "Unencrypted message";
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new OtrException("expected error occurred")).when(host).unencryptedMessageReceived(sessionID, msg);
         OtrEngineHostUtil.unencryptedMessageReceived(host, sessionID, msg);
+        verify(host).unencryptedMessageReceived(sessionID, msg);
     }
 
     @Test
@@ -117,12 +118,13 @@ public class OtrEngineHostUtilTest {
         verify(host).unreadableMessageReceived(sessionID);
     }
 
-    @Test(expected = OtrException.class)
-    public void testUnreadableMessageReceivedPassThroughOtrException() throws OtrException {
+    @Test
+    public void testUnreadableMessageReceivedCannotPassThroughOtrException() throws OtrException {
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new OtrException("expected error occurred")).when(host).unreadableMessageReceived(sessionID);
         OtrEngineHostUtil.unreadableMessageReceived(host, sessionID);
+        verify(host).unreadableMessageReceived(sessionID);
     }
 
     @Test
@@ -203,13 +205,14 @@ public class OtrEngineHostUtilTest {
         verify(host).showError(sessionID, error);
     }
 
-    @Test(expected = OtrException.class)
-    public void testShowErrorPassThroughOtrException() throws OtrException {
+    @Test
+    public void testShowErrorCannotPassThroughOtrException() throws OtrException {
         final String error = "My error message.";
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new OtrException("expected error occurred")).when(host).showError(sessionID, error);
         OtrEngineHostUtil.showError(host, sessionID, error);
+        verify(host).showError(sessionID, error);
     }
 
     @Test
@@ -233,14 +236,15 @@ public class OtrEngineHostUtilTest {
         verify(host).smpError(sessionID, type, cheated);
     }
 
-    @Test(expected = OtrException.class)
-    public void testSmpErrorPassThroughOtrException() throws OtrException {
+    @Test
+    public void testSmpErrorCannotPassThroughOtrException() throws OtrException {
         final boolean cheated = true;
         final int type = 1;
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new OtrException("expected error occurred")).when(host).smpError(sessionID, type, cheated);
         OtrEngineHostUtil.smpError(host, sessionID, type, cheated);
+        verify(host).smpError(sessionID, type, cheated);
     }
 
     @Test
@@ -260,12 +264,13 @@ public class OtrEngineHostUtilTest {
         verify(host).smpAborted(sessionID);
     }
 
-    @Test(expected = OtrException.class)
-    public void testSmpAbortedPassThroughOtrException() throws OtrException {
+    @Test
+    public void testSmpAbortedCannotPassThroughOtrException() throws OtrException {
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new OtrException("expected error occurred")).when(host).smpAborted(sessionID);
         OtrEngineHostUtil.smpAborted(host, sessionID);
+        verify(host).smpAborted(sessionID);
     }
 
     @Test
@@ -287,13 +292,14 @@ public class OtrEngineHostUtilTest {
         verify(host).finishedSessionMessage(sessionID, msg);
     }
 
-    @Test(expected = OtrException.class)
-    public void testFinishedSessionMessagePassThroughOtrException() throws OtrException {
+    @Test
+    public void testFinishedSessionMessageCannotPassThroughOtrException() throws OtrException {
         final String msg = "My session finished message";
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new OtrException("expected error occurred")).when(host).finishedSessionMessage(sessionID, msg);
         OtrEngineHostUtil.finishedSessionMessage(host, sessionID, msg);
+        verify(host).finishedSessionMessage(sessionID, msg);
     }
 
     @Test
@@ -315,13 +321,14 @@ public class OtrEngineHostUtilTest {
         verify(host).requireEncryptedMessage(sessionID, msg);
     }
 
-    @Test(expected = OtrException.class)
-    public void testRequireEncryptedMessagePassThroughOtrException() throws OtrException {
+    @Test
+    public void testRequireEncryptedMessageCannotPassThroughOtrException() throws OtrException {
         final String msg = "I require encryption";
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new OtrException("expected error occurred")).when(host).requireEncryptedMessage(sessionID, msg);
         OtrEngineHostUtil.requireEncryptedMessage(host, sessionID, msg);
+        verify(host).requireEncryptedMessage(sessionID, msg);
     }
 
     @Test
