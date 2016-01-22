@@ -8,6 +8,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrEngineHostUtil;
@@ -196,9 +198,9 @@ public class SmpTlvHandler {
 		try {
 			return OtrCryptoEngine.getFingerprint(pubKey);
         } catch (OtrCryptoException e) {
-            // TODO consider removing printStackTrace()
-            e.printStackTrace();
+            Logger.getLogger(SmpTlvHandler.class.getCanonicalName()).log(Level.WARNING, "Failed to get fingerprint.", e);
         }
+        // FIXME it seems that it is impossible to continue for every use of getFingerprint() that returns null, so why do we return null and not throw an OtrCryptoException or something like that?
 		return null;
 	}
 
