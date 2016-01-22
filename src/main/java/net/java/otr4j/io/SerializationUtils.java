@@ -15,7 +15,6 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -147,6 +146,7 @@ public class SerializationUtils {
 			case AbstractMessage.MESSAGE_PLAINTEXT:
 				final PlainTextMessage plaintxt = (PlainTextMessage) m;
 				writer.write(plaintxt.cleanText);
+                // FIXME modify code for plaintxt.versions.isEmpty() instead of null
 				if (plaintxt.versions != null && plaintxt.versions.size() > 0) {
 					writer.write(" \t  \t\t\t\t \t \t \t  ");
 					for (int version : plaintxt.versions) {
@@ -438,7 +438,8 @@ public class SerializationUtils {
 		}
 
 		final String cleanText = matcher.replaceAll("");
-		List<Integer> versions = null;
+        // FIXME ensure versions always contains list instance. (maybe empty)
+		ArrayList<Integer> versions = null;
 		if (v1 || v2 || v3) {
 			versions = new ArrayList<Integer>();
 			if (v1) {

@@ -83,6 +83,7 @@ public class Session {
     private SessionStatus sessionStatus;
     private AuthContext authContext;
     private SessionKeys[][] sessionKeys;
+    // FIXME replace obsolete Vector with suitable current collection
     private Vector<byte[]> oldMacKeys;
     private final Logger logger;
     private SmpTlvHandler smpTlvHandler;
@@ -582,7 +583,7 @@ public class Session {
         // Re-negotiate if we got an error and we are encrypted
         if (policy.getErrorStartAKE() && getSessionStatus() == SessionStatus.ENCRYPTED) {
             logger.finest("Error message starts AKE.");
-            final Vector<Integer> versions = new Vector<Integer>();
+            final ArrayList<Integer> versions = new ArrayList<Integer>();
             if (policy.getAllowV1()) {
                 versions.add(OTRv.ONE);
             }
@@ -793,6 +794,7 @@ public class Session {
 
         final OtrPolicy policy = getSessionPolicy();
         final List<Integer> versions = plainTextMessage.versions;
+        // FIXME rewrite for versions.isEmpty() ensure list instance always available
         if (versions == null || versions.size() < 1) {
             logger
                     .finest("Received plaintext message without the whitespace tag.");
@@ -926,7 +928,8 @@ public class Session {
                     if (otrPolicy.getSendWhitespaceTag()
                             && offerStatus != OfferStatus.rejected) {
                         offerStatus = OfferStatus.sent;
-                        List<Integer> versions = new Vector<Integer>();
+                        // FIXME rewrite code to ensure versions variable always has instance. (maybe empty)
+                        ArrayList<Integer> versions = new ArrayList<Integer>();
                         if (otrPolicy.getAllowV1()) {
                             versions.add(OTRv.ONE);
                         }
