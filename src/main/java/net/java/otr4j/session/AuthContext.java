@@ -35,6 +35,7 @@ import net.java.otr4j.session.Session.OTRv;
  * @author George Politis
  */
 public class AuthContext {
+    // TODO consider converting this to a state machine. This enables better separation of state variables such that we only provide fields that are used in the current state.
 
     public static final int NONE = 0;
     public static final int AWAITING_DHKEY = 1;
