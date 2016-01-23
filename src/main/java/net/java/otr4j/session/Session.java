@@ -83,8 +83,7 @@ public class Session {
     private SessionStatus sessionStatus;
     private AuthContext authContext;
     private SessionKeys[][] sessionKeys;
-    // FIXME replace obsolete Vector with suitable current collection
-    private Vector<byte[]> oldMacKeys;
+    private final List<byte[]> oldMacKeys = Collections.synchronizedList(new ArrayList<byte[]>(0));
     private final Logger logger;
     private SmpTlvHandler smpTlvHandler;
     private BigInteger ess;
@@ -281,18 +280,21 @@ public class Session {
 
     private byte[] collectOldMacKeys() {
         logger.finest("Collecting old MAC keys to be revealed.");
-        int len = 0;
-        for (int i = 0; i < getOldMacKeys().size(); i++) {
-            len += getOldMacKeys().get(i).length;
-        }
+        final List<byte[]> oldKeys = getOldMacKeys();
+        synchronized (oldKeys) {
+            int len = 0;
+            for (final byte[] k : oldKeys) {
+                len += k.length;
+            }
 
-        final ByteBuffer buff = ByteBuffer.allocate(len);
-        for (int i = 0; i < getOldMacKeys().size(); i++) {
-            buff.put(getOldMacKeys().get(i));
-        }
+            final ByteBuffer buff = ByteBuffer.allocate(len);
+            for (final byte[] k : oldKeys) {
+                buff.put(k);
+            }
 
-        getOldMacKeys().clear();
-        return buff.array();
+            oldKeys.clear();
+            return buff.array();
+        }
     }
 
     private void setSessionStatus(final SessionStatus sessionStatus)
@@ -372,10 +374,16 @@ public class Session {
         return authContext;
     }
 
-    private Vector<byte[]> getOldMacKeys() {
-        if (oldMacKeys == null) {
-            oldMacKeys = new Vector<byte[]>();
-        }
+    /**
+     * Access to the list of old MAC keys for this session.
+     *
+     * The current implementation returns a thread-safe list but groups of
+     * operations would still need to be performed inside a 'synchronized' block
+     * to ensure consistency for concurrent use.
+     *
+     * @return Returns the list of old MAC keys.
+     */
+    private List<byte[]> getOldMacKeys() {
         return oldMacKeys;
     }
 
