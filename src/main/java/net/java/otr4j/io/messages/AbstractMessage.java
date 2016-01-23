@@ -12,8 +12,7 @@ package net.java.otr4j.io.messages;
  */
 public abstract class AbstractMessage {
 	// Fields.
-    // FIXME consider making 'messageType' field final.
-	public int messageType;
+	public final int messageType;
 
 	// Ctor.
 	public AbstractMessage(final int messageType) {

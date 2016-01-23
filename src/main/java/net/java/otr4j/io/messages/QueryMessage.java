@@ -14,8 +14,7 @@ import java.util.List;
  */
 public class QueryMessage extends AbstractMessage {
 	// Fields.
-    // TODO consider making 'versions' field final
-	public List<Integer> versions;
+	public final List<Integer> versions;
 
 	// Ctor.
 	protected QueryMessage(final int messageType, final List<Integer> versions) {
