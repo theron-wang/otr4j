@@ -146,8 +146,7 @@ public class SerializationUtils {
 			case AbstractMessage.MESSAGE_PLAINTEXT:
 				final PlainTextMessage plaintxt = (PlainTextMessage) m;
 				writer.write(plaintxt.cleanText);
-                // FIXME modify code for plaintxt.versions.isEmpty() instead of null
-				if (plaintxt.versions != null && plaintxt.versions.size() > 0) {
+				if (!plaintxt.versions.isEmpty()) {
 					writer.write(" \t  \t\t\t\t \t \t \t  ");
 					for (int version : plaintxt.versions) {
 						if (version == OTRv.ONE) {
@@ -299,7 +298,7 @@ public class SerializationUtils {
 					|| contentType == SerializationConstants.HEAD_QUERY_Q) {
 				// Query tag found.
 
-				final ArrayList<Integer> versions = new ArrayList<Integer>();
+				final ArrayList<Integer> versions = new ArrayList<Integer>(4);
 				String versionString = null;
 				if (SerializationConstants.HEAD_QUERY_Q == contentType) {
 					versions.add(OTRv.ONE);
@@ -438,22 +437,17 @@ public class SerializationUtils {
 		}
 
 		final String cleanText = matcher.replaceAll("");
-        // FIXME ensure versions always contains list instance. (maybe empty)
-		ArrayList<Integer> versions = null;
-		if (v1 || v2 || v3) {
-			versions = new ArrayList<Integer>();
-			if (v1) {
-                versions.add(OTRv.ONE);
-            }
-			if (v2) {
-                versions.add(OTRv.TWO);
-            }
-			if (v3) {
-                versions.add(OTRv.THREE);
-            }
-		}
-
-		return new PlainTextMessage(versions, cleanText);
+        final ArrayList<Integer> versions = new ArrayList<Integer>(4);
+        if (v1) {
+            versions.add(OTRv.ONE);
+        }
+        if (v2) {
+            versions.add(OTRv.TWO);
+        }
+        if (v3) {
+            versions.add(OTRv.THREE);
+        }
+        return new PlainTextMessage(versions, cleanText);
 	}
 
 	private static final char HEX_ENCODER[] = {'0', '1', '2', '3', '4', '5',

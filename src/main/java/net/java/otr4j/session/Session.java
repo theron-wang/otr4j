@@ -593,7 +593,7 @@ public class Session {
         // Re-negotiate if we got an error and we are encrypted
         if (policy.getErrorStartAKE() && getSessionStatus() == SessionStatus.ENCRYPTED) {
             logger.finest("Error message starts AKE.");
-            final ArrayList<Integer> versions = new ArrayList<Integer>();
+            final ArrayList<Integer> versions = new ArrayList<Integer>(4);
             if (policy.getAllowV1()) {
                 versions.add(OTRv.ONE);
             }
@@ -803,9 +803,7 @@ public class Session {
                 + getSessionID().getProtocolName() + ".");
 
         final OtrPolicy policy = getSessionPolicy();
-        final List<Integer> versions = plainTextMessage.versions;
-        // FIXME rewrite for versions.isEmpty() ensure list instance always available
-        if (versions == null || versions.size() < 1) {
+        if (plainTextMessage.versions.isEmpty()) {
             logger
                     .finest("Received plaintext message without the whitespace tag.");
             switch (this.getSessionStatus()) {
@@ -938,8 +936,7 @@ public class Session {
                     if (otrPolicy.getSendWhitespaceTag()
                             && offerStatus != OfferStatus.rejected) {
                         offerStatus = OfferStatus.sent;
-                        // FIXME rewrite code to ensure versions variable always has instance. (maybe empty)
-                        ArrayList<Integer> versions = new ArrayList<Integer>();
+                        final ArrayList<Integer> versions = new ArrayList<Integer>(4);
                         if (otrPolicy.getAllowV1()) {
                             versions.add(OTRv.ONE);
                         }
@@ -948,9 +945,6 @@ public class Session {
                         }
                         if (otrPolicy.getAllowV3()) {
                             versions.add(OTRv.THREE);
-                        }
-                        if (versions.isEmpty()) {
-                            versions = null;
                         }
                         final AbstractMessage abstractMessage = new PlainTextMessage(
                                 versions, msgText);

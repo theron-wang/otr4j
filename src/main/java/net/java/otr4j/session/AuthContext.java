@@ -12,7 +12,6 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -91,10 +90,7 @@ public class AuthContext {
     class MessageFactory {
 
         QueryMessage getQueryMessage() {
-            final ArrayList<Integer> versions = new ArrayList<Integer>();
-            versions.add(OTRv.TWO);
-            versions.add(OTRv.THREE);
-            return new QueryMessage(versions);
+            return new QueryMessage(Arrays.asList(OTRv.TWO, OTRv.THREE));
         }
 
         DHCommitMessage getDHCommitMessage() throws OtrException {
