@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -70,8 +71,7 @@ public class Session {
      * In case of the master session, it is initialized with an empty instance.
      * In case of slaves the slaveSessions instance is initialized to 'null'.
      */
-    // TODO use of slave sessions is missing a lot of synchronization
-    private final HashMap<InstanceTag, Session> slaveSessions;
+    private final Map<InstanceTag, Session> slaveSessions;
 
     private volatile Session outgoingSession;
 
@@ -124,7 +124,7 @@ public class Session {
 
         // Start with initial capacity of 0. Will start to use more memory once
         // the map is in actual use.
-        slaveSessions = new HashMap<InstanceTag, Session>(0);
+        slaveSessions = Collections.synchronizedMap(new HashMap<InstanceTag, Session>(0));
         outgoingSession = this;
         isMasterSession = true;
 
@@ -554,18 +554,20 @@ public class Session {
             logger.finest("Query message with V3 support found.");
             final DHCommitMessage dhCommit = getAuthContext().respondAuth(OTRv.THREE);
             if (isMasterSession) {
-                for (final Session session : slaveSessions.values()) {
-                    session.getAuthContext().reset();
-                    session.getAuthContext().r =
-                            this.getAuthContext().r;
-                    session.getAuthContext().localDHKeyPair =
-                            this.getAuthContext().localDHKeyPair;
-                    session.getAuthContext().localDHPublicKeyBytes =
-                            this.getAuthContext().localDHPublicKeyBytes;
-                    session.getAuthContext().localDHPublicKeyEncrypted =
-                            this.getAuthContext().localDHPublicKeyEncrypted;
-                    session.getAuthContext().localDHPublicKeyHash =
-                            this.getAuthContext().localDHPublicKeyHash;
+                synchronized (slaveSessions) {
+                    for (final Session session : slaveSessions.values()) {
+                        session.getAuthContext().reset();
+                        session.getAuthContext().r
+                                = this.getAuthContext().r;
+                        session.getAuthContext().localDHKeyPair
+                                = this.getAuthContext().localDHKeyPair;
+                        session.getAuthContext().localDHPublicKeyBytes
+                                = this.getAuthContext().localDHPublicKeyBytes;
+                        session.getAuthContext().localDHPublicKeyEncrypted
+                                = this.getAuthContext().localDHPublicKeyEncrypted;
+                        session.getAuthContext().localDHPublicKeyHash
+                                = this.getAuthContext().localDHPublicKeyHash;
+                    }
                 }
             }
             injectMessage(dhCommit);
@@ -862,18 +864,20 @@ public class Session {
                     try {
                         final DHCommitMessage dhCommit = getAuthContext().respondAuth(OTRv.THREE);
                         if (isMasterSession) {
-                            for (final Session session : slaveSessions.values()) {
-                                session.getAuthContext().reset();
-                                session.getAuthContext().r =
-                                        this.getAuthContext().r;
-                                session.getAuthContext().localDHKeyPair =
-                                        this.getAuthContext().localDHKeyPair;
-                                session.getAuthContext().localDHPublicKeyBytes =
-                                        this.getAuthContext().localDHPublicKeyBytes;
-                                session.getAuthContext().localDHPublicKeyEncrypted =
-                                        this.getAuthContext().localDHPublicKeyEncrypted;
-                                session.getAuthContext().localDHPublicKeyHash =
-                                        this.getAuthContext().localDHPublicKeyHash;
+                            synchronized (slaveSessions) {
+                                for (final Session session : slaveSessions.values()) {
+                                    session.getAuthContext().reset();
+                                    session.getAuthContext().r
+                                            = this.getAuthContext().r;
+                                    session.getAuthContext().localDHKeyPair
+                                            = this.getAuthContext().localDHKeyPair;
+                                    session.getAuthContext().localDHPublicKeyBytes
+                                            = this.getAuthContext().localDHPublicKeyBytes;
+                                    session.getAuthContext().localDHPublicKeyEncrypted
+                                            = this.getAuthContext().localDHPublicKeyEncrypted;
+                                    session.getAuthContext().localDHPublicKeyHash
+                                            = this.getAuthContext().localDHPublicKeyHash;
+                                }
                             }
                         }
                         logger.finest("Sending D-H Commit Message");
