@@ -169,7 +169,6 @@ public final class OtrEngineHostUtil {
      * @param sessionID the session ID
      * @param fingerprint the fingerprint of the unverified chat partner
      */
-    // TODO Consider interrupting or otherwise making the error more explicit. We are signaling for untrustworthy fingerprint after all. Do we want to let bad Engine Host behavior slip???
     public static void unverify(final OtrEngineHost host, final SessionID sessionID, final String fingerprint) {
         try {
             host.unverify(sessionID, fingerprint);
