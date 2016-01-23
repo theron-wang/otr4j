@@ -26,7 +26,6 @@ import net.java.otr4j.io.SerializationUtils;
  * @author Danny van Heumen
  */
 public class SessionKeys {
-    // TODO consider using fields instead of dumb (public) getters
 
     public static final int PREVIOUS = 0;
     public static final int CURRENT = 1;
@@ -69,7 +68,7 @@ public class SessionKeys {
         this.localPair = keyPair;
         this.localKeyID = localPairKeyID;
         LOGGER.finest(keyDescription + " current local key ID: "
-                + this.getLocalKeyID());
+                + this.localKeyID);
         this.reset();
     }
 
@@ -77,7 +76,7 @@ public class SessionKeys {
         this.remoteKey = pubKey;
         this.remoteKeyID = remoteKeyID;
         LOGGER.finest(keyDescription + " current remote key ID: "
-                + this.getRemoteKeyID());
+                + this.remoteKeyID);
         this.reset();
     }
 
@@ -86,7 +85,7 @@ public class SessionKeys {
 
     public void incrementSendingCtr() {
         LOGGER.finest("Incrementing counter for (localkeyID, remoteKeyID) = ("
-                + getLocalKeyID() + "," + getRemoteKeyID() + ")");
+                + localKeyID + "," + remoteKeyID + ")");
         for (int i = 7; i >= 0; i--) {
             if (++sendingCtr[i] != 0) {
                 break;
@@ -116,10 +115,9 @@ public class SessionKeys {
         this.receivingMACKey = null;
         this.setIsUsedReceivingMACKey(false);
         this.s = null;
-        if (getLocalPair() != null && getRemoteKey() != null) {
-            // TODO consider using fields instead of getters as this is a private method
-            this.isHigh = ((DHPublicKey) getLocalPair().getPublic()).getY()
-                    .abs().compareTo(getRemoteKey().getY().abs()) == 1;
+        if (localPair != null && remoteKey != null) {
+            this.isHigh = ((DHPublicKey) localPair.getPublic()).getY()
+                    .abs().compareTo(remoteKey.getY().abs()) == 1;
         }
     }
 
@@ -202,8 +200,7 @@ public class SessionKeys {
 
     private BigInteger getS() throws OtrException {
         if (s == null) {
-            s = OtrCryptoEngine.generateSecret(getLocalPair()
-                    .getPrivate(), getRemoteKey());
+            s = OtrCryptoEngine.generateSecret(localPair.getPrivate(), remoteKey);
             LOGGER.finest("Calculating shared secret S.");
         }
         return s;
