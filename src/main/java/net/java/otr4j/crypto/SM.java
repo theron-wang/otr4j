@@ -57,6 +57,8 @@ public final class SM {
     }
 
     static public class SMState{
+        private static final BigInteger G1 = new BigInteger(1, SM.GENERATOR_S);
+        
         BigInteger secret, x2, x3, g1, g2, g3, g3o, p, q, pab, qab;
         public int nextExpected;
         int receivedQuestion;
@@ -68,8 +70,7 @@ public final class SM {
          * Ctor.
          */
         public SMState(){
-            // TODO consider making BigInteger(1, SM.GENERATOR_S) a constant to reuse
-            g1 = new BigInteger(1, SM.GENERATOR_S);
+            g1 = G1;
             smProgState = SM.PROG_OK;
             approved = false;
             asked = false;
