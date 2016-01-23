@@ -200,7 +200,7 @@ public class SmpTlvHandler {
         } catch (OtrCryptoException e) {
             Logger.getLogger(SmpTlvHandler.class.getCanonicalName()).log(Level.WARNING, "Failed to get fingerprint.", e);
         }
-        // FIXME it seems that it is impossible to continue for every use of getFingerprint() that returns null, so why do we return null and not throw an OtrCryptoException or something like that?
+        // This should not happen at all, so accept logging the exception as an indication that something is wrong.
 		return null;
 	}
 
