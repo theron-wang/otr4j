@@ -37,7 +37,6 @@ import net.java.otr4j.io.SerializationUtils;
 
 public final class SM {
     // TODO Consider converting this to State Machine pattern.
-    // TODO Are there checks for Pa != Pb, and Qa != Qb?
     
     /**
      * Safe maximum array size. Copied from OpenJDK 7 implementation.
