@@ -75,7 +75,6 @@ public class AuthContext {
 
     private int localDHPrivateKeyID;
 
-    // TODO consider storing this data in a separate container such that it is impossible to accidentally access an uninitialized field directly, i.e. access through accessor method is enforced. (We can still initialize everything to zero to avoid unnecessary memory overhead if not/hardly used.)
     private BigInteger s;
     private byte[] c;
     private byte[] m1;
