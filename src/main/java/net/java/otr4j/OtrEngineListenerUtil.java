@@ -1,5 +1,7 @@
 package net.java.otr4j;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.java.otr4j.session.SessionID;
@@ -14,6 +16,24 @@ public final class OtrEngineListenerUtil {
 
     private OtrEngineListenerUtil() {
         // static methods only. No need to instantiate this utility class.
+    }
+
+    /**
+     * Thread-safely duplicate list of OtrEngineListener listeners.
+     *
+     * The duplicated list can be used to safely iterate over without the need
+     * of locking the original list instance. That means that there is no risk
+     * of ConcurrentModificationException. This list is a momentary snapsnot and
+     * will not reflect updates/modifications on the original list.
+     *
+     * @param listeners Original list of listeners that, additionally, must be
+     * handled thread-safely.
+     * @return Returns duplicated list of listeners. (For one-time use.)
+     */
+    public static List<OtrEngineListener> duplicate(final List<OtrEngineListener> listeners) {
+        synchronized (listeners) {
+            return new ArrayList<OtrEngineListener>(listeners);
+        }
     }
 
     /**

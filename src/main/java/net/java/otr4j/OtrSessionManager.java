@@ -60,36 +60,20 @@ public class OtrSessionManager {
 
         @Override
         public void sessionStatusChanged(final SessionID sessionID) {
-            final ArrayList<OtrEngineListener> lsrs = copyListeners();
-            OtrEngineListenerUtil.sessionStatusChanged(lsrs, sessionID);
+            OtrEngineListenerUtil.sessionStatusChanged(
+                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
         }
 
         @Override
         public void multipleInstancesDetected(final SessionID sessionID) {
-            final ArrayList<OtrEngineListener> lsrs = copyListeners();
-            OtrEngineListenerUtil.multipleInstancesDetected(lsrs, sessionID);
+            OtrEngineListenerUtil.multipleInstancesDetected(
+                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
         }
 
         @Override
         public void outgoingSessionChanged(final SessionID sessionID) {
-            final ArrayList<OtrEngineListener> lsrs = copyListeners();
-            OtrEngineListenerUtil.outgoingSessionChanged(lsrs, sessionID);
-        }
-
-        /**
-         * Make a consistent copy of current listeners such that there is no
-         * risk for ConcurrentModificationException during iteration. Copy is
-         * made in a synchronized context.
-         *
-         * @return Returns copy of listeners.
-         */
-        private ArrayList<OtrEngineListener> copyListeners() {
-            final ArrayList<OtrEngineListener> lsrs;
-            synchronized (listeners) {
-                // make copy in synchronized context such that we can be sure of consistent list and no ConcurrentModificationExceptions are thrown.
-                lsrs = new ArrayList(listeners);
-            }
-            return lsrs;
+            OtrEngineListenerUtil.outgoingSessionChanged(
+                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
         }
     };
 

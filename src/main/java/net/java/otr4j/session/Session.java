@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.crypto.interfaces.DHPublicKey;
@@ -335,7 +334,8 @@ public class Session {
 
         this.sessionStatus = sessionStatus;
 
-        OtrEngineListenerUtil.sessionStatusChanged(this.listeners, getSessionID());
+        OtrEngineListenerUtil.sessionStatusChanged(
+                OtrEngineListenerUtil.duplicate(listeners), getSessionID());
     }
 
     public SessionStatus getSessionStatus() {
@@ -488,7 +488,8 @@ public class Session {
 
                                 @Override
                                 public void sessionStatusChanged(final SessionID sessionID) {
-                                    OtrEngineListenerUtil.sessionStatusChanged(listeners, sessionID);
+                                    OtrEngineListenerUtil.sessionStatusChanged(
+                                            OtrEngineListenerUtil.duplicate(listeners), sessionID);
                                 }
 
                                 @Override
@@ -503,7 +504,8 @@ public class Session {
                             slaveSessions.put(newReceiverTag, session);
 
                             OtrEngineHostUtil.multipleInstancesDetected(getHost(), sessionID);
-                            OtrEngineListenerUtil.multipleInstancesDetected(this.listeners, sessionID);
+                            OtrEngineListenerUtil.multipleInstancesDetected(
+                                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
                         }
                     }
                     return slaveSessions.get(newReceiverTag).transformReceiving(msgText);
@@ -1121,7 +1123,7 @@ public class Session {
         return remotePublicKey;
     }
 
-    private final List<OtrEngineListener> listeners = new Vector<OtrEngineListener>();
+    private final ArrayList<OtrEngineListener> listeners = new ArrayList<OtrEngineListener>();
 
     public void addOtrEngineListener(OtrEngineListener l) {
         synchronized (listeners) {
@@ -1239,14 +1241,16 @@ public class Session {
         }
         if (tag.equals(getReceiverInstanceTag())) {
             outgoingSession = this;
-            OtrEngineListenerUtil.outgoingSessionChanged(this.listeners, sessionID);
+            OtrEngineListenerUtil.outgoingSessionChanged(
+                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
             return true;
         }
 
         final Session newActiveSession = slaveSessions.get(tag);
         if (newActiveSession != null) {
             outgoingSession = newActiveSession;
-            OtrEngineListenerUtil.outgoingSessionChanged(this.listeners, sessionID);
+            OtrEngineListenerUtil.outgoingSessionChanged(
+                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
             return true;
         } else {
             outgoingSession = this;
