@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.crypto.interfaces.DHPublicKey;
@@ -883,7 +884,7 @@ public class Session {
                         logger.finest("Sending D-H Commit Message");
                         injectMessage(dhCommit);
                     } catch (OtrException e) {
-                        // TODO either add comment for explicit silencing or do any logging or throwing. But don't empty-catch.
+                        logger.log(Level.WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv3)", e);
                     }
                 } else if (plainTextMessage.versions.contains(OTRv.TWO)
                         && policy.getAllowV2()) {
@@ -893,7 +894,7 @@ public class Session {
                         logger.finest("Sending D-H Commit Message");
                         injectMessage(dhCommit);
                     } catch (OtrException e) {
-                        // TODO either add comment for explicit silencing or do any logging or throwing. But don't empty-catch.
+                        logger.log(Level.WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv2)", e);
                     }
                 } else if (plainTextMessage.versions.contains(1)
                         && policy.getAllowV1()) {
