@@ -32,7 +32,6 @@ import net.java.otr4j.session.SessionID;
  *
  * @author Danny van Heumen
  */
-// TODO consider modifying implementation in fashion of a decorator over OtrEngineHost.
 public final class OtrEngineHostUtil {
 
     private static final Logger LOGGER = Logger.getLogger(OtrEngineHostUtil.class.getCanonicalName());
