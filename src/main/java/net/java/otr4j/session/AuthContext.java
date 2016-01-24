@@ -48,6 +48,8 @@ public class AuthContext {
     public static final byte M1p_START = (byte) 0x04;
     public static final byte M2p_START = (byte) 0x05;
 
+    private static final int LOCAL_DH_PRIVATE_KEY_ID = 1;
+
     public AuthContext(final Session session) {
         SessionID sID = session.getSessionID();
         this.logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
@@ -72,8 +74,6 @@ public class AuthContext {
     private DHPublicKey remoteDHPublicKey;
     private byte[] remoteDHPublicKeyEncrypted;
     private byte[] remoteDHPublicKeyHash;
-
-    private int localDHPrivateKeyID;
 
     private BigInteger s;
     private byte[] c;
@@ -116,7 +116,7 @@ public class AuthContext {
                 final SignatureM m = new SignatureM((DHPublicKey) getLocalDHKeyPair()
                         .getPublic(), getRemoteDHPublicKey(),
                         getLocalLongTermKeyPair().getPublic(),
-                        getLocalDHKeyPairID());
+                        LOCAL_DH_PRIVATE_KEY_ID);
 
                 final byte[] mhash = OtrCryptoEngine.sha256Hmac(SerializationUtils
                         .toByteArray(m), getM1());
@@ -125,7 +125,7 @@ public class AuthContext {
 
                 final SignatureX mysteriousX = new SignatureX(
                         getLocalLongTermKeyPair().getPublic(),
-                        getLocalDHKeyPairID(), signature);
+                        LOCAL_DH_PRIVATE_KEY_ID, signature);
                 final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(getC(), null,
                         SerializationUtils.toByteArray(mysteriousX));
 
@@ -149,7 +149,7 @@ public class AuthContext {
             final SignatureM m = new SignatureM((DHPublicKey) getLocalDHKeyPair()
                     .getPublic(), getRemoteDHPublicKey(),
                     getLocalLongTermKeyPair().getPublic(),
-                    getLocalDHKeyPairID());
+                    LOCAL_DH_PRIVATE_KEY_ID);
 
             final byte[] mhash;
             try {
@@ -162,7 +162,7 @@ public class AuthContext {
                     getLocalLongTermKeyPair().getPrivate());
 
             final SignatureX mysteriousX = new SignatureX(getLocalLongTermKeyPair()
-                    .getPublic(), getLocalDHKeyPairID(), signature);
+                    .getPublic(), LOCAL_DH_PRIVATE_KEY_ID, signature);
 
             try {
                 final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(getCp(), null,
@@ -201,7 +201,6 @@ public class AuthContext {
         remoteDHPublicKeyHash = null;
 
         localDHKeyPair = null;
-        localDHPrivateKeyID = 1;
         localDHPublicKeyBytes = null;
         localDHPublicKeyHash = null;
         localDHPublicKeyEncrypted = null;
@@ -276,10 +275,6 @@ public class AuthContext {
             logger.finest("Generated local D-H key pair.");
         }
         return localDHKeyPair;
-    }
-
-    private int getLocalDHKeyPairID() {
-        return localDHPrivateKeyID;
     }
 
     private byte[] getLocalDHPublicKeyHash() throws OtrException {

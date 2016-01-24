@@ -55,8 +55,8 @@ public class OtrSessionManager {
      * all new sessions.
      */
     private final OtrEngineListener sessionManagerListener = new OtrEngineListener() {
-        // Note that this implementation must be context-agnostic as it is now
-        // being reused in all sessions.
+        // Note that this implementation must be context-agnostic as the same
+        // instance is now reused in all sessions.
 
         @Override
         public void sessionStatusChanged(final SessionID sessionID) {
