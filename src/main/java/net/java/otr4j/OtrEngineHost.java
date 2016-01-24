@@ -17,8 +17,6 @@ import net.java.otr4j.session.SessionID;
  * for otr4j to work properly. This provides the core interface between the app
  * and otr4j.
  *
- * TODO verify that OtrException throws are really expected for each of the methods. SMP methods 'smpError' and 'smpAborted' seem to interrupt a crucial step in the process: reset().
- *
  * @author George Politis
  */
 public abstract interface OtrEngineHost {
