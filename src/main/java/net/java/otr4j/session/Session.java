@@ -405,7 +405,7 @@ public class Session {
             OtrEngineHostUtil.messageFromAnotherInstanceReceived(getHost(), getSessionID());
             return null;
         } catch (ProtocolException e) {
-            logger.warning("An invalid message fragment was discarded.");
+            logger.log(Level.WARNING, "An invalid message fragment was discarded.", e);
             return null;
         }
 

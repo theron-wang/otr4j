@@ -10,6 +10,7 @@ Modifications in improvements branch:
  * NOTE that OtrException are technically allowed, but are not handled correctly either. The utility class that is now used, will catch, log and silence OtrException too.
 * Fixed potential exceptions due to negative array sizes caused by interpretation of ints as signed in unserialization.
 * Fixed issue with SM exponent and group element verification.
+* Fix bad parsing of receiver instance id resulting in ids that are discarded as invalid even though they are actually valid values.
 * Reduce unnecessary use of null.
 * General simplification of code by removing redundant constructions.
 * Updated obsolete collections.
@@ -20,3 +21,4 @@ Modifications in improvements branch:
 * Smart use of try-finally to ensure correct closing.
 * Removed OtrKeyManager* and related code. These are not used in the main otr4j implementation. Its function is already provided by OtrEngineHost.
 * More use of logging and no more e.printStackTrace() calls that print to stderr.
+* Extra argument checking for allowing listeners to be added to collection for later use.
