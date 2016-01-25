@@ -90,14 +90,17 @@ public class OtrSessionManager {
             throw new IllegalArgumentException();
         }
 
-        if (!sessions.containsKey(sessionID)) {
-            // TODO no synchronization between containsKey and put of new session. Should we really synchronize this?
-            final Session session = new Session(sessionID, this.host);
-            sessions.put(sessionID, session);
-            session.addOtrEngineListener(sessionManagerListener);
+        synchronized (sessions) {
+            Session session = sessions.get(sessionID);
+            if (session == null) {
+                // Don't differentiate between existing but null and
+                // non-existing. If we do not get a valid instance, then we
+                // create a new instance.
+                session = new Session(sessionID, this.host);
+                session.addOtrEngineListener(sessionManagerListener);
+                sessions.put(sessionID, session);
+            }
             return session;
-        } else {
-            return sessions.get(sessionID);
         }
     }
 

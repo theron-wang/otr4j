@@ -190,7 +190,7 @@ public class OtrInputStreamTest {
             0, 0, 0, 1, // public key -> p -> size
             1, // public key -> p
             0, 0, 0, 1, // public key -> q -> size
-            16, // public key -> q
+            16, // public key -> q (needs certain size such that signature of public key has length > 0)
             0, 0, 0, 1, // public key -> g -> size
             3, // public key -> g
             0, 0, 0, 1, // public key -> y -> size
