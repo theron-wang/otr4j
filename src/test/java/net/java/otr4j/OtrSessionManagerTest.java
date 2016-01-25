@@ -44,4 +44,34 @@ public class OtrSessionManagerTest {
         final OtrSessionManager mgr = new OtrSessionManager(host);
         mgr.getSession(SessionID.EMPTY);
     }
+
+    @Test(expected = NullPointerException.class)
+    public void testAddNullListener() {
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        final OtrSessionManager mgr = new OtrSessionManager(host);
+        mgr.addOtrEngineListener(null);
+    }
+
+    @Test
+    public void testAddValidListener() {
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        final OtrSessionManager mgr = new OtrSessionManager(host);
+        final OtrEngineListener l = mock(OtrEngineListener.class);
+        mgr.addOtrEngineListener(l);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testRemoveNullListener() {
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        final OtrSessionManager mgr = new OtrSessionManager(host);
+        mgr.removeOtrEngineListener(null);
+    }
+
+    @Test
+    public void testRemoveValidListener() {
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        final OtrSessionManager mgr = new OtrSessionManager(host);
+        final OtrEngineListener l = mock(OtrEngineListener.class);
+        mgr.removeOtrEngineListener(l);
+    }
 }

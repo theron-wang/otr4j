@@ -110,6 +110,9 @@ public class OtrSessionManager {
      * @param l the listener
      */
     public void addOtrEngineListener(final OtrEngineListener l) {
+        if (l == null) {
+            throw new NullPointerException("null is not a valid listener");
+        }
         synchronized (listeners) {
             if (!listeners.contains(l)) {
                 listeners.add(l);
@@ -123,6 +126,9 @@ public class OtrSessionManager {
      * @param l the listener
      */
     public void removeOtrEngineListener(final OtrEngineListener l) {
+        if (l == null) {
+            throw new NullPointerException("null is not a valid listener");
+        }
         synchronized (listeners) {
             listeners.remove(l);
         }
