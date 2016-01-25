@@ -11,10 +11,11 @@ import static org.junit.Assert.*;
  * @author Danny van Heumen
  */
 public class OtrCryptoEngineTest {
-    
+
+    private static final SecureRandom rand = new SecureRandom();
+
     @Test
     public void testGeneratedSharedSecretEqual() throws OtrCryptoException {
-        final SecureRandom rand = new SecureRandom();
         final KeyPair aliceDHKeyPair = OtrCryptoEngine.generateDHKeyPair(rand);
         final KeyPair bobDHKeyPair = OtrCryptoEngine.generateDHKeyPair(rand);
 

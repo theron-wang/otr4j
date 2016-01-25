@@ -3,9 +3,17 @@ package net.java.otr4j.io;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.interfaces.DSAPublicKey;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
+import net.java.otr4j.io.messages.SignatureX;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -18,6 +26,12 @@ import static org.junit.Assert.*;
  * @author Danny van Heumen
  */
 public class OtrInputStreamTest {
+
+    private final static SecureRandom rand = new SecureRandom();
+
+    static {
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+    }
 
     @Test
     public void testDataLengthOkay() throws IOException {
@@ -143,7 +157,53 @@ public class OtrInputStreamTest {
         assertArrayEquals(new byte[] { 0x1, 0x2 }, ois.readTlvData());
     }
 
-    // TODO add tests for readSignature
+    @Test(expected = UnsupportedOperationException.class)
+    public void testReadSignatureBadPublicKey() throws OtrCryptoException, IOException {
+        final KeyPair keypair = OtrCryptoEngine.generateDHKeyPair(rand);
+        final OtrInputStream ois = new OtrInputStream(new ByteArrayInputStream(new byte[0]));
+        ois.readSignature(keypair.getPublic());
+    }
 
-    // TODO add tests for readMysteriousX
+    @Test
+    public void testReadSignature() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+        final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DSA", "BC");
+        keyGen.initialize(1024);
+        final KeyPair keypair = keyGen.generateKeyPair();
+        final byte[] data = new byte[] {
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        };
+        final OtrInputStream ois = new OtrInputStream(new ByteArrayInputStream(data));
+        assertArrayEquals(data, ois.readSignature(keypair.getPublic()));
+    }
+
+    @Test
+    public void testReadMysteriousXOtrInputStreamReadBehavior() throws IOException, OtrCryptoException {
+        // This test uses nonsensicle data and as such it does not verify
+        // correct parsing of the read public key material. However, it does
+        // test the reading behavior of OtrInputStream expected for such a read
+        // operation.
+        final byte[] data = new byte[] {
+            0, 0, // public key -> type
+            0, 0, 0, 1, // public key -> p -> size
+            1, // public key -> p
+            0, 0, 0, 1, // public key -> q -> size
+            16, // public key -> q
+            0, 0, 0, 1, // public key -> g -> size
+            3, // public key -> g
+            0, 0, 0, 1, // public key -> y -> size
+            4, // public key -> y
+            0, 0, 0, 5, // dhKeyID
+            8, // read signature of public key
+        };
+        final OtrInputStream ois = new OtrInputStream(new ByteArrayInputStream(data));
+        final SignatureX sigX = ois.readMysteriousX();
+        assertNotNull(sigX);
+        assertNotNull(sigX.longTermPublicKey);
+        assertEquals(5, sigX.dhKeyID);
+        assertNotNull(sigX.signature);
+        assertArrayEquals(new byte[] { 8 }, sigX.signature);
+    }
 }
