@@ -6,6 +6,7 @@
  */
 // TODO consider making classes final where obvious (OtrInputStream, OtrOutputStream, SM, ...)
 // TODO remove traces of OTRv1 protocol, as this should not be supported anymore.
+// FIXME don't forget to include license header in all new test-files too!
 /**
  * otr4j.
  */
