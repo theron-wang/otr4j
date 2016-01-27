@@ -1,6 +1,7 @@
 package net.java.otr4j.crypto;
 
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -105,5 +106,17 @@ public class SMTest {
     public void testUnserializeLargeSignedLength() throws SM.SMException {
         final byte[] data = new byte[] { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
         SM.unserialize(data);
+    }
+
+    @Test(expected = NullPointerException.class)
+    @SuppressWarnings("ResultOfObjectAllocationIgnored")
+    public void testConstructionNullSecureRandom() {
+        new SM(null);
+    }
+
+    @Test
+    @SuppressWarnings("ResultOfObjectAllocationIgnored")
+    public void testConstructionWithValidSecureRandom() {
+        new SM(new SecureRandom());
     }
 }

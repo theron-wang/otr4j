@@ -69,6 +69,7 @@ public final class SM {
          * Ctor.
          */
         public SMState(){
+            // we could remove g1 in favor of using G1 (constant) directly
             g1 = G1;
             smProgState = SM.PROG_OK;
             approved = false;
