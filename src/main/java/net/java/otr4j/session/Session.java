@@ -1072,8 +1072,8 @@ public class Session {
             return;
         }
 
-        if (!getSessionPolicy().getAllowV2() || !getSessionPolicy().getAllowV3()) {
-            // FIXME does this make sense? Shouldn't this be '&&'???
+        if (!getSessionPolicy().getAllowV2() && !getSessionPolicy().getAllowV3()) {
+            // TODO verify: is changing operator || into && really correct?
             throw new UnsupportedOperationException();
         }
 
