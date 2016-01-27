@@ -117,9 +117,7 @@ public class OtrInputStream extends FilterInputStream implements
      */
 	public byte[] readData() throws IOException {
         final int dataLen = readNumber(DATA_LEN);
-        if (dataLen < 0) {
-            throw new UnsupportedLengthException(dataLen);
-        }
+        checkDataLength(dataLen);
         return checkedRead(dataLen);
 	}
 
@@ -175,12 +173,54 @@ public class OtrInputStream extends FilterInputStream implements
 		return new SignatureX(pubKey, dhKeyID, sig);
 	}
 
+    /**
+     * Sanity check on read data length.
+     *
+     * In case of an invalid message, it may be possible that the data length is
+     * very large. For example, because we interpreted ASCII chars as a number.
+     * Do a quick sanity check to ensure that we do allocate massive amounts of
+     * memory for a small amount of (bad) message bytes.
+     *
+     * @param length the requested length to be verified
+     */
+    // TODO is there a better sanity check for data length?
+    private void checkDataLength(final int length) throws IOException {
+        if (length < 0) {
+            throw new UnsupportedLengthException(length);
+        }
+        if (length < 1048576 || length <= this.in.available()) {
+            // Immediately accept small amounts.
+            // Accept larger amounts if at least that amount of data is available.
+            return;
+        }
+        throw new UnverifiableLargeLengthException(length);
+    }
+
+    /**
+     * Exception indicating that an unsupported length is encountered. This
+     * length is currently supported by otr4j due to limitations in its current
+     * implementation.
+     */
     public static final class UnsupportedLengthException extends IOException {
 
         private static final long serialVersionUID = 3929379089911298862L;
 
         private UnsupportedLengthException(final int length) {
             super("An unsupported length is encountered. This is a limitation in the current implementation of otr4j. (Length: " + length + ", should be interpreted as an unsigned int.)");
+        }
+    }
+
+    /**
+     * Exception indicating case where a very large amount of data is requested
+     * and it cannot be verified as a necessary/required amount with some sanity
+     * checking.
+     */
+    public static final class UnverifiableLargeLengthException extends IOException {
+
+        private static final long serialVersionUID = 7390243594500513199L;
+
+        private UnverifiableLargeLengthException(final int length) {
+            super("Large amount of data requested and not all is immediately available. This is considered an invalid data length. (Length: " + length + ")");
         }
     }
 }

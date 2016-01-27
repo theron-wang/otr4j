@@ -10,7 +10,6 @@ import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
-import java.security.interfaces.DSAPublicKey;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.SignatureX;
@@ -205,5 +204,12 @@ public class OtrInputStreamTest {
         assertEquals(5, sigX.dhKeyID);
         assertNotNull(sigX.signature);
         assertArrayEquals(new byte[] { 8 }, sigX.signature);
+    }
+
+    @Test(expected = OtrInputStream.UnverifiableLargeLengthException.class)
+    public void testVeryLargeDataLengthThrowsException() throws IOException {
+        final byte[] data = new byte[]{0x01, (byte) 0xdd, (byte) 0xee, (byte) 0xff, 0x00, 0x00, 0x00};
+        final OtrInputStream ois = new OtrInputStream(new ByteArrayInputStream(data));
+        ois.readData();
     }
 }

@@ -28,7 +28,7 @@ public class TestStrings {
             "tabbackslashT\t",
             "backslashR\r",
             "NEWLINE\n",
-            // TODO: "nullshere:\0\0andhere:\0",
+            // FIXME: "nullshere:\0\0andhere:\0",
     };
 
     public static final String otrQuery = "<p>?OTRv23?\n"
