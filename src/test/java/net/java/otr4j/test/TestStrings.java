@@ -3,11 +3,6 @@ package net.java.otr4j.test;
 
 public class TestStrings {
 
-    // TODO these currently cause an Exception when used as SMP question:
-    // "nullshere:\0\0andhere:\0",
-    // "tabbackslashT\t",
-    // "backslashR\r",
-    // "NEWLINE\n",
     public static String[] unicodes = {
             "plainAscii",
             "",
@@ -30,6 +25,10 @@ public class TestStrings {
             "पाठ्यांशः अत्र उपलभ्यतेसर्जनसामान्यलक्षणम्/Share-",
             "திபெத்துக்கு வெகள்",
             "អក្សរសាស្រ្តខែ្មរមានប្រវ៌ត្តជាងពីរពាន់ឆ្នាំមកហើយ ",
+            "tabbackslashT\t",
+            "backslashR\r",
+            "NEWLINE\n",
+            // TODO: "nullshere:\0\0andhere:\0",
     };
 
     public static final String otrQuery = "<p>?OTRv23?\n"
