@@ -30,7 +30,7 @@ public class OtrEngineHostUtilTest {
     public void setUp() {
         final Logger logger = Logger.getLogger("net.java.otr4j");
         originalLoggingLevel = logger.getLevel();
-        logger.setLevel(Level.SEVERE);
+        logger.setLevel(Level.OFF);
     }
 
     @After
