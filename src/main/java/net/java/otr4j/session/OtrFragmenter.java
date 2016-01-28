@@ -15,9 +15,6 @@ import net.java.otr4j.OtrPolicy;
 /**
  * OTR fragmenter.
  * 
- * TODO It may be better to separate the v2 and v3 implementations into
- * specialized classes.
- *
  * @author Danny van Heumen
  */
 public class OtrFragmenter {
