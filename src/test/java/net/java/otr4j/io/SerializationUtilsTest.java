@@ -3,6 +3,9 @@ package net.java.otr4j.io;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.Arrays;
+import net.java.otr4j.io.messages.PlainTextMessage;
+import net.java.otr4j.session.Session.OTRv;
 import org.junit.Test;
 
 public class SerializationUtilsTest {
@@ -62,5 +65,18 @@ public class SerializationUtilsTest {
     public void testByteArrayToHexStringAndBack() {
         final byte[] line = "This is a line of text for testing out methods used for byte array to hex string conversions.".getBytes(SerializationUtils.UTF8);
         assertArrayEquals(line, SerializationUtils.hexStringToByteArray(SerializationUtils.byteArrayToHexString(line)));
+    }
+
+    @Test
+    public void testPlaintextMessageNoNullMangling() throws IOException {
+        final String data = "This is a test with \0 null \0 values.";
+        final PlainTextMessage m = new PlainTextMessage(Arrays.asList(OTRv.ONE, OTRv.TWO, OTRv.THREE), data);
+        assertTrue(SerializationUtils.toString(m).startsWith("This is a test with \0 null \0 values."));
+    }
+
+    @Test
+    public void testBytesConversionNullMangling() {
+        assertArrayEquals("This is a test with ? null ? values.".getBytes(SerializationUtils.UTF8),
+                SerializationUtils.convertTextToBytes("This is a test with \0 null \0 values."));
     }
 }

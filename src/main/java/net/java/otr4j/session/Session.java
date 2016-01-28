@@ -1129,6 +1129,12 @@ public class Session {
         return remotePublicKey;
     }
 
+    /**
+     * List of registered listeners.
+     *
+     * Synchronized access is required. This is currently managed in methods
+     * accessing the list.
+     */
     private final ArrayList<OtrEngineListener> listeners = new ArrayList<OtrEngineListener>();
 
     public void addOtrEngineListener(OtrEngineListener l) {
