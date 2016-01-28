@@ -156,16 +156,33 @@ public class SMTest {
 
         // SMP session execution
         final SM sm = new SM(rand);
-        final byte[] msg1 = sm.step1(alice, combinedSecretBytes);
-        sm.step2a(bob, msg1, 0);
-        final byte[] msg2 = sm.step2b(bob, combinedSecretBytes);
-        final byte[] msg3 = sm.step3(alice, msg2);
-        final byte[] msg4 = sm.step4(bob, msg3);
-        sm.step5(alice, msg4);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_OK, bob.smProgState);
 
-        // Evaluate session result
-        assertEquals(alice.smProgState, SM.PROG_SUCCEEDED);
-        assertEquals(bob.smProgState, SM.PROG_SUCCEEDED);
+        final byte[] msg1 = sm.step1(alice, combinedSecretBytes);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_OK, bob.smProgState);
+
+        sm.step2a(bob, msg1, 0);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_OK, bob.smProgState);
+
+        final byte[] msg2 = sm.step2b(bob, combinedSecretBytes);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_OK, bob.smProgState);
+
+        final byte[] msg3 = sm.step3(alice, msg2);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_OK, bob.smProgState);
+
+        final byte[] msg4 = sm.step4(bob, msg3);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_SUCCEEDED, bob.smProgState);
+
+        sm.step5(alice, msg4);
+        // Evaluate session end result
+        assertEquals(SM.PROG_SUCCEEDED, alice.smProgState);
+        assertEquals(SM.PROG_SUCCEEDED, bob.smProgState);
     }
 
     private byte[] combinedSecret(final byte[] alicePublic, final byte[] bobPublic, final BigInteger s, final byte[] secret) throws Exception {
