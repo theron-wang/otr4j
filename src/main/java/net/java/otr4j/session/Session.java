@@ -109,8 +109,15 @@ public class Session {
     public Session(final SessionID sessionID, final OtrEngineHost listener) {
         this.secureRandom = new SecureRandom();
 
+        if (sessionID == null) {
+            throw new NullPointerException("sessionID cannot be null");
+        }
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.sessionID = sessionID;
+
+        if (listener == null) {
+            throw new NullPointerException("listener cannot be null");
+        }
         this.host = listener;
 
         // client application calls OtrSessionManager.getSessionStatus()
