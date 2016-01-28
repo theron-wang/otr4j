@@ -219,6 +219,7 @@ public final class SM {
                 // thus negative for values where sign bit is set.
                 throw new SMException("Invalid number of ints: " + len);
             }
+            // FIXME Do we want to limit this to a smaller number? Which number?
 			if (len > MAX_ARRAY_SIZE) {
                 // The maximum supported length by otr4j. Because of the reason
                 // described above, the maximum supported value is only 2**31
