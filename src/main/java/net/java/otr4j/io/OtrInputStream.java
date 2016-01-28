@@ -21,6 +21,19 @@ import net.java.otr4j.io.messages.SignatureX;
 public class OtrInputStream extends FilterInputStream implements
 		SerializationConstants {
 
+    /**
+     * Constant indicating limit for data lengths that are accepted
+     * unconditionally. Data lengths read from OtrInputStream that are smaller
+     * than this amount will be accepted unconditionally. For any value of the
+     * limit or higher, we do additional sanity checking.
+     */
+    private static final int LIMIT_UNCONDITIONAL_DATA_LENGTH = 65536;
+
+    /**
+     * Construct OtrInputStream based on existing, provided source input stream.
+     *
+     * @param in the source input stream
+     */
 	public OtrInputStream(final InputStream in) {
 		super(in);
 	}
@@ -188,9 +201,13 @@ public class OtrInputStream extends FilterInputStream implements
         if (length < 0) {
             throw new UnsupportedLengthException(length);
         }
-        if (length < 1048576 || length <= this.in.available()) {
-            // Immediately accept small amounts.
-            // Accept larger amounts if at least that amount of data is available.
+        // Note that checking available bytes only works under the assumption
+        // that large amounts of available data are known in advance. Since
+        // otr4j uses ByteArrayInputStream this is the case. In many other cases
+        // this would fail.
+        if (length < LIMIT_UNCONDITIONAL_DATA_LENGTH || length <= this.in.available()) {
+            // Immediately accept small amounts. Accept larger amounts if at
+            // least that amount of data is available to be read.
             return;
         }
         throw new UnverifiableLargeLengthException(length);
