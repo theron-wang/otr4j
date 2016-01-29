@@ -46,12 +46,12 @@ public class SerializationUtils {
 	/**
 	 * Charset for base64-encoded content.
 	 */
-	public static Charset ASCII = Charset.forName("US-ASCII");
+	public static final Charset ASCII = Charset.forName("US-ASCII");
 
 	/**
 	 * Charset for message content according to OTR spec.
 	 */
-	public static Charset UTF8 = Charset.forName("UTF-8");
+	public static final Charset UTF8 = Charset.forName("UTF-8");
 
 	// Mysterious X IO.
 	public static SignatureX toMysteriousX(final byte[] b) throws IOException, OtrCryptoException {
@@ -470,6 +470,7 @@ public class SerializationUtils {
 	private static final String HEX_DECODER = "0123456789ABCDEF";
 
 	public static byte[] hexStringToByteArray(String value) {
+        // FIXME consider specify explicit locale. Given that this is a hex string, we expect the normal ASCII characters, so we should say explicitly to avoid weird behavior in other localities where Java will not simply assume ASCII(-like) locale.
 		value = value.toUpperCase();
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		for (int index = 0; index < value.length(); index += 2) {

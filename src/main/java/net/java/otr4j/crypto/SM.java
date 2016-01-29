@@ -60,6 +60,7 @@ public final class SM {
         
         BigInteger secret, x2, x3, g1, g2, g3, g3o, p, q, pab, qab;
         public int nextExpected;
+        // FIXME is this field used?
         int receivedQuestion;
         public int smProgState;
 		public boolean approved;

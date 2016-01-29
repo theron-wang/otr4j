@@ -324,6 +324,7 @@ public final class OtrEngineHostUtil {
      *
      * @param host the Engine Host
      * @param sessionID the session ID
+     * @param defaultMessage the default message to use in case call to OtrEngineHost fails
      * @return Returns the reply for unreadable message to send as error to other party.
      */
     public static String getReplyForUnreadableMessage(final OtrEngineHost host, final SessionID sessionID, final String defaultMessage) {

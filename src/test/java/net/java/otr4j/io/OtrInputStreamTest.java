@@ -124,7 +124,7 @@ public class OtrInputStreamTest {
     public void testReadBadPublicKeyType() throws IOException, OtrCryptoException {
         final byte[] data = new byte[] { 0x0, 0x55 };
         final OtrInputStream ois = new OtrInputStream(new ByteArrayInputStream(data));
-        assertEquals(BigInteger.valueOf(85l), ois.readPublicKey());
+        ois.readPublicKey();
     }
 
     @Test
