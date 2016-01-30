@@ -60,8 +60,6 @@ public final class SM {
         
         BigInteger secret, x2, x3, g1, g2, g3, g3o, p, q, pab, qab;
         public int nextExpected;
-        // FIXME is this field used?
-        int receivedQuestion;
         public int smProgState;
 		public boolean approved;
 		public boolean asked;
@@ -472,7 +470,6 @@ public final class SM {
 	    final BigInteger secret_mpi = new BigInteger(1, secret);
 
 	    astate.secret = secret_mpi;
-	    astate.receivedQuestion = 0;
 	    astate.x2 = randomExponent(sr);
 	    astate.x3 = randomExponent(sr);
 
@@ -498,15 +495,11 @@ public final class SM {
 	 * information.  No output. 
      * @param bstate MVN_PASS_JAVADOC_INSPECTION
      * @param input MVN_PASS_JAVADOC_INSPECTION
-     * @param received_question MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public void step2a(final SMState bstate, final byte[] input, final int received_question) throws SMException
+	public void step2a(final SMState bstate, final byte[] input) throws SMException
 	{
-
 	    /* Initialize the sm state if needed */
-
-	    bstate.receivedQuestion = received_question;
 	    bstate.smProgState = PROG_CHEATED;
 
 	    /* Read from input to find the mpis */
@@ -526,7 +519,6 @@ public final class SM {
         checkKnowLog(msg1[4], msg1[5], bstate.g1, msg1[3], 2);
 
 	    /* Create Bob's half of the generators g2 and g3 */
-	    
 	    bstate.x2 = randomExponent(sr);
 	    bstate.x3 = randomExponent(sr);
 

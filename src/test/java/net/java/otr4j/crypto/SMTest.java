@@ -163,7 +163,7 @@ public class SMTest {
         assertEquals(SM.PROG_OK, alice.smProgState);
         assertEquals(SM.PROG_OK, bob.smProgState);
 
-        sm.step2a(bob, msg1, 0);
+        sm.step2a(bob, msg1);
         assertEquals(SM.PROG_OK, alice.smProgState);
         assertEquals(SM.PROG_OK, bob.smProgState);
 

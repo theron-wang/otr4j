@@ -222,7 +222,7 @@ public class SmpTlvHandler {
 			final byte[] input = new byte[question.length-qlen];
 			System.arraycopy(question, qlen, input, 0, question.length-qlen);
 			try {
-				sm.step2a(smstate, input, 1);
+				sm.step2a(smstate, input);
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
@@ -251,7 +251,7 @@ public class SmpTlvHandler {
 			 * We must wait for the secret to be entered
 			 * to continue. */
 			try {
-				sm.step2a(smstate, tlv.getValue(), 0);
+				sm.step2a(smstate, tlv.getValue());
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
