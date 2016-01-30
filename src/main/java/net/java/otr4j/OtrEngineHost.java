@@ -29,8 +29,7 @@ public abstract interface OtrEngineHost {
      * @param msg The message to inject
      * @throws OtrException
      */
-	public abstract void injectMessage(SessionID sessionID, String msg)
-			throws OtrException;
+	void injectMessage(SessionID sessionID, String msg) throws OtrException;
 
     /**
      * Warn the user that an encrypted message was received that could not be
@@ -42,8 +41,7 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	public abstract void unreadableMessageReceived(SessionID sessionID)
-			throws OtrException;
+	void unreadableMessageReceived(SessionID sessionID) throws OtrException;
 
     /**
      * Display the message to the user, but warn him that the message was
@@ -55,8 +53,8 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	public abstract void unencryptedMessageReceived(SessionID sessionID,
-			String msg) throws OtrException;
+    void unencryptedMessageReceived(SessionID sessionID, String msg)
+            throws OtrException;
 
     /**
      * Ask Engine Host to show provided error message that was received over
@@ -68,8 +66,7 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	public abstract void showError(SessionID sessionID, String error)
-			throws OtrException;
+	void showError(SessionID sessionID, String error) throws OtrException;
 
     /**
      * Call Engine Host to inform of SMP error during authentication.
@@ -82,8 +79,8 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	public abstract void smpError(SessionID sessionID, int tlvType,
-			boolean cheated) throws OtrException;
+	void smpError(SessionID sessionID, int tlvType, boolean cheated)
+            throws OtrException;
 
     /**
      * Call Engine Host to inform of SMP abort.
@@ -93,7 +90,7 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	public abstract void smpAborted(SessionID sessionID) throws OtrException;
+	void smpAborted(SessionID sessionID) throws OtrException;
 
     /**
      * Signal Engine Host that OTR secure session is finished.
@@ -104,8 +101,8 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	public abstract void finishedSessionMessage(SessionID sessionID,
-			String msgText) throws OtrException;
+	void finishedSessionMessage(SessionID sessionID, String msgText)
+            throws OtrException;
 
     /**
      * Signal Engine Host that current policy dictates that a secure session is
@@ -117,8 +114,8 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	public abstract void requireEncryptedMessage(SessionID sessionID,
-			String msgText) throws OtrException;
+	void requireEncryptedMessage(SessionID sessionID, String msgText)
+            throws OtrException;
 
     /**
      * Request the current session policy for provided session ID.
@@ -126,7 +123,7 @@ public abstract interface OtrEngineHost {
      * @param sessionID the session ID
      * @return Returns the current policy for specified session.
      */
-	public abstract OtrPolicy getSessionPolicy(SessionID sessionID);
+	OtrPolicy getSessionPolicy(SessionID sessionID);
 
 	/**
 	 * Get instructions for the necessary fragmentation operations.
@@ -145,7 +142,7 @@ public abstract interface OtrEngineHost {
 	 * maximum value possible, {@link Integer#MAX_VALUE}, if fragmentation
 	 * is not necessary.
 	 */
-	public abstract int getMaxFragmentSize(SessionID sessionID);
+	int getMaxFragmentSize(SessionID sessionID);
 
     /**
      * Request local key pair from Engine Host.
@@ -154,8 +151,7 @@ public abstract interface OtrEngineHost {
      * @return Returns the local key pair.
      * @throws OtrException OtrException
      */
-	public abstract KeyPair getLocalKeyPair(SessionID sessionID)
-			throws OtrException;
+	KeyPair getLocalKeyPair(SessionID sessionID) throws OtrException;
 
     /**
      * Request local fingerprint in raw byte form.
@@ -163,7 +159,7 @@ public abstract interface OtrEngineHost {
      * @param sessionID the session ID
      * @return Returns the raw fingerprint bytes.
      */
-	public abstract byte[] getLocalFingerprintRaw(SessionID sessionID);
+	byte[] getLocalFingerprintRaw(SessionID sessionID);
 
     /**
      * Signal Engine Host to ask user for answer to the question provided by the
@@ -173,7 +169,7 @@ public abstract interface OtrEngineHost {
      * @param receiverTag the receiver instance tag
      * @param question the question to be asked to the user by the Engine Host
      */
-	public abstract void askForSecret(SessionID sessionID, InstanceTag receiverTag, String question);
+	void askForSecret(SessionID sessionID, InstanceTag receiverTag, String question);
 
     /**
      * When a remote user's key is verified via the Socialist Millionaire's
@@ -184,7 +180,7 @@ public abstract interface OtrEngineHost {
      * @param fingerprint of the key to verify
      * @param approved
      */
-	public abstract void verify(SessionID sessionID, String fingerprint, boolean approved);
+	void verify(SessionID sessionID, String fingerprint, boolean approved);
 
     /**
      * If the Socialist Millionaire's Protocol (SMP) process fails, then this
@@ -194,7 +190,7 @@ public abstract interface OtrEngineHost {
      * @param sessionID of the session where the SMP happened.
      * @param fingerprint of the key to unverify
      */
-	public abstract void unverify(SessionID sessionID, String fingerprint);
+	void unverify(SessionID sessionID, String fingerprint);
 
     /**
      * When a message is received that is unreadable for some reason, for
@@ -205,7 +201,7 @@ public abstract interface OtrEngineHost {
      * @param sessionID the session ID
      * @return Returns an error message.
      */
-	public abstract String getReplyForUnreadableMessage(SessionID sessionID);
+	String getReplyForUnreadableMessage(SessionID sessionID);
 
     /**
      * Return the localized message that explains to the recipient how to get an
@@ -218,7 +214,7 @@ public abstract interface OtrEngineHost {
      * @param sessionID
      * @return String the localized message
      */
-	public abstract String getFallbackMessage(SessionID sessionID);
+	String getFallbackMessage(SessionID sessionID);
 
     /**
      * Signal the Engine Host that a message is received that is intended for
@@ -227,7 +223,7 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID the session ID
      */
-	public abstract void messageFromAnotherInstanceReceived(SessionID sessionID);
+	void messageFromAnotherInstanceReceived(SessionID sessionID);
 
     /**
      * Signal the Engine Host that we have received a message that is intended
@@ -236,5 +232,5 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID the session ID
      */
-	public abstract void multipleInstancesDetected(SessionID sessionID);
+	void multipleInstancesDetected(SessionID sessionID);
 }

@@ -11,6 +11,8 @@ package net.java.otr4j.io.messages;
  * @author George Politis
  */
 public abstract class AbstractMessage {
+    // TODO as a long-term goal it would be nice if we could deprecate the messageType field in favor of leveraging the class hierarchy for this. At this moment, there is a valid risk that we pass on an invalid message type value and thus cast incorrectly. We do not have this risk if we use the class hierarchy to determine the message type.
+
 	// Fields.
 	public final int messageType;
 

@@ -56,12 +56,11 @@ import net.java.otr4j.io.messages.QueryMessage;
  */
 public class Session {
 
-    public static interface OTRv {
-        public static final int ONE = 1;
-        public static final int TWO = 2;
-        public static final int THREE = 3;
-        public static final Set<Integer> ALL = new HashSet<Integer>(
-                Arrays.asList(ONE, TWO, THREE));
+    public interface OTRv {
+        int ONE = 1;
+        int TWO = 2;
+        int THREE = 3;
+        Set<Integer> ALL = new HashSet<Integer>(Arrays.asList(ONE, TWO, THREE));
     }
 
     // FIXME decide on decent default unreadable-reply message

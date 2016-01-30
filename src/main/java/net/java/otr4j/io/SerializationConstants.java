@@ -12,21 +12,21 @@ package net.java.otr4j.io;
  */
 public interface SerializationConstants {
 
-	public static final String HEAD = "?OTR";
-	public static final char HEAD_ENCODED = ':';
-	public static final char HEAD_ERROR = ' ';
-	public static final char HEAD_QUERY_Q = '?';
-	public static final char HEAD_QUERY_V = 'v';
-	public static final String ERROR_PREFIX = "Error:";
+	String HEAD = "?OTR";
+	char HEAD_ENCODED = ':';
+	char HEAD_ERROR = ' ';
+	char HEAD_QUERY_Q = '?';
+	char HEAD_QUERY_V = 'v';
+	String ERROR_PREFIX = "Error:";
 
-	public static final int TYPE_LEN_BYTE = 1;
-	public static final int TYPE_LEN_SHORT = 2;
-	public static final int TYPE_LEN_INT = 4;
-	public static final int TYPE_LEN_MAC = 20;
-	public static final int TYPE_LEN_CTR = 8;
+	int TYPE_LEN_BYTE = 1;
+	int TYPE_LEN_SHORT = 2;
+	int TYPE_LEN_INT = 4;
+	int TYPE_LEN_MAC = 20;
+	int TYPE_LEN_CTR = 8;
 
-	public static final int DATA_LEN = TYPE_LEN_INT;
-	public static final int TLV_LEN = TYPE_LEN_SHORT;
+	int DATA_LEN = TYPE_LEN_INT;
+	int TLV_LEN = TYPE_LEN_SHORT;
 
-    public static final String DEFAULT_FALLBACK_MESSAGE = "Your contact is requesting to start an encrypted chat. Please install an app that supports OTR: https://github.com/otr4j/otr4j/wiki/Apps";
+    String DEFAULT_FALLBACK_MESSAGE = "Your contact is requesting to start an encrypted chat. Please install an app that supports OTR: https://github.com/otr4j/otr4j/wiki/Apps";
 }
