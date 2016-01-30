@@ -464,7 +464,6 @@ public final class SM {
 	public byte[] step1(final SMState astate, final byte[] secret) throws SMException
 	{
 	    /* Initialize the sm state or update the secret */
-		//Util.checkBytes("secret", secret);
 	    final BigInteger secret_mpi = new BigInteger(1, secret);
 
 	    astate.secret = secret_mpi;
@@ -522,9 +521,7 @@ public final class SM {
 
 	    /* Combine the two halves from Bob and Alice and determine g2 and g3 */
 	    bstate.g2 = msg1[0].modPow(bstate.x2, MODULUS_S);
-	    //Util.checkBytes("g2b", bstate.g2.getValue());
 	    bstate.g3 = msg1[3].modPow(bstate.x3, MODULUS_S);
-	    //Util.checkBytes("g3b", bstate.g3.getValue());
 	    
 	    bstate.smProgState = PROG_OK;
 	}
@@ -547,7 +544,6 @@ public final class SM {
 	public byte[] step2b(final SMState bstate, final byte[] secret) throws SMException
 	{
 	    /* Convert the given secret to the proper form and store it */
-		//Util.checkBytes("secret", secret);
 		final BigInteger secret_mpi = new BigInteger(1, secret);
 		bstate.secret = secret_mpi;
 
@@ -567,16 +563,10 @@ public final class SM {
 	    //BigInteger r = new BigInteger(SM.GENERATOR_S);
 
 	    bstate.p = bstate.g3.modPow(r, MODULUS_S);
-	    //Util.checkBytes("Pb", bstate.p.getValue());
 	    msg2[6]=bstate.p;
 	    final BigInteger qb1 = bstate.g1.modPow(r, MODULUS_S);
-	    //Util.checkBytes("Qb1", qb1.getValue());
 	    final BigInteger qb2 = bstate.g2.modPow(bstate.secret, MODULUS_S);
-	    //Util.checkBytes("Qb2", qb2.getValue());
-	    //Util.checkBytes("g2", bstate.g2.getValue());
-	    //Util.checkBytes("secret", bstate.secret.getValue());
 	    bstate.q = qb1.multiply(qb2).mod(MODULUS_S);
-	    //Util.checkBytes("Qb", bstate.q.getValue());
 	    msg2[7] = bstate.q;
 	    
 	    res = proofEqualCoords(bstate, r, 5, sr);
@@ -628,9 +618,7 @@ public final class SM {
 
 	    /* Combine the two halves from Bob and Alice and determine g2 and g3 */
 	    astate.g2 = msg2[0].modPow(astate.x2, MODULUS_S);
-	    //Util.checkBytes("g2a", astate.g2.getValue());
 	    astate.g3 = msg2[3].modPow(astate.x3, MODULUS_S);
-	    //Util.checkBytes("g3a", astate.g3.getValue());
 	    
 	    /* Verify Bob's coordinate equality proof */
 	    checkEqualCoords(msg2[8], msg2[9], msg2[10], msg2[6], msg2[7], astate, 5);
@@ -640,17 +628,11 @@ public final class SM {
 	    //BigInteger r = new BigInteger(SM.GENERATOR_S);
 
 	    astate.p = astate.g3.modPow(r, MODULUS_S);
-	    //Util.checkBytes("Pa", astate.p.getValue());
 	    msg3[0]=astate.p;
 	    final BigInteger qa1 = astate.g1.modPow(r, MODULUS_S);
-	    //Util.checkBytes("Qa1", qa1.getValue());
 	    final BigInteger qa2 = astate.g2.modPow(astate.secret, MODULUS_S);
-	    //Util.checkBytes("Qa2", qa2.getValue());
-	    //Util.checkBytes("g2", astate.g2.getValue());
-	    //Util.checkBytes("secret", astate.secret.getValue());
 	    astate.q = qa1.multiply(qa2).mod(MODULUS_S);
 	    msg3[1] = astate.q;
-	    //Util.checkBytes("Qa", astate.q.getValue());
 	    
 	    BigInteger[] res = proofEqualCoords(astate, r, 6, sr);
 	    msg3[2] = res[0];
@@ -729,8 +711,6 @@ public final class SM {
 	    /* Calculate Rab and verify that secrets match */
 	    
 	    final BigInteger rab = msg3[5].modPow(bstate.x3, MODULUS_S);
-	    //Util.checkBytes("rab", rab.getValue());
-	    //Util.checkBytes("pab", bstate.pab.getValue());
 	    final int comp = rab.compareTo(bstate.pab);
 
 	    bstate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
@@ -762,12 +742,7 @@ public final class SM {
 	    /* Calculate Rab and verify that secrets match */
 	    
 	    final BigInteger rab = msg4[0].modPow(astate.x3, MODULUS_S);
-	    //Util.checkBytes("rab", rab.getValue());
-	    //Util.checkBytes("pab", astate.pab.getValue());
 	    final int comp = rab.compareTo(astate.pab);
-	    if (comp!=0){
-	    	//System.out.println("checking failed");
-	    }
 
 	    astate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
 
