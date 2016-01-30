@@ -49,8 +49,7 @@ public class SessionKeys {
     private byte[] receivingMACKey;
     private boolean isUsedReceivingMACKey;
     private BigInteger s;
-    // FIXME use primitive rather than boxed type
-    private Boolean isHigh;
+    private boolean isHigh;
 
     public SessionKeys(final int localKeyIndex, final int remoteKeyIndex) {
         if (localKeyIndex == 0) {
