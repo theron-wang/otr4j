@@ -7,6 +7,8 @@
 package net.java.otr4j;
 
 import java.security.KeyPair;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.session.InstanceTag;
@@ -29,7 +31,7 @@ public abstract interface OtrEngineHost {
      * @param msg The message to inject
      * @throws OtrException
      */
-	void injectMessage(SessionID sessionID, String msg) throws OtrException;
+	void injectMessage(@Nonnull SessionID sessionID, @Nonnull String msg) throws OtrException;
 
     /**
      * Warn the user that an encrypted message was received that could not be
@@ -41,7 +43,7 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void unreadableMessageReceived(SessionID sessionID) throws OtrException;
+	void unreadableMessageReceived(@Nonnull SessionID sessionID) throws OtrException;
 
     /**
      * Display the message to the user, but warn him that the message was
@@ -53,7 +55,7 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-    void unencryptedMessageReceived(SessionID sessionID, String msg)
+    void unencryptedMessageReceived(@Nonnull SessionID sessionID, @Nonnull String msg)
             throws OtrException;
 
     /**
@@ -66,7 +68,7 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void showError(SessionID sessionID, String error) throws OtrException;
+	void showError(@Nonnull SessionID sessionID, @Nonnull String error) throws OtrException;
 
     /**
      * Call Engine Host to inform of SMP error during authentication.
@@ -79,7 +81,7 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void smpError(SessionID sessionID, int tlvType, boolean cheated)
+	void smpError(@Nonnull SessionID sessionID, int tlvType, boolean cheated)
             throws OtrException;
 
     /**
@@ -90,7 +92,7 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void smpAborted(SessionID sessionID) throws OtrException;
+	void smpAborted(@Nonnull SessionID sessionID) throws OtrException;
 
     /**
      * Signal Engine Host that OTR secure session is finished.
@@ -101,7 +103,7 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void finishedSessionMessage(SessionID sessionID, String msgText)
+	void finishedSessionMessage(@Nonnull SessionID sessionID, @Nonnull String msgText)
             throws OtrException;
 
     /**
@@ -114,7 +116,7 @@ public abstract interface OtrEngineHost {
      * breaking the public API. Any OtrExceptions that are thrown will be caught
      * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void requireEncryptedMessage(SessionID sessionID, String msgText)
+	void requireEncryptedMessage(@Nonnull SessionID sessionID, @Nonnull String msgText)
             throws OtrException;
 
     /**
@@ -123,7 +125,7 @@ public abstract interface OtrEngineHost {
      * @param sessionID the session ID
      * @return Returns the current policy for specified session.
      */
-	OtrPolicy getSessionPolicy(SessionID sessionID);
+	OtrPolicy getSessionPolicy(@Nonnull SessionID sessionID);
 
 	/**
 	 * Get instructions for the necessary fragmentation operations.
@@ -142,7 +144,7 @@ public abstract interface OtrEngineHost {
 	 * maximum value possible, {@link Integer#MAX_VALUE}, if fragmentation
 	 * is not necessary.
 	 */
-	int getMaxFragmentSize(SessionID sessionID);
+	int getMaxFragmentSize(@Nonnull SessionID sessionID);
 
     /**
      * Request local key pair from Engine Host.
@@ -151,7 +153,7 @@ public abstract interface OtrEngineHost {
      * @return Returns the local key pair.
      * @throws OtrException OtrException
      */
-	KeyPair getLocalKeyPair(SessionID sessionID) throws OtrException;
+	KeyPair getLocalKeyPair(@Nonnull SessionID sessionID) throws OtrException;
 
     /**
      * Request local fingerprint in raw byte form.
@@ -159,7 +161,7 @@ public abstract interface OtrEngineHost {
      * @param sessionID the session ID
      * @return Returns the raw fingerprint bytes.
      */
-	byte[] getLocalFingerprintRaw(SessionID sessionID);
+	byte[] getLocalFingerprintRaw(@Nonnull SessionID sessionID);
 
     /**
      * Signal Engine Host to ask user for answer to the question provided by the
@@ -169,7 +171,7 @@ public abstract interface OtrEngineHost {
      * @param receiverTag the receiver instance tag
      * @param question the question to be asked to the user by the Engine Host
      */
-	void askForSecret(SessionID sessionID, InstanceTag receiverTag, String question);
+	void askForSecret(@Nonnull SessionID sessionID, @Nonnull InstanceTag receiverTag, @Nullable String question);
 
     /**
      * When a remote user's key is verified via the Socialist Millionaire's
@@ -180,7 +182,7 @@ public abstract interface OtrEngineHost {
      * @param fingerprint of the key to verify
      * @param approved
      */
-	void verify(SessionID sessionID, String fingerprint, boolean approved);
+	void verify(@Nonnull SessionID sessionID, @Nonnull String fingerprint, boolean approved);
 
     /**
      * If the Socialist Millionaire's Protocol (SMP) process fails, then this
@@ -190,7 +192,7 @@ public abstract interface OtrEngineHost {
      * @param sessionID of the session where the SMP happened.
      * @param fingerprint of the key to unverify
      */
-	void unverify(SessionID sessionID, String fingerprint);
+	void unverify(@Nonnull SessionID sessionID, @Nonnull String fingerprint);
 
     /**
      * When a message is received that is unreadable for some reason, for
@@ -201,7 +203,7 @@ public abstract interface OtrEngineHost {
      * @param sessionID the session ID
      * @return Returns an error message.
      */
-	String getReplyForUnreadableMessage(SessionID sessionID);
+	String getReplyForUnreadableMessage(@Nonnull SessionID sessionID);
 
     /**
      * Return the localized message that explains to the recipient how to get an
@@ -214,7 +216,7 @@ public abstract interface OtrEngineHost {
      * @param sessionID
      * @return String the localized message
      */
-	String getFallbackMessage(SessionID sessionID);
+	String getFallbackMessage(@Nonnull SessionID sessionID);
 
     /**
      * Signal the Engine Host that a message is received that is intended for
@@ -223,7 +225,7 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID the session ID
      */
-	void messageFromAnotherInstanceReceived(SessionID sessionID);
+	void messageFromAnotherInstanceReceived(@Nonnull SessionID sessionID);
 
     /**
      * Signal the Engine Host that we have received a message that is intended
@@ -232,5 +234,5 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID the session ID
      */
-	void multipleInstancesDetected(SessionID sessionID);
+	void multipleInstancesDetected(@Nonnull SessionID sessionID);
 }

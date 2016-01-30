@@ -1,5 +1,6 @@
 package net.java.otr4j;
 
+import javax.annotation.Nonnull;
 import net.java.otr4j.session.SessionID;
 
 /**
@@ -10,9 +11,9 @@ import net.java.otr4j.session.SessionID;
  * 
  */
 public interface OtrEngineListener {
-	void sessionStatusChanged(SessionID sessionID);
+	void sessionStatusChanged(@Nonnull SessionID sessionID);
 
-	void multipleInstancesDetected(SessionID sessionID);
+	void multipleInstancesDetected(@Nonnull SessionID sessionID);
 
-	void outgoingSessionChanged(SessionID sessionID);
+	void outgoingSessionChanged(@Nonnull SessionID sessionID);
 }
