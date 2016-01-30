@@ -773,7 +773,7 @@ public class AuthContext {
         session.injectMessage(messageFactory.getQueryMessage());
     }
 
-    public DHCommitMessage respondAuth(final Integer version) throws OtrException {
+    public DHCommitMessage respondAuth(final int version) throws OtrException {
         if (version != OTRv.TWO && version != OTRv.THREE) {
             throw new OtrException(new Exception("Only allowed versions are: 2, 3"));
         }
