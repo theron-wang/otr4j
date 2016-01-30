@@ -24,6 +24,7 @@ import net.java.otr4j.io.SerializationUtils;
 /**
  * Byte utilities.
  */
+// FIXME none of the utility methods in this class seem to be used anywhere. Delete this whole file?
 public class Util {
 
 	public static void checkBytes(final String s, final byte[] bytes) {
@@ -93,6 +94,6 @@ public class Util {
 				hex[2*i+1]=(byte)('A'+num-10);
 			}
 		}
-		return new String(hex);
+		return new String(hex, SerializationUtils.ASCII);
 	}
 }

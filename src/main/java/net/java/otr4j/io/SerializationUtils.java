@@ -15,6 +15,7 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -249,7 +250,7 @@ public class SerializationUtils {
 				}
 
 				writer.write(SerializationConstants.HEAD_ENCODED);
-				writer.write(new String(Base64.encode(o.toByteArray())));
+				writer.write(new String(Base64.encode(o.toByteArray()), ASCII));
 				writer.write(".");
 				break;
 			default:
@@ -470,8 +471,7 @@ public class SerializationUtils {
 	private static final String HEX_DECODER = "0123456789ABCDEF";
 
 	public static byte[] hexStringToByteArray(String value) {
-        // FIXME consider specify explicit locale. Given that this is a hex string, we expect the normal ASCII characters, so we should say explicitly to avoid weird behavior in other localities where Java will not simply assume ASCII(-like) locale.
-		value = value.toUpperCase();
+		value = value.toUpperCase(Locale.US);
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		for (int index = 0; index < value.length(); index += 2) {
 			int high = HEX_DECODER.indexOf(value.charAt(index));
