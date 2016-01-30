@@ -932,7 +932,7 @@ public class Session {
     public String[] transformSending(final String msgText, List<TLV> tlvs)
             throws OtrException {
         if (tlvs == null) {
-            // ensure that ttlvs is non-null
+            // ensure that tlvs is non-null
             tlvs = Collections.<TLV>emptyList();
         }
         if (isMasterSession && outgoingSession != this && getProtocolVersion() == OTRv.THREE) {

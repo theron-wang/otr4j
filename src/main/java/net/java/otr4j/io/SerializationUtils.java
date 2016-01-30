@@ -247,6 +247,8 @@ public class SerializationUtils {
 						s.writeMac(data.mac);
 						s.writeData(data.oldMACKeys);
 						break;
+                    default:
+                        break;
 				}
 
 				writer.write(SerializationConstants.HEAD_ENCODED);
