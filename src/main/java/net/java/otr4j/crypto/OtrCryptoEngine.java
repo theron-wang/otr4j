@@ -39,6 +39,7 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESFastEngine;
 import org.bouncycastle.crypto.generators.DHKeyPairGenerator;
 import org.bouncycastle.crypto.modes.SICBlockCipher;
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.DHKeyGenerationParameters;
 import org.bouncycastle.crypto.params.DHParameters;
 import org.bouncycastle.crypto.params.DHPrivateKeyParameters;
@@ -96,11 +97,8 @@ public class OtrCryptoEngine {
 
         kpGen.init(params);
         final AsymmetricCipherKeyPair pair = kpGen.generateKeyPair();
-
-        // Convert this AsymmetricCipherKeyPair to a standard JCE KeyPair.
-        final DHPublicKeyParameters pub = (DHPublicKeyParameters) pair.getPublic();
-        final DHPrivateKeyParameters priv = (DHPrivateKeyParameters) pair
-                .getPrivate();
+        final DHPublicKeyParameters pub = convertToPublicKeyParams(pair.getPublic());
+        final DHPrivateKeyParameters priv = convertToPrivateKeyParams(pair.getPrivate());
 
         try {
             final KeyFactory keyFac = KeyFactory.getInstance(KF_DH);
@@ -409,4 +407,17 @@ public class OtrCryptoEngine {
         }
     }
 
+    private static DHPublicKeyParameters convertToPublicKeyParams(final AsymmetricKeyParameter params) {
+        if (!(params instanceof DHPublicKeyParameters)) {
+            throw new IllegalArgumentException("Expected to acquire DHPublicKeyParameters instance, but it isn't. (" + params.getClass().getCanonicalName() + ")");
+        }
+        return (DHPublicKeyParameters) params;
+    }
+
+    private static DHPrivateKeyParameters convertToPrivateKeyParams(final AsymmetricKeyParameter params) {
+        if (!(params instanceof DHPrivateKeyParameters)) {
+            throw new IllegalArgumentException("Expected to acquire DHPrivateKeyParameters instance, but it isn't. (" + params.getClass().getCanonicalName() + ")");
+        }
+        return (DHPrivateKeyParameters) params;
+    }
 }
