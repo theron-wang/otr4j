@@ -851,6 +851,7 @@ public class Session {
                      */
                     OtrEngineHostUtil.unencryptedMessageReceived(getHost(),
                             sessionID, plainTextMessage.cleanText);
+                    break;
                 case PLAINTEXT:
                     /*
                      * Remove the whitespace tag and display the message to the
@@ -861,6 +862,7 @@ public class Session {
                         OtrEngineHostUtil.unencryptedMessageReceived(getHost(),
                                 sessionID, plainTextMessage.cleanText);
                     }
+                    break;
             }
 
             if (policy.getWhitespaceStartAKE()) {
