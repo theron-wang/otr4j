@@ -38,7 +38,9 @@ public abstract interface OtrEngineHost {
      * or an old session.
      *
      * @param sessionID The session ID
-     * @throws OtrException
+     * @throws OtrException DEPRECATED This throws clause only exists to avoid
+     * breaking the public API. Any OtrExceptions that are thrown will be caught
+     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
 	public abstract void unreadableMessageReceived(SessionID sessionID)
 			throws OtrException;
@@ -49,7 +51,9 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID The session ID
      * @param msg the body of the received message that was not encrypted
-     * @throws OtrException
+     * @throws OtrException DEPRECATED This throws clause only exists to avoid
+     * breaking the public API. Any OtrExceptions that are thrown will be caught
+     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
 	public abstract void unencryptedMessageReceived(SessionID sessionID,
 			String msg) throws OtrException;
@@ -60,7 +64,9 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID the session ID
      * @param error the error message
-     * @throws OtrException
+     * @throws OtrException DEPRECATED This throws clause only exists to avoid
+     * breaking the public API. Any OtrExceptions that are thrown will be caught
+     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
 	public abstract void showError(SessionID sessionID, String error)
 			throws OtrException;
@@ -72,7 +78,9 @@ public abstract interface OtrEngineHost {
      * @param tlvType the TLV type
      * @param cheated status indicator for cheating (interruption before SMP
      * verification step was able to complete)
-     * @throws OtrException OtrException
+     * @throws OtrException DEPRECATED This throws clause only exists to avoid
+     * breaking the public API. Any OtrExceptions that are thrown will be caught
+     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
 	public abstract void smpError(SessionID sessionID, int tlvType,
 			boolean cheated) throws OtrException;
@@ -81,7 +89,9 @@ public abstract interface OtrEngineHost {
      * Call Engine Host to inform of SMP abort.
      *
      * @param sessionID the session ID
-     * @throws OtrException OtrException
+     * @throws OtrException DEPRECATED This throws clause only exists to avoid
+     * breaking the public API. Any OtrExceptions that are thrown will be caught
+     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
 	public abstract void smpAborted(SessionID sessionID) throws OtrException;
 
@@ -90,7 +100,9 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID the session ID
      * @param msgText message text
-     * @throws OtrException OtrException
+     * @throws OtrException DEPRECATED This throws clause only exists to avoid
+     * breaking the public API. Any OtrExceptions that are thrown will be caught
+     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
 	public abstract void finishedSessionMessage(SessionID sessionID,
 			String msgText) throws OtrException;
@@ -101,7 +113,9 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID the session ID
      * @param msgText the encryption required message
-     * @throws OtrException OtrException
+     * @throws OtrException DEPRECATED This throws clause only exists to avoid
+     * breaking the public API. Any OtrExceptions that are thrown will be caught
+     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
 	public abstract void requireEncryptedMessage(SessionID sessionID,
 			String msgText) throws OtrException;
