@@ -26,6 +26,7 @@ import net.java.otr4j.io.SerializationUtils;
  * @author Danny van Heumen
  */
 public class SessionKeys {
+    // TODO consider making this class totally package-protected. Keys and counters are mutable and are used in Session. I don't think they need to be exposed outside of package.
 
     public static final int PREVIOUS = 0;
     public static final int CURRENT = 1;
@@ -46,8 +47,9 @@ public class SessionKeys {
     private byte[] receivingAESKey;
     private byte[] sendingMACKey;
     private byte[] receivingMACKey;
-    private Boolean isUsedReceivingMACKey;
+    private boolean isUsedReceivingMACKey;
     private BigInteger s;
+    // FIXME use primitive rather than boxed type
     private Boolean isHigh;
 
     public SessionKeys(final int localKeyIndex, final int remoteKeyIndex) {
@@ -210,11 +212,11 @@ public class SessionKeys {
         this.s = s;
     }
 
-    public void setIsUsedReceivingMACKey(final Boolean isUsedReceivingMACKey) {
+    public void setIsUsedReceivingMACKey(final boolean isUsedReceivingMACKey) {
         this.isUsedReceivingMACKey = isUsedReceivingMACKey;
     }
 
-    public Boolean getIsUsedReceivingMACKey() {
+    public boolean getIsUsedReceivingMACKey() {
         return isUsedReceivingMACKey;
     }
 
