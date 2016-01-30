@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import net.java.otr4j.session.SessionID;
 
 /**
@@ -36,7 +37,7 @@ public final class OtrEngineListenerUtil {
      * handled thread-safely.
      * @return Returns duplicated list of listeners. (For one-time use.)
      */
-    public static List<OtrEngineListener> duplicate(final List<OtrEngineListener> listeners) {
+    public static List<OtrEngineListener> duplicate(@Nonnull final List<OtrEngineListener> listeners) {
         synchronized (listeners) {
             return new ArrayList<OtrEngineListener>(listeners);
         }
@@ -48,7 +49,8 @@ public final class OtrEngineListenerUtil {
      * @param listeners All listeners to be called.
      * @param sessionID the session ID
      */
-    public static void sessionStatusChanged(final Iterable<OtrEngineListener> listeners, final SessionID sessionID) {
+    public static void sessionStatusChanged(@Nonnull final Iterable<OtrEngineListener> listeners,
+            @Nonnull final SessionID sessionID) {
         for (final OtrEngineListener l : listeners) {
             try {
                 // Calling the listeners in order to inform of events. As a
@@ -68,7 +70,8 @@ public final class OtrEngineListenerUtil {
      * @param listeners All listeners to be called.
      * @param sessionID the session ID
      */
-    public static void multipleInstancesDetected(final Iterable<OtrEngineListener> listeners, final SessionID sessionID) {
+    public static void multipleInstancesDetected(@Nonnull final Iterable<OtrEngineListener> listeners,
+            @Nonnull final SessionID sessionID) {
         for (final OtrEngineListener l : listeners) {
             try {
                 // Calling the listeners in order to inform of events. As a
@@ -87,7 +90,8 @@ public final class OtrEngineListenerUtil {
      * @param listeners All listeners to be called.
      * @param sessionID the session ID
      */
-    public static void outgoingSessionChanged(final Iterable<OtrEngineListener> listeners, final SessionID sessionID) {
+    public static void outgoingSessionChanged(@Nonnull final Iterable<OtrEngineListener> listeners,
+            @Nonnull final SessionID sessionID) {
         for (final OtrEngineListener l : listeners) {
             try {
                 // Calling the listeners in order to inform of events. As a

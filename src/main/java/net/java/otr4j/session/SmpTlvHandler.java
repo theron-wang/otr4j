@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrEngineHostUtil;
@@ -35,7 +37,7 @@ public class SmpTlvHandler {
 	 * 
 	 * @param session The session reference.
 	 */
-	public SmpTlvHandler(final Session session) {
+	public SmpTlvHandler(@Nonnull final Session session) {
 		this.session = session;
 		this.engineHost = session.getHost();
         this.sm = new SM(session.secureRandom());
@@ -52,7 +54,7 @@ public class SmpTlvHandler {
 	}
 
 	/* Compute secret session ID as hash of agreed secret */
-	private static byte[] computeSessionId(final BigInteger s) throws SMException {
+	private static byte[] computeSessionId(@Nonnull final BigInteger s) throws SMException {
 		final byte[] sdata;
 
         /* convert agreed secret to bytes */
@@ -99,7 +101,8 @@ public class SmpTlvHandler {
 	 *  @return TLVs to send to the peer
      *  @throws OtrException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	public List<TLV> initRespondSmp(final String question, final String secret, final boolean initiating) throws OtrException {
+	public List<TLV> initRespondSmp(@Nullable final String question, @Nonnull final String secret,
+            final boolean initiating) throws OtrException {
 		if (!initiating && !smstate.asked) {
             throw new OtrException(new IllegalStateException(
                     "There is no question to be answered."));
@@ -204,7 +207,7 @@ public class SmpTlvHandler {
 		return null;
 	}
 
-	public void processTlvSMP1Q(final TLV tlv) throws OtrException {
+	public void processTlvSMP1Q(@Nonnull final TLV tlv) throws OtrException {
 	    final int tlvType = tlv.getType();
 	    if (smstate.nextExpected == SM.EXPECT1) {
 			/* We can only do the verification half now.
@@ -244,7 +247,7 @@ public class SmpTlvHandler {
 		}
 	}
 
-	public void processTlvSMP1(final TLV tlv) throws OtrException {
+	public void processTlvSMP1(@Nonnull final TLV tlv) throws OtrException {
 	    final int tlvType = tlv.getType();
 	    if (smstate.nextExpected == SM.EXPECT1) {
 			/* We can only do the verification half now.
@@ -267,7 +270,7 @@ public class SmpTlvHandler {
 		}
     }
 
-	public void processTlvSMP2(final TLV tlv) throws OtrException {
+	public void processTlvSMP2(@Nonnull final TLV tlv) throws OtrException {
 	    final int tlvType = tlv.getType();
 	    if (smstate.nextExpected == SM.EXPECT2) {
 			final byte[] nextmsg;
@@ -293,7 +296,7 @@ public class SmpTlvHandler {
 		}
     }
 
-    public void processTlvSMP3(final TLV tlv) throws OtrException {
+    public void processTlvSMP3(@Nonnull final TLV tlv) throws OtrException {
         final int tlvType = tlv.getType();
         if (smstate.nextExpected == SM.EXPECT3) {
 			final byte[] nextmsg;
@@ -328,7 +331,7 @@ public class SmpTlvHandler {
 		}
     }
 
-    public void processTlvSMP4(final TLV tlv) throws OtrException {
+    public void processTlvSMP4(@Nonnull final TLV tlv) throws OtrException {
         final int tlvType = tlv.getType();
         if (smstate.nextExpected == SM.EXPECT4) {
 
@@ -354,7 +357,7 @@ public class SmpTlvHandler {
 		}
     }
 
-    public void processTlvSMP_ABORT(final TLV tlv) throws OtrException {
+    public void processTlvSMP_ABORT(@Nonnull final TLV tlv) throws OtrException {
         OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         reset();
     }

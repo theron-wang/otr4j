@@ -11,6 +11,7 @@ import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPublicKey;
 import java.security.spec.DSAPublicKeySpec;
 import java.security.spec.InvalidKeySpecException;
+import javax.annotation.Nonnull;
 
 import javax.crypto.interfaces.DHPublicKey;
 
@@ -34,7 +35,7 @@ public class OtrInputStream extends FilterInputStream implements
      *
      * @param in the source input stream
      */
-	public OtrInputStream(final InputStream in) {
+	public OtrInputStream(@Nonnull final InputStream in) {
 		super(in);
 	}
 
@@ -169,7 +170,7 @@ public class OtrInputStream extends FilterInputStream implements
 		return checkedRead(len);
 	}
 
-	public byte[] readSignature(final PublicKey pubKey) throws IOException {
+	public byte[] readSignature(@Nonnull final PublicKey pubKey) throws IOException {
 		if (!pubKey.getAlgorithm().equals("DSA")) {
             throw new UnsupportedOperationException();
         }

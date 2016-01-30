@@ -8,6 +8,7 @@ package net.java.otr4j.session;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import javax.annotation.Nonnull;
 
 import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrPolicy;
@@ -54,7 +55,7 @@ public class OtrFragmenter {
 	 * @param session session instance (cannot be null)
 	 * @param host OTR engine host calling upon OTR session
 	 */
-	public OtrFragmenter(final Session session, final OtrEngineHost host) {
+	public OtrFragmenter(@Nonnull final Session session, @Nonnull final OtrEngineHost host) {
 		if (session == null) {
 			throw new NullPointerException("session cannot be null");
 		}
@@ -86,7 +87,7 @@ public class OtrFragmenter {
 	 *             store any content or when the provided policy does not
 	 *             support fragmentation, for example if only OTRv1 is allowed.
 	 */
-	public int numberOfFragments(final String message) throws IOException {
+	public int numberOfFragments(@Nonnull final String message) throws IOException {
 		final SessionID sessionId = this.session.getSessionID();
 		final int fragmentSize = this.host.getMaxFragmentSize(sessionId);
 		if (fragmentSize >= message.length()) {
@@ -103,7 +104,7 @@ public class OtrFragmenter {
 	 * @return returns number of fragments required.
 	 * @throws IOException throws an IOException if fragment size is too small.
 	 */
-	private int computeFragmentNumber(final String message,
+	private int computeFragmentNumber(@Nonnull final String message,
 			final int fragmentSize) throws IOException {
 		final int overhead = computeHeaderSize();
 		final int payloadSize = fragmentSize - overhead;
@@ -129,7 +130,7 @@ public class OtrFragmenter {
 	 *             throws an IOException if the fragment size is too small or if
 	 *             the maximum number of fragments is exceeded.
 	 */
-	public String[] fragment(final String message) throws IOException {
+	public String[] fragment(@Nonnull final String message) throws IOException {
 		final SessionID sessionId = this.session.getSessionID();
 		final int fragmentSize = this.host.getMaxFragmentSize(sessionId);
 		return fragment(message, fragmentSize);
@@ -148,7 +149,7 @@ public class OtrFragmenter {
 	 *             Exception in the case when it is impossible to fragment the
 	 *             message according to the specified instructions.
 	 */
-	private String[] fragment(final String message, final int fragmentSize)
+	private String[] fragment(@Nonnull final String message, final int fragmentSize)
                         throws IOException {
 		if (fragmentSize >= message.length()) {
 			return new String[] { message };
@@ -188,7 +189,7 @@ public class OtrFragmenter {
 	 *             in case v1 is only allowed in policy
 	 */
 	private String createMessageFragment(final int count, final int total,
-			final String partialContent) {
+			@Nonnull final String partialContent) {
 		if (getPolicy().getAllowV3()) {
 			return createV3MessageFragment(count, total, partialContent);
 		} else {
@@ -205,7 +206,7 @@ public class OtrFragmenter {
 	 * @return returns the full message fragment
 	 */
 	private String createV3MessageFragment(final int count, final int total,
-			final String partialContent) {
+			@Nonnull final String partialContent) {
 		final String msg = String.format(OTRv3_MESSAGE_FRAGMENT_FORMAT,
 				getSenderInstance(), getReceiverInstance(), count + 1, total,
 				partialContent);
@@ -221,7 +222,7 @@ public class OtrFragmenter {
 	 * @return returns the full message fragment
 	 */
 	private String createV2MessageFragment(final int count, final int total,
-			final String partialContent) {
+			@Nonnull final String partialContent) {
 		final String msg = String.format(OTRv2_MESSAGE_FRAGMENT_FORMAT,
 				count + 1, total, partialContent);
 		return msg;

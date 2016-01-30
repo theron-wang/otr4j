@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nonnull;
 
 import net.java.otr4j.session.Session;
 import net.java.otr4j.session.SessionID;
@@ -21,7 +22,7 @@ import net.java.otr4j.session.SessionID;
  */
 public class OtrSessionManager {
 
-    public OtrSessionManager(final OtrEngineHost host) {
+    public OtrSessionManager(@Nonnull final OtrEngineHost host) {
         if (host == null) {
             throw new IllegalArgumentException("OtrEngineHost is required.");
         }
@@ -59,19 +60,19 @@ public class OtrSessionManager {
         // instance is now reused in all sessions.
 
         @Override
-        public void sessionStatusChanged(final SessionID sessionID) {
+        public void sessionStatusChanged(@Nonnull final SessionID sessionID) {
             OtrEngineListenerUtil.sessionStatusChanged(
                     OtrEngineListenerUtil.duplicate(listeners), sessionID);
         }
 
         @Override
-        public void multipleInstancesDetected(final SessionID sessionID) {
+        public void multipleInstancesDetected(@Nonnull final SessionID sessionID) {
             OtrEngineListenerUtil.multipleInstancesDetected(
                     OtrEngineListenerUtil.duplicate(listeners), sessionID);
         }
 
         @Override
-        public void outgoingSessionChanged(final SessionID sessionID) {
+        public void outgoingSessionChanged(@Nonnull final SessionID sessionID) {
             OtrEngineListenerUtil.outgoingSessionChanged(
                     OtrEngineListenerUtil.duplicate(listeners), sessionID);
         }
@@ -84,9 +85,9 @@ public class OtrSessionManager {
      * @param sessionID
      * @return Returns Session instance that corresponds to provided sessionID.
      */
-    public Session getSession(final SessionID sessionID) {
+    public Session getSession(@Nonnull final SessionID sessionID) {
 
-        if (sessionID == null || sessionID.equals(SessionID.EMPTY)) {
+        if (sessionID.equals(SessionID.EMPTY)) {
             throw new IllegalArgumentException();
         }
 
@@ -109,7 +110,7 @@ public class OtrSessionManager {
      *
      * @param l the listener
      */
-    public void addOtrEngineListener(final OtrEngineListener l) {
+    public void addOtrEngineListener(@Nonnull final OtrEngineListener l) {
         if (l == null) {
             throw new NullPointerException("null is not a valid listener");
         }
@@ -125,7 +126,7 @@ public class OtrSessionManager {
      *
      * @param l the listener
      */
-    public void removeOtrEngineListener(final OtrEngineListener l) {
+    public void removeOtrEngineListener(@Nonnull final OtrEngineListener l) {
         if (l == null) {
             throw new NullPointerException("null is not a valid listener");
         }

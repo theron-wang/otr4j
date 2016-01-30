@@ -31,7 +31,7 @@ public class OtrSessionManagerTest {
         assertSame(first, second);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void testGetNullSession() {
         final OtrEngineHost host = mock(OtrEngineHost.class);
         final OtrSessionManager mgr = new OtrSessionManager(host);

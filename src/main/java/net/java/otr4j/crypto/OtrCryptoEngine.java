@@ -22,6 +22,8 @@ import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPrivateKey;
 import java.security.interfaces.DSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import javax.crypto.KeyAgreement;
 import javax.crypto.interfaces.DHPrivateKey;
@@ -86,7 +88,7 @@ public class OtrCryptoEngine {
         // this class is never instantiated, it only has static methods
     }
 
-    public static KeyPair generateDHKeyPair(final SecureRandom secureRandom) throws OtrCryptoException {
+    public static KeyPair generateDHKeyPair(@Nonnull final SecureRandom secureRandom) throws OtrCryptoException {
 
         // Generate a AsymmetricCipherKeyPair using BC.
         final DHParameters dhParams = new DHParameters(MODULUS, GENERATOR, null,
@@ -122,12 +124,12 @@ public class OtrCryptoEngine {
         }
     }
 
-    public static DHPublicKey getDHPublicKey(final byte[] mpiBytes)
+    public static DHPublicKey getDHPublicKey(@Nonnull final byte[] mpiBytes)
             throws OtrCryptoException {
         return getDHPublicKey(new BigInteger(mpiBytes));
     }
 
-    public static DHPublicKey getDHPublicKey(final BigInteger mpi) throws OtrCryptoException {
+    public static DHPublicKey getDHPublicKey(@Nonnull final BigInteger mpi) throws OtrCryptoException {
         final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(mpi, MODULUS,
                 GENERATOR);
         try {
@@ -140,11 +142,12 @@ public class OtrCryptoEngine {
         }
     }
 
-    public static byte[] sha256Hmac(final byte[] b, final byte[] key) throws OtrCryptoException {
+    public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key)
+            throws OtrCryptoException {
         return sha256Hmac(b, key, 0);
     }
 
-    public static byte[] sha256Hmac(final byte[] b, final byte[] key, final int length)
+    public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key, final int length)
             throws OtrCryptoException {
 
         final SecretKeySpec keyspec = new SecretKeySpec(key, HMAC_SHA256);
@@ -172,7 +175,7 @@ public class OtrCryptoEngine {
         }
     }
 
-    public static byte[] sha1Hmac(final byte[] b, final byte[] key, final int length)
+    public static byte[] sha1Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key, final int length)
             throws OtrCryptoException {
         final byte[] macBytes;
         try {
@@ -195,11 +198,11 @@ public class OtrCryptoEngine {
         }
     }
 
-    public static byte[] sha256Hmac160(final byte[] b, final byte[] key) throws OtrCryptoException {
+    public static byte[] sha256Hmac160(@Nonnull final byte[] b, @Nonnull final byte[] key) throws OtrCryptoException {
         return sha256Hmac(b, key, SerializationConstants.TYPE_LEN_MAC);
     }
 
-    public static byte[] sha256Hash(final byte[] b) throws OtrCryptoException {
+    public static byte[] sha256Hash(@Nonnull final byte[] b) throws OtrCryptoException {
         try {
             final MessageDigest sha256 = MessageDigest.getInstance(MD_SHA256);
             sha256.update(b, 0, b.length);
@@ -209,7 +212,7 @@ public class OtrCryptoEngine {
         }
     }
 
-    public static byte[] sha1Hash(final byte[] b) throws OtrCryptoException {
+    public static byte[] sha1Hash(@Nonnull final byte[] b) throws OtrCryptoException {
         try {
             final MessageDigest sha1 = MessageDigest.getInstance(MD_SHA1);
             sha1.update(b, 0, b.length);
@@ -219,7 +222,7 @@ public class OtrCryptoEngine {
         }
     }
 
-    public static byte[] aesDecrypt(final byte[] key, byte[] ctr, final byte[] b)
+    public static byte[] aesDecrypt(@Nonnull final byte[] key, @Nullable byte[] ctr, @Nonnull final byte[] b)
             throws OtrCryptoException {
 
         final AESFastEngine aesDec = new AESFastEngine();
@@ -243,7 +246,7 @@ public class OtrCryptoEngine {
         return aesOutLwDec;
     }
 
-    public static byte[] aesEncrypt(final byte[] key, byte[] ctr, final byte[] b)
+    public static byte[] aesEncrypt(@Nonnull final byte[] key, @Nullable byte[] ctr, @Nonnull final byte[] b)
             throws OtrCryptoException {
 
         final AESFastEngine aesEnc = new AESFastEngine();
@@ -266,7 +269,7 @@ public class OtrCryptoEngine {
         return aesOutLwEnc;
     }
 
-    public static BigInteger generateSecret(final PrivateKey privKey, final PublicKey pubKey)
+    public static BigInteger generateSecret(@Nonnull final PrivateKey privKey, @Nonnull final PublicKey pubKey)
             throws OtrCryptoException {
         try {
             final KeyAgreement ka = KeyAgreement.getInstance(KA_DH);
@@ -281,7 +284,7 @@ public class OtrCryptoEngine {
         }
     }
 
-    public static byte[] sign(final byte[] b, final PrivateKey privatekey)
+    public static byte[] sign(@Nonnull final byte[] b, @Nonnull final PrivateKey privatekey)
             throws OtrCryptoException {
 
         if (!(privatekey instanceof DSAPrivateKey)) {
@@ -331,7 +334,7 @@ public class OtrCryptoEngine {
      * @return
      * @throws OtrCryptoException 
      */
-    public static boolean verify(final byte[] b, final PublicKey pubKey, final byte[] rs)
+    public static boolean verify(@Nonnull final byte[] b, @Nonnull final PublicKey pubKey, @Nonnull final byte[] rs)
             throws OtrCryptoException {
 
         if (!(pubKey instanceof DSAPublicKey)) {
@@ -348,13 +351,13 @@ public class OtrCryptoEngine {
         return verify(b, pubKey, r, s);
     }
 
-    private static boolean verify(final byte[] b, final PublicKey pubKey, final byte[] r, final byte[] s)
+    private static boolean verify(@Nonnull final byte[] b, @Nonnull final PublicKey pubKey, @Nonnull final byte[] r, @Nonnull final byte[] s)
             throws OtrCryptoException {
         return verify(b, pubKey, new BigInteger(1, r), new BigInteger(1, s));
     }
 
-    private static boolean verify(final byte[] b, final PublicKey pubKey, final BigInteger r,
-            final BigInteger s) throws OtrCryptoException {
+    private static boolean verify(@Nonnull final byte[] b, @Nonnull final PublicKey pubKey, @Nonnull final BigInteger r,
+            @Nonnull final BigInteger s) throws OtrCryptoException {
 
         if (!(pubKey instanceof DSAPublicKey)) {
             throw new IllegalArgumentException();
@@ -383,12 +386,12 @@ public class OtrCryptoEngine {
                 .asUnsignedByteArray(bmpi.mod(q)), r, s);
     }
 
-    public static String getFingerprint(final PublicKey pubKey) throws OtrCryptoException {
+    public static String getFingerprint(@Nonnull final PublicKey pubKey) throws OtrCryptoException {
         final byte[] b = getFingerprintRaw(pubKey);
         return SerializationUtils.byteArrayToHexString(b);
     }
 
-    public static byte[] getFingerprintRaw(final PublicKey pubKey)
+    public static byte[] getFingerprintRaw(@Nonnull final PublicKey pubKey)
             throws OtrCryptoException {
         try {
             final byte[] bRemotePubKey = SerializationUtils.writePublicKey(pubKey);
@@ -407,14 +410,14 @@ public class OtrCryptoEngine {
         }
     }
 
-    private static DHPublicKeyParameters convertToPublicKeyParams(final AsymmetricKeyParameter params) {
+    private static DHPublicKeyParameters convertToPublicKeyParams(@Nonnull final AsymmetricKeyParameter params) {
         if (!(params instanceof DHPublicKeyParameters)) {
             throw new IllegalArgumentException("Expected to acquire DHPublicKeyParameters instance, but it isn't. (" + params.getClass().getCanonicalName() + ")");
         }
         return (DHPublicKeyParameters) params;
     }
 
-    private static DHPrivateKeyParameters convertToPrivateKeyParams(final AsymmetricKeyParameter params) {
+    private static DHPrivateKeyParameters convertToPrivateKeyParams(@Nonnull final AsymmetricKeyParameter params) {
         if (!(params instanceof DHPrivateKeyParameters)) {
             throw new IllegalArgumentException("Expected to acquire DHPrivateKeyParameters instance, but it isn't. (" + params.getClass().getCanonicalName() + ")");
         }

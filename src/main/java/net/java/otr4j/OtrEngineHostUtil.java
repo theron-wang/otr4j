@@ -8,6 +8,8 @@ package net.java.otr4j;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.SessionID;
 
@@ -54,7 +56,8 @@ public final class OtrEngineHostUtil {
      * @param host the engine host instance
      * @param sessionID the session ID
      */
-    public static void messageFromAnotherInstanceReceived(final OtrEngineHost host, final SessionID sessionID) {
+    public static void messageFromAnotherInstanceReceived(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID) {
         try {
             host.messageFromAnotherInstanceReceived(sessionID);
         } catch (RuntimeException e) {
@@ -70,7 +73,8 @@ public final class OtrEngineHostUtil {
      * @param host the engine host instance
      * @param sessionID the session ID
      */
-    public static void multipleInstancesDetected(final OtrEngineHost host, final SessionID sessionID) {
+    public static void multipleInstancesDetected(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID) {
         try {
             host.multipleInstancesDetected(sessionID);
         } catch (RuntimeException e) {
@@ -91,7 +95,8 @@ public final class OtrEngineHostUtil {
      * @param sessionID the session ID
      * @param message the received message
      */
-    public static void unencryptedMessageReceived(final OtrEngineHost host, final SessionID sessionID, final String message) {
+    public static void unencryptedMessageReceived(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID, @Nonnull final String message) {
         try {
             host.unencryptedMessageReceived(sessionID, message);
         } catch (RuntimeException e) {
@@ -113,7 +118,8 @@ public final class OtrEngineHostUtil {
      * @param host the engine host instance
      * @param sessionID the session ID
      */
-    public static void unreadableMessageReceived(final OtrEngineHost host, final SessionID sessionID) {
+    public static void unreadableMessageReceived(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID) {
         try {
             host.unreadableMessageReceived(sessionID);
         } catch (RuntimeException e) {
@@ -134,7 +140,8 @@ public final class OtrEngineHostUtil {
      * @return Returns the engine host's customized fallback message or null if
      * request failed with a runtime exception.
      */
-    public static String getFallbackMessage(final OtrEngineHost host, final SessionID sessionID) {
+    public static String getFallbackMessage(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID) {
         try {
             return host.getFallbackMessage(sessionID);
         } catch (RuntimeException e) {
@@ -155,7 +162,8 @@ public final class OtrEngineHostUtil {
      * @param fingerprint the fingerprint of the verified chat partner
      * @param approved approved
      */
-    public static void verify(final OtrEngineHost host, final SessionID sessionID, final String fingerprint, final boolean approved) {
+    public static void verify(@Nonnull final OtrEngineHost host, @Nonnull final SessionID sessionID,
+            @Nonnull final String fingerprint, final boolean approved) {
         try {
             host.verify(sessionID, fingerprint, approved);
         } catch (RuntimeException e) {
@@ -174,7 +182,8 @@ public final class OtrEngineHostUtil {
      * @param sessionID the session ID
      * @param fingerprint the fingerprint of the unverified chat partner
      */
-    public static void unverify(final OtrEngineHost host, final SessionID sessionID, final String fingerprint) {
+    public static void unverify(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID, @Nonnull final String fingerprint) {
         try {
             host.unverify(sessionID, fingerprint);
         } catch (RuntimeException e) {
@@ -197,7 +206,8 @@ public final class OtrEngineHostUtil {
      * @param sessionID the session ID
      * @param error the error message
      */
-    public static void showError(final OtrEngineHost host, final SessionID sessionID, final String error) {
+    public static void showError(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID, @Nonnull final String error) {
         try {
             host.showError(sessionID, error);
         } catch (RuntimeException e) {
@@ -224,7 +234,8 @@ public final class OtrEngineHostUtil {
      * @param cheated indicator for nature of SMP error, whether error because
      * of "cheat" status or for other reason.
      */
-    public static void smpError(final OtrEngineHost host, final SessionID sessionID, final int tlvType, final boolean cheated) {
+    public static void smpError(@Nonnull final OtrEngineHost host, @Nonnull final SessionID sessionID,
+            @Nonnull final int tlvType, final boolean cheated) {
         try {
             host.smpError(sessionID, tlvType, cheated);
         } catch (RuntimeException e) {
@@ -248,7 +259,7 @@ public final class OtrEngineHostUtil {
      * @param host
      * @param sessionID
      */
-    public static void smpAborted(final OtrEngineHost host, final SessionID sessionID) {
+    public static void smpAborted(@Nonnull final OtrEngineHost host, @Nonnull final SessionID sessionID) {
         try {
             host.smpAborted(sessionID);
         } catch (RuntimeException e) {
@@ -270,7 +281,8 @@ public final class OtrEngineHostUtil {
      * @param sessionID the session ID
      * @param msgText a message text about the finished session
      */
-    public static void finishedSessionMessage(final OtrEngineHost host, final SessionID sessionID, final String msgText) {
+    public static void finishedSessionMessage(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID, @Nonnull final String msgText) {
         try {
             host.finishedSessionMessage(sessionID, msgText);
         } catch (RuntimeException e) {
@@ -292,7 +304,8 @@ public final class OtrEngineHostUtil {
      * @param sessionID the session ID
      * @param msgText the message
      */
-    public static void requireEncryptedMessage(final OtrEngineHost host, final SessionID sessionID, final String msgText) {
+    public static void requireEncryptedMessage(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID, @Nonnull final String msgText) {
         try {
             host.requireEncryptedMessage(sessionID, msgText);
         } catch (RuntimeException e) {
@@ -310,7 +323,9 @@ public final class OtrEngineHostUtil {
      * @param sender the sender instance tag
      * @param question The question sent by the other party.
      */
-    public static void askForSecret(final OtrEngineHost host, final SessionID sessionID, final InstanceTag sender, final String question) {
+    public static void askForSecret(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID, @Nonnull final InstanceTag sender,
+            @Nullable final String question) {
         try {
             host.askForSecret(sessionID, sender, question);
         } catch (RuntimeException e) {
@@ -327,7 +342,8 @@ public final class OtrEngineHostUtil {
      * @param defaultMessage the default message to use in case call to OtrEngineHost fails
      * @return Returns the reply for unreadable message to send as error to other party.
      */
-    public static String getReplyForUnreadableMessage(final OtrEngineHost host, final SessionID sessionID, final String defaultMessage) {
+    public static String getReplyForUnreadableMessage(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID, @Nonnull final String defaultMessage) {
         try {
             return host.getReplyForUnreadableMessage(sessionID);
         } catch (RuntimeException e) {

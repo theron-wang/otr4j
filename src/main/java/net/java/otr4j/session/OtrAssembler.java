@@ -8,6 +8,7 @@ package net.java.otr4j.session;
 
 import java.math.BigInteger;
 import java.net.ProtocolException;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -18,7 +19,7 @@ public final class OtrAssembler {
 
     private static final int MAX_FRAGMENTS = 65535;
 
-	public OtrAssembler(final InstanceTag ownInstance) {
+	public OtrAssembler(@Nonnull final InstanceTag ownInstance) {
 		this.ownInstance = ownInstance;
 		discard();
 	}
@@ -67,7 +68,7 @@ public final class OtrAssembler {
      * @throws ProtocolException MVN_PASS_JAVADOC_INSPECTION
      * @throws UnknownInstanceException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	public String accumulate(String msgText)
+	public String accumulate(@Nonnull String msgText)
 		throws ProtocolException, UnknownInstanceException {
 		// if it's a fragment, remove everything before "k,n,piece-k"
 		if (msgText.startsWith(HEAD_FRAGMENT_V2)) {

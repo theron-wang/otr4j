@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.util.Arrays;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 import javax.crypto.interfaces.DHPublicKey;
 
@@ -101,7 +102,7 @@ public class SessionKeys {
         return receivingCtr;
     }
 
-    public void setReceivingCtr(final byte[] ctr) {
+    public void setReceivingCtr(@Nonnull final byte[] ctr) {
         System.arraycopy(ctr, 0, receivingCtr, 0, ctr.length);
     }
 
@@ -121,7 +122,7 @@ public class SessionKeys {
         }
     }
 
-    private byte[] h1(final byte b) throws OtrException {
+    private byte[] h1(@Nonnull final byte b) throws OtrException {
         final byte[] secbytes;
         try {
             secbytes = SerializationUtils.writeMpi(getS());

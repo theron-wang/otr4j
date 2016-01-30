@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import javax.crypto.interfaces.DHPublicKey;
 
@@ -105,7 +107,7 @@ public class Session {
      */
     private final SecureRandom secureRandom;
 
-    public Session(final SessionID sessionID, final OtrEngineHost listener) {
+    public Session(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost listener) {
         this.secureRandom = new SecureRandom();
 
         if (sessionID == null) {
@@ -140,11 +142,11 @@ public class Session {
     }
 
     // A private constructor for instantiating 'slave' sessions.
-    private Session(final SessionID sessionID,
-            final OtrEngineHost listener,
-            final InstanceTag senderTag,
-            final InstanceTag receiverTag,
-            final SecureRandom secureRandom) {
+    private Session(@Nonnull final SessionID sessionID,
+            @Nonnull final OtrEngineHost listener,
+            @Nonnull final InstanceTag senderTag,
+            @Nonnull final InstanceTag receiverTag,
+            @Nonnull final SecureRandom secureRandom) {
         if (secureRandom == null) {
             throw new NullPointerException("secureRandom");
         }
@@ -303,7 +305,7 @@ public class Session {
         }
     }
 
-    private void setSessionStatus(final SessionStatus sessionStatus)
+    private void setSessionStatus(@Nonnull final SessionStatus sessionStatus)
             throws OtrException {
 
         switch (sessionStatus) {
@@ -394,7 +396,7 @@ public class Session {
         return oldMacKeys;
     }
 
-    public String transformReceiving(String msgText) throws OtrException {
+    public String transformReceiving(@Nonnull String msgText) throws OtrException {
 
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.getAllowV1() && !policy.getAllowV2() && !policy.getAllowV3()) {
@@ -549,7 +551,7 @@ public class Session {
         }
     }
 
-    private void handleQueryMessage(final QueryMessage queryMessage)
+    private void handleQueryMessage(@Nonnull final QueryMessage queryMessage)
             throws OtrException {
         logger.finest(getSessionID().getAccountID()
                 + " received a query message from "
@@ -589,7 +591,7 @@ public class Session {
         }
     }
 
-    private void handleErrorMessage(final ErrorMessage errorMessage)
+    private void handleErrorMessage(@Nonnull final ErrorMessage errorMessage)
             throws OtrException {
         logger.finest(getSessionID().getAccountID()
                 + " received an error message from "
@@ -620,7 +622,7 @@ public class Session {
         }
     }
 
-    private String handleDataMessage(final DataMessage data) throws OtrException {
+    private String handleDataMessage(@Nonnull final DataMessage data) throws OtrException {
         logger.finest(getSessionID().getAccountID()
                 + " received a data message from " + getSessionID().getUserID()
                 + ".");
@@ -771,7 +773,7 @@ public class Session {
         return null;
     }
 
-    public void injectMessage(final AbstractMessage m) throws OtrException {
+    public void injectMessage(@Nonnull final AbstractMessage m) throws OtrException {
         String msg;
         try {
             msg = SerializationUtils.toString(m);
@@ -804,7 +806,7 @@ public class Session {
         }
     }
 
-    private String handlePlainTextMessage(final PlainTextMessage plainTextMessage)
+    private String handlePlainTextMessage(@Nonnull final PlainTextMessage plainTextMessage)
             throws OtrException {
         logger.finest(getSessionID().getAccountID()
                 + " received a plaintext message from "
@@ -914,7 +916,7 @@ public class Session {
         return plainTextMessage.cleanText;
     }
 
-    public String[] transformSending(final String msgText)
+    public String[] transformSending(@Nonnull final String msgText)
             throws OtrException {
         return this.transformSending(msgText, Collections.<TLV>emptyList());
     }
@@ -929,8 +931,9 @@ public class Session {
      * @throws OtrException OtrException in case of exceptions.
      */
     // TODO Consider returning empty arrays in case no message are left to send, instead of null
-    public String[] transformSending(final String msgText, List<TLV> tlvs)
+    public String[] transformSending(@Nullable final String msgText, @Nullable List<TLV> tlvs)
             throws OtrException {
+        // TODO Do we really want transformSending to handle NULL messages? (It seems we allow it.)
         if (tlvs == null) {
             // ensure that tlvs is non-null
             tlvs = Collections.<TLV>emptyList();
@@ -1139,7 +1142,7 @@ public class Session {
      */
     private final ArrayList<OtrEngineListener> listeners = new ArrayList<OtrEngineListener>();
 
-    public void addOtrEngineListener(OtrEngineListener l) {
+    public void addOtrEngineListener(@Nonnull OtrEngineListener l) {
         synchronized (listeners) {
             if (!listeners.contains(l)) {
                 listeners.add(l);
@@ -1147,7 +1150,7 @@ public class Session {
         }
     }
 
-    public void removeOtrEngineListener(OtrEngineListener l) {
+    public void removeOtrEngineListener(@Nonnull OtrEngineListener l) {
         synchronized (listeners) {
             listeners.remove(l);
         }
@@ -1161,7 +1164,7 @@ public class Session {
         return getHost().getLocalKeyPair(this.getSessionID());
     }
 
-    public void initSmp(final String question, final String secret) throws OtrException {
+    public void initSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
         if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
             outgoingSession.initSmp(question, secret);
             return;
@@ -1176,7 +1179,7 @@ public class Session {
         }
     }
 
-    public void respondSmp(final String question, final String secret) throws OtrException {
+    public void respondSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
         if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
             outgoingSession.respondSmp(question, secret);
             return;
@@ -1221,7 +1224,7 @@ public class Session {
         return receiverTag;
     }
 
-    public void setReceiverInstanceTag(final InstanceTag receiverTag) {
+    public void setReceiverInstanceTag(@Nonnull final InstanceTag receiverTag) {
         // ReceiverInstanceTag of a slave session is not supposed to change
         if (!isMasterSession) {
             return;
@@ -1248,7 +1251,7 @@ public class Session {
         return result;
     }
 
-    public boolean setOutgoingInstance(final InstanceTag tag) {
+    public boolean setOutgoingInstance(@Nonnull final InstanceTag tag) {
         // Only master session can set the outgoing session.
         if (!isMasterSession) {
             return false;
@@ -1272,7 +1275,7 @@ public class Session {
         }
     }
 
-    public void respondSmp(final InstanceTag receiverTag, final String question, final String secret)
+    public void respondSmp(@Nonnull final InstanceTag receiverTag, @Nullable final String question, @Nonnull final String secret)
             throws OtrException
     {
         if (receiverTag.equals(getReceiverInstanceTag()))
@@ -1291,7 +1294,7 @@ public class Session {
         }
     }
 
-    public SessionStatus getSessionStatus(final InstanceTag tag) {
+    public SessionStatus getSessionStatus(@Nonnull final InstanceTag tag) {
         if (tag.equals(getReceiverInstanceTag())) {
             return sessionStatus;
         } else {
@@ -1300,7 +1303,7 @@ public class Session {
         }
     }
 
-    public PublicKey getRemotePublicKey(final InstanceTag tag) {
+    public PublicKey getRemotePublicKey(@Nonnull final InstanceTag tag) {
         if (tag.equals(getReceiverInstanceTag())) {
             return remotePublicKey;
         } else {

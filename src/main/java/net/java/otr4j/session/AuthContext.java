@@ -14,6 +14,7 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 import javax.crypto.interfaces.DHPublicKey;
 
@@ -234,7 +235,7 @@ public class AuthContext {
         return r;
     }
 
-    private void setRemoteDHPublicKey(final DHPublicKey dhPublicKey) {
+    private void setRemoteDHPublicKey(@Nonnull final DHPublicKey dhPublicKey) {
         // Verifies that Alice's gy is a legal value (2 <= gy <= modulus-2)
         if (dhPublicKey.getY().compareTo(OtrCryptoEngine.MODULUS_MINUS_TWO) > 0) {
             throw new IllegalArgumentException(
@@ -425,7 +426,7 @@ public class AuthContext {
         return localDHPublicKeyBytes;
     }
 
-    public void handleReceivingMessage(final AbstractMessage m) throws OtrException {
+    public void handleReceivingMessage(@Nonnull final AbstractMessage m) throws OtrException {
 
         switch (m.messageType) {
             case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
@@ -445,7 +446,7 @@ public class AuthContext {
         }
     }
 
-    private void handleSignatureMessage(final SignatureMessage m) throws OtrException {
+    private void handleSignatureMessage(@Nonnull final SignatureMessage m) throws OtrException {
         final SessionID sessionID = session.getSessionID();
         logger.finest(sessionID.getAccountID()
                 + " received a signature message from " + sessionID.getUserID()
@@ -508,7 +509,7 @@ public class AuthContext {
         }
     }
 
-    private void handleRevealSignatureMessage(final RevealSignatureMessage m)
+    private void handleRevealSignatureMessage(@Nonnull final RevealSignatureMessage m)
             throws OtrException {
         final SessionID sessionID = session.getSessionID();
         logger.finest(sessionID.getAccountID()
@@ -620,7 +621,7 @@ public class AuthContext {
         }
     }
 
-    private void handleDHKeyMessage(final DHKeyMessage m) throws OtrException {
+    private void handleDHKeyMessage(@Nonnull final DHKeyMessage m) throws OtrException {
         final SessionID sessionID = session.getSessionID();
         logger.finest(sessionID.getAccountID()
                 + " received a D-H key message from " + sessionID.getUserID()
@@ -671,7 +672,7 @@ public class AuthContext {
         }
     }
 
-    private void handleDHCommitMessage(final DHCommitMessage m) throws OtrException {
+    private void handleDHCommitMessage(@Nonnull final DHCommitMessage m) throws OtrException {
         final SessionID sessionID = session.getSessionID();
         logger.finest(sessionID.getAccountID()
                 + " received a D-H commit message from "

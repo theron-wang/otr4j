@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import javax.crypto.interfaces.DHPublicKey;
 import net.java.otr4j.crypto.OtrCryptoException;
@@ -56,7 +58,7 @@ public class SerializationUtils {
 	public static final Charset UTF8 = Charset.forName("UTF-8");
 
 	// Mysterious X IO.
-	public static SignatureX toMysteriousX(final byte[] b) throws IOException, OtrCryptoException {
+	public static SignatureX toMysteriousX(@Nonnull final byte[] b) throws IOException, OtrCryptoException {
 		final ByteArrayInputStream in = new ByteArrayInputStream(b);
 		final OtrInputStream ois = new OtrInputStream(in);
 		final SignatureX x = ois.readMysteriousX();
@@ -64,7 +66,7 @@ public class SerializationUtils {
 		return x;
 	}
 
-	public static byte[] toByteArray(final SignatureX x) throws IOException {
+	public static byte[] toByteArray(@Nonnull final SignatureX x) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writeMysteriousX(x);
@@ -74,7 +76,7 @@ public class SerializationUtils {
 	}
 
 	// Mysterious M IO.
-	public static byte[] toByteArray(final SignatureM m) throws IOException {
+	public static byte[] toByteArray(@Nonnull final SignatureM m) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writeMysteriousX(m);
@@ -84,7 +86,7 @@ public class SerializationUtils {
 	}
 
 	// Mysterious T IO.
-	public static byte[] toByteArray(final MysteriousT t) throws IOException {
+	public static byte[] toByteArray(@Nonnull final MysteriousT t) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writeMysteriousT(t);
@@ -94,7 +96,7 @@ public class SerializationUtils {
 	}
 
 	// Basic IO.
-	public static byte[] writeData(final byte[] b) throws IOException {
+	public static byte[] writeData(@Nullable final byte[] b) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writeData(b);
@@ -104,7 +106,7 @@ public class SerializationUtils {
 	}
 
 	// BigInteger IO.
-	public static byte[] writeMpi(final BigInteger bigInt) throws IOException {
+	public static byte[] writeMpi(@Nonnull final BigInteger bigInt) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writeBigInt(bigInt);
@@ -113,7 +115,7 @@ public class SerializationUtils {
 		return b;
 	}
 
-	public static BigInteger readMpi(final byte[] b) throws IOException {
+	public static BigInteger readMpi(@Nonnull final byte[] b) throws IOException {
 		final ByteArrayInputStream in = new ByteArrayInputStream(b);
 		final OtrInputStream ois = new OtrInputStream(in);
 		final BigInteger bigint = ois.readBigInt();
@@ -122,7 +124,7 @@ public class SerializationUtils {
 	}
 
 	// Public Key IO.
-	public static byte[] writePublicKey(final PublicKey pubKey) throws IOException {
+	public static byte[] writePublicKey(@Nonnull final PublicKey pubKey) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writePublicKey(pubKey);
@@ -132,7 +134,7 @@ public class SerializationUtils {
 	}
 
 	// Message IO.
-	public static String toString(final AbstractMessage m) throws IOException {
+	public static String toString(@Nonnull final AbstractMessage m) throws IOException {
 		final StringWriter writer = new StringWriter();
 		if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT) {
             writer.write(SerializationConstants.HEAD);
@@ -277,7 +279,7 @@ public class SerializationUtils {
 	 *             or real IO error
      * @throws net.java.otr4j.crypto.OtrCryptoException error of cryptographic nature
 	 */
-	public static AbstractMessage toMessage(final String s) throws IOException, OtrCryptoException {
+	public static AbstractMessage toMessage(@Nullable final String s) throws IOException, OtrCryptoException {
 		if (s == null || s.length() == 0) {
             return null;
         }
@@ -457,7 +459,7 @@ public class SerializationUtils {
 	private static final char HEX_ENCODER[] = {'0', '1', '2', '3', '4', '5',
 			'6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-	public static String byteArrayToHexString(final byte in[]) {
+	public static String byteArrayToHexString(@Nullable final byte in[]) {
 		if (in == null || in.length <= 0) {
             return null;
         }
@@ -473,7 +475,7 @@ public class SerializationUtils {
 
 	private static final String HEX_DECODER = "0123456789ABCDEF";
 
-	public static byte[] hexStringToByteArray(String value) {
+	public static byte[] hexStringToByteArray(@Nonnull String value) {
 		value = value.toUpperCase(Locale.US);
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		for (int index = 0; index < value.length(); index += 2) {
@@ -494,7 +496,7 @@ public class SerializationUtils {
      * @param msg the plain text message being sent
      * @return byte[] the incoming message converted to OTR-safe bytes
      */
-    public static byte[] convertTextToBytes(final String msg) {
+    public static byte[] convertTextToBytes(@Nonnull final String msg) {
         return msg.replace('\0', '?').getBytes(SerializationUtils.UTF8);
     }
 
@@ -505,7 +507,7 @@ public class SerializationUtils {
 	 *            the content to investigate
 	 * @return returns true if content is OTR encoded, or false otherwise
 	 */
-	public static boolean otrEncoded(final String content) {
+	public static boolean otrEncoded(@Nonnull final String content) {
 		return content.startsWith(SerializationConstants.HEAD
 				+ SerializationConstants.HEAD_ENCODED);
 	}
