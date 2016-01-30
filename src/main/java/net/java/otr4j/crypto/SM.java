@@ -56,8 +56,6 @@ public final class SM {
     }
 
     static public class SMState{
-        private static final BigInteger G1 = new BigInteger(1, SM.GENERATOR_S);
-        
         BigInteger secret, x2, x3, g1, g2, g3, g3o, p, q, pab, qab;
         public int nextExpected;
         public int smProgState;
@@ -69,7 +67,7 @@ public final class SM {
          */
         public SMState(){
             // we could remove g1 in favor of using G1 (constant) directly
-            g1 = G1;
+            g1 = GENERATOR_S;
             smProgState = SM.PROG_OK;
             approved = false;
             asked = false;
@@ -142,7 +140,7 @@ public final class SM {
 		    "C1B2AE91EE51D6CB0E3179AB1042A95DCF6A9483B84B4B36"+
 		    "B3861AA7255E4C0278BA36046511B993FFFFFFFFFFFFFFFF", 16);
 	
-	public static final byte[] GENERATOR_S = Util.hexStringToBytes("02");
+	public static final BigInteger GENERATOR_S = BigInteger.valueOf(2l);
 	public static final int MOD_LEN_BITS = 1536;
 	public static final int MOD_LEN_BYTES = 192;
 	
