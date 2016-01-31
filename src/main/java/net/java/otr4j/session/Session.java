@@ -928,6 +928,7 @@ public class Session {
      * @return Returns the array of messages to be sent over IM network.
      * @throws OtrException OtrException in case of exceptions.
      */
+    // TODO Consider returning empty arrays in case no message are left to send, instead of null
     public String[] transformSending(final String msgText, List<TLV> tlvs)
             throws OtrException {
         if (tlvs == null) {

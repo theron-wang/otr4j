@@ -1,3 +1,7 @@
+Backwards incompatible:
+- SerializationUtils.toMessage(body:String) (observed in Xabber)
+- Potentially more RuntimeExceptions. Not explicitly thrown, but less are caught with the general catch-all "catch (Exception)".
+
 Modifications in improvements branch:
 * More leverage of (static) type-safety.
 * More specific exception catching. This might result in more Runtime Exceptions "leaking" through (intentionally).
