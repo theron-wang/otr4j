@@ -22,6 +22,7 @@ import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.AbstractMessage;
+import static net.java.otr4j.io.messages.AbstractMessage.checkCast;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.QueryMessage;
@@ -428,16 +429,16 @@ public class AuthContext {
 
         switch (m.messageType) {
             case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
-                handleDHCommitMessage((DHCommitMessage) m);
+                handleDHCommitMessage(checkCast(DHCommitMessage.class, m));
                 break;
             case AbstractEncodedMessage.MESSAGE_DHKEY:
-                handleDHKeyMessage((DHKeyMessage) m);
+                handleDHKeyMessage(checkCast(DHKeyMessage.class, m));
                 break;
             case AbstractEncodedMessage.MESSAGE_REVEALSIG:
-                handleRevealSignatureMessage((RevealSignatureMessage) m);
+                handleRevealSignatureMessage(checkCast(RevealSignatureMessage.class, m));
                 break;
             case AbstractEncodedMessage.MESSAGE_SIGNATURE:
-                handleSignatureMessage((SignatureMessage) m);
+                handleSignatureMessage(checkCast(SignatureMessage.class, m));
                 break;
             default:
                 throw new UnsupportedOperationException();

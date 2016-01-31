@@ -26,6 +26,7 @@ import org.bouncycastle.util.encoders.Base64;
 
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.AbstractMessage;
+import static net.java.otr4j.io.messages.AbstractMessage.checkCast;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.DataMessage;
@@ -139,13 +140,13 @@ public class SerializationUtils {
 
 		switch (m.messageType) {
 			case AbstractMessage.MESSAGE_ERROR:
-				final ErrorMessage error = (ErrorMessage) m;
+				final ErrorMessage error = checkCast(ErrorMessage.class, m);
 				writer.write(SerializationConstants.HEAD_ERROR);
 				writer.write(SerializationConstants.ERROR_PREFIX);
 				writer.write(error.error);
 				break;
 			case AbstractMessage.MESSAGE_PLAINTEXT:
-				final PlainTextMessage plaintxt = (PlainTextMessage) m;
+				final PlainTextMessage plaintxt = checkCast(PlainTextMessage.class, m);
 				writer.write(plaintxt.cleanText);
 				if (!plaintxt.versions.isEmpty()) {
 					writer.write(" \t  \t\t\t\t \t \t \t  ");
@@ -165,7 +166,7 @@ public class SerializationUtils {
 				}
 				break;
 			case AbstractMessage.MESSAGE_QUERY:
-				final QueryMessage query = (QueryMessage) m;
+				final QueryMessage query = checkCast(QueryMessage.class, m);
 				if (query.versions.size() == 1 && query.versions.get(0) == 1) {
 					writer.write(SerializationConstants.HEAD_QUERY_Q);
 				} else {
@@ -187,7 +188,7 @@ public class SerializationUtils {
 
 				switch (m.messageType) {
 					case AbstractEncodedMessage.MESSAGE_DHKEY:
-						final DHKeyMessage dhkey = (DHKeyMessage) m;
+						final DHKeyMessage dhkey = checkCast(DHKeyMessage.class, m);
 						s.writeShort(dhkey.protocolVersion);
 						s.writeByte(dhkey.messageType);
 						if (dhkey.protocolVersion == OTRv.THREE) {
@@ -197,7 +198,7 @@ public class SerializationUtils {
 						s.writeDHPublicKey(dhkey.dhPublicKey);
 						break;
 					case AbstractEncodedMessage.MESSAGE_REVEALSIG:
-						final RevealSignatureMessage revealsig = (RevealSignatureMessage) m;
+						final RevealSignatureMessage revealsig = checkCast(RevealSignatureMessage.class, m);
 						s.writeShort(revealsig.protocolVersion);
 						s.writeByte(revealsig.messageType);
 						if (revealsig.protocolVersion == OTRv.THREE) {
@@ -209,7 +210,7 @@ public class SerializationUtils {
 						s.writeMac(revealsig.xEncryptedMAC);
 						break;
 					case AbstractEncodedMessage.MESSAGE_SIGNATURE:
-						final SignatureMessage sig = (SignatureMessage) m;
+						final SignatureMessage sig = checkCast(SignatureMessage.class, m);
 						s.writeShort(sig.protocolVersion);
 						s.writeByte(sig.messageType);
 						if (sig.protocolVersion == OTRv.THREE) {
@@ -220,7 +221,7 @@ public class SerializationUtils {
 						s.writeMac(sig.xEncryptedMAC);
 						break;
 					case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
-						final DHCommitMessage dhcommit = (DHCommitMessage) m;
+						final DHCommitMessage dhcommit = checkCast(DHCommitMessage.class, m);
 						s.writeShort(dhcommit.protocolVersion);
 						s.writeByte(dhcommit.messageType);
 						if (dhcommit.protocolVersion == OTRv.THREE) {
@@ -231,7 +232,7 @@ public class SerializationUtils {
 						s.writeData(dhcommit.dhPublicKeyHash);
 						break;
 					case AbstractEncodedMessage.MESSAGE_DATA:
-						final DataMessage data = (DataMessage) m;
+						final DataMessage data = checkCast(DataMessage.class, m);
 						s.writeShort(data.protocolVersion);
 						s.writeByte(data.messageType);
 						if (data.protocolVersion == OTRv.THREE) {

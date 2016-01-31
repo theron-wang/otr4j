@@ -52,4 +52,30 @@ public abstract class AbstractMessage {
 	public static final int MESSAGE_ERROR = 0xff;
 	public static final int MESSAGE_QUERY = 0x100;
 	public static final int MESSAGE_PLAINTEXT = 0x102;
+
+    /**
+     * Check if message m is an instance of specified type before casting. In
+     * case type mismatches, throw IllegalArgumentException. This method is
+     * intended to run after deciding on which type to cast to using the
+     * AbstractMessage's 'messageType' field.
+     *
+     * NOTE that this is clearly a work-around solution to doing safe casting,
+     * because we currently determine type by the 'messageType' field. Which is
+     * a form of "safety through convention". As Java supports type hierarchies,
+     * we can already determine message type through instance-of checks. This
+     * should be changed at some point, but this solution better fits the
+     * current code base.
+     *
+     * @param <T> The target type.
+     * @param clazz The target type as an object.
+     * @param m The message that needs to be cast.
+     * @return Returns message casted in specified type if correct. Throws
+     * IllegalArgumentException if message type does not match.
+     */
+    public static final <T extends AbstractMessage> T checkCast(final Class<T> clazz, final AbstractMessage m) {
+        if (!clazz.isInstance(m)) {
+            throw new IllegalArgumentException("Mismatch in 'messageType' value vs actual message type: we expected to cast message of type " + m.getClass().getCanonicalName() + " to " + clazz.getCanonicalName() + ", but it isn't.");
+        }
+        return (T) m;
+    }
 }
