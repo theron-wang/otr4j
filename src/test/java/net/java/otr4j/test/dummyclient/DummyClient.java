@@ -202,7 +202,7 @@ public class DummyClient {
 			String receivedMessage = session.transformReceiving(m.getContent());
 			synchronized (processedMsgs) {
 				processedMsgs.add(new ProcessedTestMessage(m, receivedMessage));
-				processedMsgs.notify();
+				processedMsgs.notifyAll();
 			}
 		}
 
@@ -239,7 +239,7 @@ public class DummyClient {
 		public void enqueue(String sender, String s) {
 			synchronized (messageQueue) {
 				messageQueue.add(new TestMessage(sender, s));
-				messageQueue.notify();
+				messageQueue.notifyAll();
 			}
 		}
 
@@ -247,7 +247,7 @@ public class DummyClient {
 			stopped = true;
 
 			synchronized (messageQueue) {
-				messageQueue.notify();
+				messageQueue.notifyAll();
 			}
 		}
 
