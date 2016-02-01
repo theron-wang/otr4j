@@ -1,5 +1,7 @@
-Backwards incompatible:
+Backwards incompatibility:
 - SerializationUtils.toMessage(body:String) (observed in Xabber)
+  * New exception OtrCryptoException thrown.
+  * OtrCryptoException was originally wrapped in IOException, so less IOExceptions are thrown.
 - Potentially more RuntimeExceptions. Not explicitly thrown, but less are caught with the general catch-all "catch (Exception)".
 
 Modifications in improvements branch:
