@@ -23,6 +23,8 @@ import org.junit.Test;
  */
 public class SMTest {
     
+    private final SecureRandom sr = new SecureRandom();
+
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
@@ -79,21 +81,20 @@ public class SMTest {
 
     @Test(expected = SM.SMException.class)
     public void testCheckKnowLog() throws SM.SMException {
-        SM.checkKnowLog(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, BigInteger.valueOf(100L), 0);
+        final State sm = new State(sr) {};
+        sm.checkKnowLog(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, 0);
     }
 
     @Test(expected = SM.SMException.class)
     public void testCheckEqualCoords() throws SM.SMException {
-        final SM.SMState state = new SM.SMState();
-        state.g1 = state.g2 = state.g3 = BigInteger.ONE;
-        SM.checkEqualCoords(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, BigInteger.valueOf(100L), BigInteger.valueOf(50L), state, 0);
+        final State sm = new State(sr) {};
+        sm.checkEqualCoords(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, BigInteger.valueOf(100L), BigInteger.valueOf(50L), BigInteger.valueOf(25L), BigInteger.valueOf(12L), 0);
     }
 
     @Test(expected = SM.SMException.class)
     public void testCheckEqualLogs() throws SM.SMException {
-        final SM.SMState state = new SM.SMState();
-        state.g1 = state.g3o = state.qab = BigInteger.ONE;
-        SM.checkEqualLogs(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, state, 0);
+        final State sm = new State(sr) {};
+        sm.checkEqualLogs(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, BigInteger.valueOf(23L), BigInteger.valueOf(35L), 0);
     }
 
     @Test
