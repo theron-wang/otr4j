@@ -48,16 +48,12 @@ public final class SM {
      */
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
     
-    // FIXME can be removed once processing is delegated to State derivatives.
-    private final SecureRandom sr;
-    
     private State state;
 
     public SM(@Nonnull final SecureRandom sr) {
         if (sr == null) {
             throw new NullPointerException("sr");
         }
-        this.sr = sr;
         this.state = new StateExpect1(sr);
     }
 
@@ -753,9 +749,9 @@ final class StateExpect1 extends State {
     }
     
     private StateExpect1(@Nonnull final SecureRandom sr,
-            @Nonnull final BigInteger x2, @Nonnull final BigInteger x3,
-            @Nonnull final BigInteger g2, @Nonnull final BigInteger g3,
-            @Nonnull final BigInteger g3o) {
+            @Nullable final BigInteger x2, @Nullable final BigInteger x3,
+            @Nullable final BigInteger g2, @Nullable final BigInteger g3,
+            @Nullable final BigInteger g3o) {
         super(sr);
         this.x2 = x2;
         this.x3 = x3;
