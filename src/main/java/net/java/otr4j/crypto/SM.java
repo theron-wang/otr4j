@@ -48,6 +48,7 @@ public final class SM {
      */
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
     
+    // FIXME can be removed once processing is delegated to State derivatives.
     private final SecureRandom sr;
     
     private State state;
@@ -57,7 +58,7 @@ public final class SM {
             throw new NullPointerException("sr");
         }
         this.sr = sr;
-        this.state = new StateExpect1();
+        this.state = new StateExpect1(sr);
     }
 
     void setState(@Nonnull final State state) {
@@ -102,7 +103,20 @@ public final class SM {
             super(message, cause);
         }
 	}
-	
+
+    /**
+     * SM Aborted exception indicates that the current SMP exchange is aborted
+     * and the state reset to default.
+     */
+    static class SMAbortedException extends SMException {
+
+        private static final long serialVersionUID = 8062094133300893010L;
+
+        public SMAbortedException(@Nonnull final String message) {
+            super(message);
+        }
+    }
+
 	public static final int EXPECT1 = 0;
 	public static final int EXPECT2 = 1;
 	public static final int EXPECT3 = 2;
@@ -764,30 +778,69 @@ public final class SM {
 	}
 }
 
+/**
+ * Abstract class implementing the base for SMP exchange states.
+ *
+ * This implementation is dedicated to the management of SMP exchange state
+ * only. Specific exceptions are thrown to indicate the unexpected state
+ * changes.
+ */
 abstract class State {
+    // FIXME where do we do TLV sending? I suspect that this is best handled outside of TLV.
     // FIXME prevent states from being constructed by public that are only supposed to be an end result.
     // FIXME SMP state should only be preserved in MSGSTATE_ENCRYPTED.
     // FIXME any unexpected message should result in an smpError
     // FIXME any unexpected message should result in a state reset
     // FIXME implement default in which state is reset and abort is sent in abstract State class, such that only implementing states need to override a method.
+    // FIXME consider implementing "processing" flag which cannot be unset, such that interruption of handling is considered cheating.
+
+    private final SecureRandom sr;
+
+    protected State(@Nonnull final SecureRandom sr) {
+        if (sr == null) {
+            throw new NullPointerException("sr");
+        }
+        this.sr = sr;
+    }
+
+    @Nonnull
+    protected SecureRandom secureRandom() {
+        return this.sr;
+    }
 
     /**
      * Start SMP negotiation.
+     *
+     * An SMP exchange can be started at any time during the protocol state. For
+     * any state but the first, we need to send an SMP abort message. After
+     * having sent the SMP abort message it is perfectly valid to immediately
+     * start a new SMP exchange.
+     *
+     * The default implementation resets the state and sends the
+     * SMAbortedOperation exception. StateExpect1 should override and create the
+     * initiation message.
      *
      * @param astate
      * @param secret
      * @throws net.java.otr4j.crypto.SM.SMStateException
      */
-    abstract byte[] startSMP(SM astate, byte[] secret) throws SM.SMException;
+    protected byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException {
+        astate.setState(new StateExpect1(this.sr));
+        throw new SM.SMAbortedException("Received start SMP request at incorrect state of the protocol. ("
+                + this.getClass().getCanonicalName()
+                + ") It is allowed to call startSMP() immediately after having sent the type 6 TLV signaling SMP abort in order to immediately start a new SMP exchange.");
+    }
 
     /**
      * Abort SMP negotiation.
      *
-     * @param state
+     * The state is reset due to the abort operation. Calling code is expected
+     * to send type 6 TLV to signal SMP abort.
+     *
+     * @param state The current state of SMP exchange.
      */
-    protected byte[] smpAbort(SM state) {
-        state.setState(new StateExpect1());
-        // FIXME create abort message and return to caller
+    protected void smpAbort(@Nonnull final SM state) {
+        state.setState(new StateExpect1(this.sr));
     }
 
     /**
@@ -798,7 +851,10 @@ abstract class State {
      * @param input
      * @throws net.java.otr4j.crypto.SM.SMStateException
      */
-    abstract void smpMessage1a(SM bstate, byte[] input) throws SM.SMException;
+    protected void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+        bstate.setState(new StateExpect1(this.sr));
+        throw new SM.SMAbortedException("Received SMP message 1 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
+    }
 
     /**
      * TODO process secret required for SMP message 1.
@@ -808,7 +864,10 @@ abstract class State {
      * @return
      * @throws net.java.otr4j.crypto.SM.SMStateException
      */
-    abstract byte[] smpMessage1b(SM bstate, byte[] secret) throws SM.SMException;
+    protected byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException {
+        bstate.setState(new StateExpect1(this.sr));
+        throw new SM.SMAbortedException("Received follow up to SMP message 1 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
+    }
 
     /**
      * Step 2: Message sent by Bob to Alice. Complete DH exchange. Determine new
@@ -819,7 +878,10 @@ abstract class State {
      * @return
      * @throws net.java.otr4j.crypto.SM.SMException
      */
-    abstract byte[] smpMessage2(SM astate, byte[] input) throws SM.SMException;
+    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+        astate.setState(new StateExpect1(this.sr));
+        throw new SM.SMAbortedException("Received SMP message 2 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
+    }
 
     /**
      * Step 3: Message sent by Alice to Bob. Alice's final message in SMP
@@ -830,7 +892,10 @@ abstract class State {
      * @return
      * @throws net.java.otr4j.crypto.SM.SMException
      */
-    abstract byte[] smpMessage3(SM bstate, byte[] input) throws SM.SMException;
+    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+        bstate.setState(new StateExpect1(this.sr));
+        throw new SM.SMAbortedException("Received SMP message 3 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
+    }
 
     /**
      * Step 4: Message sent by Bob to Alice. Bob's final message in SMP
@@ -840,35 +905,107 @@ abstract class State {
      * @param input
      * @throws net.java.otr4j.crypto.SM.SMException
      */
-    abstract void smpMessage4(SM astate, byte[] input) throws SM.SMException;
+    protected void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+        astate.setState(new StateExpect1(this.sr));
+        throw new SM.SMAbortedException("Received SMP message 4 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
+    }
 
     /**
      * Abort: In all cases, reset SMP state upon receiving SMP Abort message.
      *
      * @param state
      */
-    abstract void smpMessageAbort(SM state);
+    protected void smpMessageAbort(@Nonnull final SM state) {
+        state.setState(new StateExpect1(this.sr));
+    }
 }
 
 /**
  * SMP state in expectation of SMP message 1. (Or when initiating SMP
  * negotiation.)
  *
+ * In this state we accept messages 1 (TLV type 2), and 1Q (TLV type 7).
+ *
  * This is the initial and default state. SMP is reset to this state whenever an
  * error occurs or SMP is aborted.
  */
 final class StateExpect1 extends State {
-    // FIXME accept TLV type 2: msg 1, TLV type 7: msg 1Q
+
+    public StateExpect1(@Nonnull final SecureRandom sr) {
+        super(sr);
+    }
+
+    @Override
+    protected byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException {
+        // FIXME implement creation of SMP initiating message
+    }
+
+    @Override
+    protected void smpAbort(@Nonnull final SM state) {
+        // NOOP since this is the default state.
+    }
+
+    @Override
+    protected void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+        // FIXME implement SMP message 1.
+    }
+
+    @Override
+    protected byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException {
+        // FIXME implement SMP message 1 follow up.
+    }
 }
 
+/**
+ * SMP state in expectation of SMP message 2: Bob's message completing the DH
+ * exchange.
+ *
+ * In this state we accept message 2 (TLV type 3).
+ */
 final class StateExpect2 extends State {
-    // FIXME accept TLV type 3: msg 2.
+
+    public StateExpect2(@Nonnull final SecureRandom sr) {
+        super(sr);
+    }
+
+    @Override
+    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+        // FIXME implement SMP message 2 handling.
+    }
 }
 
+/**
+ * SMP state in expectation of SMP message 3: Alice's final message in SMP
+ * exchange.
+ *
+ * In this state we accept message 3 (TLV type 4).
+ */
 final class StateExpect3 extends State {
-    // FIXME accept TLV type 4: msg 3.
+
+    public StateExpect3(@Nonnull final SecureRandom sr) {
+        super(sr);
+    }
+
+    @Override
+    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+        // FIXME implement SMP message 3 handling.
+    }
 }
 
+/**
+ * SMP state in expectation of SMP message 4: Bob's final message in SMP
+ * exchange.
+ *
+ * In this state we accept message 4 (TLV type 5).
+ */
 final class StateExpect4 extends State {
-    // FIXME accept TLV type 5: msg 4.
+
+    public StateExpect4(@Nonnull final SecureRandom sr) {
+        super(sr);
+    }
+
+    @Override
+    protected void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+        // FIXME implement SMP message 4 handling.
+    }
 }
