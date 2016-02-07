@@ -49,12 +49,19 @@ public final class SM {
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
     
     private final SecureRandom sr;
+    
+    private State state;
 
     public SM(@Nonnull final SecureRandom sr) {
         if (sr == null) {
             throw new NullPointerException("sr");
         }
         this.sr = sr;
+        this.state = new StateExpect1();
+    }
+
+    void setState(@Nonnull final State state) {
+        this.state = state;
     }
 
     static public class SMState{
@@ -754,7 +761,114 @@ public final class SM {
 	    final int comp = rab.compareTo(astate.pab);
 
 	    astate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
-
-	    return;
 	}
+}
+
+abstract class State {
+    // FIXME prevent states from being constructed by public that are only supposed to be an end result.
+    // FIXME SMP state should only be preserved in MSGSTATE_ENCRYPTED.
+    // FIXME any unexpected message should result in an smpError
+    // FIXME any unexpected message should result in a state reset
+    // FIXME implement default in which state is reset and abort is sent in abstract State class, such that only implementing states need to override a method.
+
+    /**
+     * Start SMP negotiation.
+     *
+     * @param astate
+     * @param secret
+     * @throws net.java.otr4j.crypto.SM.SMStateException
+     */
+    abstract byte[] startSMP(SM astate, byte[] secret) throws SM.SMException;
+
+    /**
+     * Abort SMP negotiation.
+     *
+     * @param state
+     */
+    protected byte[] smpAbort(SM state) {
+        state.setState(new StateExpect1());
+        // FIXME create abort message and return to caller
+    }
+
+    /**
+     * Step 2: Message sent by Alice to Bob. Begin a DH exchange to determine
+     * generators g2, g3.
+     *
+     * @param bstate
+     * @param input
+     * @throws net.java.otr4j.crypto.SM.SMStateException
+     */
+    abstract void smpMessage1a(SM bstate, byte[] input) throws SM.SMException;
+
+    /**
+     * TODO process secret required for SMP message 1.
+     *
+     * @param bstate
+     * @param secret
+     * @return
+     * @throws net.java.otr4j.crypto.SM.SMStateException
+     */
+    abstract byte[] smpMessage1b(SM bstate, byte[] secret) throws SM.SMException;
+
+    /**
+     * Step 2: Message sent by Bob to Alice. Complete DH exchange. Determine new
+     * generators g2, g3. Begin construction of values used in final comparison.
+     *
+     * @param astate
+     * @param input
+     * @return
+     * @throws net.java.otr4j.crypto.SM.SMException
+     */
+    abstract byte[] smpMessage2(SM astate, byte[] input) throws SM.SMException;
+
+    /**
+     * Step 3: Message sent by Alice to Bob. Alice's final message in SMP
+     * exchange.
+     *
+     * @param bstate
+     * @param input
+     * @return
+     * @throws net.java.otr4j.crypto.SM.SMException
+     */
+    abstract byte[] smpMessage3(SM bstate, byte[] input) throws SM.SMException;
+
+    /**
+     * Step 4: Message sent by Bob to Alice. Bob's final message in SMP
+     * exchange.
+     *
+     * @param astate
+     * @param input
+     * @throws net.java.otr4j.crypto.SM.SMException
+     */
+    abstract void smpMessage4(SM astate, byte[] input) throws SM.SMException;
+
+    /**
+     * Abort: In all cases, reset SMP state upon receiving SMP Abort message.
+     *
+     * @param state
+     */
+    abstract void smpMessageAbort(SM state);
+}
+
+/**
+ * SMP state in expectation of SMP message 1. (Or when initiating SMP
+ * negotiation.)
+ *
+ * This is the initial and default state. SMP is reset to this state whenever an
+ * error occurs or SMP is aborted.
+ */
+final class StateExpect1 extends State {
+    // FIXME accept TLV type 2: msg 1, TLV type 7: msg 1Q
+}
+
+final class StateExpect2 extends State {
+    // FIXME accept TLV type 3: msg 2.
+}
+
+final class StateExpect3 extends State {
+    // FIXME accept TLV type 4: msg 3.
+}
+
+final class StateExpect4 extends State {
+    // FIXME accept TLV type 5: msg 4.
 }
