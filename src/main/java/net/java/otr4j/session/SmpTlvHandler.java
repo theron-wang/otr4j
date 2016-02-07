@@ -156,9 +156,9 @@ public class SmpTlvHandler {
 		byte[] smpmsg;
 		try {
 			if (initiating) {
-				smpmsg = sm.step1(smstate, combined_secret);
+				smpmsg = sm.step1(combined_secret);
 			} else {
-				smpmsg = sm.step2b(smstate, combined_secret);
+				smpmsg = sm.step2b(combined_secret);
 			}
 		} catch (SMException ex) {
 			throw new OtrException(ex);
@@ -225,7 +225,7 @@ public class SmpTlvHandler {
 			final byte[] input = new byte[question.length-qlen];
 			System.arraycopy(question, qlen, input, 0, question.length-qlen);
 			try {
-				sm.step2a(smstate, input);
+				sm.step2a(input);
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
@@ -254,7 +254,7 @@ public class SmpTlvHandler {
 			 * We must wait for the secret to be entered
 			 * to continue. */
 			try {
-				sm.step2a(smstate, tlv.getValue());
+				sm.step2a(tlv.getValue());
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
@@ -275,7 +275,7 @@ public class SmpTlvHandler {
 	    if (smstate.nextExpected == SM.EXPECT2) {
 			final byte[] nextmsg;
 			try {
-				nextmsg = sm.step3(smstate, tlv.getValue());
+				nextmsg = sm.step3(tlv.getValue());
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
@@ -301,7 +301,7 @@ public class SmpTlvHandler {
         if (smstate.nextExpected == SM.EXPECT3) {
 			final byte[] nextmsg;
 			try {
-				nextmsg = sm.step4(smstate, tlv.getValue());
+				nextmsg = sm.step4(tlv.getValue());
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
@@ -336,7 +336,7 @@ public class SmpTlvHandler {
         if (smstate.nextExpected == SM.EXPECT4) {
 
 			try {
-				sm.step5(smstate, tlv.getValue());
+				sm.step5(tlv.getValue());
 			} catch (SMException e) {
 				throw new OtrException(e);
 			}
