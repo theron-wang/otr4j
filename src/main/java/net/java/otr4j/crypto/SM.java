@@ -164,18 +164,6 @@ public final class SM {
 	public static final int MOD_LEN_BYTES = 192;
 	
 	/**
-     * Generate a random exponent
-     * 
-     * @param sr SecureRandom instance to use for random data
-     * @return the generated random exponent.
-     */
-	static BigInteger randomExponent(@Nonnull final SecureRandom sr) {
-		final byte[] sb = new byte[MOD_LEN_BYTES];
-		sr.nextBytes(sb);
-		return new BigInteger(1, sb);
-	}
-	
-	/**
 	 * Hash one or two BigIntegers. To hash only one BigInteger, b may be set to
      * NULL.
      *
@@ -285,206 +273,6 @@ public final class SM {
 	{
 		if (x.compareTo(BigInteger.ONE) < 0 || x.compareTo(SM.ORDER_S) >= 0) {
             throw new SMException("Invalid parameter");
-        }
-	}
-
-	/**
-	 * Proof of knowledge of a discrete logarithm.
-     *
-     * @param g the group generator
-     * @param x the secret information
-     * @param version the prefix to use for the hashing function
-     * @param sr SecureRandom instance
-     * @return c and d.
-	 * @throws SMException when c and d could not be calculated
-	 */
-    // TODO move to abstract State class
-	static BigInteger[] proofKnowLog(@Nonnull final BigInteger g, @Nonnull final BigInteger x,
-            final int version, @Nonnull final SecureRandom sr) throws SMException
-	{
-	    final BigInteger r = randomExponent(sr);
-	    BigInteger temp = g.modPow(r, SM.MODULUS_S);
-	    final BigInteger c = hash(version, temp, null);
-	    temp = x.multiply(c).mod(ORDER_S);
-	    final BigInteger d = r.subtract(temp).mod(ORDER_S);
-	    return new BigInteger[] {c, d};
-	}
-	
-	/**
-	 * Verify a proof of knowledge of a discrete logarithm.  Checks that c = h(g^d x^c)
-     *
-     * @param c c from remote party
-     * @param d d from remote party
-     * @param g the group generator
-     * @param x our secret information
-     * @param version the prefix to use
-	 * @throws SMException when proof check fails
-	 */
-    // TODO move to abstract State class
-	static void checkKnowLog(@Nonnull final BigInteger c, @Nonnull final BigInteger d,
-            @Nonnull final BigInteger g, @Nonnull final BigInteger x, final int version) throws SMException
-	{
-	    final BigInteger gd = g.modPow(d, MODULUS_S);
-	    final BigInteger xc = x.modPow(c, MODULUS_S);
-	    final BigInteger gdxc = gd.multiply(xc).mod(MODULUS_S);
-	    final BigInteger hgdxc = hash(version, gdxc, null);
-
-        if (hgdxc.compareTo(c) != 0) {
-            throw new SMException("Proof checking failed");
-        }
-	}
-	
-	/**
-	 * Proof of knowledge of coordinates with first components being equal
-     *
-     * @param state State of SMP
-     * @param r MVN_PASS_JAVADOC_INSPECTION
-     * @param version MVN_PASS_JAVADOC_INSPECTION
-     * @param sr SecureRandom instance
-     * @return MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
-	 */
-    // TODO move to abstract State class
-	static BigInteger[] proofEqualCoords(@Nonnull final BigInteger g1,
-            @Nonnull final BigInteger g2, @Nonnull final BigInteger g3,
-            @Nonnull final BigInteger secret_mpi, @Nonnull final BigInteger r,
-            final int version, @Nonnull final SecureRandom sr) throws SMException
-	{
-	    final BigInteger r1 = randomExponent(sr);
-	    final BigInteger r2 = randomExponent(sr);
-
-	    /* Compute the value of c, as c = h(g3^r1, g1^r1 g2^r2) */
-	    BigInteger temp1 = g1.modPow(r1, MODULUS_S);
-	    BigInteger temp2 = g2.modPow(r2, MODULUS_S);
-	    temp2 = temp1.multiply(temp2).mod(MODULUS_S);
-	    temp1 = g3.modPow(r1, MODULUS_S);    
-	    final BigInteger c = hash(version, temp1, temp2);
-	    
-	    /* Compute the d values, as d1 = r1 - r c, d2 = r2 - secret c */
-	    temp1 = r.multiply(c).mod(ORDER_S);
-	    final BigInteger d1 = r1.subtract(temp1).mod(ORDER_S);
-
-	    temp1 = secret_mpi.multiply(c).mod(ORDER_S);
-	    final BigInteger d2 = r2.subtract(temp1).mod(ORDER_S);
-
-	    return new BigInteger[] {c, d1, d2};
-	}
-	
-	/**
-	 * Verify a proof of knowledge of coordinates with first components being equal
-     * 
-     * @param c MVN_PASS_JAVADOC_INSPECTION
-     * @param d1 MVN_PASS_JAVADOC_INSPECTION
-     * @param d2 MVN_PASS_JAVADOC_INSPECTION
-     * @param p MVN_PASS_JAVADOC_INSPECTION
-     * @param q MVN_PASS_JAVADOC_INSPECTION
-     * @param state State of SMP
-     * @param version MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException Throws SMException in case of invalid parameters.
-	 */
-    // TODO move to abstract State class
-	static void checkEqualCoords(@Nonnull final BigInteger c, @Nonnull final BigInteger d1,
-            @Nonnull final BigInteger d2, @Nonnull final BigInteger p,
-			@Nonnull final BigInteger q, @Nonnull final BigInteger g1,
-            @Nonnull final BigInteger g2, @Nonnull final BigInteger g3,
-            final int version) throws SMException
-	{
-	    /* To verify, we test that hash(g3^d1 * p^c, g1^d1 * g2^d2 * q^c) = c
-	     * If indeed c = hash(g3^r1, g1^r1 g2^r2), d1 = r1 - r*c,
-	     * d2 = r2 - secret*c.  And if indeed p = g3^r, q = g1^r * g2^secret
-	     * Then we should have that:
-	     *   hash(g3^d1 * p^c, g1^d1 * g2^d2 * q^c)
-	     * = hash(g3^(r1 - r*c + r*c), g1^(r1 - r*c + q*c) *
-	     *      g2^(r2 - secret*c + secret*c))
-	     * = hash(g3^r1, g1^r1 g2^r2)
-	     * = c
-	     */
-		BigInteger temp2 = g3.modPow(d1, MODULUS_S);
-		BigInteger temp3 = p.modPow(c, MODULUS_S);
-		final BigInteger temp1 = temp2.multiply(temp3).mod(MODULUS_S);
-		
-		temp2 = g1.modPow(d1, MODULUS_S);
-		temp3 = g2.modPow(d2, MODULUS_S);
-		temp2 = temp2.multiply(temp3).mod(MODULUS_S);
-		temp3 = q.modPow(c, MODULUS_S);
-		temp2 = temp3.multiply(temp2).mod(MODULUS_S);
-		
-	    final BigInteger cprime=hash(version, temp1, temp2);
-
-	    if (c.compareTo(cprime) != 0) {
-            throw new SMException("Proof checking failed");
-        }
-	}
-	
-	/**
-	 * Proof of knowledge of logs with exponents being equal
-     * @param state MVN_PASS_JAVADOC_INSPECTION
-     * @param version MVN_PASS_JAVADOC_INSPECTION
-     * @param sr SecureRandom instance
-     * @return MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
-	 */
-    // TODO move to abstract State class
-	static BigInteger[] proofEqualLogs(@Nonnull final BigInteger g1,
-            @Nonnull final BigInteger qab, @Nonnull final BigInteger x3,
-            final int version, @Nonnull final SecureRandom sr) throws SMException
-	{
-	    final BigInteger r = randomExponent(sr);
-
-	    /* Compute the value of c, as c = h(g1^r, (Qa/Qb)^r) */
-	    BigInteger temp1 = g1.modPow(r, MODULUS_S);
-	    BigInteger temp2 = qab.modPow(r, MODULUS_S);
-	    final BigInteger c = hash(version, temp1, temp2);
-
-	    /* Compute the d values, as d = r - x3 c */
-	    temp1 = x3.multiply(c).mod(ORDER_S);
-	    final BigInteger d = r.subtract(temp1).mod(ORDER_S);
-
-	    return new BigInteger[] {c, d};
-	}
-	
-	/**
-	 * Verify a proof of knowledge of logs with exponents being equal
-     * 
-     * @param c MVN_PASS_JAVADOC_INSPECTION
-     * @param d MVN_PASS_JAVADOC_INSPECTION
-     * @param r MVN_PASS_JAVADOC_INSPECTION
-     * @param state MVN_PASS_JAVADOC_INSPECTION
-     * @param version MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException Throws SMException in case of invalid parameter.
-	 */
-    // TODO move to abstract State class
-	static void checkEqualLogs(@Nonnull final BigInteger c, @Nonnull final BigInteger d,
-            @Nonnull final BigInteger r, @Nonnull final BigInteger g1, 
-            @Nonnull final BigInteger g3o, @Nonnull final BigInteger qab,
-            final int version) throws SMException
-	{
-	    /* Here, we recall the exponents used to create g3.
-	     * If we have previously seen g3o = g1^x where x is unknown
-	     * during the DH exchange to produce g3, then we may proceed with:
-	     * 
-	     * To verify, we test that hash(g1^d * g3o^c, qab^d * r^c) = c
-	     * If indeed c = hash(g1^r1, qab^r1), d = r1- x * c
-	     * And if indeed r = qab^x
-	     * Then we should have that:
-	     *   hash(g1^d * g3o^c, qab^d r^c)
-	     * = hash(g1^(r1 - x*c + x*c), qab^(r1 - x*c + x*c))
-	     * = hash(g1^r1, qab^r1)
-	     * = c
-	     */
-		
-		BigInteger temp2 = g1.modPow(d, MODULUS_S);
-		BigInteger temp3 = g3o.modPow(c, MODULUS_S);
-		final BigInteger temp1 = temp2.multiply(temp3).mod(MODULUS_S);
-		
-		temp3 = qab.modPow(d, MODULUS_S);
-		temp2 = r.modPow(c, MODULUS_S);
-		temp2 = temp3.multiply(temp2).mod(MODULUS_S);
-
-	    final BigInteger cprime = hash(version, temp1, temp2);
-
-        if (c.compareTo(cprime) != 0) {
-            throw new SMException("Proof checking failed");
         }
 	}
 	
@@ -608,10 +396,208 @@ abstract class State {
         this.sr = sr;
     }
 
-    @Nonnull
+    //FIXME still used?
     protected SecureRandom secureRandom() {
         return this.sr;
     }
+	
+	/**
+     * Generate a random exponent
+     * 
+     * @return the generated random exponent.
+     */
+	protected BigInteger randomExponent() {
+		final byte[] sb = new byte[SM.MOD_LEN_BYTES];
+		this.sr.nextBytes(sb);
+		return new BigInteger(1, sb);
+	}
+
+	/**
+	 * Proof of knowledge of a discrete logarithm.
+     *
+     * @param g the group generator
+     * @param x the secret information
+     * @param version the prefix to use for the hashing function
+     * @return c and d.
+	 * @throws SMException when c and d could not be calculated
+	 */
+	BigInteger[] proofKnowLog(@Nonnull final BigInteger x, final int version) throws SM.SMException
+	{
+	    final BigInteger r = randomExponent();
+	    BigInteger temp = G1.modPow(r, SM.MODULUS_S);
+	    final BigInteger c = SM.hash(version, temp, null);
+	    temp = x.multiply(c).mod(SM.ORDER_S);
+	    final BigInteger d = r.subtract(temp).mod(SM.ORDER_S);
+	    return new BigInteger[] {c, d};
+	}
+	
+	/**
+	 * Verify a proof of knowledge of a discrete logarithm.  Checks that c = h(g^d x^c)
+     *
+     * @param c c from remote party
+     * @param d d from remote party
+     * @param x our secret information
+     * @param version the prefix to use
+	 * @throws SMException when proof check fails
+	 */
+	void checkKnowLog(@Nonnull final BigInteger c, @Nonnull final BigInteger d,
+            @Nonnull final BigInteger x, final int version) throws SM.SMException
+	{
+	    final BigInteger gd = G1.modPow(d, SM.MODULUS_S);
+	    final BigInteger xc = x.modPow(c, SM.MODULUS_S);
+	    final BigInteger gdxc = gd.multiply(xc).mod(SM.MODULUS_S);
+	    final BigInteger hgdxc = SM.hash(version, gdxc, null);
+
+        if (hgdxc.compareTo(c) != 0) {
+            throw new SM.SMException("Proof checking failed");
+        }
+	}
+	
+	/**
+	 * Proof of knowledge of coordinates with first components being equal
+     *
+     * @param state State of SMP
+     * @param r MVN_PASS_JAVADOC_INSPECTION
+     * @param version MVN_PASS_JAVADOC_INSPECTION
+     * @param sr SecureRandom instance
+     * @return MVN_PASS_JAVADOC_INSPECTION
+	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
+	 */
+	BigInteger[] proofEqualCoords(@Nonnull final BigInteger g2,
+            @Nonnull final BigInteger g3, @Nonnull final BigInteger secret_mpi,
+            @Nonnull final BigInteger r, final int version) throws SM.SMException
+	{
+	    final BigInteger r1 = randomExponent();
+	    final BigInteger r2 = randomExponent();
+
+	    /* Compute the value of c, as c = h(g3^r1, g1^r1 g2^r2) */
+	    BigInteger temp1 = G1.modPow(r1, SM.MODULUS_S);
+	    BigInteger temp2 = g2.modPow(r2, SM.MODULUS_S);
+	    temp2 = temp1.multiply(temp2).mod(SM.MODULUS_S);
+	    temp1 = g3.modPow(r1, SM.MODULUS_S);    
+	    final BigInteger c = SM.hash(version, temp1, temp2);
+	    
+	    /* Compute the d values, as d1 = r1 - r c, d2 = r2 - secret c */
+	    temp1 = r.multiply(c).mod(SM.ORDER_S);
+	    final BigInteger d1 = r1.subtract(temp1).mod(SM.ORDER_S);
+
+	    temp1 = secret_mpi.multiply(c).mod(SM.ORDER_S);
+	    final BigInteger d2 = r2.subtract(temp1).mod(SM.ORDER_S);
+
+	    return new BigInteger[] {c, d1, d2};
+	}
+	
+	/**
+	 * Verify a proof of knowledge of coordinates with first components being equal
+     * 
+     * @param c MVN_PASS_JAVADOC_INSPECTION
+     * @param d1 MVN_PASS_JAVADOC_INSPECTION
+     * @param d2 MVN_PASS_JAVADOC_INSPECTION
+     * @param p MVN_PASS_JAVADOC_INSPECTION
+     * @param q MVN_PASS_JAVADOC_INSPECTION
+     * @param state State of SMP
+     * @param version MVN_PASS_JAVADOC_INSPECTION
+	 * @throws SMException Throws SMException in case of invalid parameters.
+	 */
+	void checkEqualCoords(@Nonnull final BigInteger c, @Nonnull final BigInteger d1,
+            @Nonnull final BigInteger d2, @Nonnull final BigInteger p,
+			@Nonnull final BigInteger q, @Nonnull final BigInteger g2,
+            @Nonnull final BigInteger g3, final int version) throws SM.SMException
+	{
+	    /* To verify, we test that hash(g3^d1 * p^c, g1^d1 * g2^d2 * q^c) = c
+	     * If indeed c = hash(g3^r1, g1^r1 g2^r2), d1 = r1 - r*c,
+	     * d2 = r2 - secret*c.  And if indeed p = g3^r, q = g1^r * g2^secret
+	     * Then we should have that:
+	     *   hash(g3^d1 * p^c, g1^d1 * g2^d2 * q^c)
+	     * = hash(g3^(r1 - r*c + r*c), g1^(r1 - r*c + q*c) *
+	     *      g2^(r2 - secret*c + secret*c))
+	     * = hash(g3^r1, g1^r1 g2^r2)
+	     * = c
+	     */
+		BigInteger temp2 = g3.modPow(d1, SM.MODULUS_S);
+		BigInteger temp3 = p.modPow(c, SM.MODULUS_S);
+		final BigInteger temp1 = temp2.multiply(temp3).mod(SM.MODULUS_S);
+		
+		temp2 = G1.modPow(d1, SM.MODULUS_S);
+		temp3 = g2.modPow(d2, SM.MODULUS_S);
+		temp2 = temp2.multiply(temp3).mod(SM.MODULUS_S);
+		temp3 = q.modPow(c, SM.MODULUS_S);
+		temp2 = temp3.multiply(temp2).mod(SM.MODULUS_S);
+		
+	    final BigInteger cprime = SM.hash(version, temp1, temp2);
+
+	    if (c.compareTo(cprime) != 0) {
+            throw new SM.SMException("Proof checking failed");
+        }
+	}
+	
+	/**
+	 * Proof of knowledge of logs with exponents being equal
+     * @param state MVN_PASS_JAVADOC_INSPECTION
+     * @param version MVN_PASS_JAVADOC_INSPECTION
+     * @param sr SecureRandom instance
+     * @return MVN_PASS_JAVADOC_INSPECTION
+	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
+	 */
+	BigInteger[] proofEqualLogs(@Nonnull final BigInteger qab,
+            @Nonnull final BigInteger x3, final int version) throws SM.SMException
+	{
+	    final BigInteger r = randomExponent();
+
+	    /* Compute the value of c, as c = h(g1^r, (Qa/Qb)^r) */
+	    BigInteger temp1 = G1.modPow(r, SM.MODULUS_S);
+	    BigInteger temp2 = qab.modPow(r, SM.MODULUS_S);
+	    final BigInteger c = SM.hash(version, temp1, temp2);
+
+	    /* Compute the d values, as d = r - x3 c */
+	    temp1 = x3.multiply(c).mod(SM.ORDER_S);
+	    final BigInteger d = r.subtract(temp1).mod(SM.ORDER_S);
+
+	    return new BigInteger[] {c, d};
+	}
+	
+	/**
+	 * Verify a proof of knowledge of logs with exponents being equal
+     * 
+     * @param c MVN_PASS_JAVADOC_INSPECTION
+     * @param d MVN_PASS_JAVADOC_INSPECTION
+     * @param r MVN_PASS_JAVADOC_INSPECTION
+     * @param state MVN_PASS_JAVADOC_INSPECTION
+     * @param version MVN_PASS_JAVADOC_INSPECTION
+	 * @throws SMException Throws SMException in case of invalid parameter.
+	 */
+	void checkEqualLogs(@Nonnull final BigInteger c, @Nonnull final BigInteger d,
+            @Nonnull final BigInteger r, @Nonnull final BigInteger g3o,
+            @Nonnull final BigInteger qab, final int version) throws SM.SMException
+	{
+	    /* Here, we recall the exponents used to create g3.
+	     * If we have previously seen g3o = g1^x where x is unknown
+	     * during the DH exchange to produce g3, then we may proceed with:
+	     * 
+	     * To verify, we test that hash(g1^d * g3o^c, qab^d * r^c) = c
+	     * If indeed c = hash(g1^r1, qab^r1), d = r1- x * c
+	     * And if indeed r = qab^x
+	     * Then we should have that:
+	     *   hash(g1^d * g3o^c, qab^d r^c)
+	     * = hash(g1^(r1 - x*c + x*c), qab^(r1 - x*c + x*c))
+	     * = hash(g1^r1, qab^r1)
+	     * = c
+	     */
+		
+		BigInteger temp2 = G1.modPow(d, SM.MODULUS_S);
+		BigInteger temp3 = g3o.modPow(c, SM.MODULUS_S);
+		final BigInteger temp1 = temp2.multiply(temp3).mod(SM.MODULUS_S);
+		
+		temp3 = qab.modPow(d, SM.MODULUS_S);
+		temp2 = r.modPow(c, SM.MODULUS_S);
+		temp2 = temp3.multiply(temp2).mod(SM.MODULUS_S);
+
+	    final BigInteger cprime = SM.hash(version, temp1, temp2);
+
+        if (c.compareTo(cprime) != 0) {
+            throw new SM.SMException("Proof checking failed");
+        }
+	}
 
     /**
      * Start SMP negotiation.
@@ -765,17 +751,17 @@ final class StateExpect1 extends State {
 	    /* Initialize the sm state or update the secret */
 	    final BigInteger secret_mpi = new BigInteger(1, secret);
 
-        final BigInteger x2 = SM.randomExponent(this.secureRandom());
-        final BigInteger x3 = SM.randomExponent(this.secureRandom());
+        final BigInteger x2 = randomExponent();
+        final BigInteger x3 = randomExponent();
 
 	    final BigInteger[] msg1 = new BigInteger[6];
 	    msg1[0] = G1.modPow(x2, SM.MODULUS_S);
-	    BigInteger[] res = SM.proofKnowLog(G1, x2, 1, this.secureRandom());
+	    BigInteger[] res = proofKnowLog(x2, 1);
 	    msg1[1]=res[0];
 	    msg1[2]=res[1];
 	    
 	    msg1[3] = G1.modPow(x3, SM.MODULUS_S);
-	    res = SM.proofKnowLog(G1, x3, 2, this.secureRandom());
+	    res = proofKnowLog(x3, 2);
 	    msg1[4]=res[0];
 	    msg1[5]=res[1];
 
@@ -813,12 +799,12 @@ final class StateExpect1 extends State {
         final BigInteger g3o = msg1[3];
 	    
 	    /* Verify Alice's proofs */
-        SM.checkKnowLog(msg1[1], msg1[2], G1, msg1[0], 1);
-        SM.checkKnowLog(msg1[4], msg1[5], G1, msg1[3], 2);
+        checkKnowLog(msg1[1], msg1[2], msg1[0], 1);
+        checkKnowLog(msg1[4], msg1[5], msg1[3], 2);
 
         /* Create Bob's half of the generators g2 and g3 */
-        final BigInteger x2 = SM.randomExponent(this.secureRandom());
-        final BigInteger x3 = SM.randomExponent(this.secureRandom());
+        final BigInteger x2 = randomExponent();
+        final BigInteger x3 = randomExponent();
 
         /* Combine the two halves from Bob and Alice and determine g2 and g3 */
         final BigInteger g2 = msg1[0].modPow(x2, SM.MODULUS_S);
@@ -836,18 +822,17 @@ final class StateExpect1 extends State {
 
 	    final BigInteger[] msg2 = new BigInteger[11];
 	    msg2[0] = G1.modPow(x2, SM.MODULUS_S);
-	    BigInteger[] res = SM.proofKnowLog(G1, x2, 3, this.secureRandom());
+	    BigInteger[] res = proofKnowLog(x2, 3);
 	    msg2[1]=res[0];
 	    msg2[2]=res[1];
 
 	    msg2[3] = G1.modPow(x3, SM.MODULUS_S);
-	    res = SM.proofKnowLog(G1, x3, 4, this.secureRandom());
+	    res = proofKnowLog(x3, 4);
 	    msg2[4]=res[0];
 	    msg2[5]=res[1];
 
 	    /* Calculate P and Q values for Bob */
-	    final BigInteger r = SM.randomExponent(this.secureRandom());
-	    //BigInteger r = new BigInteger(SM.GENERATOR_S);
+	    final BigInteger r = randomExponent();
         final BigInteger p = g3.modPow(r, SM.MODULUS_S);
 	    msg2[6] = p;
 	    final BigInteger qb1 = G1.modPow(r, SM.MODULUS_S);
@@ -855,7 +840,7 @@ final class StateExpect1 extends State {
 	    final BigInteger q = qb1.multiply(qb2).mod(SM.MODULUS_S);
 	    msg2[7] = q;
 	    
-	    res = SM.proofEqualCoords(G1, g2, g3, secret_mpi, r, 5, this.secureRandom());
+	    res = proofEqualCoords(g2, g3, secret_mpi, r, 5);
 	    msg2[8]=res[0];
 	    msg2[9]=res[1];
 	    msg2[10]=res[2];
@@ -913,18 +898,18 @@ final class StateExpect2 extends State {
         final BigInteger g3o = msg2[3];
 
 	    /* Verify Bob's knowledge of discreet log proofs */
-        SM.checkKnowLog(msg2[1], msg2[2], G1, msg2[0], 3);
-        SM.checkKnowLog(msg2[4], msg2[5], G1, msg2[3], 4);
+        checkKnowLog(msg2[1], msg2[2], msg2[0], 3);
+        checkKnowLog(msg2[4], msg2[5], msg2[3], 4);
 
         /* Combine the two halves from Bob and Alice and determine g2 and g3 */
         final BigInteger g2 = msg2[0].modPow(x2, SM.MODULUS_S);
         final BigInteger g3 = msg2[3].modPow(x3, SM.MODULUS_S);
 	    
 	    /* Verify Bob's coordinate equality proof */
-	    SM.checkEqualCoords(msg2[8], msg2[9], msg2[10], msg2[6], msg2[7], G1, g2, g3, 5);
+	    checkEqualCoords(msg2[8], msg2[9], msg2[10], msg2[6], msg2[7], g2, g3, 5);
 
 	    /* Calculate P and Q values for Alice */
-	    final BigInteger r = SM.randomExponent(this.secureRandom());
+	    final BigInteger r = randomExponent();
 	    //BigInteger r = new BigInteger(SM.GENERATOR_S);
 
 	    final BigInteger p = g3.modPow(r, SM.MODULUS_S);
@@ -934,7 +919,7 @@ final class StateExpect2 extends State {
 	    final BigInteger q = qa1.multiply(qa2).mod(SM.MODULUS_S);
 	    msg3[1] = q;
 	    
-	    BigInteger[] res = SM.proofEqualCoords(G1, g2, g3, secret_mpi, r, 6, this.secureRandom());
+	    BigInteger[] res = proofEqualCoords(g2, g3, secret_mpi, r, 6);
 	    msg3[2] = res[0];
 	    msg3[3] = res[1];
 	    msg3[4] = res[2];
@@ -946,7 +931,7 @@ final class StateExpect2 extends State {
 	    inv = msg2[7].modInverse(SM.MODULUS_S);
         final BigInteger qab = q.multiply(inv).mod(SM.MODULUS_S);
 	    msg3[5] = qab.modPow(x3, SM.MODULUS_S);
-	    res = SM.proofEqualLogs(G1, qab, x3, 7, this.secureRandom());
+	    res = proofEqualLogs(qab, x3, 7);
 	    msg3[6]=res[0];
 	    msg3[7]=res[1];
 	    
@@ -1005,7 +990,7 @@ final class StateExpect3 extends State {
         SM.checkExpon(msg3[7]);
 
 	    /* Verify Alice's coordinate equality proof */
-	    SM.checkEqualCoords(msg3[2], msg3[3], msg3[4], msg3[0], msg3[1], G1, g2, g3, 6);
+	    checkEqualCoords(msg3[2], msg3[3], msg3[4], msg3[0], msg3[1], g2, g3, 6);
 	    
 	    /* Find Pa/Pb and Qa/Qb */
 	    BigInteger inv = p.modInverse(SM.MODULUS_S);
@@ -1015,11 +1000,11 @@ final class StateExpect3 extends State {
    
 
 	    /* Verify Alice's log equality proof */
-	    SM.checkEqualLogs(msg3[6], msg3[7], msg3[5], G1, g3o, qab, 7);
+	    checkEqualLogs(msg3[6], msg3[7], msg3[5], g3o, qab, 7);
 
 	    /* Calculate Rb and proof */
 	    msg4[0] = qab.modPow(x3, SM.MODULUS_S);
-	    BigInteger[] res = SM.proofEqualLogs(G1, qab, x3, 8, this.secureRandom());
+	    BigInteger[] res = proofEqualLogs(qab, x3, 8);
 	    msg4[1]=res[0];
 	    msg4[2]=res[1];
 	    
@@ -1074,7 +1059,7 @@ final class StateExpect4 extends State {
         SM.checkExpon(msg4[2]);
 
 	    /* Verify Bob's log equality proof */
-	    SM.checkEqualLogs(msg4[1], msg4[2], msg4[0], G1, g3o, qab, 8);
+	    checkEqualLogs(msg4[1], msg4[2], msg4[0], g3o, qab, 8);
 
 	    /* Calculate Rab and verify that secrets match */
 	    
