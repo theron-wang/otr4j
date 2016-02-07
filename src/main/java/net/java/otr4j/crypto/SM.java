@@ -38,7 +38,6 @@ import net.java.otr4j.io.SerializationUtils;
 
 
 public final class SM {
-    // TODO Consider converting this to State Machine pattern.
     
     /**
      * Safe maximum array size. Copied from OpenJDK 7 implementation.
@@ -62,6 +61,8 @@ public final class SM {
     }
 
     static public class SMState{
+        // TODO update code to get rid of obsolete SMState.
+        
         BigInteger secret, x2, x3, g1, g2, g3, g3o, p, q, pab, qab;
         public int nextExpected;
         public int smProgState;
@@ -378,26 +379,27 @@ public final class SM {
  */
 abstract class State {
     // FIXME where do we do TLV sending? I suspect that this is best handled outside of TLV.
-    // FIXME prevent states from being constructed by public that are only supposed to be an end result.
     // FIXME SMP state should only be preserved in MSGSTATE_ENCRYPTED.
     // FIXME any unexpected message should result in an smpError
-    // FIXME any unexpected message should result in a state reset
-    // FIXME implement default in which state is reset and abort is sent in abstract State class, such that only implementing states need to override a method.
     // FIXME consider implementing "processing" flag which cannot be unset, such that interruption of handling is considered cheating.
 
-    protected static final BigInteger G1 = SM.GENERATOR_S;
+    static final BigInteger G1 = SM.GENERATOR_S;
 
     private final SecureRandom sr;
 
-    protected State(@Nonnull final SecureRandom sr) {
+    State(@Nonnull final SecureRandom sr) {
         if (sr == null) {
             throw new NullPointerException("sr");
         }
         this.sr = sr;
     }
 
-    //FIXME still used?
-    protected SecureRandom secureRandom() {
+    /**
+     * Accessor to SecureRandom instance.
+     *
+     * @return Returns secure random instance.
+     */
+    SecureRandom secureRandom() {
         return this.sr;
     }
 	
@@ -406,7 +408,7 @@ abstract class State {
      * 
      * @return the generated random exponent.
      */
-	protected BigInteger randomExponent() {
+	BigInteger randomExponent() {
 		final byte[] sb = new byte[SM.MOD_LEN_BYTES];
 		this.sr.nextBytes(sb);
 		return new BigInteger(1, sb);
@@ -455,13 +457,6 @@ abstract class State {
 	
 	/**
 	 * Proof of knowledge of coordinates with first components being equal
-     *
-     * @param state State of SMP
-     * @param r MVN_PASS_JAVADOC_INSPECTION
-     * @param version MVN_PASS_JAVADOC_INSPECTION
-     * @param sr SecureRandom instance
-     * @return MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
 	 */
 	BigInteger[] proofEqualCoords(@Nonnull final BigInteger g2,
             @Nonnull final BigInteger g3, @Nonnull final BigInteger secret_mpi,
@@ -489,15 +484,6 @@ abstract class State {
 	
 	/**
 	 * Verify a proof of knowledge of coordinates with first components being equal
-     * 
-     * @param c MVN_PASS_JAVADOC_INSPECTION
-     * @param d1 MVN_PASS_JAVADOC_INSPECTION
-     * @param d2 MVN_PASS_JAVADOC_INSPECTION
-     * @param p MVN_PASS_JAVADOC_INSPECTION
-     * @param q MVN_PASS_JAVADOC_INSPECTION
-     * @param state State of SMP
-     * @param version MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException Throws SMException in case of invalid parameters.
 	 */
 	void checkEqualCoords(@Nonnull final BigInteger c, @Nonnull final BigInteger d1,
             @Nonnull final BigInteger d2, @Nonnull final BigInteger p,
@@ -533,11 +519,6 @@ abstract class State {
 	
 	/**
 	 * Proof of knowledge of logs with exponents being equal
-     * @param state MVN_PASS_JAVADOC_INSPECTION
-     * @param version MVN_PASS_JAVADOC_INSPECTION
-     * @param sr SecureRandom instance
-     * @return MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
 	 */
 	BigInteger[] proofEqualLogs(@Nonnull final BigInteger qab,
             @Nonnull final BigInteger x3, final int version) throws SM.SMException
@@ -558,13 +539,6 @@ abstract class State {
 	
 	/**
 	 * Verify a proof of knowledge of logs with exponents being equal
-     * 
-     * @param c MVN_PASS_JAVADOC_INSPECTION
-     * @param d MVN_PASS_JAVADOC_INSPECTION
-     * @param r MVN_PASS_JAVADOC_INSPECTION
-     * @param state MVN_PASS_JAVADOC_INSPECTION
-     * @param version MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException Throws SMException in case of invalid parameter.
 	 */
 	void checkEqualLogs(@Nonnull final BigInteger c, @Nonnull final BigInteger d,
             @Nonnull final BigInteger r, @Nonnull final BigInteger g3o,
@@ -611,11 +585,11 @@ abstract class State {
      * SMAbortedOperation exception. StateExpect1 should override and create the
      * initiation message.
      *
-     * @param astate
+     * @param astate State of SM exchange (Alice)
      * @param secret
      * @throws net.java.otr4j.crypto.SM.SMStateException
      */
-    protected byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
+    byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
         astate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException("Received start SMP request at incorrect state of the protocol. ("
                 + this.getClass().getCanonicalName()
@@ -630,7 +604,7 @@ abstract class State {
      *
      * @param state The current state of SMP exchange.
      */
-    protected void smpAbort(@Nonnull final SM state) {
+    void smpAbort(@Nonnull final SM state) {
         state.setState(new StateExpect1(this.sr));
     }
 
@@ -638,24 +612,23 @@ abstract class State {
      * Step 2: Message sent by Alice to Bob. Begin a DH exchange to determine
      * generators g2, g3.
      *
-     * @param bstate
-     * @param input
-     * @throws net.java.otr4j.crypto.SM.SMStateException
+     * @param bstate State of SM exchange (Bob)
+     * @param input Input of initiation message.
      */
-    protected void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
         bstate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException("Received SMP message 1 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
     }
 
     /**
-     * TODO process secret required for SMP message 1.
+     * Step 2 (part 2): User has entered secret. Secret must now be passed on to
+     * SM protocol for reply message to be constructed.
      *
-     * @param bstate
-     * @param secret
-     * @return
-     * @throws net.java.otr4j.crypto.SM.SMStateException
+     * @param bstate State of SM exchange (Bob)
+     * @param secret Secret entered by user.
+     * @return Returns reply to initiation message.
      */
-    protected byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
+    byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
         bstate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException("Received follow up to SMP message 1 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
     }
@@ -664,10 +637,9 @@ abstract class State {
      * Step 2: Message sent by Bob to Alice. Complete DH exchange. Determine new
      * generators g2, g3. Begin construction of values used in final comparison.
      *
-     * @param astate
-     * @param input
-     * @return
-     * @throws net.java.otr4j.crypto.SM.SMException
+     * @param astate State of SM exchange (Alice)
+     * @param input Reply to initiation message.
+     * @return Returns reply.
      */
     byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
         astate.setState(new StateExpect1(this.sr));
@@ -678,10 +650,9 @@ abstract class State {
      * Step 3: Message sent by Alice to Bob. Alice's final message in SMP
      * exchange.
      *
-     * @param bstate
-     * @param input
-     * @return
-     * @throws net.java.otr4j.crypto.SM.SMException
+     * @param bstate State of SM exchange (Bob)
+     * @param input Reply from Alice to Bob's response to initiation message.
+     * @return Returns the final message of SMP exchange to Alice.
      */
     byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
         bstate.setState(new StateExpect1(this.sr));
@@ -692,11 +663,10 @@ abstract class State {
      * Step 4: Message sent by Bob to Alice. Bob's final message in SMP
      * exchange.
      *
-     * @param astate
-     * @param input
-     * @throws net.java.otr4j.crypto.SM.SMException
+     * @param astate State of SM exchange (Alice)
+     * @param input Final reply from Bob with last parameters of SMP exchange.
      */
-    protected void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
         astate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException("Received SMP message 4 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
     }
@@ -704,9 +674,9 @@ abstract class State {
     /**
      * Abort: In all cases, reset SMP state upon receiving SMP Abort message.
      *
-     * @param state
+     * @param state State of SM exchange
      */
-    protected void smpMessageAbort(@Nonnull final SM state) {
+    void smpMessageAbort(@Nonnull final SM state) {
         state.setState(new StateExpect1(this.sr));
     }
 }
@@ -730,7 +700,7 @@ final class StateExpect1 extends State {
     
     final BigInteger g3o;
 
-    public StateExpect1(@Nonnull final SecureRandom sr) {
+    StateExpect1(@Nonnull final SecureRandom sr) {
         this(sr, null, null, null, null, null);
     }
     
@@ -747,7 +717,7 @@ final class StateExpect1 extends State {
     }
 
     @Override
-    protected byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
+    byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
 	    /* Initialize the sm state or update the secret */
 	    final BigInteger secret_mpi = new BigInteger(1, secret);
 
@@ -774,13 +744,13 @@ final class StateExpect1 extends State {
     }
 
     @Override
-    protected void smpAbort(@Nonnull final SM state) {
+    void smpAbort(@Nonnull final SM state) {
         // NOOP since this is the default state already.
         // caller is expected to send type 6 TLV: SMP Abort.
     }
 
     @Override
-    protected void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Initialize the sm state if needed */
 
         // FIXME create similar variable for keeping track of smProgState.
@@ -816,7 +786,7 @@ final class StateExpect1 extends State {
     }
 
     @Override
-    protected byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
+    byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
 	    /* Convert the given secret to the proper form and store it */
 		final BigInteger secret_mpi = new BigInteger(1, secret);
 
@@ -864,11 +834,9 @@ final class StateExpect2 extends State {
     final BigInteger x2;
     final BigInteger x3;
 
-    public StateExpect2(@Nonnull final SecureRandom sr,
-            @Nonnull final BigInteger secret_mpi, @Nonnull final BigInteger x2,
-            @Nonnull final BigInteger x3) {
+    StateExpect2(@Nonnull final SecureRandom sr, @Nonnull final BigInteger secret_mpi,
+            @Nonnull final BigInteger x2, @Nonnull final BigInteger x3) {
         super(sr);
-        // FIXME need null checks here?
         this.secret_mpi = secret_mpi;
         this.x2 = x2;
         this.x3 = x3;
@@ -960,9 +928,8 @@ final class StateExpect3 extends State {
     final BigInteger p;
     final BigInteger q;
 
-    public StateExpect3(@Nonnull final StateExpect1 previous, @Nonnull final BigInteger p, @Nonnull final BigInteger q) {
+    StateExpect3(@Nonnull final StateExpect1 previous, @Nonnull final BigInteger p, @Nonnull final BigInteger q) {
         super(previous.secureRandom());
-        // FIXME need null checks here?
         this.x3 = previous.x3;
         this.g2 = previous.g2;
         this.g3 = previous.g3;
@@ -1018,6 +985,7 @@ final class StateExpect3 extends State {
         // FIXME create similar variable for keeping track of smProgState.
         // FIXME communicate success/failure somehow.
 	    //bstate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
+        // FIXME reset state to default.
 
 	    return output;
     }
@@ -1036,11 +1004,9 @@ final class StateExpect4 extends State {
     final BigInteger pab;
     final BigInteger qab;
 
-    public StateExpect4(@Nonnull final StateExpect2 previous,
-            @Nonnull final BigInteger g3o, @Nonnull final BigInteger pab,
-            @Nonnull final BigInteger qab) {
+    StateExpect4(@Nonnull final StateExpect2 previous, @Nonnull final BigInteger g3o,
+            @Nonnull final BigInteger pab, @Nonnull final BigInteger qab) {
         super(previous.secureRandom());
-        // FIXME need null checks here?
         this.x3 = previous.x3;
         this.g3o = g3o;
         this.pab = pab;
@@ -1048,7 +1014,7 @@ final class StateExpect4 extends State {
     }
 
     @Override
-    protected void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Read from input to find the mpis */
 	    final BigInteger[] msg4 = SM.unserialize(input);
         // FIXME create similar variable for keeping track of smProgState.
@@ -1069,5 +1035,6 @@ final class StateExpect4 extends State {
         // FIXME create similar variable for keeping track of smProgState.
         // FIXME communicate success/failure somehow.
 	    //astate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
+        // FIXME reset state to default.
     }
 }
