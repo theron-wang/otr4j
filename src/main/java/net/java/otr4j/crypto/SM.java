@@ -302,6 +302,7 @@ public final class SM {
      * @return c and d.
 	 * @throws SMException when c and d could not be calculated
 	 */
+    // TODO move to abstract State class
 	static BigInteger[] proofKnowLog(@Nonnull final BigInteger g, @Nonnull final BigInteger x,
             final int version, @Nonnull final SecureRandom sr) throws SMException
 	{
@@ -323,6 +324,7 @@ public final class SM {
      * @param version the prefix to use
 	 * @throws SMException when proof check fails
 	 */
+    // TODO move to abstract State class
 	static void checkKnowLog(@Nonnull final BigInteger c, @Nonnull final BigInteger d,
             @Nonnull final BigInteger g, @Nonnull final BigInteger x, final int version) throws SMException
 	{
@@ -346,24 +348,27 @@ public final class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	static BigInteger[] proofEqualCoords(@Nonnull final SMState state, @Nonnull final BigInteger r,
+    // TODO move to abstract State class
+	static BigInteger[] proofEqualCoords(@Nonnull final BigInteger g1,
+            @Nonnull final BigInteger g2, @Nonnull final BigInteger g3,
+            @Nonnull final BigInteger secret_mpi, @Nonnull final BigInteger r,
             final int version, @Nonnull final SecureRandom sr) throws SMException
 	{
 	    final BigInteger r1 = randomExponent(sr);
 	    final BigInteger r2 = randomExponent(sr);
 
 	    /* Compute the value of c, as c = h(g3^r1, g1^r1 g2^r2) */
-	    BigInteger temp1 = state.g1.modPow(r1, MODULUS_S);
-	    BigInteger temp2 = state.g2.modPow(r2, MODULUS_S);
+	    BigInteger temp1 = g1.modPow(r1, MODULUS_S);
+	    BigInteger temp2 = g2.modPow(r2, MODULUS_S);
 	    temp2 = temp1.multiply(temp2).mod(MODULUS_S);
-	    temp1 = state.g3.modPow(r1, MODULUS_S);    
+	    temp1 = g3.modPow(r1, MODULUS_S);    
 	    final BigInteger c = hash(version, temp1, temp2);
 	    
 	    /* Compute the d values, as d1 = r1 - r c, d2 = r2 - secret c */
 	    temp1 = r.multiply(c).mod(ORDER_S);
 	    final BigInteger d1 = r1.subtract(temp1).mod(ORDER_S);
 
-	    temp1 = state.secret.multiply(c).mod(ORDER_S);
+	    temp1 = secret_mpi.multiply(c).mod(ORDER_S);
 	    final BigInteger d2 = r2.subtract(temp1).mod(ORDER_S);
 
 	    return new BigInteger[] {c, d1, d2};
@@ -381,9 +386,12 @@ public final class SM {
      * @param version MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException Throws SMException in case of invalid parameters.
 	 */
+    // TODO move to abstract State class
 	static void checkEqualCoords(@Nonnull final BigInteger c, @Nonnull final BigInteger d1,
             @Nonnull final BigInteger d2, @Nonnull final BigInteger p,
-			@Nonnull final BigInteger q, @Nonnull final SMState state, final int version) throws SMException
+			@Nonnull final BigInteger q, @Nonnull final BigInteger g1,
+            @Nonnull final BigInteger g2, @Nonnull final BigInteger g3,
+            final int version) throws SMException
 	{
 	    /* To verify, we test that hash(g3^d1 * p^c, g1^d1 * g2^d2 * q^c) = c
 	     * If indeed c = hash(g3^r1, g1^r1 g2^r2), d1 = r1 - r*c,
@@ -395,12 +403,12 @@ public final class SM {
 	     * = hash(g3^r1, g1^r1 g2^r2)
 	     * = c
 	     */
-		BigInteger temp2 = state.g3.modPow(d1, MODULUS_S);
+		BigInteger temp2 = g3.modPow(d1, MODULUS_S);
 		BigInteger temp3 = p.modPow(c, MODULUS_S);
 		final BigInteger temp1 = temp2.multiply(temp3).mod(MODULUS_S);
 		
-		temp2 = state.g1.modPow(d1, MODULUS_S);
-		temp3 = state.g2.modPow(d2, MODULUS_S);
+		temp2 = g1.modPow(d1, MODULUS_S);
+		temp3 = g2.modPow(d2, MODULUS_S);
 		temp2 = temp2.multiply(temp3).mod(MODULUS_S);
 		temp3 = q.modPow(c, MODULUS_S);
 		temp2 = temp3.multiply(temp2).mod(MODULUS_S);
@@ -420,18 +428,20 @@ public final class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	static BigInteger[] proofEqualLogs(@Nonnull final SMState state, final int version,
-            @Nonnull final SecureRandom sr) throws SMException
+    // TODO move to abstract State class
+	static BigInteger[] proofEqualLogs(@Nonnull final BigInteger g1,
+            @Nonnull final BigInteger qab, @Nonnull final BigInteger x3,
+            final int version, @Nonnull final SecureRandom sr) throws SMException
 	{
 	    final BigInteger r = randomExponent(sr);
 
 	    /* Compute the value of c, as c = h(g1^r, (Qa/Qb)^r) */
-	    BigInteger temp1 = state.g1.modPow(r, MODULUS_S);
-	    BigInteger temp2 = state.qab.modPow(r, MODULUS_S);
+	    BigInteger temp1 = g1.modPow(r, MODULUS_S);
+	    BigInteger temp2 = qab.modPow(r, MODULUS_S);
 	    final BigInteger c = hash(version, temp1, temp2);
 
 	    /* Compute the d values, as d = r - x3 c */
-	    temp1 = state.x3.multiply(c).mod(ORDER_S);
+	    temp1 = x3.multiply(c).mod(ORDER_S);
 	    final BigInteger d = r.subtract(temp1).mod(ORDER_S);
 
 	    return new BigInteger[] {c, d};
@@ -447,8 +457,11 @@ public final class SM {
      * @param version MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException Throws SMException in case of invalid parameter.
 	 */
+    // TODO move to abstract State class
 	static void checkEqualLogs(@Nonnull final BigInteger c, @Nonnull final BigInteger d,
-            @Nonnull final BigInteger r, @Nonnull final SMState state, final int version) throws SMException
+            @Nonnull final BigInteger r, @Nonnull final BigInteger g1, 
+            @Nonnull final BigInteger g3o, @Nonnull final BigInteger qab,
+            final int version) throws SMException
 	{
 	    /* Here, we recall the exponents used to create g3.
 	     * If we have previously seen g3o = g1^x where x is unknown
@@ -464,11 +477,11 @@ public final class SM {
 	     * = c
 	     */
 		
-		BigInteger temp2 = state.g1.modPow(d, MODULUS_S);
-		BigInteger temp3 = state.g3o.modPow(c, MODULUS_S);
+		BigInteger temp2 = g1.modPow(d, MODULUS_S);
+		BigInteger temp3 = g3o.modPow(c, MODULUS_S);
 		final BigInteger temp1 = temp2.multiply(temp3).mod(MODULUS_S);
 		
-		temp3 = state.qab.modPow(d, MODULUS_S);
+		temp3 = qab.modPow(d, MODULUS_S);
 		temp2 = r.modPow(c, MODULUS_S);
 		temp2 = temp3.multiply(temp2).mod(MODULUS_S);
 
@@ -588,6 +601,8 @@ abstract class State {
     // FIXME implement default in which state is reset and abort is sent in abstract State class, such that only implementing states need to override a method.
     // FIXME consider implementing "processing" flag which cannot be unset, such that interruption of handling is considered cheating.
 
+    protected static final BigInteger G1 = SM.GENERATOR_S;
+
     private final SecureRandom sr;
 
     protected State(@Nonnull final SecureRandom sr) {
@@ -618,7 +633,7 @@ abstract class State {
      * @param secret
      * @throws net.java.otr4j.crypto.SM.SMStateException
      */
-    protected byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException {
+    protected byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
         astate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException("Received start SMP request at incorrect state of the protocol. ("
                 + this.getClass().getCanonicalName()
@@ -645,7 +660,7 @@ abstract class State {
      * @param input
      * @throws net.java.otr4j.crypto.SM.SMStateException
      */
-    protected void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+    protected void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
         bstate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException("Received SMP message 1 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
     }
@@ -658,7 +673,7 @@ abstract class State {
      * @return
      * @throws net.java.otr4j.crypto.SM.SMStateException
      */
-    protected byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException {
+    protected byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
         bstate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException("Received follow up to SMP message 1 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
     }
@@ -672,7 +687,7 @@ abstract class State {
      * @return
      * @throws net.java.otr4j.crypto.SM.SMException
      */
-    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
         astate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException("Received SMP message 2 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
     }
@@ -686,7 +701,7 @@ abstract class State {
      * @return
      * @throws net.java.otr4j.crypto.SM.SMException
      */
-    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
         bstate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException("Received SMP message 3 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
     }
@@ -699,7 +714,7 @@ abstract class State {
      * @param input
      * @throws net.java.otr4j.crypto.SM.SMException
      */
-    protected void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+    protected void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
         astate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException("Received SMP message 4 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
     }
@@ -725,109 +740,134 @@ abstract class State {
  */
 final class StateExpect1 extends State {
 
+    final BigInteger x2;
+    final BigInteger x3;
+    
+    final BigInteger g2;
+    final BigInteger g3;
+    
+    final BigInteger g3o;
+
     public StateExpect1(@Nonnull final SecureRandom sr) {
+        this(sr, null, null, null, null, null);
+    }
+    
+    private StateExpect1(@Nonnull final SecureRandom sr,
+            @Nonnull final BigInteger x2, @Nonnull final BigInteger x3,
+            @Nonnull final BigInteger g2, @Nonnull final BigInteger g3,
+            @Nonnull final BigInteger g3o) {
         super(sr);
+        this.x2 = x2;
+        this.x3 = x3;
+        this.g2 = g2;
+        this.g3 = g3;
+        this.g3o = g3o;
     }
 
     @Override
-    protected byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException {
-        // FIXME implement creation of SMP initiating message
+    protected byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
 	    /* Initialize the sm state or update the secret */
 	    final BigInteger secret_mpi = new BigInteger(1, secret);
 
-	    astate.secret = secret_mpi;
-	    astate.x2 = randomExponent(sr);
-	    astate.x3 = randomExponent(sr);
+        final BigInteger x2 = SM.randomExponent(this.secureRandom());
+        final BigInteger x3 = SM.randomExponent(this.secureRandom());
 
 	    final BigInteger[] msg1 = new BigInteger[6];
-	    msg1[0] = astate.g1.modPow(astate.x2, MODULUS_S);
-	    BigInteger[] res = proofKnowLog(astate.g1, astate.x2, 1, sr);
+	    msg1[0] = G1.modPow(x2, SM.MODULUS_S);
+	    BigInteger[] res = SM.proofKnowLog(G1, x2, 1, this.secureRandom());
 	    msg1[1]=res[0];
 	    msg1[2]=res[1];
 	    
-	    msg1[3] = astate.g1.modPow(astate.x3, MODULUS_S);
-	    res = proofKnowLog(astate.g1, astate.x3, 2, sr);
+	    msg1[3] = G1.modPow(x3, SM.MODULUS_S);
+	    res = SM.proofKnowLog(G1, x3, 2, this.secureRandom());
 	    msg1[4]=res[0];
 	    msg1[5]=res[1];
 
-	    final byte[] ret = serialize(msg1);
-	    astate.smProgState = PROG_OK;
+	    final byte[] ret = SM.serialize(msg1);
+        // FIXME create similar variable for keeping track of smProgState.
+	    //astate.smProgState = PROG_OK;
 
+        astate.setState(new StateExpect2(this.secureRandom(), secret_mpi, x2, x3));
 	    return ret;
     }
 
     @Override
     protected void smpAbort(@Nonnull final SM state) {
-        // NOOP since this is the default state.
+        // NOOP since this is the default state already.
+        // caller is expected to send type 6 TLV: SMP Abort.
     }
 
     @Override
-    protected void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+    protected void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Initialize the sm state if needed */
-	    bstate.smProgState = PROG_CHEATED;
+
+        // FIXME create similar variable for keeping track of smProgState.
+	    //bstate.smProgState = PROG_CHEATED;
 
 	    /* Read from input to find the mpis */
-	    final BigInteger[] msg1 = unserialize(input);
+	    final BigInteger[] msg1 = SM.unserialize(input);
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-        checkGroupElem(msg1[0]);
-        checkExpon(msg1[2]);
-        checkGroupElem(msg1[3]);
-        checkExpon(msg1[5]);
+        SM.checkGroupElem(msg1[0]);
+        SM.checkExpon(msg1[2]);
+        SM.checkGroupElem(msg1[3]);
+        SM.checkExpon(msg1[5]);
 
-	    /* Store Alice's g3a value for later in the protocol */
-	    bstate.g3o=msg1[3];
+        /* Store Alice's g3a value for later in the protocol */
+        final BigInteger g3o = msg1[3];
 	    
 	    /* Verify Alice's proofs */
-        checkKnowLog(msg1[1], msg1[2], bstate.g1, msg1[0], 1);
-        checkKnowLog(msg1[4], msg1[5], bstate.g1, msg1[3], 2);
+        SM.checkKnowLog(msg1[1], msg1[2], G1, msg1[0], 1);
+        SM.checkKnowLog(msg1[4], msg1[5], G1, msg1[3], 2);
 
-	    /* Create Bob's half of the generators g2 and g3 */
-	    bstate.x2 = randomExponent(sr);
-	    bstate.x3 = randomExponent(sr);
+        /* Create Bob's half of the generators g2 and g3 */
+        final BigInteger x2 = SM.randomExponent(this.secureRandom());
+        final BigInteger x3 = SM.randomExponent(this.secureRandom());
 
-	    /* Combine the two halves from Bob and Alice and determine g2 and g3 */
-	    bstate.g2 = msg1[0].modPow(bstate.x2, MODULUS_S);
-	    bstate.g3 = msg1[3].modPow(bstate.x3, MODULUS_S);
+        /* Combine the two halves from Bob and Alice and determine g2 and g3 */
+        final BigInteger g2 = msg1[0].modPow(x2, SM.MODULUS_S);
+	    final BigInteger g3 = msg1[3].modPow(x3, SM.MODULUS_S);
 	    
-	    bstate.smProgState = PROG_OK;
+        // FIXME create similar variable for keeping track of smProgState.
+	    //bstate.smProgState = PROG_OK;
+        bstate.setState(new StateExpect1(this.secureRandom(), x2, x3, g2, g3, g3o));
     }
 
     @Override
-    protected byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException {
+    protected byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
 	    /* Convert the given secret to the proper form and store it */
 		final BigInteger secret_mpi = new BigInteger(1, secret);
-		bstate.secret = secret_mpi;
 
 	    final BigInteger[] msg2 = new BigInteger[11];
-	    msg2[0] = bstate.g1.modPow(bstate.x2, MODULUS_S);
-	    BigInteger[] res = proofKnowLog(bstate.g1, bstate.x2, 3, sr);
+	    msg2[0] = G1.modPow(x2, SM.MODULUS_S);
+	    BigInteger[] res = SM.proofKnowLog(G1, x2, 3, this.secureRandom());
 	    msg2[1]=res[0];
 	    msg2[2]=res[1];
 
-	    msg2[3] = bstate.g1.modPow(bstate.x3, MODULUS_S);
-	    res = proofKnowLog(bstate.g1, bstate.x3, 4, sr);
+	    msg2[3] = G1.modPow(x3, SM.MODULUS_S);
+	    res = SM.proofKnowLog(G1, x3, 4, this.secureRandom());
 	    msg2[4]=res[0];
 	    msg2[5]=res[1];
 
 	    /* Calculate P and Q values for Bob */
-	    final BigInteger r = randomExponent(sr);
+	    final BigInteger r = SM.randomExponent(this.secureRandom());
 	    //BigInteger r = new BigInteger(SM.GENERATOR_S);
-
-	    bstate.p = bstate.g3.modPow(r, MODULUS_S);
-	    msg2[6]=bstate.p;
-	    final BigInteger qb1 = bstate.g1.modPow(r, MODULUS_S);
-	    final BigInteger qb2 = bstate.g2.modPow(bstate.secret, MODULUS_S);
-	    bstate.q = qb1.multiply(qb2).mod(MODULUS_S);
-	    msg2[7] = bstate.q;
+        final BigInteger p = g3.modPow(r, SM.MODULUS_S);
+	    msg2[6] = p;
+	    final BigInteger qb1 = G1.modPow(r, SM.MODULUS_S);
+	    final BigInteger qb2 = g2.modPow(secret_mpi, SM.MODULUS_S);
+	    final BigInteger q = qb1.multiply(qb2).mod(SM.MODULUS_S);
+	    msg2[7] = q;
 	    
-	    res = proofEqualCoords(bstate, r, 5, sr);
+	    res = SM.proofEqualCoords(G1, g2, g3, secret_mpi, r, 5, this.secureRandom());
 	    msg2[8]=res[0];
 	    msg2[9]=res[1];
 	    msg2[10]=res[2];
 
+        bstate.setState(new StateExpect3(this, p, q));
+
 	    /* Convert to serialized form */
-	    return serialize(msg2);
+	    return SM.serialize(msg2);
     }
 }
 
@@ -839,73 +879,87 @@ final class StateExpect1 extends State {
  */
 final class StateExpect2 extends State {
 
-    public StateExpect2(@Nonnull final SecureRandom sr) {
+    final BigInteger secret_mpi;
+    final BigInteger x2;
+    final BigInteger x3;
+
+    public StateExpect2(@Nonnull final SecureRandom sr,
+            @Nonnull final BigInteger secret_mpi, @Nonnull final BigInteger x2,
+            @Nonnull final BigInteger x3) {
         super(sr);
+        // FIXME need null checks here?
+        this.secret_mpi = secret_mpi;
+        this.x2 = x2;
+        this.x3 = x3;
     }
 
     @Override
-    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Read from input to find the mpis */
-	    astate.smProgState = PROG_CHEATED;
+        // FIXME create similar variable for keeping track of smProgState.
+	    //astate.smProgState = PROG_CHEATED;
 	    
-	    final BigInteger[] msg2 = unserialize(input);
+	    final BigInteger[] msg2 = SM.unserialize(input);
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-        checkGroupElem(msg2[0]);
-        checkGroupElem(msg2[3]);
-        checkGroupElem(msg2[6]);
-        checkGroupElem(msg2[7]);
-        checkExpon(msg2[2]);
-        checkExpon(msg2[5]);
-        checkExpon(msg2[9]);
-        checkExpon(msg2[10]);
+        SM.checkGroupElem(msg2[0]);
+        SM.checkGroupElem(msg2[3]);
+        SM.checkGroupElem(msg2[6]);
+        SM.checkGroupElem(msg2[7]);
+        SM.checkExpon(msg2[2]);
+        SM.checkExpon(msg2[5]);
+        SM.checkExpon(msg2[9]);
+        SM.checkExpon(msg2[10]);
 
 	    final BigInteger[] msg3 = new BigInteger[8];
 
-	    /* Store Bob's g3a value for later in the protocol */
-	    astate.g3o = msg2[3];
+        /* Store Bob's g3a value for later in the protocol */
+        final BigInteger g3o = msg2[3];
 
 	    /* Verify Bob's knowledge of discreet log proofs */
-        checkKnowLog(msg2[1], msg2[2], astate.g1, msg2[0], 3);
-        checkKnowLog(msg2[4], msg2[5], astate.g1, msg2[3], 4);
+        SM.checkKnowLog(msg2[1], msg2[2], G1, msg2[0], 3);
+        SM.checkKnowLog(msg2[4], msg2[5], G1, msg2[3], 4);
 
-	    /* Combine the two halves from Bob and Alice and determine g2 and g3 */
-	    astate.g2 = msg2[0].modPow(astate.x2, MODULUS_S);
-	    astate.g3 = msg2[3].modPow(astate.x3, MODULUS_S);
+        /* Combine the two halves from Bob and Alice and determine g2 and g3 */
+        final BigInteger g2 = msg2[0].modPow(x2, SM.MODULUS_S);
+        final BigInteger g3 = msg2[3].modPow(x3, SM.MODULUS_S);
 	    
 	    /* Verify Bob's coordinate equality proof */
-	    checkEqualCoords(msg2[8], msg2[9], msg2[10], msg2[6], msg2[7], astate, 5);
+	    SM.checkEqualCoords(msg2[8], msg2[9], msg2[10], msg2[6], msg2[7], G1, g2, g3, 5);
 
 	    /* Calculate P and Q values for Alice */
-	    final BigInteger r = randomExponent(sr);
+	    final BigInteger r = SM.randomExponent(this.secureRandom());
 	    //BigInteger r = new BigInteger(SM.GENERATOR_S);
 
-	    astate.p = astate.g3.modPow(r, MODULUS_S);
-	    msg3[0]=astate.p;
-	    final BigInteger qa1 = astate.g1.modPow(r, MODULUS_S);
-	    final BigInteger qa2 = astate.g2.modPow(astate.secret, MODULUS_S);
-	    astate.q = qa1.multiply(qa2).mod(MODULUS_S);
-	    msg3[1] = astate.q;
+	    final BigInteger p = g3.modPow(r, SM.MODULUS_S);
+	    msg3[0] = p;
+	    final BigInteger qa1 = G1.modPow(r, SM.MODULUS_S);
+	    final BigInteger qa2 = g2.modPow(secret_mpi, SM.MODULUS_S);
+	    final BigInteger q = qa1.multiply(qa2).mod(SM.MODULUS_S);
+	    msg3[1] = q;
 	    
-	    BigInteger[] res = proofEqualCoords(astate, r, 6, sr);
+	    BigInteger[] res = SM.proofEqualCoords(G1, g2, g3, secret_mpi, r, 6, this.secureRandom());
 	    msg3[2] = res[0];
 	    msg3[3] = res[1];
 	    msg3[4] = res[2];
 
 
 	    /* Calculate Ra and proof */
-	    BigInteger inv = msg2[6].modInverse(MODULUS_S);
-	    astate.pab = astate.p.multiply(inv).mod(MODULUS_S);
-	    inv = msg2[7].modInverse(MODULUS_S);
-	    astate.qab = astate.q.multiply(inv).mod(MODULUS_S);
-	    msg3[5] = astate.qab.modPow(astate.x3, MODULUS_S);
-	    res = proofEqualLogs(astate, 7, sr);
+	    BigInteger inv = msg2[6].modInverse(SM.MODULUS_S);
+        final BigInteger pab = p.multiply(inv).mod(SM.MODULUS_S);
+	    inv = msg2[7].modInverse(SM.MODULUS_S);
+        final BigInteger qab = q.multiply(inv).mod(SM.MODULUS_S);
+	    msg3[5] = qab.modPow(x3, SM.MODULUS_S);
+	    res = SM.proofEqualLogs(G1, qab, x3, 7, this.secureRandom());
 	    msg3[6]=res[0];
 	    msg3[7]=res[1];
 	    
-	    final byte[] output = serialize(msg3);
-	   
-	    astate.smProgState = PROG_OK;
+	    final byte[] output = SM.serialize(msg3);
+
+        astate.setState(new StateExpect4(this, g3o, pab, qab));
+
+        // FIXME create similar variable for keeping track of smProgState.
+	    //astate.smProgState = PROG_OK;
 	    return output;
     }
 }
@@ -918,54 +972,71 @@ final class StateExpect2 extends State {
  */
 final class StateExpect3 extends State {
 
-    public StateExpect3(@Nonnull final SecureRandom sr) {
-        super(sr);
+    final BigInteger x3;
+    final BigInteger g2;
+    final BigInteger g3;
+    final BigInteger g3o;
+    final BigInteger p;
+    final BigInteger q;
+
+    public StateExpect3(@Nonnull final StateExpect1 previous, @Nonnull final BigInteger p, @Nonnull final BigInteger q) {
+        super(previous.secureRandom());
+        // FIXME need null checks here?
+        this.x3 = previous.x3;
+        this.g2 = previous.g2;
+        this.g3 = previous.g3;
+        this.g3o = previous.g3o;
+        this.p = p;
+        this.q = q;
     }
 
     @Override
-    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Read from input to find the mpis */
-	    final BigInteger[] msg3 = unserialize(input);
+	    final BigInteger[] msg3 = SM.unserialize(input);
 
-	    bstate.smProgState = PROG_CHEATED;
+        // FIXME create similar variable for keeping track of smProgState.
+	    //bstate.smProgState = PROG_CHEATED;
 	    
 	    final BigInteger[] msg4 = new BigInteger[3];
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-	    checkGroupElem(msg3[0]);
-        checkGroupElem(msg3[1]);
-		checkGroupElem(msg3[5]);
-        checkExpon(msg3[3]);
-        checkExpon(msg3[4]);
-        checkExpon(msg3[7]);
+	    SM.checkGroupElem(msg3[0]);
+        SM.checkGroupElem(msg3[1]);
+		SM.checkGroupElem(msg3[5]);
+        SM.checkExpon(msg3[3]);
+        SM.checkExpon(msg3[4]);
+        SM.checkExpon(msg3[7]);
 
 	    /* Verify Alice's coordinate equality proof */
-	    checkEqualCoords(msg3[2], msg3[3], msg3[4], msg3[0], msg3[1], bstate, 6);
+	    SM.checkEqualCoords(msg3[2], msg3[3], msg3[4], msg3[0], msg3[1], G1, g2, g3, 6);
 	    
 	    /* Find Pa/Pb and Qa/Qb */
-	    BigInteger inv = bstate.p.modInverse(MODULUS_S);
-	    bstate.pab = msg3[0].multiply(inv).mod(MODULUS_S);
-	    inv = bstate.q.modInverse(MODULUS_S);
-	    bstate.qab = msg3[1].multiply(inv).mod(MODULUS_S);
+	    BigInteger inv = p.modInverse(SM.MODULUS_S);
+        final BigInteger pab = msg3[0].multiply(inv).mod(SM.MODULUS_S);
+	    inv = q.modInverse(SM.MODULUS_S);
+        final BigInteger qab = msg3[1].multiply(inv).mod(SM.MODULUS_S);
    
 
 	    /* Verify Alice's log equality proof */
-	    checkEqualLogs(msg3[6], msg3[7], msg3[5], bstate, 7);
+	    SM.checkEqualLogs(msg3[6], msg3[7], msg3[5], G1, g3o, qab, 7);
 
 	    /* Calculate Rb and proof */
-	    msg4[0] = bstate.qab.modPow(bstate.x3, MODULUS_S);
-	    BigInteger[] res = proofEqualLogs(bstate, 8, sr);
+	    msg4[0] = qab.modPow(x3, SM.MODULUS_S);
+	    BigInteger[] res = SM.proofEqualLogs(G1, qab, x3, 8, this.secureRandom());
 	    msg4[1]=res[0];
 	    msg4[2]=res[1];
 	    
-	    final byte[] output = serialize(msg4);
+	    final byte[] output = SM.serialize(msg4);
 
 	    /* Calculate Rab and verify that secrets match */
 	    
-	    final BigInteger rab = msg3[5].modPow(bstate.x3, MODULUS_S);
-	    final int comp = rab.compareTo(bstate.pab);
+	    final BigInteger rab = msg3[5].modPow(x3, SM.MODULUS_S);
+	    final int comp = rab.compareTo(pab);
 
-	    bstate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
+        // FIXME create similar variable for keeping track of smProgState.
+        // FIXME communicate success/failure somehow.
+	    //bstate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
 
 	    return output;
     }
@@ -979,28 +1050,43 @@ final class StateExpect3 extends State {
  */
 final class StateExpect4 extends State {
 
-    public StateExpect4(@Nonnull final SecureRandom sr) {
-        super(sr);
+    final BigInteger x3;
+    final BigInteger g3o;
+    final BigInteger pab;
+    final BigInteger qab;
+
+    public StateExpect4(@Nonnull final StateExpect2 previous,
+            @Nonnull final BigInteger g3o, @Nonnull final BigInteger pab,
+            @Nonnull final BigInteger qab) {
+        super(previous.secureRandom());
+        // FIXME need null checks here?
+        this.x3 = previous.x3;
+        this.g3o = g3o;
+        this.pab = pab;
+        this.qab = qab;
     }
 
     @Override
-    protected void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException {
+    protected void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Read from input to find the mpis */
-	    final BigInteger[] msg4 = unserialize(input);
-	    astate.smProgState = PROG_CHEATED;
+	    final BigInteger[] msg4 = SM.unserialize(input);
+        // FIXME create similar variable for keeping track of smProgState.
+	    //astate.smProgState = PROG_CHEATED;
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-	    checkGroupElem(msg4[0]);
-        checkExpon(msg4[2]);
+	    SM.checkGroupElem(msg4[0]);
+        SM.checkExpon(msg4[2]);
 
 	    /* Verify Bob's log equality proof */
-	    checkEqualLogs(msg4[1], msg4[2], msg4[0], astate, 8);
+	    SM.checkEqualLogs(msg4[1], msg4[2], msg4[0], G1, g3o, qab, 8);
 
 	    /* Calculate Rab and verify that secrets match */
 	    
-	    final BigInteger rab = msg4[0].modPow(astate.x3, MODULUS_S);
-	    final int comp = rab.compareTo(astate.pab);
+	    final BigInteger rab = msg4[0].modPow(x3, SM.MODULUS_S);
+	    final int comp = rab.compareTo(pab);
 
-	    astate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
+        // FIXME create similar variable for keeping track of smProgState.
+        // FIXME communicate success/failure somehow.
+	    //astate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
     }
 }
