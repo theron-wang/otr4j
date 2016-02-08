@@ -247,7 +247,12 @@ public final class SM {
             }
         }
 	}
-	
+
+    @Nonnull
+    public SMStatus status() {
+        return this.state.status();
+    }
+
 	/** Create first message in SMP exchange.  Input is Alice's secret value
 	 * which this protocol aims to compare to Bob's. The return value is a serialized
 	 * BigInteger array whose elements correspond to the following:
@@ -364,6 +369,17 @@ abstract class State {
         }
         this.sr = sr;
     }
+
+    /**
+     * Status of the SM protocol.
+     *
+     * @return Returns UNDECIDED in case SMP has not been executed, or is
+     * executing but not yet completed. Returns SUCCEEDED in case SMP has
+     * executed successfully. Returns FAILED in case SMP has executed
+     * unsuccessfully.
+     */
+    @Nonnull
+    abstract SMStatus status();
 
     /**
      * Start SMP negotiation.
@@ -692,6 +708,8 @@ abstract class State {
  */
 final class StateExpect1 extends State {
 
+    private final SMStatus status;
+
     final BigInteger x2;
     final BigInteger x3;
     
@@ -701,19 +719,29 @@ final class StateExpect1 extends State {
     final BigInteger g3o;
 
     StateExpect1(@Nonnull final SecureRandom sr) {
-        this(sr, null, null, null, null, null);
+        this(sr, SMStatus.UNDECIDED, null, null, null, null, null);
     }
-    
+
+    StateExpect1(@Nonnull final SecureRandom sr, @Nonnull final SMStatus status) {
+        this(sr, status, null, null, null, null, null);
+    }
+
     private StateExpect1(@Nonnull final SecureRandom sr,
-            @Nullable final BigInteger x2, @Nullable final BigInteger x3,
-            @Nullable final BigInteger g2, @Nullable final BigInteger g3,
-            @Nullable final BigInteger g3o) {
+            @Nonnull final SMStatus status, @Nullable final BigInteger x2,
+            @Nullable final BigInteger x3, @Nullable final BigInteger g2,
+            @Nullable final BigInteger g3, @Nullable final BigInteger g3o) {
         super(sr);
+        this.status = status;
         this.x2 = x2;
         this.x3 = x3;
         this.g2 = g2;
         this.g3 = g3;
         this.g3o = g3o;
+    }
+
+    @Override
+    SMStatus status() {
+        return this.status;
     }
 
     @Override
@@ -736,7 +764,7 @@ final class StateExpect1 extends State {
 	    msg1[5]=res[1];
 
 	    final byte[] ret = SM.serialize(msg1);
-        // FIXME create similar variable for keeping track of smProgState.
+        // FIXME what to do with status CHEATED?
 	    //astate.smProgState = PROG_OK;
 
         astate.setState(new StateExpect2(this.secureRandom(), secret_mpi, x2, x3));
@@ -747,13 +775,14 @@ final class StateExpect1 extends State {
     void smpAbort(@Nonnull final SM state) {
         // NOOP since this is the default state already.
         // caller is expected to send type 6 TLV: SMP Abort.
+        // FIXME Should we make sure status == UNDECIDED when smpAbort() is called? Or is it okay to have FAILED/SUCCEEDED, since we will reset when we start SMP exchange anew?
     }
 
     @Override
     void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Initialize the sm state if needed */
 
-        // FIXME create similar variable for keeping track of smProgState.
+        // FIXME what to do with status CHEATED?
 	    //bstate.smProgState = PROG_CHEATED;
 
 	    /* Read from input to find the mpis */
@@ -780,9 +809,9 @@ final class StateExpect1 extends State {
         final BigInteger g2 = msg1[0].modPow(x2, SM.MODULUS_S);
 	    final BigInteger g3 = msg1[3].modPow(x3, SM.MODULUS_S);
 	    
-        // FIXME create similar variable for keeping track of smProgState.
+        // FIXME what to do with status CHEATED?
 	    //bstate.smProgState = PROG_OK;
-        bstate.setState(new StateExpect1(this.secureRandom(), x2, x3, g2, g3, g3o));
+        bstate.setState(new StateExpect1(this.secureRandom(), SMStatus.UNDECIDED, x2, x3, g2, g3, g3o));
     }
 
     @Override
@@ -843,9 +872,14 @@ final class StateExpect2 extends State {
     }
 
     @Override
+    SMStatus status() {
+        return SMStatus.UNDECIDED;
+    }
+
+    @Override
     byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Read from input to find the mpis */
-        // FIXME create similar variable for keeping track of smProgState.
+        // FIXME what to do with status CHEATED?
 	    //astate.smProgState = PROG_CHEATED;
 	    
 	    final BigInteger[] msg2 = SM.unserialize(input);
@@ -907,7 +941,7 @@ final class StateExpect2 extends State {
 
         astate.setState(new StateExpect4(this, g3o, pab, qab));
 
-        // FIXME create similar variable for keeping track of smProgState.
+        // FIXME what to do with status CHEATED?
 	    //astate.smProgState = PROG_OK;
 	    return output;
     }
@@ -936,6 +970,11 @@ final class StateExpect3 extends State {
         this.g3o = previous.g3o;
         this.p = p;
         this.q = q;
+    }
+
+    @Override
+    SMStatus status() {
+        return SMStatus.UNDECIDED;
     }
 
     @Override
@@ -982,10 +1021,9 @@ final class StateExpect3 extends State {
 	    final BigInteger rab = msg3[5].modPow(x3, SM.MODULUS_S);
 	    final int comp = rab.compareTo(pab);
 
-        // FIXME create similar variable for keeping track of smProgState.
-        // FIXME communicate success/failure somehow.
-	    //bstate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
-        // FIXME reset state to default.
+        // FIXME what to do with status CHEATED?
+        final SMStatus status = (comp == 0) ? SMStatus.SUCCEEDED : SMStatus.FAILED;
+        bstate.setState(new StateExpect1(this.secureRandom(), status));
 
 	    return output;
     }
@@ -1014,6 +1052,11 @@ final class StateExpect4 extends State {
     }
 
     @Override
+    SMStatus status() {
+        return SMStatus.UNDECIDED;
+    }
+
+    @Override
     void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Read from input to find the mpis */
 	    final BigInteger[] msg4 = SM.unserialize(input);
@@ -1032,9 +1075,8 @@ final class StateExpect4 extends State {
 	    final BigInteger rab = msg4[0].modPow(x3, SM.MODULUS_S);
 	    final int comp = rab.compareTo(pab);
 
-        // FIXME create similar variable for keeping track of smProgState.
-        // FIXME communicate success/failure somehow.
-	    //astate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
-        // FIXME reset state to default.
+        // FIXME what to do with status CHEATED?
+        final SMStatus status = (comp == 0) ? SMStatus.SUCCEEDED : SMStatus.FAILED;
+        astate.setState(new StateExpect1(this.secureRandom(), status));
     }
 }

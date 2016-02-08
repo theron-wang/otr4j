@@ -81,19 +81,34 @@ public class SMTest {
 
     @Test(expected = SM.SMException.class)
     public void testCheckKnowLog() throws SM.SMException {
-        final State sm = new State(sr) {};
+        final State sm = new State(sr) {
+            @Override
+            SMStatus status() {
+                return SMStatus.UNDECIDED;
+            }
+        };
         sm.checkKnowLog(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, 0);
     }
 
     @Test(expected = SM.SMException.class)
     public void testCheckEqualCoords() throws SM.SMException {
-        final State sm = new State(sr) {};
+        final State sm = new State(sr) {
+            @Override
+            SMStatus status() {
+                return SMStatus.UNDECIDED;
+            }
+        };
         sm.checkEqualCoords(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, BigInteger.valueOf(100L), BigInteger.valueOf(50L), BigInteger.valueOf(25L), BigInteger.valueOf(12L), 0);
     }
 
     @Test(expected = SM.SMException.class)
     public void testCheckEqualLogs() throws SM.SMException {
-        final State sm = new State(sr) {};
+        final State sm = new State(sr) {
+            @Override
+            SMStatus status() {
+                return SMStatus.UNDECIDED;
+            }
+        };
         sm.checkEqualLogs(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, BigInteger.valueOf(23L), BigInteger.valueOf(35L), 0);
     }
 
@@ -139,13 +154,13 @@ public class SMTest {
         final SecureRandom rand = new SecureRandom();
 
         // Alice
-        final SM.SMState alice = new SM.SMState();
+        final SM alice = new SM(rand);
         final KeyPair aliceKeyPair = generateKeyPair();
         final KeyPair aliceDHKeyPair = OtrCryptoEngine.generateDHKeyPair(rand);
         final byte[] alicePublic = OtrCryptoEngine.getFingerprintRaw(aliceKeyPair.getPublic());
 
         // Bob
-        final SM.SMState bob = new SM.SMState();
+        final SM bob = new SM(rand);
         final KeyPair bobKeyPair = generateKeyPair();
         final KeyPair bobDHKeyPair = OtrCryptoEngine.generateDHKeyPair(rand);
         final byte[] bobPublic = OtrCryptoEngine.getFingerprintRaw(bobKeyPair.getPublic());
@@ -156,34 +171,33 @@ public class SMTest {
         final byte[] combinedSecretBytes = combinedSecret(alicePublic, bobPublic, s, secret);
 
         // SMP session execution
-        final SM sm = new SM(rand);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_OK, bob.smProgState);
+        assertEquals(SMStatus.UNDECIDED, alice.status());
+        assertEquals(SMStatus.UNDECIDED, bob.status());
 
-        final byte[] msg1 = sm.step1(alice, combinedSecretBytes);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_OK, bob.smProgState);
+        final byte[] msg1 = alice.step1(combinedSecretBytes);
+        assertEquals(SMStatus.UNDECIDED, alice.status());
+        assertEquals(SMStatus.UNDECIDED, bob.status());
 
-        sm.step2a(bob, msg1);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_OK, bob.smProgState);
+        bob.step2a(msg1);
+        assertEquals(SMStatus.UNDECIDED, alice.status());
+        assertEquals(SMStatus.UNDECIDED, bob.status());
 
-        final byte[] msg2 = sm.step2b(bob, combinedSecretBytes);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_OK, bob.smProgState);
+        final byte[] msg2 = bob.step2b(combinedSecretBytes);
+        assertEquals(SMStatus.UNDECIDED, alice.status());
+        assertEquals(SMStatus.UNDECIDED, bob.status());
 
-        final byte[] msg3 = sm.step3(alice, msg2);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_OK, bob.smProgState);
+        final byte[] msg3 = alice.step3(msg2);
+        assertEquals(SMStatus.UNDECIDED, alice.status());
+        assertEquals(SMStatus.UNDECIDED, bob.status());
 
-        final byte[] msg4 = sm.step4(bob, msg3);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_SUCCEEDED, bob.smProgState);
+        final byte[] msg4 = bob.step4(msg3);
+        assertEquals(SMStatus.UNDECIDED, alice.status());
+        assertEquals(SMStatus.SUCCEEDED, bob.status());
 
-        sm.step5(alice, msg4);
+        alice.step5(msg4);
         // Evaluate session end result
-        assertEquals(SM.PROG_SUCCEEDED, alice.smProgState);
-        assertEquals(SM.PROG_SUCCEEDED, bob.smProgState);
+        assertEquals(SMStatus.SUCCEEDED, alice.status());
+        assertEquals(SMStatus.SUCCEEDED, bob.status());
     }
 
     @Test
