@@ -248,35 +248,6 @@ public final class SM {
         }
 	}
 	
-	/**
-     * Check that an BigInteger is in the right range to be a (non-unit) group
-	 * element.
-     *
-     * @param g the BigInteger to check.
-     * @throws net.java.otr4j.crypto.SM.SMException Throws SMException if check fails.
-     */
-	static void checkGroupElem(@Nonnull final BigInteger g) throws SMException
-	{
-		if(g.compareTo(BigInteger.valueOf(2)) < 0 ||
-				g.compareTo(SM.MODULUS_MINUS_2) > 0) {
-            throw new SMException("Invalid parameter");
-        }
-	}
-	
-	/**
-     * Check that an BigInteger is in the right range to be a (non-zero)
-     * exponent.
-     *
-     * @param x The BigInteger to check.
-     * @throws net.java.otr4j.crypto.SM.SMException Throws SMException if check fails.
-     */
-	static void checkExpon(@Nonnull final BigInteger x) throws SMException
-	{
-		if (x.compareTo(BigInteger.ONE) < 0 || x.compareTo(SM.ORDER_S) >= 0) {
-            throw new SMException("Invalid parameter");
-        }
-	}
-	
 	/** Create first message in SMP exchange.  Input is Alice's secret value
 	 * which this protocol aims to compare to Bob's. The return value is a serialized
 	 * BigInteger array whose elements correspond to the following:
@@ -573,6 +544,35 @@ abstract class State {
         }
 	}
 
+	/**
+     * Check that an BigInteger is in the right range to be a (non-unit) group
+	 * element.
+     *
+     * @param g the BigInteger to check.
+     * @throws net.java.otr4j.crypto.SM.SMException Throws SMException if check fails.
+     */
+	static void checkGroupElem(@Nonnull final BigInteger g) throws SM.SMException
+	{
+		if(g.compareTo(BigInteger.valueOf(2)) < 0 ||
+				g.compareTo(SM.MODULUS_MINUS_2) > 0) {
+            throw new SM.SMException("Invalid parameter");
+        }
+	}
+
+	/**
+     * Check that an BigInteger is in the right range to be a (non-zero)
+     * exponent.
+     *
+     * @param x The BigInteger to check.
+     * @throws net.java.otr4j.crypto.SM.SMException Throws SMException if check fails.
+     */
+	static void checkExpon(@Nonnull final BigInteger x) throws SM.SMException
+	{
+		if (x.compareTo(BigInteger.ONE) < 0 || x.compareTo(SM.ORDER_S) >= 0) {
+            throw new SM.SMException("Invalid parameter");
+        }
+	}
+
     /**
      * Start SMP negotiation.
      *
@@ -760,10 +760,10 @@ final class StateExpect1 extends State {
 	    final BigInteger[] msg1 = SM.unserialize(input);
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-        SM.checkGroupElem(msg1[0]);
-        SM.checkExpon(msg1[2]);
-        SM.checkGroupElem(msg1[3]);
-        SM.checkExpon(msg1[5]);
+        checkGroupElem(msg1[0]);
+        checkExpon(msg1[2]);
+        checkGroupElem(msg1[3]);
+        checkExpon(msg1[5]);
 
         /* Store Alice's g3a value for later in the protocol */
         final BigInteger g3o = msg1[3];
@@ -851,14 +851,14 @@ final class StateExpect2 extends State {
 	    final BigInteger[] msg2 = SM.unserialize(input);
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-        SM.checkGroupElem(msg2[0]);
-        SM.checkGroupElem(msg2[3]);
-        SM.checkGroupElem(msg2[6]);
-        SM.checkGroupElem(msg2[7]);
-        SM.checkExpon(msg2[2]);
-        SM.checkExpon(msg2[5]);
-        SM.checkExpon(msg2[9]);
-        SM.checkExpon(msg2[10]);
+        checkGroupElem(msg2[0]);
+        checkGroupElem(msg2[3]);
+        checkGroupElem(msg2[6]);
+        checkGroupElem(msg2[7]);
+        checkExpon(msg2[2]);
+        checkExpon(msg2[5]);
+        checkExpon(msg2[9]);
+        checkExpon(msg2[10]);
 
 	    final BigInteger[] msg3 = new BigInteger[8];
 
@@ -949,12 +949,12 @@ final class StateExpect3 extends State {
 	    final BigInteger[] msg4 = new BigInteger[3];
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-	    SM.checkGroupElem(msg3[0]);
-        SM.checkGroupElem(msg3[1]);
-		SM.checkGroupElem(msg3[5]);
-        SM.checkExpon(msg3[3]);
-        SM.checkExpon(msg3[4]);
-        SM.checkExpon(msg3[7]);
+	    checkGroupElem(msg3[0]);
+        checkGroupElem(msg3[1]);
+		checkGroupElem(msg3[5]);
+        checkExpon(msg3[3]);
+        checkExpon(msg3[4]);
+        checkExpon(msg3[7]);
 
 	    /* Verify Alice's coordinate equality proof */
 	    checkEqualCoords(msg3[2], msg3[3], msg3[4], msg3[0], msg3[1], g2, g3, 6);
@@ -1021,8 +1021,8 @@ final class StateExpect4 extends State {
 	    //astate.smProgState = PROG_CHEATED;
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
-	    SM.checkGroupElem(msg4[0]);
-        SM.checkExpon(msg4[2]);
+	    checkGroupElem(msg4[0]);
+        checkExpon(msg4[2]);
 
 	    /* Verify Bob's log equality proof */
 	    checkEqualLogs(msg4[1], msg4[2], msg4[0], g3o, qab, 8);
