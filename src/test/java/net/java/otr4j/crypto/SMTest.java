@@ -175,23 +175,23 @@ public class SMTest {
         assertEquals(SMStatus.UNDECIDED, bob.status());
 
         final byte[] msg1 = alice.step1(combinedSecretBytes);
-        assertEquals(SMStatus.UNDECIDED, alice.status());
+        assertEquals(SMStatus.INPROGRESS, alice.status());
         assertEquals(SMStatus.UNDECIDED, bob.status());
 
         bob.step2a(msg1);
-        assertEquals(SMStatus.UNDECIDED, alice.status());
-        assertEquals(SMStatus.UNDECIDED, bob.status());
+        assertEquals(SMStatus.INPROGRESS, alice.status());
+        assertEquals(SMStatus.INPROGRESS, bob.status());
 
         final byte[] msg2 = bob.step2b(combinedSecretBytes);
-        assertEquals(SMStatus.UNDECIDED, alice.status());
-        assertEquals(SMStatus.UNDECIDED, bob.status());
+        assertEquals(SMStatus.INPROGRESS, alice.status());
+        assertEquals(SMStatus.INPROGRESS, bob.status());
 
         final byte[] msg3 = alice.step3(msg2);
-        assertEquals(SMStatus.UNDECIDED, alice.status());
-        assertEquals(SMStatus.UNDECIDED, bob.status());
+        assertEquals(SMStatus.INPROGRESS, alice.status());
+        assertEquals(SMStatus.INPROGRESS, bob.status());
 
         final byte[] msg4 = bob.step4(msg3);
-        assertEquals(SMStatus.UNDECIDED, alice.status());
+        assertEquals(SMStatus.INPROGRESS, alice.status());
         assertEquals(SMStatus.SUCCEEDED, bob.status());
 
         alice.step5(msg4);

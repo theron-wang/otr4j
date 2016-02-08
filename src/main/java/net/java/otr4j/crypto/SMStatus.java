@@ -12,6 +12,10 @@ public enum SMStatus {
      */
     UNDECIDED,
     /**
+     * SMP exchange is in progress.
+     */
+    INPROGRESS,
+    /**
      * Status is succeeded. SMP exchange has been fully completed and it has
      * succeeded, i.e. with positive match.
      */

@@ -816,7 +816,7 @@ final class StateExpect1 extends State {
 	    
         // FIXME what to do with status CHEATED?
 	    //bstate.smProgState = PROG_OK;
-        bstate.setState(new StateExpect1(this.secureRandom(), SMStatus.UNDECIDED, x2, x3, g2, g3, g3o));
+        bstate.setState(new StateExpect1(this.secureRandom(), SMStatus.INPROGRESS, x2, x3, g2, g3, g3o));
     }
 
     @Override
@@ -878,7 +878,7 @@ final class StateExpect2 extends State {
 
     @Override
     SMStatus status() {
-        return SMStatus.UNDECIDED;
+        return SMStatus.INPROGRESS;
     }
 
     @Override
@@ -979,7 +979,7 @@ final class StateExpect3 extends State {
 
     @Override
     SMStatus status() {
-        return SMStatus.UNDECIDED;
+        return SMStatus.INPROGRESS;
     }
 
     @Override
@@ -1058,7 +1058,7 @@ final class StateExpect4 extends State {
 
     @Override
     SMStatus status() {
-        return SMStatus.UNDECIDED;
+        return SMStatus.INPROGRESS;
     }
 
     @Override
