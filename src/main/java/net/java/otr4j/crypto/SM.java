@@ -760,13 +760,13 @@ final class StateExpect1 extends State {
 	    final BigInteger[] msg1 = new BigInteger[6];
 	    msg1[0] = G1.modPow(x2, SM.MODULUS_S);
 	    BigInteger[] res = proofKnowLog(x2, 1);
-	    msg1[1]=res[0];
-	    msg1[2]=res[1];
+	    msg1[1] = res[0];
+	    msg1[2] = res[1];
 	    
 	    msg1[3] = G1.modPow(x3, SM.MODULUS_S);
 	    res = proofKnowLog(x3, 2);
-	    msg1[4]=res[0];
-	    msg1[5]=res[1];
+	    msg1[4] = res[0];
+	    msg1[5] = res[1];
 
 	    final byte[] ret = SM.serialize(msg1);
         // FIXME what to do with status CHEATED?
@@ -827,13 +827,13 @@ final class StateExpect1 extends State {
 	    final BigInteger[] msg2 = new BigInteger[11];
 	    msg2[0] = G1.modPow(x2, SM.MODULUS_S);
 	    BigInteger[] res = proofKnowLog(x2, 3);
-	    msg2[1]=res[0];
-	    msg2[2]=res[1];
+	    msg2[1] = res[0];
+	    msg2[2] = res[1];
 
 	    msg2[3] = G1.modPow(x3, SM.MODULUS_S);
 	    res = proofKnowLog(x3, 4);
-	    msg2[4]=res[0];
-	    msg2[5]=res[1];
+	    msg2[4] = res[0];
+	    msg2[5] = res[1];
 
 	    /* Calculate P and Q values for Bob */
 	    final BigInteger r = randomExponent();
@@ -845,9 +845,9 @@ final class StateExpect1 extends State {
 	    msg2[7] = q;
 	    
 	    res = proofEqualCoords(g2, g3, secret_mpi, r, 5);
-	    msg2[8]=res[0];
-	    msg2[9]=res[1];
-	    msg2[10]=res[2];
+	    msg2[8] = res[0];
+	    msg2[9] = res[1];
+	    msg2[10] = res[2];
 
         bstate.setState(new StateExpect3(this, p, q));
 
@@ -939,8 +939,8 @@ final class StateExpect2 extends State {
         final BigInteger qab = q.multiply(inv).mod(SM.MODULUS_S);
 	    msg3[5] = qab.modPow(x3, SM.MODULUS_S);
 	    res = proofEqualLogs(qab, x3, 7);
-	    msg3[6]=res[0];
-	    msg3[7]=res[1];
+	    msg3[6] = res[0];
+	    msg3[7] = res[1];
 	    
 	    final byte[] output = SM.serialize(msg3);
 
@@ -1016,8 +1016,8 @@ final class StateExpect3 extends State {
 	    /* Calculate Rb and proof */
 	    msg4[0] = qab.modPow(x3, SM.MODULUS_S);
 	    BigInteger[] res = proofEqualLogs(qab, x3, 8);
-	    msg4[1]=res[0];
-	    msg4[2]=res[1];
+	    msg4[1] = res[0];
+	    msg4[2] = res[1];
 	    
 	    final byte[] output = SM.serialize(msg4);
 
