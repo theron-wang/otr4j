@@ -253,6 +253,11 @@ public final class SM {
         return this.state.status();
     }
 
+    @Nonnull
+    public void abort() {
+        this.state.smpAbort(this);
+    }
+
 	/** Create first message in SMP exchange.  Input is Alice's secret value
 	 * which this protocol aims to compare to Bob's. The return value is a serialized
 	 * BigInteger array whose elements correspond to the following:
