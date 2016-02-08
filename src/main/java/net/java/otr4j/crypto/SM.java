@@ -485,15 +485,6 @@ abstract class State {
     }
 
     /**
-     * Abort: In all cases, reset SMP state upon receiving SMP Abort message.
-     *
-     * @param state State of SM exchange
-     */
-    void smpMessageAbort(@Nonnull final SM state) {
-        state.setState(new StateExpect1(this.sr));
-    }
-
-    /**
      * Accessor to SecureRandom instance.
      *
      * @return Returns secure random instance.
