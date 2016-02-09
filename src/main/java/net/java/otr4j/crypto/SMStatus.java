@@ -16,13 +16,19 @@ public enum SMStatus {
      */
     INPROGRESS,
     /**
-     * Status is succeeded. SMP exchange has been fully completed and it has
-     * succeeded, i.e. with positive match.
+     * SMP exchange final state for normal cases. SMP exchange has been fully
+     * completed and it has succeeded, i.e. with positive outcome.
      */
     SUCCEEDED,
     /**
-     * Status is failed. SMP exchange has been completed, but with negative
-     * match.
+     * SMP exchange final state for normal cases. SMP exchange has been
+     * completed, but with negative outcome.
      */
-    FAILED;
+    FAILED,
+    /**
+     * SMP exchange final state for exceptional cases. This might indicate that
+     * invalid message were sent on purpose to play the protocol and as a
+     * consequence processing did not finish as expected.
+     */
+    CHEATED;
 }

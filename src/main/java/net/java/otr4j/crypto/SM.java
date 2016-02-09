@@ -38,7 +38,7 @@ import net.java.otr4j.io.SerializationUtils;
 
 
 public final class SM {
-    
+
     /**
      * Safe maximum array size. Copied from OpenJDK 7 implementation.
      * (http://hg.openjdk.java.net/jdk7/jdk7/jdk/file/tip/src/share/classes/java/util/ArrayList.java#l190)
@@ -46,7 +46,7 @@ public final class SM {
      * universally accepted safe maximum.
      */
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
-    
+
     private State state;
 
     public SM(@Nonnull final SecureRandom sr) {
@@ -119,7 +119,7 @@ public final class SM {
 	public static final int EXPECT3 = 2;
 	public static final int EXPECT4 = 3;
 	public static final int EXPECT5 = 4;
-	
+
 	public static final int PROG_OK = 0;
 	public static final int PROG_CHEATED = -2;
 	public static final int PROG_FAILED = -1;
@@ -129,7 +129,7 @@ public final class SM {
 	public static final int MSG2_LEN = 11;
 	public static final int MSG3_LEN = 8;
 	public static final int MSG4_LEN = 3;
-	
+
 	public static final BigInteger MODULUS_S = new BigInteger(
 			"FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"+
 		    "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"+
@@ -139,7 +139,7 @@ public final class SM {
 		    "C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F"+
 		    "83655D23DCA3AD961C62F356208552BB9ED529077096966D"+
 		    "670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF", 16);
-	
+
 	public static final BigInteger MODULUS_MINUS_2 = new BigInteger(
 			"FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"+
 		    "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"+
@@ -149,7 +149,7 @@ public final class SM {
 		    "C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F"+
 		    "83655D23DCA3AD961C62F356208552BB9ED529077096966D"+
 		    "670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFD", 16);
-	
+
 	public static final BigInteger ORDER_S = new BigInteger(
 			"7FFFFFFFFFFFFFFFE487ED5110B4611A62633145C06E0E68"+
 		    "948127044533E63A0105DF531D89CD9128A5043CC71A026E"+
@@ -159,11 +159,11 @@ public final class SM {
 		    "E1003E5C50B1DF82CC6D241B0E2AE9CD348B1FD47E9267AF"+
 		    "C1B2AE91EE51D6CB0E3179AB1042A95DCF6A9483B84B4B36"+
 		    "B3861AA7255E4C0278BA36046511B993FFFFFFFFFFFFFFFF", 16);
-	
+
 	public static final BigInteger GENERATOR_S = BigInteger.valueOf(2l);
 	public static final int MOD_LEN_BITS = 1536;
 	public static final int MOD_LEN_BYTES = 192;
-	
+
 	/**
 	 * Hash one or two BigIntegers. To hash only one BigInteger, b may be set to
      * NULL.
@@ -192,7 +192,7 @@ public final class SM {
 			throw new SMException("cannot serialize bigint");
 		}
 	}
-	
+
 	static byte[] serialize(@Nonnull final BigInteger[] ints) throws SMException {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final OtrOutputStream oos = new OtrOutputStream(out);
@@ -212,7 +212,7 @@ public final class SM {
             }
         }
 	}
-	
+
 	static BigInteger[] unserialize(@Nonnull final byte[] bytes) throws SMException {
         final ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         final OtrInputStream ois = new OtrInputStream(in);
@@ -258,96 +258,199 @@ public final class SM {
         this.state.smpAbort(this);
     }
 
-	/** Create first message in SMP exchange.  Input is Alice's secret value
-	 * which this protocol aims to compare to Bob's. The return value is a serialized
-	 * BigInteger array whose elements correspond to the following:
-	 * [0] = g2a, Alice's half of DH exchange to determine g2
-	 * [1] = c2, [2] = d2, Alice's ZK proof of knowledge of g2a exponent
-	 * [3] = g3a, Alice's half of DH exchange to determine g3
-	 * [4] = c3, [5] = d3, Alice's ZK proof of knowledge of g3a exponent
+    /**
+     * Create first message in SMP exchange. Input is Alice's secret value which
+     * this protocol aims to compare to Bob's. The return value is a serialized
+     * BigInteger array whose elements correspond to the following: [0] = g2a,
+     * Alice's half of DH exchange to determine g2 [1] = c2, [2] = d2, Alice's
+     * ZK proof of knowledge of g2a exponent [3] = g3a, Alice's half of DH
+     * exchange to determine g3 [4] = c3, [5] = d3, Alice's ZK proof of
+     * knowledge of g3a exponent
+     *
      * @param secret MVN_PASS_JAVADOC_INSPECTION
      * @return MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
+     * @throws net.java.otr4j.crypto.SM.SMAbortedException SMP state machine was
+     * not in SMP_EXPECT1 state. Abort has been initiated and state machine
+     * reset to initial state. Send a type 6 TLV to indicate SMP exchange abort
+     * and then you can immediately make a subsequent call to initiate a new SMP
+     * exchange.
      */
-	public byte[] step1(@Nonnull final byte[] secret) throws SMException
+	public byte[] step1(@Nonnull final byte[] secret) throws SMAbortedException, SMException
 	{
+        // FIXME Document: It would not make sense to check the
+        // status() == CHEATED beforehand as this would have been historical
+        // information. Only after having called on SM would the state be of any
+        // relevance. That being said. If this is known, this should not be a
+        // problem, since we can assume that any final state (SUCCEEDED, FAILED,
+        // CHEATED) will only occur in SMP_EXPECT1, which is also the starting
+        // state for new exchanges.
+
+        // startSMP is solely controlled by the local user. In case an exception
+        // occurs here, it is related to a programming error.
         return this.state.startSMP(this, secret);
 	}
-	
-	/** Receive the first message in SMP exchange, which was generated by
-	 *  step1.  Input is saved until the user inputs their secret
-	 * information.  No output. 
+
+    /**
+     * Receive the first message in SMP exchange, which was generated by step1.
+     * Input is saved until the user inputs their secret information. No output.
+     *
      * @param input MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
+     * @throws net.java.otr4j.crypto.SM.SMAbortedException Thrown in case of
+     * exchange abort. This happens in case an unexpected message is recieved or
+     * on request.
+     * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public void step2a(@Nonnull final byte[] input) throws SMException
+	public void step2a(@Nonnull final byte[] input) throws SMAbortedException, SMException
 	{
-        this.state.smpMessage1a(this, input);
+        try {
+            this.state.smpMessage1a(this, input);
+        }
+        catch (SMAbortedException e) {
+            // Let SMAbortedException pass. This exception may at times occur
+            // and is a valid interruption that is not considered cheating.
+            throw e;
+        }
+        catch (SMException e) {
+            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            throw e;
+        }
+        catch (RuntimeException e) {
+            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            throw e;
+        }
 	}
-	
-	/** Create second message in SMP exchange.  Input is Bob's secret value.
-	 * Information from earlier steps in the exchange is taken from Bob's
-	 * state.  Output is a serialized mpi array whose elements correspond
-	 * to the following:
-	 * [0] = g2b, Bob's half of DH exchange to determine g2
-	 * [1] = c2, [2] = d2, Bob's ZK proof of knowledge of g2b exponent
-	 * [3] = g3b, Bob's half of DH exchange to determine g3
-	 * [4] = c3, [5] = d3, Bob's ZK proof of knowledge of g3b exponent
-	 * [6] = pb, [7] = qb, Bob's halves of the (Pa/Pb) and (Qa/Qb) values
-	 * [8] = cp, [9] = d5, [10] = d6, Bob's ZK proof that pb, qb formed correctly 
+
+    /**
+     * Create second message in SMP exchange. Input is Bob's secret value.
+     * Information from earlier steps in the exchange is taken from Bob's state.
+     * Output is a serialized mpi array whose elements correspond to the
+     * following: [0] = g2b, Bob's half of DH exchange to determine g2 [1] = c2,
+     * [2] = d2, Bob's ZK proof of knowledge of g2b exponent [3] = g3b, Bob's
+     * half of DH exchange to determine g3 [4] = c3, [5] = d3, Bob's ZK proof of
+     * knowledge of g3b exponent [6] = pb, [7] = qb, Bob's halves of the (Pa/Pb)
+     * and (Qa/Qb) values [8] = cp, [9] = d5, [10] = d6, Bob's ZK proof that pb,
+     * qb formed correctly
+     *
      * @param secret MVN_PASS_JAVADOC_INSPECTION
      * @return MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
+     * @throws net.java.otr4j.crypto.SM.SMAbortedException
+     * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public byte[] step2b(@Nonnull final byte[] secret) throws SMException
+	public byte[] step2b(@Nonnull final byte[] secret) throws SMAbortedException, SMException
 	{
-	    return this.state.smpMessage1b(this, secret);
+        try {
+            return this.state.smpMessage1b(this, secret);
+        }
+        catch (SMAbortedException e) {
+            // Let SMAbortedException pass. This exception may at times occur
+            // and is a valid interruption that is not considered cheating.
+            throw e;
+        }
+        catch (SMException e) {
+            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            throw e;
+        }
+        catch (RuntimeException e) {
+            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            throw e;
+        }
 	}
 
-	/** Create third message in SMP exchange.  Input is a message generated
-	 * by otrl_sm_step2b. Output is a serialized mpi array whose elements
-	 * correspond to the following:
-	 * [0] = pa, [1] = qa, Alice's halves of the (Pa/Pb) and (Qa/Qb) values
-	 * [2] = cp, [3] = d5, [4] = d6, Alice's ZK proof that pa, qa formed correctly
-	 * [5] = ra, calculated as (Qa/Qb)^x3 where x3 is the exponent used in g3a
-	 * [6] = cr, [7] = d7, Alice's ZK proof that ra is formed correctly 
-     * @param input MVN_PASS_JAVADOC_INSPECTION
-     * @return MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
-     */
-	public byte[] step3(@Nonnull final byte[] input) throws SMException
-	{
-        return this.state.smpMessage2(this, input);
-	}
-
-	/** Create final message in SMP exchange.  Input is a message generated
-	 * by otrl_sm_step3. Output is a serialized mpi array whose elements
-	 * correspond to the following:
-	 * [0] = rb, calculated as (Qa/Qb)^x3 where x3 is the exponent used in g3b
-	 * [1] = cr, [2] = d7, Bob's ZK proof that rb is formed correctly
-	 * This method also checks if Alice and Bob's secrets were the same.  If
-	 * so, it returns NO_ERROR.  If the secrets differ, an INV_VALUE error is
-	 * returned instead. 
+    /**
+     * Create third message in SMP exchange. Input is a message generated by
+     * otrl_sm_step2b. Output is a serialized mpi array whose elements
+     * correspond to the following: [0] = pa, [1] = qa, Alice's halves of the
+     * (Pa/Pb) and (Qa/Qb) values [2] = cp, [3] = d5, [4] = d6, Alice's ZK proof
+     * that pa, qa formed correctly [5] = ra, calculated as (Qa/Qb)^x3 where x3
+     * is the exponent used in g3a [6] = cr, [7] = d7, Alice's ZK proof that ra
+     * is formed correctly
      *
      * @param input MVN_PASS_JAVADOC_INSPECTION
      * @return MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
+     * @throws net.java.otr4j.crypto.SM.SMAbortedException
+     * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public byte[] step4(@Nonnull final byte[] input) throws SMException
+	public byte[] step3(@Nonnull final byte[] input) throws SMAbortedException, SMException
 	{
-        return this.state.smpMessage3(this, input);
+        try {
+            return this.state.smpMessage2(this, input);
+        }
+        catch (SMAbortedException e) {
+            // Let SMAbortedException pass. This exception may at times occur
+            // and is a valid interruption that is not considered cheating.
+            throw e;
+        }
+        catch (SMException e) {
+            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            throw e;
+        }
+        catch (RuntimeException e) {
+            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            throw e;
+        }
 	}
 
-	/** Receives the final SMP message, which was generated in otrl_sm_step.
-	 * This method checks if Alice and Bob's secrets were the same.  If
-	 * so, it returns NO_ERROR.  If the secrets differ, an INV_VALUE error is
-	 * returned instead. 
+    /**
+     * Create final message in SMP exchange. Input is a message generated by
+     * otrl_sm_step3. Output is a serialized mpi array whose elements correspond
+     * to the following: [0] = rb, calculated as (Qa/Qb)^x3 where x3 is the
+     * exponent used in g3b [1] = cr, [2] = d7, Bob's ZK proof that rb is formed
+     * correctly This method also checks if Alice and Bob's secrets were the
+     * same. If so, it returns NO_ERROR. If the secrets differ, an INV_VALUE
+     * error is returned instead.
+     *
      * @param input MVN_PASS_JAVADOC_INSPECTION
-	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
+     * @return MVN_PASS_JAVADOC_INSPECTION
+     * @throws net.java.otr4j.crypto.SM.SMAbortedException
+     * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public void step5(@Nonnull final byte[] input) throws SMException
+	public byte[] step4(@Nonnull final byte[] input) throws SMAbortedException, SMException
 	{
-        this.state.smpMessage4(this, input);
+        try {
+            return this.state.smpMessage3(this, input);
+        }
+        catch (SMAbortedException e) {
+            // Let SMAbortedException pass. This exception may at times occur
+            // and is a valid interruption that is not considered cheating.
+            throw e;
+        }
+        catch (SMException e) {
+            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            throw e;
+        }
+        catch (RuntimeException e) {
+            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            throw e;
+        }
+	}
+
+    /**
+     * Receives the final SMP message, which was generated in otrl_sm_step. This
+     * method checks if Alice and Bob's secrets were the same. If so, it returns
+     * NO_ERROR. If the secrets differ, an INV_VALUE error is returned instead.
+     *
+     * @param input MVN_PASS_JAVADOC_INSPECTION
+     * @throws net.java.otr4j.crypto.SM.SMAbortedException
+     * @throws SMException MVN_PASS_JAVADOC_INSPECTION
+     */
+	public void step5(@Nonnull final byte[] input) throws SMAbortedException, SMException
+	{
+        try {
+            this.state.smpMessage4(this, input);
+        }
+        catch (SMAbortedException e) {
+            // Let SMAbortedException pass. This exception may at times occur
+            // and is a valid interruption that is not considered cheating.
+            throw e;
+        }
+        catch (SMException e) {
+            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            throw e;
+        }
+        catch (RuntimeException e) {
+            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            throw e;
+        }
 	}
 }
 
@@ -359,10 +462,8 @@ public final class SM {
  * changes.
  */
 abstract class State {
-    // FIXME where do we do TLV sending? I suspect that this is best handled outside of TLV.
     // FIXME SMP state should only be preserved in MSGSTATE_ENCRYPTED.
     // FIXME any unexpected message should result in an smpError
-    // FIXME consider implementing "processing" flag which cannot be unset, such that interruption of handling is considered cheating.
 
     static final BigInteger G1 = SM.GENERATOR_S;
 
@@ -760,8 +861,6 @@ final class StateExpect1 extends State {
 	    msg1[5] = res[1];
 
 	    final byte[] ret = SM.serialize(msg1);
-        // FIXME what to do with status CHEATED?
-	    //astate.smProgState = PROG_OK;
 
         astate.setState(new StateExpect2(this.secureRandom(), secret_mpi, x2, x3));
 	    return ret;
@@ -777,9 +876,6 @@ final class StateExpect1 extends State {
     @Override
     void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Initialize the sm state if needed */
-
-        // FIXME what to do with status CHEATED?
-	    //bstate.smProgState = PROG_CHEATED;
 
 	    /* Read from input to find the mpis */
 	    final BigInteger[] msg1 = SM.unserialize(input);
@@ -805,8 +901,6 @@ final class StateExpect1 extends State {
         final BigInteger g2 = msg1[0].modPow(x2, SM.MODULUS_S);
 	    final BigInteger g3 = msg1[3].modPow(x3, SM.MODULUS_S);
 	    
-        // FIXME what to do with status CHEATED?
-	    //bstate.smProgState = PROG_OK;
         bstate.setState(new StateExpect1(this.secureRandom(), SMStatus.INPROGRESS, x2, x3, g2, g3, g3o));
     }
 
@@ -875,8 +969,6 @@ final class StateExpect2 extends State {
     @Override
     byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Read from input to find the mpis */
-        // FIXME what to do with status CHEATED?
-	    //astate.smProgState = PROG_CHEATED;
 	    
 	    final BigInteger[] msg2 = SM.unserialize(input);
 
@@ -908,7 +1000,6 @@ final class StateExpect2 extends State {
 
 	    /* Calculate P and Q values for Alice */
 	    final BigInteger r = randomExponent();
-	    //BigInteger r = new BigInteger(SM.GENERATOR_S);
 
 	    final BigInteger p = g3.modPow(r, SM.MODULUS_S);
 	    msg3[0] = p;
@@ -937,8 +1028,6 @@ final class StateExpect2 extends State {
 
         astate.setState(new StateExpect4(this, g3o, pab, qab));
 
-        // FIXME what to do with status CHEATED?
-	    //astate.smProgState = PROG_OK;
 	    return output;
     }
 }
@@ -978,9 +1067,6 @@ final class StateExpect3 extends State {
 	    /* Read from input to find the mpis */
 	    final BigInteger[] msg3 = SM.unserialize(input);
 
-        // FIXME create similar variable for keeping track of smProgState.
-	    //bstate.smProgState = PROG_CHEATED;
-	    
 	    final BigInteger[] msg4 = new BigInteger[3];
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
@@ -1017,7 +1103,6 @@ final class StateExpect3 extends State {
 	    final BigInteger rab = msg3[5].modPow(x3, SM.MODULUS_S);
 	    final int comp = rab.compareTo(pab);
 
-        // FIXME what to do with status CHEATED?
         final SMStatus status = (comp == 0) ? SMStatus.SUCCEEDED : SMStatus.FAILED;
         bstate.setState(new StateExpect1(this.secureRandom(), status));
 
@@ -1056,8 +1141,6 @@ final class StateExpect4 extends State {
     void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Read from input to find the mpis */
 	    final BigInteger[] msg4 = SM.unserialize(input);
-        // FIXME create similar variable for keeping track of smProgState.
-	    //astate.smProgState = PROG_CHEATED;
 
         /* Verify parameters and let checks throw exceptions in case of failure.*/
 	    checkGroupElem(msg4[0]);
@@ -1071,7 +1154,6 @@ final class StateExpect4 extends State {
 	    final BigInteger rab = msg4[0].modPow(x3, SM.MODULUS_S);
 	    final int comp = rab.compareTo(pab);
 
-        // FIXME what to do with status CHEATED?
         final SMStatus status = (comp == 0) ? SMStatus.SUCCEEDED : SMStatus.FAILED;
         astate.setState(new StateExpect1(this.secureRandom(), status));
     }
