@@ -728,6 +728,7 @@ public class Session {
                 }
                 if (!tlvs.isEmpty()) {
                     for (final TLV tlv : tlvs) {
+                        logger.fine("Received TLV type " + tlv.getType());
                         switch (tlv.getType()) {
                             case TLV.PADDING: // TLV0
                                 // nothing to do here, just ignore the padding
@@ -1085,7 +1086,6 @@ public class Session {
         }
 
         if (!getSessionPolicy().getAllowV2() && !getSessionPolicy().getAllowV3()) {
-            // TODO verify: is changing operator || into && really correct?
             throw new UnsupportedOperationException();
         }
 
