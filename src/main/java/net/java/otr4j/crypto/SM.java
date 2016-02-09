@@ -28,6 +28,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -47,6 +48,8 @@ public final class SM {
      */
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
+    private static final Logger LOGGER = Logger.getLogger(SM.class.getCanonicalName());
+
     private State state;
 
     public SM(@Nonnull final SecureRandom sr) {
@@ -57,31 +60,11 @@ public final class SM {
     }
 
     void setState(@Nonnull final State state) {
+        LOGGER.finer("Updating SMP state to: " + state);
         this.state = state;
     }
 
-    static public class SMState{
-        // TODO update code to get rid of obsolete SMState.
-        
-        BigInteger secret, x2, x3, g1, g2, g3, g3o, p, q, pab, qab;
-        public int nextExpected;
-        public int smProgState;
-		public boolean approved;
-		public boolean asked;
-        
-        /**
-         * Ctor.
-         */
-        public SMState(){
-            // we could remove g1 in favor of using G1 (constant) directly
-            g1 = GENERATOR_S;
-            smProgState = SM.PROG_OK;
-            approved = false;
-            asked = false;
-        }
-    }
-
-	static public class SMException extends Exception {
+	public static class SMException extends Exception {
 		private static final long serialVersionUID = 1L;
 
 		public SMException() {
@@ -105,25 +88,14 @@ public final class SM {
      * SM Aborted exception indicates that the current SMP exchange is aborted
      * and the state reset to default.
      */
-    static class SMAbortedException extends SMException {
+    public static class SMAbortedException extends SMException {
 
         private static final long serialVersionUID = 8062094133300893010L;
 
-        public SMAbortedException(@Nonnull final String message) {
+        SMAbortedException(@Nonnull final String message) {
             super(message);
         }
     }
-
-	public static final int EXPECT1 = 0;
-	public static final int EXPECT2 = 1;
-	public static final int EXPECT3 = 2;
-	public static final int EXPECT4 = 3;
-	public static final int EXPECT5 = 4;
-
-	public static final int PROG_OK = 0;
-	public static final int PROG_CHEATED = -2;
-	public static final int PROG_FAILED = -1;
-	public static final int PROG_SUCCEEDED = 1;
 
 	public static final int MSG1_LEN = 6;
 	public static final int MSG2_LEN = 11;
@@ -250,11 +222,14 @@ public final class SM {
 
     @Nonnull
     public SMStatus status() {
-        return this.state.status();
+        final SMStatus status = this.state.status();
+        LOGGER.fine("Retrieving status for SMP exchange: " + status.name());
+        return status;
     }
 
     @Nonnull
     public void abort() {
+        LOGGER.fine("Aborting SMP exchange.");
         this.state.smpAbort(this);
     }
 
@@ -277,6 +252,8 @@ public final class SM {
      */
 	public byte[] step1(@Nonnull final byte[] secret) throws SMAbortedException, SMException
 	{
+        LOGGER.fine("Initiating SMP exchange.");
+
         // FIXME Document: It would not make sense to check the
         // status() == CHEATED beforehand as this would have been historical
         // information. Only after having called on SM would the state be of any
@@ -302,6 +279,7 @@ public final class SM {
      */
 	public void step2a(@Nonnull final byte[] input) throws SMAbortedException, SMException
 	{
+        LOGGER.fine("Received SMP exchange initiation request.");
         try {
             this.state.smpMessage1a(this, input);
         }
@@ -316,7 +294,7 @@ public final class SM {
         }
         catch (RuntimeException e) {
             this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
-            throw e;
+            throw new SMException(e);
         }
 	}
 
@@ -338,6 +316,7 @@ public final class SM {
      */
 	public byte[] step2b(@Nonnull final byte[] secret) throws SMAbortedException, SMException
 	{
+        LOGGER.fine("Continuing SMP exchange initiation reply after receiving data from OtrEngineHost.");
         try {
             return this.state.smpMessage1b(this, secret);
         }
@@ -352,7 +331,7 @@ public final class SM {
         }
         catch (RuntimeException e) {
             this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
-            throw e;
+            throw new SMException(e);
         }
 	}
 
@@ -372,6 +351,7 @@ public final class SM {
      */
 	public byte[] step3(@Nonnull final byte[] input) throws SMAbortedException, SMException
 	{
+        LOGGER.fine("Received reply to SMP exchange initiation request. Sending final message in SMP exchange.");
         try {
             return this.state.smpMessage2(this, input);
         }
@@ -386,7 +366,7 @@ public final class SM {
         }
         catch (RuntimeException e) {
             this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
-            throw e;
+            throw new SMException(e);
         }
 	}
 
@@ -406,6 +386,7 @@ public final class SM {
      */
 	public byte[] step4(@Nonnull final byte[] input) throws SMAbortedException, SMException
 	{
+        LOGGER.fine("Received final SMP response. Concluding SMP exchange and sending final response.");
         try {
             return this.state.smpMessage3(this, input);
         }
@@ -420,7 +401,10 @@ public final class SM {
         }
         catch (RuntimeException e) {
             this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
-            throw e;
+            throw new SMException(e);
+        }
+        finally {
+            LOGGER.fine("Final SMP exchange state: " + this.state.status().name());
         }
 	}
 
@@ -435,10 +419,12 @@ public final class SM {
      */
 	public void step5(@Nonnull final byte[] input) throws SMAbortedException, SMException
 	{
+        LOGGER.fine("Received final SMP response. Concluding SMP exchange.");
         try {
             this.state.smpMessage4(this, input);
         }
         catch (SMAbortedException e) {
+            // FIXME if we inform host after resetting state, host cannot check if SMP exchange was actually in progress
             // Let SMAbortedException pass. This exception may at times occur
             // and is a valid interruption that is not considered cheating.
             throw e;
@@ -449,7 +435,10 @@ public final class SM {
         }
         catch (RuntimeException e) {
             this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
-            throw e;
+            throw new SMException(e);
+        }
+        finally {
+            LOGGER.fine("Final SMP exchange state: " + this.state.status().name());
         }
 	}
 }
@@ -867,13 +856,6 @@ final class StateExpect1 extends State {
     }
 
     @Override
-    void smpAbort(@Nonnull final SM state) {
-        // NOOP since this is the default state already.
-        // caller is expected to send type 6 TLV: SMP Abort.
-        // FIXME Should we make sure status == UNDECIDED when smpAbort() is called? Or is it okay to have FAILED/SUCCEEDED, since we will reset when we start SMP exchange anew?
-    }
-
-    @Override
     void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
 	    /* Initialize the sm state if needed */
 
@@ -906,6 +888,14 @@ final class StateExpect1 extends State {
 
     @Override
     byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
+        if (status() != SMStatus.INPROGRESS) {
+            // In case a question gets answered before the question is recieved,
+            // this is considered bad order of messages. Abort protocol and
+            // reset to default.
+            bstate.setState(new StateExpect1(this.secureRandom()));
+            throw new SM.SMAbortedException("An SMP exchange initial request was not yet received. There is no question posed that can be answered with a shared secret.");
+        }
+
 	    /* Convert the given secret to the proper form and store it */
 		final BigInteger secret_mpi = new BigInteger(1, secret);
 

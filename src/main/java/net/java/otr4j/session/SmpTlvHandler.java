@@ -20,7 +20,8 @@ import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SM;
 import net.java.otr4j.crypto.SM.SMException;
-import net.java.otr4j.crypto.SM.SMState;
+import net.java.otr4j.crypto.SM.SMAbortedException;
+import net.java.otr4j.crypto.SMStatus;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 
@@ -29,8 +30,6 @@ public class SmpTlvHandler {
     private final OtrEngineHost engineHost;
 	private final Session session;
     private final SM sm;
-
-	private SMState smstate;
 
     /**
 	 * Construct an OTR Socialist Millionaire handler object.
@@ -41,16 +40,6 @@ public class SmpTlvHandler {
 		this.session = session;
 		this.engineHost = session.getHost();
         this.sm = new SM(session.secureRandom());
-		reset();
-	}
-
-    /**
-     * Reset SMState in order to provide clean, unused state.
-     *
-     * reset() is final to ensure expected behavior of resetting to clean state.
-     */
-	public final void reset() {
-		smstate = new SMState();
 	}
 
 	/* Compute secret session ID as hash of agreed secret */
@@ -103,7 +92,7 @@ public class SmpTlvHandler {
 	 */
 	public List<TLV> initRespondSmp(@Nullable final String question, @Nonnull final String secret,
             final boolean initiating) throws OtrException {
-		if (!initiating && !smstate.asked) {
+        if (!initiating && this.sm.status() != SMStatus.INPROGRESS) {
             throw new OtrException(new IllegalStateException(
                     "There is no question to be answered."));
         }
@@ -157,9 +146,14 @@ public class SmpTlvHandler {
 		try {
 			if (initiating) {
 				smpmsg = sm.step1(combined_secret);
+                // FIXME catch exception in case of abort and retry with now-reset SMP state.
 			} else {
 				smpmsg = sm.step2b(combined_secret);
 			}
+        } catch (SMAbortedException ex) {
+            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
+            throw new OtrException(ex);
 		} catch (SMException ex) {
 			throw new OtrException(ex);
 		}
@@ -175,8 +169,8 @@ public class SmpTlvHandler {
 
 		final TLV sendtlv = new TLV(initiating?
 				(question != null ? TLV.SMP1Q:TLV.SMP1) : TLV.SMP2, smpmsg);
-		smstate.nextExpected = initiating? SM.EXPECT2 : SM.EXPECT3;
-		smstate.approved = initiating || question == null;
+        // FIXME find alternative for APPROVED variable. What does this accomplish exactly?
+		//smstate.approved = initiating || question == null;
         return Collections.singletonList(sendtlv);
 	}
 
@@ -187,13 +181,21 @@ public class SmpTlvHandler {
      *  @throws OtrException MVN_PASS_JAVADOC_INSPECTION
 	 */
 	public List<TLV> abortSmp() throws OtrException {
+        this.sm.abort();
 		final TLV sendtlv = new TLV(TLV.SMP_ABORT, new byte[0]);
-		smstate.nextExpected = SM.EXPECT1;
         return Collections.singletonList(sendtlv);
 	}
 
+    /**
+     * Reset SMP state to SMP_EXPECT1, the initial state, without sending an
+     * abort message to the counterpart.
+     */
+    public void reset() {
+        this.sm.abort();
+    }
+
 	public boolean isSmpInProgress() {
-	    return smstate.nextExpected > SM.EXPECT1;
+	    return this.sm.status() == SMStatus.INPROGRESS;
 	}
 
 	public String getFingerprint() {
@@ -207,158 +209,144 @@ public class SmpTlvHandler {
 		return null;
 	}
 
-	public void processTlvSMP1Q(@Nonnull final TLV tlv) throws OtrException {
-	    final int tlvType = tlv.getType();
-	    if (smstate.nextExpected == SM.EXPECT1) {
-			/* We can only do the verification half now.
-			 * We must wait for the secret to be entered
-			 * to continue. */
-			final byte[] question = tlv.getValue();
-			int qlen=0;
-			for(; qlen!=question.length && question[qlen]!=0; qlen++){
-			}
-			if (qlen == question.length) {
-                qlen=0;
-            } else {
-                qlen++;
-            }
-			final byte[] input = new byte[question.length-qlen];
-			System.arraycopy(question, qlen, input, 0, question.length-qlen);
-			try {
-				sm.step2a(input);
-			} catch (SMException e) {
-				throw new OtrException(e);
-			}
-			if (qlen != 0) {
+    public void processTlvSMP1Q(@Nonnull final TLV tlv) throws OtrException {
+        // We can only do the verification half now.
+        // We must wait for the secret to be entered
+		// to continue.
+        final byte[] question = tlv.getValue();
+        int qlen = 0;
+        for (; qlen != question.length && question[qlen] != 0; qlen++) {
+        }
+        if (qlen == question.length) {
+            qlen = 0;
+        } else {
+            qlen++;
+        }
+        final byte[] input = new byte[question.length - qlen];
+        System.arraycopy(question, qlen, input, 0, question.length - qlen);
+        try {
+            sm.step2a(input);
+            if (qlen != 0) {
                 qlen--;
             }
-			final byte[] plainq = new byte[qlen];
-			System.arraycopy(question, 0, plainq, 0, qlen);
-			if (smstate.smProgState != SM.PROG_CHEATED){
-				smstate.asked = true;
-				final String questionUTF = new String(plainq, SerializationUtils.UTF8);
-                OtrEngineHostUtil.askForSecret(engineHost, session.getSessionID(), session.getReceiverInstanceTag(), questionUTF);
-			} else {
-                OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, true);
-			    reset();
-			}
-		} else {
-            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, false);
-		}
-	}
+            final byte[] plainq = new byte[qlen];
+            System.arraycopy(question, 0, plainq, 0, qlen);
+            final String questionUTF = new String(plainq, SerializationUtils.UTF8);
+            OtrEngineHostUtil.askForSecret(engineHost, session.getSessionID(),
+                    session.getReceiverInstanceTag(), questionUTF);
+        }
+        catch (SMAbortedException e) {
+            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
+        }
+        catch (SMException e) {
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
+                    tlv.getType(), this.sm.status() == SMStatus.CHEATED);
+            throw new OtrException(e);
+        }
+    }
 
 	public void processTlvSMP1(@Nonnull final TLV tlv) throws OtrException {
-	    final int tlvType = tlv.getType();
-	    if (smstate.nextExpected == SM.EXPECT1) {
-			/* We can only do the verification half now.
+        /* We can only do the verification half now.
 			 * We must wait for the secret to be entered
 			 * to continue. */
-			try {
-				sm.step2a(tlv.getValue());
-			} catch (SMException e) {
-				throw new OtrException(e);
-			}
-			if (smstate.smProgState!=SM.PROG_CHEATED) {
-				smstate.asked = true;
-                OtrEngineHostUtil.askForSecret(engineHost, session.getSessionID(), session.getReceiverInstanceTag(), null);
-			} else {
-                OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, true);
-			    reset();
-			}
-		} else {
-            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, false);
-		}
+        try {
+            sm.step2a(tlv.getValue());
+            OtrEngineHostUtil.askForSecret(engineHost, session.getSessionID(),
+                    session.getReceiverInstanceTag(), null);
+        }
+        catch (SMAbortedException e) {
+            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
+        }
+        catch (SMException e) {
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
+                    tlv.getType(), this.sm.status() == SMStatus.CHEATED);
+            throw new OtrException(e);
+        }
     }
 
 	public void processTlvSMP2(@Nonnull final TLV tlv) throws OtrException {
-	    final int tlvType = tlv.getType();
-	    if (smstate.nextExpected == SM.EXPECT2) {
-			final byte[] nextmsg;
-			try {
-				nextmsg = sm.step3(tlv.getValue());
-			} catch (SMException e) {
-				throw new OtrException(e);
-			}
-			if (smstate.smProgState != SM.PROG_CHEATED){
-				/* Send msg with next smp msg content */
-				final TLV sendtlv = new TLV(TLV.SMP3, nextmsg);
-				smstate.nextExpected = SM.EXPECT4;
-				final String[] msg = session.transformSending("", Collections.singletonList(sendtlv));
-				for (String part : msg) {
-					engineHost.injectMessage(session.getSessionID(), part);
-				}
-			} else {
-                OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, true);
-			    reset();
-			}
-		} else {
-            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, false);
-		}
+        
+        try {
+            final byte[] nextmsg = sm.step3(tlv.getValue());
+            /* Send msg with next smp msg content */
+            final TLV sendtlv = new TLV(TLV.SMP3, nextmsg);
+            final String[] msg = session.transformSending("", Collections.singletonList(sendtlv));
+            for (String part : msg) {
+                engineHost.injectMessage(session.getSessionID(), part);
+            }
+        }
+        catch (SMAbortedException e) {
+            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
+        }
+        catch (SMException e) {
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
+                    tlv.getType(), this.sm.status() == SMStatus.CHEATED);
+            throw new OtrException(e);
+        }
     }
 
     public void processTlvSMP3(@Nonnull final TLV tlv) throws OtrException {
-        final int tlvType = tlv.getType();
-        if (smstate.nextExpected == SM.EXPECT3) {
-			final byte[] nextmsg;
-			try {
-				nextmsg = sm.step4(tlv.getValue());
-			} catch (SMException e) {
-				throw new OtrException(e);
-			}
-
-			/* Set trust level based on result */
-			if (smstate.smProgState == SM.PROG_SUCCEEDED){
-                OtrEngineHostUtil.verify(engineHost, session.getSessionID(), getFingerprint(), smstate.approved);
-			} else {
-                OtrEngineHostUtil.unverify(engineHost, session.getSessionID(), getFingerprint());
-			}
-			if (smstate.smProgState != SM.PROG_CHEATED){
-				/* Send msg with next smp msg content */
-				final TLV sendtlv = new TLV(TLV.SMP4, nextmsg);
-                final String[] msg = session.transformSending("", Collections.singletonList(sendtlv));
-				for (final String part : msg) {
-					engineHost.injectMessage(session.getSessionID(), part);
-				}
-			} else {
-                OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, true);
-			}
-            // The SMP session has completed (either successfully or otherwise).
-            // We have an answer to the authentication session. Now, clean the
-            // SMP state as there is no use for it anymore.
-			reset();
-		} else {
-            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, false);
-		}
+        try {
+            final byte[] nextmsg = sm.step4(tlv.getValue());
+            /* Set trust level based on result */
+            if (this.sm.status() == SMStatus.SUCCEEDED) {
+                // FIXME find alternative for APPROVED variable. What does this accomplish exactly?
+                OtrEngineHostUtil.verify(engineHost, session.getSessionID(),
+                        getFingerprint(), true /*smstate.approved*/);
+            } else {
+                OtrEngineHostUtil.unverify(engineHost, session.getSessionID(),
+                        getFingerprint());
+            }
+            /* Send msg with next smp msg content */
+            final TLV sendtlv = new TLV(TLV.SMP4, nextmsg);
+            sendTLV(sendtlv);
+        }
+        catch (SMAbortedException e) {
+            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
+        }
+        catch (SMException e) {
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
+                    tlv.getType(), this.sm.status() == SMStatus.CHEATED);
+            throw new OtrException(e);
+        }
     }
 
     public void processTlvSMP4(@Nonnull final TLV tlv) throws OtrException {
-        final int tlvType = tlv.getType();
-        if (smstate.nextExpected == SM.EXPECT4) {
-
-			try {
-				sm.step5(tlv.getValue());
-			} catch (SMException e) {
-				throw new OtrException(e);
-			}
-			if (smstate.smProgState == SM.PROG_SUCCEEDED){
-                OtrEngineHostUtil.verify(engineHost, session.getSessionID(), getFingerprint(), smstate.approved);
-			} else {
+        try {
+            sm.step5(tlv.getValue());
+            if (this.sm.status() == SMStatus.SUCCEEDED) {
+                // FIXME find alternative for APPROVED variable. What does this accomplish exactly?
+                OtrEngineHostUtil.verify(engineHost, session.getSessionID(),
+                        getFingerprint(), true /*smstate.approved*/);
+            } else {
                 OtrEngineHostUtil.unverify(engineHost, session.getSessionID(), getFingerprint());
-			}
-			if (smstate.smProgState == SM.PROG_CHEATED){
-                OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, true);
             }
-            // The SMP session has completed (either successfully or otherwise).
-            // We have an answer to the authentication session. Now, clean the
-            // SMP state as there is no use for it anymore.
-			reset();
-		} else {
-            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(), tlvType, false);
-		}
+        }
+        catch (SMAbortedException e) {
+            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
+        }
+        catch (SMException e) {
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
+                    tlv.getType(), this.sm.status() == SMStatus.CHEATED);
+            throw new OtrException(e);
+        }
     }
 
     public void processTlvSMP_ABORT(@Nonnull final TLV tlv) throws OtrException {
+        // FIXME if we inform host after resetting state, host cannot check if SMP exchange was actually in progress
+        this.sm.abort();
         OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
-        reset();
+    }
+
+    private void sendTLV(@Nonnull final TLV tlv) throws OtrException {
+        final String[] msg = session.transformSending("", Collections.singletonList(tlv));
+        for (final String part : msg) {
+            engineHost.injectMessage(session.getSessionID(), part);
+        }
     }
 }
