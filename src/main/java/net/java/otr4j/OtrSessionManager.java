@@ -20,7 +20,7 @@ import net.java.otr4j.session.SessionID;
  */
 public class OtrSessionManager {
 
-    public OtrSessionManager(OtrEngineHost host) {
+    public OtrSessionManager(final OtrEngineHost host) {
         if (host == null)
             throw new IllegalArgumentException("OtrEngineHost is required.");
 
@@ -37,7 +37,7 @@ public class OtrSessionManager {
      * @param sessionID
      * @return MVN_PASS_JAVADOC_INSPECTION
      */
-    public Session getSession(SessionID sessionID) {
+    public Session getSession(final SessionID sessionID) {
 
         if (sessionID == null || sessionID.equals(SessionID.Empty))
             throw new IllegalArgumentException();
@@ -46,32 +46,36 @@ public class OtrSessionManager {
             sessions = new Hashtable<SessionID, Session>();
 
         if (!sessions.containsKey(sessionID)) {
-            Session session = new Session(sessionID, getHost());
+            final Session session = new Session(sessionID, getHost());
             sessions.put(sessionID, session);
 
             session.addOtrEngineListener(new OtrEngineListener() {
 
-                public void sessionStatusChanged(SessionID sessionID) {
-                    for (OtrEngineListener l : listeners)
+                public void sessionStatusChanged(final SessionID sessionID) {
+                    for (final OtrEngineListener l : listeners)
+                        // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
                         l.sessionStatusChanged(sessionID);
                 }
 
-                public void multipleInstancesDetected(SessionID sessionID) {
-                    for (OtrEngineListener l : listeners)
+                public void multipleInstancesDetected(final SessionID sessionID) {
+                    for (final OtrEngineListener l : listeners)
+                        // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
                         l.multipleInstancesDetected(sessionID);
                 }
 
-                public void outgoingSessionChanged(SessionID sessionID) {
-                    for (OtrEngineListener l : listeners)
+                public void outgoingSessionChanged(final SessionID sessionID) {
+                    for (final OtrEngineListener l : listeners)
+                        // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
                         l.outgoingSessionChanged(sessionID);
                 }
             });
             return session;
-        } else
+        } else {
             return sessions.get(sessionID);
+        }
     }
 
-    private void setHost(OtrEngineHost host) {
+    private void setHost(final OtrEngineHost host) {
         this.host = host;
     }
 
@@ -79,16 +83,16 @@ public class OtrSessionManager {
         return host;
     }
 
-    private List<OtrEngineListener> listeners = new Vector<OtrEngineListener>();
+    private final List<OtrEngineListener> listeners = new Vector<OtrEngineListener>();
 
-    public void addOtrEngineListener(OtrEngineListener l) {
+    public void addOtrEngineListener(final OtrEngineListener l) {
         synchronized (listeners) {
             if (!listeners.contains(l))
                 listeners.add(l);
         }
     }
 
-    public void removeOtrEngineListener(OtrEngineListener l) {
+    public void removeOtrEngineListener(final OtrEngineListener l) {
         synchronized (listeners) {
             listeners.remove(l);
         }

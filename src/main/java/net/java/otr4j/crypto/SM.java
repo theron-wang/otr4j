@@ -42,6 +42,7 @@ public class SM {
     }
 
     static public class SMState{
+        // TODO Can we make this an immutable data structure?
         BigInteger secret, x2, x3, g1, g2, g3, g3o, p, q, pab, qab;
         public int nextExpected;
         int receivedQuestion;
@@ -68,11 +69,11 @@ public class SM {
 			super("");
 		}
 
-		public SMException(Throwable cause) {
+		public SMException(final Throwable cause) {
 			super(cause);
 		}
 		
-		public SMException(String message)
+		public SMException(final String message)
 		{
 			super(message);
 		}
@@ -128,15 +129,16 @@ public class SM {
 	public static final int MOD_LEN_BITS = 1536;
 	public static final int MOD_LEN_BYTES = 192;
 	
-	
 	/**
      * Generate a random exponent
+     * 
+     * TODO Move to Util class? (Has only relation with public constant MOD_LEN_BYTES ...)
      *
      * @param sr SecureRandom instance to use for random data
      * @return the generated random exponent.
      */
 	public static BigInteger randomExponent(final SecureRandom sr) {
-		byte[] sb = new byte[MOD_LEN_BYTES];
+		final byte[] sb = new byte[MOD_LEN_BYTES];
 		sr.nextBytes(sb);
 		return new BigInteger(1, sb);
 	}
@@ -152,10 +154,10 @@ public class SM {
      * @throws net.java.otr4j.crypto.SM.SMException when the SHA-256 algorithm
      * is missing or when the biginteger can't be serialized.
 	 */
-	public static BigInteger hash(int version, BigInteger a, BigInteger b) throws SMException
+	public static BigInteger hash(final int version, final BigInteger a, final BigInteger b) throws SMException
 	{
 		try {
-			MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+			final MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
 			sha256.update((byte)version);
 			sha256.update(SerializationUtils.writeMpi(a));
 			if (b != null)
@@ -168,15 +170,15 @@ public class SM {
 		}
 	}
 	
-	public static byte[] serialize(BigInteger[] ints) throws SMException {
+	public static byte[] serialize(final BigInteger[] ints) throws SMException {
 		try {
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			OtrOutputStream oos = new OtrOutputStream(out);
+			final ByteArrayOutputStream out = new ByteArrayOutputStream();
+			final OtrOutputStream oos = new OtrOutputStream(out);
 			oos.writeInt(ints.length);
-			for (BigInteger i : ints) {
+			for (final BigInteger i : ints) {
 				oos.writeBigInt(i);
 			}
-			byte[] b = out.toByteArray();
+			final byte[] b = out.toByteArray();
 			oos.close();
 			return b;
 		} catch (IOException ex) {
@@ -184,16 +186,16 @@ public class SM {
 		}
 	}
 	
-	public static BigInteger[] unserialize(byte[] bytes) throws SMException {
+	public static BigInteger[] unserialize(final byte[] bytes) throws SMException {
 		try {
-			ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-			OtrInputStream ois = new OtrInputStream(in);
-			int len = ois.readInt();
+			final ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+			final OtrInputStream ois = new OtrInputStream(in);
+			final int len = ois.readInt();
 			if (len > 100) {
 			    ois.close();
 				throw new SMException("Too many ints");
 			}
-			BigInteger[] ints = new BigInteger[len];
+			final BigInteger[] ints = new BigInteger[len];
 			for (int i = 0 ; i < len ; i++) {
 				ints[i] = ois.readBigInt();
 			}
@@ -211,8 +213,9 @@ public class SM {
      * @param g the BigInteger to check.
      * @return true if the BigInteger is in the right range, false otherwise.
      */
-	public static boolean checkGroupElem(BigInteger g)
+	public static boolean checkGroupElem(final BigInteger g)
 	{
+        // TODO convert to throwing SMException for invalid group element
 		return g.compareTo(BigInteger.valueOf(2)) < 0 || g.compareTo(SM.MODULUS_MINUS_2) > 0;
 	}
 	
@@ -223,8 +226,9 @@ public class SM {
      * @param x The BigInteger to check.
      * @return true if the BigInteger is in the right range, false otherwise.
      */
-	public static boolean checkExpon(BigInteger x)
+	public static boolean checkExpon(final BigInteger x)
 	{
+        // TODO convert to throwing SMException for invalid exponent
 		return x.compareTo(BigInteger.ONE) < 0 || x.compareTo(SM.ORDER_S) >= 0;
 	}
 	
@@ -238,14 +242,14 @@ public class SM {
      * @return c and d.
 	 * @throws SMException when c and d could not be calculated
 	 */
-	public static BigInteger[] proofKnowLog(BigInteger g, BigInteger x, int version, SecureRandom sr) throws SMException
+	public static BigInteger[] proofKnowLog(final BigInteger g, final BigInteger x, final int version, final SecureRandom sr) throws SMException
 	{
-	    BigInteger r = randomExponent(sr);
+	    final BigInteger r = randomExponent(sr);
 	    BigInteger temp = g.modPow(r, SM.MODULUS_S);
-	    BigInteger c = hash(version, temp, null);
+	    final BigInteger c = hash(version, temp, null);
 	    temp = x.multiply(c).mod(ORDER_S);
-	    BigInteger d = r.subtract(temp).mod(ORDER_S);
-	    BigInteger[] ret = new BigInteger[2];
+	    final BigInteger d = r.subtract(temp).mod(ORDER_S);
+	    final BigInteger[] ret = new BigInteger[2];
 	    ret[0]=c;
 	    ret[1]=d;
 	    return ret;
@@ -263,13 +267,13 @@ public class SM {
      * less than, equal to, or greater than {@code c}.
 	 * @throws SMException when something goes wrong
 	 */
-	public static int checkKnowLog(BigInteger c, BigInteger d, BigInteger g, BigInteger x, int version) throws SMException
+	public static int checkKnowLog(final BigInteger c, final BigInteger d, final BigInteger g, final BigInteger x, final int version) throws SMException
 	{
 
-	    BigInteger gd = g.modPow(d, MODULUS_S);
-	    BigInteger xc = x.modPow(c, MODULUS_S);
-	    BigInteger gdxc = gd.multiply(xc).mod(MODULUS_S);
-	    BigInteger hgdxc = hash(version, gdxc, null);
+	    final BigInteger gd = g.modPow(d, MODULUS_S);
+	    final BigInteger xc = x.modPow(c, MODULUS_S);
+	    final BigInteger gdxc = gd.multiply(xc).mod(MODULUS_S);
+	    final BigInteger hgdxc = hash(version, gdxc, null);
 	    
 	    return hgdxc.compareTo(c);
 	}
@@ -284,26 +288,27 @@ public class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	public static BigInteger[] proofEqualCoords(SMState state, BigInteger r, int version, SecureRandom sr) throws SMException
+	public static BigInteger[] proofEqualCoords(final SMState state, final BigInteger r, final int version, final SecureRandom sr) throws SMException
 	{
-	    BigInteger r1 = randomExponent(sr);
-	    BigInteger r2 = randomExponent(sr);
+	    final BigInteger r1 = randomExponent(sr);
+	    final BigInteger r2 = randomExponent(sr);
 
 	    /* Compute the value of c, as c = h(g3^r1, g1^r1 g2^r2) */
 	    BigInteger temp1 = state.g1.modPow(r1, MODULUS_S);
 	    BigInteger temp2 = state.g2.modPow(r2, MODULUS_S);
 	    temp2 = temp1.multiply(temp2).mod(MODULUS_S);
 	    temp1 = state.g3.modPow(r1, MODULUS_S);    
-	    BigInteger c = hash(version, temp1, temp2);
+	    final BigInteger c = hash(version, temp1, temp2);
 	    
 	    /* Compute the d values, as d1 = r1 - r c, d2 = r2 - secret c */
 	    temp1 = r.multiply(c).mod(ORDER_S);
-	    BigInteger d1 = r1.subtract(temp1).mod(ORDER_S);
+	    final BigInteger d1 = r1.subtract(temp1).mod(ORDER_S);
 
 	    temp1 = state.secret.multiply(c).mod(ORDER_S);
-	    BigInteger d2 = r2.subtract(temp1).mod(ORDER_S);
+	    final BigInteger d2 = r2.subtract(temp1).mod(ORDER_S);
 
-	    BigInteger[] ret = new BigInteger[3];
+        // TODO write shorthand, as there is no real point in writing it out in several lines
+	    final BigInteger[] ret = new BigInteger[3];
 	    ret[0]=c;
 	    ret[1]=d1;
 	    ret[2]=d2;
@@ -312,6 +317,9 @@ public class SM {
 	
 	/**
 	 * Verify a proof of knowledge of coordinates with first components being equal
+     * 
+     * TODO Consider making this void and throwing an exception in case of bad result. The checking actually refers to verifying the result rather than this method just doing a computation. The behavior based on the result is the same everywhere?
+     * 
      * @param c MVN_PASS_JAVADOC_INSPECTION
      * @param d1 MVN_PASS_JAVADOC_INSPECTION
      * @param d2 MVN_PASS_JAVADOC_INSPECTION
@@ -322,8 +330,8 @@ public class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	public static int checkEqualCoords(BigInteger c, BigInteger d1, BigInteger d2, BigInteger p,
-			BigInteger q, SMState state, int version) throws SMException
+	public static int checkEqualCoords(final BigInteger c, final BigInteger d1, final BigInteger d2, final BigInteger p,
+			final BigInteger q, final SMState state, final int version) throws SMException
 	{
 
 	    /* To verify, we test that hash(g3^d1 * p^c, g1^d1 * g2^d2 * q^c) = c
@@ -338,7 +346,7 @@ public class SM {
 	     */
 		BigInteger temp2 = state.g3.modPow(d1, MODULUS_S);
 		BigInteger temp3 = p.modPow(c, MODULUS_S);
-		BigInteger temp1 = temp2.multiply(temp3).mod(MODULUS_S);
+		final BigInteger temp1 = temp2.multiply(temp3).mod(MODULUS_S);
 		
 		temp2 = state.g1.modPow(d1, MODULUS_S);
 		temp3 = state.g2.modPow(d2, MODULUS_S);
@@ -346,7 +354,7 @@ public class SM {
 		temp3 = q.modPow(c, MODULUS_S);
 		temp2 = temp3.multiply(temp2).mod(MODULUS_S);
 		
-	    BigInteger cprime=hash(version, temp1, temp2);
+	    final BigInteger cprime=hash(version, temp1, temp2);
 
 	    return c.compareTo(cprime);
 	}
@@ -359,19 +367,20 @@ public class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	public static BigInteger[] proofEqualLogs(SMState state, int version, SecureRandom sr) throws SMException
+	public static BigInteger[] proofEqualLogs(final SMState state, final int version, final SecureRandom sr) throws SMException
 	{
-	    BigInteger r = randomExponent(sr);
+	    final BigInteger r = randomExponent(sr);
 
 	    /* Compute the value of c, as c = h(g1^r, (Qa/Qb)^r) */
 	    BigInteger temp1 = state.g1.modPow(r, MODULUS_S);
 	    BigInteger temp2 = state.qab.modPow(r, MODULUS_S);
-	    BigInteger c = hash(version, temp1, temp2);
+	    final BigInteger c = hash(version, temp1, temp2);
 
 	    /* Compute the d values, as d = r - x3 c */
 	    temp1 = state.x3.multiply(c).mod(ORDER_S);
-	    BigInteger d = r.subtract(temp1).mod(ORDER_S);
+	    final BigInteger d = r.subtract(temp1).mod(ORDER_S);
 
+        // TODO write shorthand for result
 	    BigInteger[] ret = new BigInteger[2];
 	    ret[0]=c;
 	    ret[1]=d;
@@ -380,6 +389,9 @@ public class SM {
 	
 	/**
 	 * Verify a proof of knowledge of logs with exponents being equal
+     * 
+     * TODO consider returning void and throwing an exception in case of unexpected results. The method name already refers to verifying an actual result instead of just doing a computation.
+     * 
      * @param c MVN_PASS_JAVADOC_INSPECTION
      * @param d MVN_PASS_JAVADOC_INSPECTION
      * @param r MVN_PASS_JAVADOC_INSPECTION
@@ -388,7 +400,7 @@ public class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	public static int checkEqualLogs(BigInteger c, BigInteger d, BigInteger r, SMState state, int version) throws SMException
+	public static int checkEqualLogs(final BigInteger c, final BigInteger d, final BigInteger r, final SMState state, final int version) throws SMException
 	{
 
 	    /* Here, we recall the exponents used to create g3.
@@ -407,13 +419,13 @@ public class SM {
 		
 		BigInteger temp2 = state.g1.modPow(d, MODULUS_S);
 		BigInteger temp3 = state.g3o.modPow(c, MODULUS_S);
-		BigInteger temp1 = temp2.multiply(temp3).mod(MODULUS_S);
+		final BigInteger temp1 = temp2.multiply(temp3).mod(MODULUS_S);
 		
 		temp3 = state.qab.modPow(d, MODULUS_S);
 		temp2 = r.modPow(c, MODULUS_S);
 		temp2 = temp3.multiply(temp2).mod(MODULUS_S);
 
-	    BigInteger cprime = hash(version, temp1, temp2);
+	    final BigInteger cprime = hash(version, temp1, temp2);
 
 	    return c.compareTo(cprime);
 	}
@@ -431,18 +443,18 @@ public class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static byte[] step1(SMState astate, byte[] secret, SecureRandom sr) throws SMException
+	public static byte[] step1(final SMState astate, final byte[] secret, final SecureRandom sr) throws SMException
 	{
 	    /* Initialize the sm state or update the secret */
 		//Util.checkBytes("secret", secret);
-	    BigInteger secret_mpi = new BigInteger(1, secret);
+	    final BigInteger secret_mpi = new BigInteger(1, secret);
 
 	    astate.secret = secret_mpi;
 	    astate.receivedQuestion = 0;
 	    astate.x2 = randomExponent(sr);
 	    astate.x3 = randomExponent(sr);
 
-	    BigInteger[] msg1 = new BigInteger[6];
+	    final BigInteger[] msg1 = new BigInteger[6];
 	    msg1[0] = astate.g1.modPow(astate.x2, MODULUS_S);
 	    BigInteger[] res = proofKnowLog(astate.g1, astate.x2, 1, sr);
 	    msg1[1]=res[0];
@@ -453,7 +465,7 @@ public class SM {
 	    msg1[4]=res[0];
 	    msg1[5]=res[1];
 
-	    byte[] ret = serialize(msg1);
+	    final byte[] ret = serialize(msg1);
 	    astate.smProgState = PROG_OK;
 
 	    return ret;
@@ -468,7 +480,7 @@ public class SM {
      * @param sr SecureRandom instance
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static void step2a(SMState bstate, byte[] input, int received_question, SecureRandom sr) throws SMException
+	public static void step2a(final SMState bstate, final byte[] input, final int received_question, final SecureRandom sr) throws SMException
 	{
 
 	    /* Initialize the sm state if needed */
@@ -477,7 +489,7 @@ public class SM {
 	    bstate.smProgState = PROG_CHEATED;
 
 	    /* Read from input to find the mpis */
-	    BigInteger[] msg1 = unserialize(input);
+	    final BigInteger[] msg1 = unserialize(input);
 
 	    if (checkGroupElem(msg1[0]) || checkExpon(msg1[2]) ||
 	    		checkGroupElem(msg1[3]) || checkExpon(msg1[5])) {
@@ -523,14 +535,14 @@ public class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static byte[] step2b(SMState bstate, byte[] secret, SecureRandom sr) throws SMException
+	public static byte[] step2b(final SMState bstate, final byte[] secret, final SecureRandom sr) throws SMException
 	{
 	    /* Convert the given secret to the proper form and store it */
 		//Util.checkBytes("secret", secret);
-		BigInteger secret_mpi = new BigInteger(1, secret);
+		final BigInteger secret_mpi = new BigInteger(1, secret);
 		bstate.secret = secret_mpi;
 
-	    BigInteger[] msg2 = new BigInteger[11];
+	    final BigInteger[] msg2 = new BigInteger[11];
 	    msg2[0] = bstate.g1.modPow(bstate.x2, MODULUS_S);
 	    BigInteger[] res = proofKnowLog(bstate.g1, bstate.x2, 3, sr);
 	    msg2[1]=res[0];
@@ -542,15 +554,15 @@ public class SM {
 	    msg2[5]=res[1];
 
 	    /* Calculate P and Q values for Bob */
-	    BigInteger r = randomExponent(sr);
+	    final BigInteger r = randomExponent(sr);
 	    //BigInteger r = new BigInteger(SM.GENERATOR_S);
 
 	    bstate.p = bstate.g3.modPow(r, MODULUS_S);
 	    //Util.checkBytes("Pb", bstate.p.getValue());
 	    msg2[6]=bstate.p;
-	    BigInteger qb1 = bstate.g1.modPow(r, MODULUS_S);
+	    final BigInteger qb1 = bstate.g1.modPow(r, MODULUS_S);
 	    //Util.checkBytes("Qb1", qb1.getValue());
-	    BigInteger qb2 = bstate.g2.modPow(bstate.secret, MODULUS_S);
+	    final BigInteger qb2 = bstate.g2.modPow(bstate.secret, MODULUS_S);
 	    //Util.checkBytes("Qb2", qb2.getValue());
 	    //Util.checkBytes("g2", bstate.g2.getValue());
 	    //Util.checkBytes("secret", bstate.secret.getValue());
@@ -580,12 +592,12 @@ public class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static byte[] step3(SMState astate, byte[] input, SecureRandom sr) throws SMException
+	public static byte[] step3(final SMState astate, final byte[] input, final SecureRandom sr) throws SMException
 	{
 	    /* Read from input to find the mpis */
 	    astate.smProgState = PROG_CHEATED;
 	    
-	    BigInteger[] msg2 = unserialize(input);
+	    final BigInteger[] msg2 = unserialize(input);
 	    if (checkGroupElem(msg2[0]) || checkGroupElem(msg2[3]) ||
 		    checkGroupElem(msg2[6]) || checkGroupElem(msg2[7]) ||
 		    checkExpon(msg2[2]) || checkExpon(msg2[5]) ||
@@ -593,7 +605,7 @@ public class SM {
 	        throw new SMException("Invalid Parameter");
 	    }
 
-	    BigInteger[] msg3 = new BigInteger[8];
+	    final BigInteger[] msg3 = new BigInteger[8];
 
 	    /* Store Bob's g3a value for later in the protocol */
 	    astate.g3o = msg2[3];
@@ -615,15 +627,15 @@ public class SM {
 	    	throw new SMException("Invalid Parameter");
 
 	    /* Calculate P and Q values for Alice */
-	    BigInteger r = randomExponent(sr);
+	    final BigInteger r = randomExponent(sr);
 	    //BigInteger r = new BigInteger(SM.GENERATOR_S);
 
 	    astate.p = astate.g3.modPow(r, MODULUS_S);
 	    //Util.checkBytes("Pa", astate.p.getValue());
 	    msg3[0]=astate.p;
-	    BigInteger qa1 = astate.g1.modPow(r, MODULUS_S);
+	    final BigInteger qa1 = astate.g1.modPow(r, MODULUS_S);
 	    //Util.checkBytes("Qa1", qa1.getValue());
-	    BigInteger qa2 = astate.g2.modPow(astate.secret, MODULUS_S);
+	    final BigInteger qa2 = astate.g2.modPow(astate.secret, MODULUS_S);
 	    //Util.checkBytes("Qa2", qa2.getValue());
 	    //Util.checkBytes("g2", astate.g2.getValue());
 	    //Util.checkBytes("secret", astate.secret.getValue());
@@ -647,7 +659,7 @@ public class SM {
 	    msg3[6]=res[0];
 	    msg3[7]=res[1];
 	    
-	    byte[] output = serialize(msg3);
+	    final byte[] output = serialize(msg3);
 	   
 	    astate.smProgState = PROG_OK;
 	    return output;
@@ -668,14 +680,14 @@ public class SM {
      * @return MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static byte[] step4(SMState bstate, byte[] input, SecureRandom sr) throws SMException
+	public static byte[] step4(final SMState bstate, final byte[] input, final SecureRandom sr) throws SMException
 	{
 	    /* Read from input to find the mpis */
-	    BigInteger[] msg3 = unserialize(input);
+	    final BigInteger[] msg3 = unserialize(input);
 
 	    bstate.smProgState = PROG_CHEATED;
 	    
-	    BigInteger[] msg4 = new BigInteger[3];
+	    final BigInteger[] msg4 = new BigInteger[3];
 
 	    if (checkGroupElem(msg3[0]) || checkGroupElem(msg3[1]) ||
 		    checkGroupElem(msg3[5]) || checkExpon(msg3[3]) ||
@@ -705,14 +717,14 @@ public class SM {
 	    msg4[1]=res[0];
 	    msg4[2]=res[1];
 	    
-	    byte[] output = serialize(msg4);
+	    final byte[] output = serialize(msg4);
 
 	    /* Calculate Rab and verify that secrets match */
 	    
-	    BigInteger rab = msg3[5].modPow(bstate.x3, MODULUS_S);
+	    final BigInteger rab = msg3[5].modPow(bstate.x3, MODULUS_S);
 	    //Util.checkBytes("rab", rab.getValue());
 	    //Util.checkBytes("pab", bstate.pab.getValue());
-	    int comp = rab.compareTo(bstate.pab);
+	    final int comp = rab.compareTo(bstate.pab);
 
 	    bstate.smProgState = (comp!=0) ? PROG_FAILED : PROG_SUCCEEDED;
 
@@ -727,10 +739,10 @@ public class SM {
      * @param input MVN_PASS_JAVADOC_INSPECTION
 	 * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-	public static void step5(SMState astate, byte[] input) throws SMException
+	public static void step5(final SMState astate, final byte[] input) throws SMException
 	{
 	    /* Read from input to find the mpis */
-	    BigInteger[] msg4 = unserialize(input);
+	    final BigInteger[] msg4 = unserialize(input);
 	    astate.smProgState = PROG_CHEATED;
 
 	    if (checkGroupElem(msg4[0])|| checkExpon(msg4[2])) {
@@ -743,10 +755,10 @@ public class SM {
 
 	    /* Calculate Rab and verify that secrets match */
 	    
-	    BigInteger rab = msg4[0].modPow(astate.x3, MODULUS_S);
+	    final BigInteger rab = msg4[0].modPow(astate.x3, MODULUS_S);
 	    //Util.checkBytes("rab", rab.getValue());
 	    //Util.checkBytes("pab", astate.pab.getValue());
-	    int comp = rab.compareTo(astate.pab);
+	    final int comp = rab.compareTo(astate.pab);
 	    if (comp!=0){
 	    	//System.out.println("checking failed");
 	    }

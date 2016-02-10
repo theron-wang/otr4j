@@ -18,7 +18,7 @@ public class DHKeyMessage extends AbstractEncodedMessage {
 	public DHPublicKey dhPublicKey;
 
 	// Ctor.
-	public DHKeyMessage(int protocolVersion, DHPublicKey dhPublicKey) {
+	public DHKeyMessage(final int protocolVersion, final DHPublicKey dhPublicKey) {
 		super(MESSAGE_DHKEY, protocolVersion);
 		this.dhPublicKey = dhPublicKey;
 	}

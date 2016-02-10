@@ -18,10 +18,10 @@ public class MysteriousT {
 	public byte[] encryptedMessage;
 
 	// Ctor.
-	public MysteriousT(int protocolVersion, int senderInstanceTag, int receiverInstanceTag,
-			int flags, int senderKeyID,
-			int recipientKeyID, DHPublicKey nextDH, byte[] ctr,
-			byte[] encryptedMessage) {
+	public MysteriousT(final int protocolVersion, final int senderInstanceTag, final int receiverInstanceTag,
+			final int flags, final int senderKeyID,
+			final int recipientKeyID, final DHPublicKey nextDH, final byte[] ctr,
+			final byte[] encryptedMessage) {
 
 		this.protocolVersion = protocolVersion;
 		this.senderInstanceTag = senderInstanceTag;

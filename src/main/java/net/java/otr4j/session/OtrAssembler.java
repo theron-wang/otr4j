@@ -15,7 +15,7 @@ import java.net.ProtocolException;
  */
 public final class OtrAssembler {
 
-	public OtrAssembler(InstanceTag ownInstance) {
+	public OtrAssembler(final InstanceTag ownInstance) {
 		this.ownInstance = ownInstance;
 		discard();
 	}
@@ -77,16 +77,16 @@ public final class OtrAssembler {
 					HEAD_FRAGMENT_V3.length());
 
 			// break away the v2 part
-			String[] instancePart = msgText.split(",", 2);
+			final String[] instancePart = msgText.split(",", 2);
 			// split the two instance ids
-			String[] instances = instancePart[0].split("\\|", 2);
+			final String[] instances = instancePart[0].split("\\|", 2);
 
 			if (instancePart.length != 2 || instances.length != 2) {
 				discard();
 				throw new ProtocolException();
 			}
 
-			int receiverInstance;
+			final int receiverInstance;
 			try {
 				receiverInstance = Integer.parseInt(instances[1], 16);
 			} catch (NumberFormatException e) {
@@ -110,22 +110,25 @@ public final class OtrAssembler {
 			return msgText;
 		}
 
-		String[] params = msgText.split(",", 4);
+		final String[] params = msgText.split(",", 4);
 
-		int k, n;
+		final int k, n;
 		try {
 			k = Integer.parseInt(params[0]);
 			n = Integer.parseInt(params[1]);
 		} catch (NumberFormatException e) {
 			discard();
+            // TODO consider including cause
 			throw new ProtocolException();
 		} catch (ArrayIndexOutOfBoundsException e) {
 			discard();
+            // TODO consider including cause
 			throw new ProtocolException();
 		}
 
 		if (k == 0 || n == 0 || k > n || params.length != 4 || params[3].length() != 0) {
 			discard();
+            // TODO consider including cause
 			throw new ProtocolException();
 		}
 
@@ -144,11 +147,12 @@ public final class OtrAssembler {
 		} else {
 			// out-of-order fragment
 			discard();
+            // TODO consider including cause
 			throw new ProtocolException();
 		}
 
 		if (n == k && n > 0) {
-			String result = fragment.toString();
+			final String result = fragment.toString();
 			discard();
 			return result;
 		} else {

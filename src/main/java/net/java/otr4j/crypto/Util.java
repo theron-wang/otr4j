@@ -21,8 +21,12 @@ package net.java.otr4j.crypto;
 
 import net.java.otr4j.io.SerializationUtils;
 
+/**
+ * Byte utilities.
+ */
 public class Util {
-	public static void checkBytes(String s, byte[] bytes) {
+
+	public static void checkBytes(final String s, final byte[] bytes) {
 		String hexString = new String();
 		for (int i = 0; i < bytes.length; i++) {
 			hexString += Integer.toHexString((bytes[i] >>> 4) & 0x0F);
@@ -31,25 +35,25 @@ public class Util {
 		System.out.println(s + ": " + hexString);
 	}
 	
-	static void writeInt(byte[] dst, int index, int src) {
+	static void writeInt(final byte[] dst, final int index, final int src) {
 		dst[index] = (byte) ((src >> 24) & 0xff);
 		dst[index + 1] = (byte) ((src >> 16) & 0xff);
 		dst[index + 2] = (byte) ((src >> 8) & 0xff);
 		dst[index + 3] = (byte) (src & 0xff);
 	}
 
-	static int readInt(byte[] src, int index) {
-		int ret = ((int) src[index] << 24)
+	static int readInt(final byte[] src, final int index) {
+		final int ret = ((int) src[index] << 24)
 				| ((int) (src[index + 1] << 16) & 0xff0000)
 				| ((int) (src[index + 2] << 8) & 0xff00)
 				| ((int) src[index + 3] & 0xff);
 		return ret;
 	}
 	
-	static byte[] hexStringToBytes(String s){
-		byte[] sbytes = s.getBytes(SerializationUtils.ASCII);
+	static byte[] hexStringToBytes(final String s){
+		final byte[] sbytes = s.getBytes(SerializationUtils.ASCII);
 		if(sbytes.length%2!=0) return null;
-		byte[] ret = new byte[sbytes.length/2];
+		final byte[] ret = new byte[sbytes.length/2];
 		for(int i=0; i<ret.length; i++){
 			if(sbytes[2*i]>='A' && sbytes[2*i]<='F'){
 				ret[i]=(byte)((sbytes[2*i]-('A'-10)) << 4);
@@ -71,8 +75,8 @@ public class Util {
 		return ret;
 	}
 	
-	static String bytesToHexString(byte[] mpi){
-		byte[] hex = new byte[2*mpi.length];
+	static String bytesToHexString(final byte[] mpi){
+		final byte[] hex = new byte[2*mpi.length];
 		for(int i=0; i<mpi.length; i++){
 			int num = (int)(mpi[i]>>4 & 0xf);
 			if(num<=9){
@@ -86,9 +90,7 @@ public class Util {
 			}else{
 				hex[2*i+1]=(byte)('A'+num-10);
 			}
-			
 		}
 		return new String(hex);
 	}
-
 }

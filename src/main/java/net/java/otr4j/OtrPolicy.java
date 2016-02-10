@@ -37,7 +37,7 @@ public class OtrPolicy {
         this.setPolicy(NEVER);
     }
 
-    public OtrPolicy(int policy) {
+    public OtrPolicy(final int policy) {
         this.setPolicy(policy);
     }
 
@@ -47,7 +47,7 @@ public class OtrPolicy {
         return policy;
     }
 
-    private void setPolicy(int policy) {
+    private void setPolicy(final int policy) {
         this.policy = policy;
     }
 
@@ -80,49 +80,49 @@ public class OtrPolicy {
         return (policy & OtrPolicy.WHITESPACE_START_AKE) != 0;
     }
 
-    public void setAllowV1(boolean value) {
+    public void setAllowV1(final boolean value) {
         if (value)
             policy |= ALLOW_V1;
         else
             policy &= ~ALLOW_V1;
     }
 
-    public void setAllowV2(boolean value) {
+    public void setAllowV2(final boolean value) {
         if (value)
             policy |= ALLOW_V2;
         else
             policy &= ~ALLOW_V2;
     }
 
-    public void setAllowV3(boolean value) {
+    public void setAllowV3(final boolean value) {
         if (value)
             policy |= ALLOW_V3;
         else
             policy &= ~ALLOW_V3;
     }
 
-    public void setErrorStartAKE(boolean value) {
+    public void setErrorStartAKE(final boolean value) {
         if (value)
             policy |= ERROR_START_AKE;
         else
             policy &= ~ERROR_START_AKE;
     }
 
-    public void setRequireEncryption(boolean value) {
+    public void setRequireEncryption(final boolean value) {
         if (value)
             policy |= REQUIRE_ENCRYPTION;
         else
             policy &= ~REQUIRE_ENCRYPTION;
     }
 
-    public void setSendWhitespaceTag(boolean value) {
+    public void setSendWhitespaceTag(final boolean value) {
         if (value)
             policy |= SEND_WHITESPACE_TAG;
         else
             policy &= ~SEND_WHITESPACE_TAG;
     }
 
-    public void setWhitespaceStartAKE(boolean value) {
+    public void setWhitespaceStartAKE(final boolean value) {
         if (value)
             policy |= WHITESPACE_START_AKE;
         else
@@ -134,7 +134,7 @@ public class OtrPolicy {
                 && getSendWhitespaceTag() && getWhitespaceStartAKE();
     }
 
-    public void setEnableAlways(boolean value) {
+    public void setEnableAlways(final boolean value) {
         if (value)
             setEnableManual(true);
 
@@ -148,7 +148,7 @@ public class OtrPolicy {
         return getAllowV1() && getAllowV2() && getAllowV3();
     }
 
-    public void setEnableManual(boolean value) {
+    public void setEnableManual(final boolean value) {
         setAllowV1(value);
         setAllowV2(value);
         setAllowV3(value);

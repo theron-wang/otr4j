@@ -30,22 +30,27 @@ public class SmpTlvHandler {
 	 * 
 	 * @param session The session reference.
 	 */
-	public SmpTlvHandler(Session session) {
+	public SmpTlvHandler(final Session session) {
 		this.session = session;
 		this.engineHost = session.getHost();
 		reset();
 	}
 
-	public void reset() {
+    /**
+     * Reset SMState in order to provide clean, unused state.
+     *
+     * reset() is final to ensure expected behavior of resetting to clean state.
+     */
+	public final void reset() {
 		smstate = new SMState();
 	}
 
 	/* Compute secret session ID as hash of agreed secret */
-	private static byte[] computeSessionId(BigInteger s) throws SMException {
-		byte[] sdata;
+	private static byte[] computeSessionId(final BigInteger s) throws SMException {
+		final byte[] sdata;
 		try {
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			OtrOutputStream oos = new OtrOutputStream(out);
+			final ByteArrayOutputStream out = new ByteArrayOutputStream();
+			final OtrOutputStream oos = new OtrOutputStream(out);
 			oos.write(0x00);
 			oos.writeBigInt(s);
 			sdata = out.toByteArray();
@@ -55,17 +60,16 @@ public class SmpTlvHandler {
 		}
 
 		/* Calculate the session id */
-		MessageDigest sha256;
+		final MessageDigest sha256;
 		try {
 			sha256 = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException e) {
 			throw new SMException("cannot find SHA-256");
 		}
-		byte[] res = sha256.digest(sdata);
-		byte[] secure_session_id = new byte[8];
+		final byte[] res = sha256.digest(sdata);
+		final byte[] secure_session_id = new byte[8];
 		System.arraycopy(res, 0, secure_session_id, 0, 8);
 		return secure_session_id;
-
 	}
 
 	/**
@@ -82,7 +86,7 @@ public class SmpTlvHandler {
 	 *  @return TLVs to send to the peer
      *  @throws OtrException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	public List<TLV> initRespondSmp(String question, String secret, boolean initiating) throws OtrException {
+	public List<TLV> initRespondSmp(final String question, final String secret, final boolean initiating) throws OtrException {
 		if (!initiating && !smstate.asked)
 			throw new OtrException(new IllegalStateException(
 					"There is no question to be answered."));
@@ -92,17 +96,17 @@ public class SmpTlvHandler {
 		 * Version byte (0x01), Initiator fingerprint (20 bytes),
 		 * responder fingerprint (20 bytes), secure session id, input secret
 		 */
-		byte[] our_fp = engineHost.getLocalFingerprintRaw(session
+		final byte[] our_fp = engineHost.getLocalFingerprintRaw(session
 				.getSessionID());
-		byte[] their_fp;
-		PublicKey remotePublicKey = session.getRemotePublicKey();
+		final byte[] their_fp;
+		final PublicKey remotePublicKey = session.getRemotePublicKey();
 		try {
 			their_fp = OtrCryptoEngine.getFingerprintRaw(remotePublicKey);
 		} catch (OtrCryptoException e) {
 			throw new OtrException(e);
 		}
 
-		byte[] sessionId;
+		final byte[] sessionId;
 		try {
 			sessionId = computeSessionId(session.getS());
 		} catch (SMException ex) {
@@ -110,8 +114,8 @@ public class SmpTlvHandler {
 		}
 
 		byte[] bytes = secret.getBytes(SerializationUtils.UTF8);
-		int combined_buf_len = 41 + sessionId.length + bytes.length;
-		byte[] combined_buf = new byte[combined_buf_len];
+		final int combined_buf_len = 41 + sessionId.length + bytes.length;
+		final byte[] combined_buf = new byte[combined_buf_len];
 		combined_buf[0]=1;
 		if (initiating){
 			System.arraycopy(our_fp, 0, combined_buf, 1, 20);
@@ -124,14 +128,14 @@ public class SmpTlvHandler {
 		System.arraycopy(bytes, 0,
 				combined_buf, 41 + sessionId.length, bytes.length);
 
-		MessageDigest sha256;
+		final MessageDigest sha256;
 		try {
 			sha256 = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException ex) {
 			throw new OtrException(ex);
 		}
 
-		byte[] combined_secret = sha256.digest(combined_buf);
+		final byte[] combined_secret = sha256.digest(combined_buf);
 		byte[] smpmsg;
 		try {
 			if (initiating) {
@@ -146,13 +150,13 @@ public class SmpTlvHandler {
 		// If we've got a question, attach it to the smpmsg
 		if (question != null && initiating){
 			bytes = question.getBytes(SerializationUtils.UTF8);
-			byte[] qsmpmsg = new byte[bytes.length + 1 + smpmsg.length];
+			final byte[] qsmpmsg = new byte[bytes.length + 1 + smpmsg.length];
 			System.arraycopy(bytes, 0, qsmpmsg, 0, bytes.length);
 			System.arraycopy(smpmsg, 0, qsmpmsg, bytes.length + 1, smpmsg.length);
 			smpmsg = qsmpmsg;
 		}
 
-		TLV sendtlv = new TLV(initiating?
+		final TLV sendtlv = new TLV(initiating?
 				(question != null ? TLV.SMP1Q:TLV.SMP1) : TLV.SMP2, smpmsg);
 		smstate.nextExpected = initiating? SM.EXPECT2 : SM.EXPECT3;
 		smstate.approved = initiating || question == null;
@@ -166,7 +170,7 @@ public class SmpTlvHandler {
      *  @throws OtrException MVN_PASS_JAVADOC_INSPECTION
 	 */
 	public List<TLV> abortSmp() throws OtrException {
-		TLV sendtlv = new TLV(TLV.SMP_ABORT, new byte[0]);
+		final TLV sendtlv = new TLV(TLV.SMP_ABORT, new byte[0]);
 		smstate.nextExpected = SM.EXPECT1;
         return makeTlvList(sendtlv);
 	}
@@ -176,28 +180,29 @@ public class SmpTlvHandler {
 	}
 
 	public String getFingerprint() {
-		PublicKey pubKey = session.getRemotePublicKey();
+		final PublicKey pubKey = session.getRemotePublicKey();
 		try {
 			return OtrCryptoEngine.getFingerprint(pubKey);
         } catch (OtrCryptoException e) {
+            // TODO consider removing printStackTrace()
             e.printStackTrace();
         }
 		return null;
 	}
 
-	public void processTlvSMP1Q(TLV tlv) throws OtrException {
-	    int tlvType = tlv.getType();
+	public void processTlvSMP1Q(final TLV tlv) throws OtrException {
+	    final int tlvType = tlv.getType();
 	    if (smstate.nextExpected == SM.EXPECT1) {
 			/* We can only do the verification half now.
 			 * We must wait for the secret to be entered
 			 * to continue. */
-			byte[] question = tlv.getValue();
+			final byte[] question = tlv.getValue();
 			int qlen=0;
 			for(; qlen!=question.length && question[qlen]!=0; qlen++){
 			}
 			if (qlen == question.length) qlen=0;
 			else qlen++;
-			byte[] input = new byte[question.length-qlen];
+			final byte[] input = new byte[question.length-qlen];
 			System.arraycopy(question, qlen, input, 0, question.length-qlen);
 			try {
 				SM.step2a(smstate, input, 1, this.session.secureRandom());
@@ -205,11 +210,11 @@ public class SmpTlvHandler {
 				throw new OtrException(e);
 			}
 			if (qlen != 0) qlen--;
-			byte[] plainq = new byte[qlen];
+			final byte[] plainq = new byte[qlen];
 			System.arraycopy(question, 0, plainq, 0, qlen);
 			if (smstate.smProgState != SM.PROG_CHEATED){
 				smstate.asked = true;
-				String questionUTF = new String(plainq, SerializationUtils.UTF8);
+				final String questionUTF = new String(plainq, SerializationUtils.UTF8);
 			    engineHost.askForSecret(session.getSessionID(), session.getReceiverInstanceTag(), questionUTF);
 			} else {
 			    engineHost.smpError(session.getSessionID(), tlvType, true);
@@ -220,8 +225,8 @@ public class SmpTlvHandler {
 		}
 	}
 
-	public void processTlvSMP1(TLV tlv) throws OtrException {
-	    int tlvType = tlv.getType();
+	public void processTlvSMP1(final TLV tlv) throws OtrException {
+	    final int tlvType = tlv.getType();
 	    if (smstate.nextExpected == SM.EXPECT1) {
 			/* We can only do the verification half now.
 			 * We must wait for the secret to be entered
@@ -243,10 +248,10 @@ public class SmpTlvHandler {
 		}
     }
 
-	public void processTlvSMP2(TLV tlv) throws OtrException {
-	    int tlvType = tlv.getType();
+	public void processTlvSMP2(final TLV tlv) throws OtrException {
+	    final int tlvType = tlv.getType();
 	    if (smstate.nextExpected == SM.EXPECT2) {
-			byte[] nextmsg;
+			final byte[] nextmsg;
 			try {
 				nextmsg = SM.step3(smstate, tlv.getValue(), this.session.secureRandom());
 			} catch (SMException e) {
@@ -254,9 +259,9 @@ public class SmpTlvHandler {
 			}
 			if (smstate.smProgState != SM.PROG_CHEATED){
 				/* Send msg with next smp msg content */
-				TLV sendtlv = new TLV(TLV.SMP3, nextmsg);
+				final TLV sendtlv = new TLV(TLV.SMP3, nextmsg);
 				smstate.nextExpected = SM.EXPECT4;
-				String[] msg = session.transformSending("", makeTlvList(sendtlv));
+				final String[] msg = session.transformSending("", makeTlvList(sendtlv));
 				for (String part : msg) {
 					engineHost.injectMessage(session.getSessionID(), part);
 				}
@@ -269,10 +274,10 @@ public class SmpTlvHandler {
 		}
     }
 
-    public void processTlvSMP3(TLV tlv) throws OtrException {
-        int tlvType = tlv.getType();
+    public void processTlvSMP3(final TLV tlv) throws OtrException {
+        final int tlvType = tlv.getType();
         if (smstate.nextExpected == SM.EXPECT3) {
-			byte[] nextmsg;
+			final byte[] nextmsg;
 			try {
 				nextmsg = SM.step4(smstate, tlv.getValue(), this.session.secureRandom());
 			} catch (SMException e) {
@@ -287,9 +292,9 @@ public class SmpTlvHandler {
 			}
 			if (smstate.smProgState != SM.PROG_CHEATED){
 				/* Send msg with next smp msg content */
-				TLV sendtlv = new TLV(TLV.SMP4, nextmsg);
-				String[] msg = session.transformSending("", makeTlvList(sendtlv));
-				for (String part : msg) {
+				final TLV sendtlv = new TLV(TLV.SMP4, nextmsg);
+				final String[] msg = session.transformSending("", makeTlvList(sendtlv));
+				for (final String part : msg) {
 					engineHost.injectMessage(session.getSessionID(), part);
 				}
 			} else {
@@ -301,8 +306,8 @@ public class SmpTlvHandler {
 		}
     }
 
-    public void processTlvSMP4(TLV tlv) throws OtrException {
-        int tlvType = tlv.getType();
+    public void processTlvSMP4(final TLV tlv) throws OtrException {
+        final int tlvType = tlv.getType();
         if (smstate.nextExpected == SM.EXPECT4) {
 
 			try {
@@ -316,6 +321,7 @@ public class SmpTlvHandler {
 				engineHost.unverify(session.getSessionID(), getFingerprint());
 			}
 			if (smstate.smProgState != SM.PROG_CHEATED){
+                // TODO if this is truly empty, why express it like this?
 			} else {
 			    engineHost.smpError(session.getSessionID(), tlvType, true);
 			}
@@ -325,13 +331,14 @@ public class SmpTlvHandler {
 		}
     }
 
-    public void processTlvSMP_ABORT(TLV tlv) throws OtrException {
+    public void processTlvSMP_ABORT(final TLV tlv) throws OtrException {
         engineHost.smpAborted(session.getSessionID());
         reset();
     }
 
-    private List<TLV> makeTlvList(TLV sendtlv) {
-        List<TLV> tlvs = new ArrayList<TLV>(1);
+    private List<TLV> makeTlvList(final TLV sendtlv) {
+        // TODO replace with Collections.<TLV>singletonList?
+        final List<TLV> tlvs = new ArrayList<TLV>(1);
         tlvs.add(sendtlv);
         return tlvs;
     }

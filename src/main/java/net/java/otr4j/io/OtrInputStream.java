@@ -19,8 +19,9 @@ import net.java.otr4j.io.messages.SignatureX;
 
 public class OtrInputStream extends FilterInputStream implements
 		SerializationConstants {
+    // TODO consider making OtrInputStream class final
 
-	public OtrInputStream(InputStream in) {
+	public OtrInputStream(final InputStream in) {
 		super(in);
 	}
 
@@ -35,12 +36,12 @@ public class OtrInputStream extends FilterInputStream implements
 	 *             the exact amount of requested bytes could not be read from
 	 *             the stream.
 	 */
-	private byte[] checkedRead(int length) throws IOException {
+	private byte[] checkedRead(final int length) throws IOException {
 		if (length == 0) {
 			return new byte[0];
 		}
-		byte[] b = new byte[length];
-		int bytesRead = read(b);
+		final byte[] b = new byte[length];
+		final int bytesRead = read(b);
 		if (bytesRead != length) {
 			throw new IOException(
 					"Unable to read the required amount of bytes from the stream. Expected were "
@@ -50,12 +51,12 @@ public class OtrInputStream extends FilterInputStream implements
 		return b;
 	}
 
-	private int readNumber(int length) throws IOException {
-		byte[] b = checkedRead(length);
+	private int readNumber(final int length) throws IOException {
+		final byte[] b = checkedRead(length);
 
 		int value = 0;
 		for (int i = 0; i < b.length; i++) {
-			int shift = (b.length - 1 - i) * 8;
+			final int shift = (b.length - 1 - i) * 8;
 			value += (b[i] & 0x000000FF) << shift;
 		}
 
@@ -83,33 +84,35 @@ public class OtrInputStream extends FilterInputStream implements
 	}
 
 	public BigInteger readBigInt() throws IOException {
-		byte[] b = readData();
+		final byte[] b = readData();
 		return new BigInteger(1, b);
 	}
 
 	public byte[] readData() throws IOException {
-		int dataLen = readNumber(DATA_LEN);
+		final int dataLen = readNumber(DATA_LEN);
 		return checkedRead(dataLen);
 	}
 
 	public PublicKey readPublicKey() throws IOException {
-		int type = readShort();
+		final int type = readShort();
 		switch (type) {
 		case 0:
-			BigInteger p = readBigInt();
-			BigInteger q = readBigInt();
-			BigInteger g = readBigInt();
-			BigInteger y = readBigInt();
-			DSAPublicKeySpec keySpec = new DSAPublicKeySpec(y, p, q, g);
-			KeyFactory keyFactory;
+			final BigInteger p = readBigInt();
+			final BigInteger q = readBigInt();
+			final BigInteger g = readBigInt();
+			final BigInteger y = readBigInt();
+			final DSAPublicKeySpec keySpec = new DSAPublicKeySpec(y, p, q, g);
+			final KeyFactory keyFactory;
 			try {
 				keyFactory = KeyFactory.getInstance("DSA");
 			} catch (NoSuchAlgorithmException e) {
+                // TODO consider including the root cause in the IOException
 				throw new IOException();
 			}
 			try {
 				return keyFactory.generatePublic(keySpec);
 			} catch (InvalidKeySpecException e) {
+                // TODO consider including the root cause in the IOException
 				throw new IOException();
 			}
 		default:
@@ -118,32 +121,33 @@ public class OtrInputStream extends FilterInputStream implements
 	}
 
 	public DHPublicKey readDHPublicKey() throws IOException {
-		BigInteger gyMpi = readBigInt();
+		final BigInteger gyMpi = readBigInt();
 		try {
 			return OtrCryptoEngine.getDHPublicKey(gyMpi);
 		} catch (Exception ex) {
+            // TODO insert cause in IOException
 			throw new IOException();
 		}
 	}
 
 	public byte[] readTlvData() throws IOException {
-		int len = readNumber(TYPE_LEN_SHORT);
+		final int len = readNumber(TYPE_LEN_SHORT);
 		return checkedRead(len);
 	}
 
-	public byte[] readSignature(PublicKey pubKey) throws IOException {
+	public byte[] readSignature(final PublicKey pubKey) throws IOException {
 		if (!pubKey.getAlgorithm().equals("DSA"))
 			throw new UnsupportedOperationException();
 
-		DSAPublicKey dsaPubKey = (DSAPublicKey) pubKey;
-		DSAParams dsaParams = dsaPubKey.getParams();
+		final DSAPublicKey dsaPubKey = (DSAPublicKey) pubKey;
+		final DSAParams dsaParams = dsaPubKey.getParams();
 		return checkedRead(dsaParams.getQ().bitLength() / 4);
 	}
 
 	public SignatureX readMysteriousX() throws IOException {
-		PublicKey pubKey = readPublicKey();
-		int dhKeyID = readInt();
-		byte[] sig = readSignature(pubKey);
+		final PublicKey pubKey = readPublicKey();
+		final int dhKeyID = readInt();
+		final byte[] sig = readSignature(pubKey);
 		return new SignatureX(pubKey, dhKeyID, sig);
 	}
 }

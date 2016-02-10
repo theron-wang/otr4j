@@ -29,23 +29,25 @@ import org.bouncycastle.util.encoders.Base64;
 
 public class OtrKeyManagerImpl implements OtrKeyManager {
 
-	private OtrKeyManagerStore store;
+	private final OtrKeyManagerStore store;
 
-	public OtrKeyManagerImpl(OtrKeyManagerStore store) {
+	private final List<OtrKeyManagerListener> listeners = new Vector<OtrKeyManagerListener>();
+
+	public OtrKeyManagerImpl(final OtrKeyManagerStore store) {
 		this.store = store;
 	}
 
 	class DefaultPropertiesStore implements OtrKeyManagerStore {
 		private final Properties properties = new Properties();
-		private String filepath;
+		private final String filepath;
 
-		public DefaultPropertiesStore(String filepath) throws IOException {
+		public DefaultPropertiesStore(final String filepath) throws IOException {
 			if (filepath == null || filepath.length() < 1)
 				throw new IllegalArgumentException();
 			this.filepath = filepath;
 			properties.clear();
 
-			InputStream in = new BufferedInputStream(new FileInputStream(
+			final InputStream in = new BufferedInputStream(new FileInputStream(
 					getConfigurationFile()));
 			try {
 				properties.load(in);
@@ -55,13 +57,13 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		}
 
 		private File getConfigurationFile() throws IOException {
-			File configFile = new File(filepath);
+			final File configFile = new File(filepath);
 			if (!configFile.exists())
 				configFile.createNewFile();
 			return configFile;
 		}
 
-		public void setProperty(String id, boolean value) {
+		public void setProperty(final String id, final boolean value) {
 			properties.setProperty(id, "true");
 			try {
 				this.store();
@@ -71,12 +73,12 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		}
 
 		private void store() throws FileNotFoundException, IOException {
-			OutputStream out = new FileOutputStream(getConfigurationFile());
+			final OutputStream out = new FileOutputStream(getConfigurationFile());
 			properties.store(out, null);
 			out.close();
 		}
 
-		public void setProperty(String id, byte[] value) {
+		public void setProperty(final String id, final byte[] value) {
 			properties.setProperty(id, new String(Base64.encode(value)));
 			try {
 				this.store();
@@ -85,19 +87,18 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 			}
 		}
 
-		public void removeProperty(String id) {
+		public void removeProperty(final String id) {
 			properties.remove(id);
-
 		}
 
-		public byte[] getPropertyBytes(String id) {
-			String value = properties.getProperty(id);
+		public byte[] getPropertyBytes(final String id) {
+			final String value = properties.getProperty(id);
 			if (value == null)
 			    return null;
 			return Base64.decode(value);
 		}
 
-		public boolean getPropertyBoolean(String id, boolean defaultValue) {
+		public boolean getPropertyBoolean(final String id, final boolean defaultValue) {
 			try {
 				return Boolean.valueOf(properties.get(id).toString());
 			} catch (Exception e) {
@@ -106,100 +107,102 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		}
 	}
 
-	public OtrKeyManagerImpl(String filepath) throws IOException {
+	public OtrKeyManagerImpl(final String filepath) throws IOException {
 		this.store = new DefaultPropertiesStore(filepath);
 	}
 
-	private List<OtrKeyManagerListener> listeners = new Vector<OtrKeyManagerListener>();
-
-	public void addListener(OtrKeyManagerListener l) {
+	public void addListener(final OtrKeyManagerListener l) {
 		synchronized (listeners) {
 			if (!listeners.contains(l))
 				listeners.add(l);
 		}
 	}
 
-	public void removeListener(OtrKeyManagerListener l) {
+	public void removeListener(final OtrKeyManagerListener l) {
 		synchronized (listeners) {
 			listeners.remove(l);
 		}
 	}
 
-	public void generateLocalKeyPair(SessionID sessionID) {
+	public void generateLocalKeyPair(final SessionID sessionID) {
 		if (sessionID == null)
 			return;
 
-		String accountID = sessionID.getAccountID();
-		KeyPair keyPair;
+		final String accountID = sessionID.getAccountID();
+		final KeyPair keyPair;
 		try {
 			keyPair = KeyPairGenerator.getInstance("DSA").genKeyPair();
 		} catch (NoSuchAlgorithmException e) {
+            // TODO replace printStackTrace() call
 			e.printStackTrace();
 			return;
 		}
 
 		// Store Public Key.
-		PublicKey pubKey = keyPair.getPublic();
-		X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(pubKey
-				.getEncoded());
+		final PublicKey pubKey = keyPair.getPublic();
+        final X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(pubKey
+                .getEncoded());
 
 		this.store.setProperty(accountID + ".publicKey", x509EncodedKeySpec
 				.getEncoded());
 
 		// Store Private Key.
-		PrivateKey privKey = keyPair.getPrivate();
-		PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(
+		final PrivateKey privKey = keyPair.getPrivate();
+		final PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(
 				privKey.getEncoded());
 
 		this.store.setProperty(accountID + ".privateKey", pkcs8EncodedKeySpec
 				.getEncoded());
 	}
 
-	public String getLocalFingerprint(SessionID sessionID) {
-		KeyPair keyPair = loadLocalKeyPair(sessionID);
+	public String getLocalFingerprint(final SessionID sessionID) {
+		final KeyPair keyPair = loadLocalKeyPair(sessionID);
 
 		if (keyPair == null)
 			return null;
 
-		PublicKey pubKey = keyPair.getPublic();
+		final PublicKey pubKey = keyPair.getPublic();
 
 		try {
 			return OtrCryptoEngine.getFingerprint(pubKey);
 		} catch (OtrCryptoException e) {
+            // TODO replace printStackTrace() call
 			e.printStackTrace();
 			return null;
 		}
 	}
 
-	public byte[] getLocalFingerprintRaw(SessionID sessionID) {
-		KeyPair keyPair = loadLocalKeyPair(sessionID);
+	public byte[] getLocalFingerprintRaw(final SessionID sessionID) {
+		final KeyPair keyPair = loadLocalKeyPair(sessionID);
 
 		if (keyPair == null)
 			return null;
 
-		PublicKey pubKey = keyPair.getPublic();
+		final PublicKey pubKey = keyPair.getPublic();
 
 		try {
 			return OtrCryptoEngine.getFingerprintRaw(pubKey);
 		} catch (OtrCryptoException e) {
+            // TODO replace printStackTrace() call
 			e.printStackTrace();
 			return null;
 		}
 	}
 
-	public String getRemoteFingerprint(SessionID sessionID) {
-		PublicKey remotePublicKey = loadRemotePublicKey(sessionID);
+	public String getRemoteFingerprint(final SessionID sessionID) {
+		final PublicKey remotePublicKey = loadRemotePublicKey(sessionID);
 		if (remotePublicKey == null)
 			return null;
 		try {
 			return OtrCryptoEngine.getFingerprint(remotePublicKey);
 		} catch (OtrCryptoException e) {
+            // TODO replace printStackTrace() call
 			e.printStackTrace();
 			return null;
 		}
 	}
 
-	public boolean isVerified(SessionID sessionID) {
+	public boolean isVerified(final SessionID sessionID) {
 		if (sessionID == null)
 			return false;
 
@@ -207,40 +210,41 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 				+ ".publicKey.verified", false);
 	}
 
-	public KeyPair loadLocalKeyPair(SessionID sessionID) {
+	public KeyPair loadLocalKeyPair(final SessionID sessionID) {
 		if (sessionID == null)
 			return null;
 
-		String accountID = sessionID.getAccountID();
+		final String accountID = sessionID.getAccountID();
 		// Load Private Key.
-		byte[] b64PrivKey = this.store.getPropertyBytes(accountID
+		final byte[] b64PrivKey = this.store.getPropertyBytes(accountID
 				+ ".privateKey");
 		if (b64PrivKey == null)
 			return null;
 
-		PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(b64PrivKey);
+		final PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(b64PrivKey);
 
 		// Load Public Key.
-		byte[] b64PubKey = this.store
+		final byte[] b64PubKey = this.store
 				.getPropertyBytes(accountID + ".publicKey");
 		if (b64PubKey == null)
 			return null;
 
-		X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(b64PubKey);
+		final X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(b64PubKey);
 
-		PublicKey publicKey;
-		PrivateKey privateKey;
+		final PublicKey publicKey;
+		final PrivateKey privateKey;
 
 		// Generate KeyPair.
-		KeyFactory keyFactory;
 		try {
-			keyFactory = KeyFactory.getInstance("DSA");
+			final KeyFactory keyFactory = KeyFactory.getInstance("DSA");
 			publicKey = keyFactory.generatePublic(publicKeySpec);
 			privateKey = keyFactory.generatePrivate(privateKeySpec);
 		} catch (NoSuchAlgorithmException e) {
+            // TODO replace printStackTrace() call
 			e.printStackTrace();
 			return null;
 		} catch (InvalidKeySpecException e) {
+            // TODO replace printStackTrace() call
 			e.printStackTrace();
 			return null;
 		}
@@ -248,47 +252,48 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		return new KeyPair(publicKey, privateKey);
 	}
 
-	public PublicKey loadRemotePublicKey(SessionID sessionID) {
+	public PublicKey loadRemotePublicKey(final SessionID sessionID) {
 		if (sessionID == null)
 			return null;
 
-		String userID = sessionID.getUserID();
+		final String userID = sessionID.getUserID();
 
-		byte[] b64PubKey = this.store.getPropertyBytes(userID + ".publicKey");
+		final byte[] b64PubKey = this.store.getPropertyBytes(userID + ".publicKey");
 		if (b64PubKey == null)
 			return null;
 
-		X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(b64PubKey);
+		final X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(b64PubKey);
 
 		// Generate KeyPair.
-		KeyFactory keyFactory;
 		try {
-			keyFactory = KeyFactory.getInstance("DSA");
+			final KeyFactory keyFactory = KeyFactory.getInstance("DSA");
 			return keyFactory.generatePublic(publicKeySpec);
 		} catch (NoSuchAlgorithmException e) {
+            // TODO replace printStackTrace() call
 			e.printStackTrace();
 			return null;
 		} catch (InvalidKeySpecException e) {
+            // TODO replace printStackTrace() call
 			e.printStackTrace();
 			return null;
 		}
 	}
 
-	public void savePublicKey(SessionID sessionID, PublicKey pubKey) {
+	public void savePublicKey(final SessionID sessionID, final PublicKey pubKey) {
 		if (sessionID == null)
 			return;
 
-		X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(pubKey
-				.getEncoded());
+        final X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(pubKey
+                .getEncoded());
 
-		String userID = sessionID.getUserID();
+		final String userID = sessionID.getUserID();
 		this.store.setProperty(userID + ".publicKey", x509EncodedKeySpec
 				.getEncoded());
 
 		this.store.removeProperty(userID + ".publicKey.verified");
 	}
 
-	public void unverify(SessionID sessionID) {
+	public void unverify(final SessionID sessionID) {
 		if (sessionID == null)
 			return;
 
@@ -298,12 +303,13 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		this.store
 				.removeProperty(sessionID.getUserID() + ".publicKey.verified");
 
-		for (OtrKeyManagerListener l : listeners)
-			l.verificationStatusChanged(sessionID);
-
+        // TODO do we need synchronization on listeners here?
+		for (final OtrKeyManagerListener l : listeners)
+            // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
+            l.verificationStatusChanged(sessionID);
 	}
 
-	public void verify(SessionID sessionID) {
+	public void verify(final SessionID sessionID) {
 		if (sessionID == null)
 			return;
 
@@ -313,8 +319,9 @@ public class OtrKeyManagerImpl implements OtrKeyManager {
 		this.store.setProperty(sessionID.getUserID() + ".publicKey.verified",
 				true);
 
-		for (OtrKeyManagerListener l : listeners)
+        // TODO do we need synchronization on listeners here?
+		for (final OtrKeyManagerListener l : listeners)
+            // TODO consider try-catching RTEs to avoid exception from listener to interfere with process
 			l.verificationStatusChanged(sessionID);
 	}
-
 }

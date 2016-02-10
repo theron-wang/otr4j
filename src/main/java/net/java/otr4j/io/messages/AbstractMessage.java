@@ -15,7 +15,7 @@ public abstract class AbstractMessage {
 	public int messageType;
 
 	// Ctor.
-	public AbstractMessage(int messageType) {
+	public AbstractMessage(final int messageType) {
 		this.messageType = messageType;
 	}
 

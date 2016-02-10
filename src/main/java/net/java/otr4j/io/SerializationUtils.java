@@ -55,96 +55,96 @@ public class SerializationUtils {
 	public static Charset UTF8 = Charset.forName("UTF-8");
 
 	// Mysterious X IO.
-	public static SignatureX toMysteriousX(byte[] b) throws IOException {
-		ByteArrayInputStream in = new ByteArrayInputStream(b);
-		OtrInputStream ois = new OtrInputStream(in);
-		SignatureX x = ois.readMysteriousX();
+	public static SignatureX toMysteriousX(final byte[] b) throws IOException {
+		final ByteArrayInputStream in = new ByteArrayInputStream(b);
+		final OtrInputStream ois = new OtrInputStream(in);
+		final SignatureX x = ois.readMysteriousX();
 		ois.close();
 		return x;
 	}
 
-	public static byte[] toByteArray(SignatureX x) throws IOException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OtrOutputStream oos = new OtrOutputStream(out);
+	public static byte[] toByteArray(final SignatureX x) throws IOException {
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writeMysteriousX(x);
-		byte[] b = out.toByteArray();
+		final byte[] b = out.toByteArray();
 		oos.close();
 		return b;
 	}
 
 	// Mysterious M IO.
-	public static byte[] toByteArray(SignatureM m) throws IOException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OtrOutputStream oos = new OtrOutputStream(out);
+	public static byte[] toByteArray(final SignatureM m) throws IOException {
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writeMysteriousX(m);
-		byte[] b = out.toByteArray();
+		final byte[] b = out.toByteArray();
 		oos.close();
 		return b;
 	}
 
 	// Mysterious T IO.
-	public static byte[] toByteArray(MysteriousT t) throws IOException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OtrOutputStream oos = new OtrOutputStream(out);
+	public static byte[] toByteArray(final MysteriousT t) throws IOException {
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writeMysteriousT(t);
-		byte[] b = out.toByteArray();
+		final byte[] b = out.toByteArray();
 		oos.close();
 		return b;
 	}
 
 	// Basic IO.
-	public static byte[] writeData(byte[] b) throws IOException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OtrOutputStream oos = new OtrOutputStream(out);
+	public static byte[] writeData(final byte[] b) throws IOException {
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writeData(b);
-		byte[] otrb = out.toByteArray();
+		final byte[] otrb = out.toByteArray();
 		oos.close();
 		return otrb;
 	}
 
 	// BigInteger IO.
-	public static byte[] writeMpi(BigInteger bigInt) throws IOException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OtrOutputStream oos = new OtrOutputStream(out);
+	public static byte[] writeMpi(final BigInteger bigInt) throws IOException {
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writeBigInt(bigInt);
-		byte[] b = out.toByteArray();
+		final byte[] b = out.toByteArray();
 		oos.close();
 		return b;
 	}
 
-	public static BigInteger readMpi(byte[] b) throws IOException {
-		ByteArrayInputStream in = new ByteArrayInputStream(b);
-		OtrInputStream ois = new OtrInputStream(in);
-		BigInteger bigint = ois.readBigInt();
+	public static BigInteger readMpi(final byte[] b) throws IOException {
+		final ByteArrayInputStream in = new ByteArrayInputStream(b);
+		final OtrInputStream ois = new OtrInputStream(in);
+		final BigInteger bigint = ois.readBigInt();
 		ois.close();
 		return bigint;
 	}
 
 	// Public Key IO.
-	public static byte[] writePublicKey(PublicKey pubKey) throws IOException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OtrOutputStream oos = new OtrOutputStream(out);
+	public static byte[] writePublicKey(final PublicKey pubKey) throws IOException {
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final OtrOutputStream oos = new OtrOutputStream(out);
 		oos.writePublicKey(pubKey);
-		byte[] b = out.toByteArray();
+		final byte[] b = out.toByteArray();
 		oos.close();
 		return b;
 	}
 
 	// Message IO.
-	public static String toString(AbstractMessage m) throws IOException {
-		StringWriter writer = new StringWriter();
+	public static String toString(final AbstractMessage m) throws IOException {
+		final StringWriter writer = new StringWriter();
 		if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT)
 			writer.write(SerializationConstants.HEAD);
 
 		switch (m.messageType) {
 			case AbstractMessage.MESSAGE_ERROR:
-				ErrorMessage error = (ErrorMessage) m;
+				final ErrorMessage error = (ErrorMessage) m;
 				writer.write(SerializationConstants.HEAD_ERROR);
 				writer.write(SerializationConstants.ERROR_PREFIX);
 				writer.write(error.error);
 				break;
 			case AbstractMessage.MESSAGE_PLAINTEXT:
-				PlainTextMessage plaintxt = (PlainTextMessage) m;
+				final PlainTextMessage plaintxt = (PlainTextMessage) m;
 				writer.write(plaintxt.cleanText);
 				if (plaintxt.versions != null && plaintxt.versions.size() > 0) {
 					writer.write(" \t  \t\t\t\t \t \t \t  ");
@@ -161,7 +161,7 @@ public class SerializationUtils {
 				}
 				break;
 			case AbstractMessage.MESSAGE_QUERY:
-				QueryMessage query = (QueryMessage) m;
+				final QueryMessage query = (QueryMessage) m;
 				if (query.versions.size() == 1 && query.versions.get(0) == 1) {
 					writer.write(SerializationConstants.HEAD_QUERY_Q);
 				} else {
@@ -177,12 +177,12 @@ public class SerializationUtils {
 			case AbstractEncodedMessage.MESSAGE_SIGNATURE:
 			case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
 			case AbstractEncodedMessage.MESSAGE_DATA:
-				ByteArrayOutputStream o = new ByteArrayOutputStream();
-				OtrOutputStream s = new OtrOutputStream(o);
+				final ByteArrayOutputStream o = new ByteArrayOutputStream();
+				final OtrOutputStream s = new OtrOutputStream(o);
 
 				switch (m.messageType) {
 					case AbstractEncodedMessage.MESSAGE_DHKEY:
-						DHKeyMessage dhkey = (DHKeyMessage) m;
+						final DHKeyMessage dhkey = (DHKeyMessage) m;
 						s.writeShort(dhkey.protocolVersion);
 						s.writeByte(dhkey.messageType);
 						if (dhkey.protocolVersion == OTRv.THREE) {
@@ -192,7 +192,7 @@ public class SerializationUtils {
 						s.writeDHPublicKey(dhkey.dhPublicKey);
 						break;
 					case AbstractEncodedMessage.MESSAGE_REVEALSIG:
-						RevealSignatureMessage revealsig = (RevealSignatureMessage) m;
+						final RevealSignatureMessage revealsig = (RevealSignatureMessage) m;
 						s.writeShort(revealsig.protocolVersion);
 						s.writeByte(revealsig.messageType);
 						if (revealsig.protocolVersion == OTRv.THREE) {
@@ -204,7 +204,7 @@ public class SerializationUtils {
 						s.writeMac(revealsig.xEncryptedMAC);
 						break;
 					case AbstractEncodedMessage.MESSAGE_SIGNATURE:
-						SignatureMessage sig = (SignatureMessage) m;
+						final SignatureMessage sig = (SignatureMessage) m;
 						s.writeShort(sig.protocolVersion);
 						s.writeByte(sig.messageType);
 						if (sig.protocolVersion == OTRv.THREE) {
@@ -215,7 +215,7 @@ public class SerializationUtils {
 						s.writeMac(sig.xEncryptedMAC);
 						break;
 					case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
-						DHCommitMessage dhcommit = (DHCommitMessage) m;
+						final DHCommitMessage dhcommit = (DHCommitMessage) m;
 						s.writeShort(dhcommit.protocolVersion);
 						s.writeByte(dhcommit.messageType);
 						if (dhcommit.protocolVersion == OTRv.THREE) {
@@ -226,7 +226,7 @@ public class SerializationUtils {
 						s.writeData(dhcommit.dhPublicKeyHash);
 						break;
 					case AbstractEncodedMessage.MESSAGE_DATA:
-						DataMessage data = (DataMessage) m;
+						final DataMessage data = (DataMessage) m;
 						s.writeShort(data.protocolVersion);
 						s.writeByte(data.messageType);
 						if (data.protocolVersion == OTRv.THREE) {
@@ -255,6 +255,7 @@ public class SerializationUtils {
 		return writer.toString();
 	}
 
+    // TODO rename whitespace pattern constant
 	static final Pattern patternWhitespace = Pattern
 			.compile("( \\t  \\t\\t\\t\\t \\t \\t \\t  )( \\t \\t  \\t )?(  \\t\\t  \\t )?(  \\t\\t  \\t\\t)?");
 
@@ -268,16 +269,16 @@ public class SerializationUtils {
 	 *             error parsing the string to a message, either format mismatch
 	 *             or real IO error
 	 */
-	public static AbstractMessage toMessage(String s) throws IOException {
+	public static AbstractMessage toMessage(final String s) throws IOException {
 		if (s == null || s.length() == 0)
 			return null;
 
-		int idxHead = s.indexOf(SerializationConstants.HEAD);
+		final int idxHead = s.indexOf(SerializationConstants.HEAD);
 		if (idxHead > -1) {
 			// Message **contains** the string "?OTR". Check to see if it is an error message, a query message or a data
 			// message.
 
-			char contentType = s.charAt(idxHead + SerializationConstants.HEAD.length());
+			final char contentType = s.charAt(idxHead + SerializationConstants.HEAD.length());
 			String content = s
 					.substring(idxHead + SerializationConstants.HEAD.length() + 1);
 
@@ -292,7 +293,7 @@ public class SerializationUtils {
 					|| contentType == SerializationConstants.HEAD_QUERY_Q) {
 				// Query tag found.
 
-				List<Integer> versions = new Vector<Integer>();
+				final List<Integer> versions = new Vector<Integer>();
 				String versionString = null;
 				if (SerializationConstants.HEAD_QUERY_Q == contentType) {
 					versions.add(OTRv.ONE);
@@ -312,7 +313,7 @@ public class SerializationUtils {
 							versions.add(Integer.parseInt(String
 									.valueOf((char) c)));
 				}
-				QueryMessage query = new QueryMessage(versions);
+                final QueryMessage query = new QueryMessage(versions);
 				return query;
 			} else if (idxHead == 0 && contentType == SerializationConstants.HEAD_ENCODED) {
 				// Data message found.
@@ -323,17 +324,17 @@ public class SerializationUtils {
                  * Otr4j doesn't strip this point before passing the content to the base64 decoder.
                  * So in order to decode the content string we have to get rid of the '.' first.
                  */
-				ByteArrayInputStream bin = new ByteArrayInputStream(Base64
+				final ByteArrayInputStream bin = new ByteArrayInputStream(Base64
 						.decode(content.substring(0, content.length() - 1).getBytes(ASCII)));
-				OtrInputStream otr = new OtrInputStream(bin);
+				final OtrInputStream otr = new OtrInputStream(bin);
 				// We have an encoded message.
 				try {
-					int protocolVersion = otr.readShort();
+					final int protocolVersion = otr.readShort();
 					if (!OTRv.ALL.contains(protocolVersion)) {
 						throw new IOException("Unsupported protocol version "
 								+ protocolVersion);
 					}
-					int messageType = otr.readByte();
+					final int messageType = otr.readByte();
 					int senderInstanceTag = 0;
 					int recipientInstanceTag = 0;
 					if (protocolVersion == OTRv.THREE) {
@@ -342,15 +343,15 @@ public class SerializationUtils {
 					}
 					switch (messageType) {
 						case AbstractEncodedMessage.MESSAGE_DATA:
-							int flags = otr.readByte();
-							int senderKeyID = otr.readInt();
-							int recipientKeyID = otr.readInt();
-							DHPublicKey nextDH = otr.readDHPublicKey();
-							byte[] ctr = otr.readCtr();
-							byte[] encryptedMessage = otr.readData();
-							byte[] mac = otr.readMac();
-							byte[] oldMacKeys = otr.readData();
-							DataMessage dataMessage =
+							final int flags = otr.readByte();
+							final int senderKeyID = otr.readInt();
+							final int recipientKeyID = otr.readInt();
+							final DHPublicKey nextDH = otr.readDHPublicKey();
+							final byte[] ctr = otr.readCtr();
+							final byte[] encryptedMessage = otr.readData();
+							final byte[] mac = otr.readMac();
+							final byte[] oldMacKeys = otr.readData();
+							final DataMessage dataMessage =
 									new DataMessage(protocolVersion, flags, senderKeyID,
 									recipientKeyID, nextDH, ctr, encryptedMessage, mac,
 									oldMacKeys);
@@ -358,25 +359,25 @@ public class SerializationUtils {
 							dataMessage.receiverInstanceTag = recipientInstanceTag;
 							return dataMessage;
 						case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
-							byte[] dhPublicKeyEncrypted = otr.readData();
-							byte[] dhPublicKeyHash = otr.readData();
-							DHCommitMessage dhCommitMessage =
+							final byte[] dhPublicKeyEncrypted = otr.readData();
+							final byte[] dhPublicKeyHash = otr.readData();
+							final DHCommitMessage dhCommitMessage =
 									new DHCommitMessage(protocolVersion,
 											dhPublicKeyHash, dhPublicKeyEncrypted);
 							dhCommitMessage.senderInstanceTag = senderInstanceTag;
 							dhCommitMessage.receiverInstanceTag = recipientInstanceTag;
 							return dhCommitMessage;
 						case AbstractEncodedMessage.MESSAGE_DHKEY:
-							DHPublicKey dhPublicKey = otr.readDHPublicKey();
-							DHKeyMessage dhKeyMessage = new DHKeyMessage(protocolVersion, dhPublicKey);
+							final DHPublicKey dhPublicKey = otr.readDHPublicKey();
+                            final DHKeyMessage dhKeyMessage = new DHKeyMessage(protocolVersion, dhPublicKey);
 							dhKeyMessage.senderInstanceTag = senderInstanceTag;
 							dhKeyMessage.receiverInstanceTag = recipientInstanceTag;
 							return dhKeyMessage;
 						case AbstractEncodedMessage.MESSAGE_REVEALSIG: {
-							byte[] revealedKey = otr.readData();
-							byte[] xEncrypted = otr.readData();
-							byte[] xEncryptedMac = otr.readMac();
-							RevealSignatureMessage revealSignatureMessage =
+							final byte[] revealedKey = otr.readData();
+							final byte[] xEncrypted = otr.readData();
+							final byte[] xEncryptedMac = otr.readMac();
+							final RevealSignatureMessage revealSignatureMessage =
 									new RevealSignatureMessage(protocolVersion,
 											xEncrypted, xEncryptedMac, revealedKey);
 							revealSignatureMessage.senderInstanceTag = senderInstanceTag;
@@ -384,9 +385,9 @@ public class SerializationUtils {
 							return revealSignatureMessage;
 						}
 						case AbstractEncodedMessage.MESSAGE_SIGNATURE: {
-							byte[] xEncryted = otr.readData();
-							byte[] xEncryptedMac = otr.readMac();
-							SignatureMessage signatureMessage =
+							final byte[] xEncryted = otr.readData();
+							final byte[] xEncryptedMac = otr.readMac();
+							final SignatureMessage signatureMessage =
 									new SignatureMessage(protocolVersion, xEncryted,
 											xEncryptedMac);
 							signatureMessage.senderInstanceTag = senderInstanceTag;
@@ -425,7 +426,7 @@ public class SerializationUtils {
 				break;
 		}
 
-		String cleanText = matcher.replaceAll("");
+		final String cleanText = matcher.replaceAll("");
 		List<Integer> versions = null;
 		if (v1 || v2 || v3) {
 			versions = new ArrayList<Integer>();
@@ -438,17 +439,17 @@ public class SerializationUtils {
 		}
 
 		return new PlainTextMessage(versions, cleanText);
-
 	}
 
 	private static final char HEX_ENCODER[] = {'0', '1', '2', '3', '4', '5',
 			'6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-	public static String byteArrayToHexString(byte in[]) {
+	public static String byteArrayToHexString(final byte in[]) {
 		int i = 0;
 		if (in == null || in.length <= 0)
 			return null;
-		StringBuffer out = new StringBuffer(in.length * 2);
+        // TODO replace with StringBuilder as this is only executed locally
+		final StringBuffer out = new StringBuffer(in.length * 2);
 		while (i < in.length) {
 			out.append(HEX_ENCODER[(in[i] >>> 4) & 0x0F]);
 			out.append(HEX_ENCODER[in[i] & 0x0F]);
@@ -461,7 +462,7 @@ public class SerializationUtils {
 
 	public static byte[] hexStringToByteArray(String value) {
 		value = value.toUpperCase();
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		for (int index = 0; index < value.length(); index += 2) {
 			int high = HEX_DECODER.indexOf(value.charAt(index));
 			int low = HEX_DECODER.indexOf(value.charAt(index + 1));
@@ -480,7 +481,7 @@ public class SerializationUtils {
      * @param msg the plain text message being sent
      * @return byte[] the incoming message converted to OTR-safe bytes
      */
-    public static byte[] convertTextToBytes(String msg) {
+    public static byte[] convertTextToBytes(final String msg) {
         return msg.replace('\0', '?').getBytes(SerializationUtils.UTF8);
     }
 
@@ -491,7 +492,7 @@ public class SerializationUtils {
 	 *            the content to investigate
 	 * @return returns true if content is OTR encoded, or false otherwise
 	 */
-	public static boolean otrEncoded(String content) {
+	public static boolean otrEncoded(final String content) {
 		return content.startsWith(SerializationConstants.HEAD
 				+ SerializationConstants.HEAD_ENCODED);
 	}

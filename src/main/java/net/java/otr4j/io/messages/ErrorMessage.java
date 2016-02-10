@@ -15,7 +15,7 @@ public class ErrorMessage extends AbstractMessage {
 	public String error;
 	
 	// Ctor.
-	public ErrorMessage(int messageType, String error) {
+	public ErrorMessage(final int messageType, final String error) {
 		super(messageType);
 		this.error = error;
 	}

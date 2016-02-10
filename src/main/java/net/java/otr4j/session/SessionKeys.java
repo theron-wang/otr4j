@@ -24,14 +24,17 @@ import net.java.otr4j.io.SerializationUtils;
  */
 public class SessionKeys {
 
+    // TODO rename constant
     public static final int Previous = 0;
+    // TODO rename constant
     public static final int Current = 1;
     public static final byte HIGH_SEND_BYTE = (byte) 0x01;
     public static final byte HIGH_RECEIVE_BYTE = (byte) 0x02;
     public static final byte LOW_SEND_BYTE = (byte) 0x02;
     public static final byte LOW_RECEIVE_BYTE = (byte) 0x01;
 
-    private static Logger logger = Logger.getLogger(SessionKeys.class.getName());
+    // TODO rename constant
+    private static final Logger logger = Logger.getLogger(SessionKeys.class.getName());
     private String keyDescription;
 
     private int localKeyID;
@@ -47,7 +50,7 @@ public class SessionKeys {
     private BigInteger s;
     private Boolean isHigh;
 
-    public SessionKeys(int localKeyIndex, int remoteKeyIndex) {
+    public SessionKeys(final int localKeyIndex, final int remoteKeyIndex) {
         if (localKeyIndex == 0)
             keyDescription = "(Previous local, ";
         else
@@ -60,7 +63,7 @@ public class SessionKeys {
 
     }
 
-    public void setLocalPair(KeyPair keyPair, int localPairKeyID) {
+    public void setLocalPair(final KeyPair keyPair, final int localPairKeyID) {
         this.localPair = keyPair;
         this.setLocalKeyID(localPairKeyID);
         logger.finest(keyDescription + " current local key ID: "
@@ -68,7 +71,7 @@ public class SessionKeys {
         this.reset();
     }
 
-    public void setRemoteDHPublicKey(DHPublicKey pubKey, int remoteKeyID) {
+    public void setRemoteDHPublicKey(final DHPublicKey pubKey, final int remoteKeyID) {
         this.setRemoteKey(pubKey);
         this.setRemoteKeyID(remoteKeyID);
         logger.finest(keyDescription + " current remote key ID: "
@@ -76,8 +79,8 @@ public class SessionKeys {
         this.reset();
     }
 
-    private byte[] sendingCtr = new byte[16];
-    private byte[] receivingCtr = new byte[16];
+    private final byte[] sendingCtr = new byte[16];
+    private final byte[] receivingCtr = new byte[16];
 
     public void incrementSendingCtr() {
         logger.finest("Incrementing counter for (localkeyID, remoteKeyID) = ("
@@ -95,7 +98,7 @@ public class SessionKeys {
         return receivingCtr;
     }
 
-    public void setReceivingCtr(byte[] ctr) {
+    public void setReceivingCtr(final byte[] ctr) {
         System.arraycopy(ctr, 0, receivingCtr, 0, ctr.length);
     }
 
@@ -113,21 +116,21 @@ public class SessionKeys {
             this.isHigh = ((DHPublicKey) getLocalPair().getPublic()).getY()
                     .abs().compareTo(getRemoteKey().getY().abs()) == 1;
         }
-
     }
 
-    private byte[] h1(byte b) throws OtrException {
+    private byte[] h1(final byte b) throws OtrException {
 
         try {
-            byte[] secbytes = SerializationUtils.writeMpi(getS());
+            final byte[] secbytes = SerializationUtils.writeMpi(getS());
 
-            int len = secbytes.length + 1;
-            ByteBuffer buff = ByteBuffer.allocate(len);
+            final int len = secbytes.length + 1;
+            final ByteBuffer buff = ByteBuffer.allocate(len);
             buff.put(b);
             buff.put(secbytes);
-            byte[] result = OtrCryptoEngine.sha1Hash(buff.array());
+            final byte[] result = OtrCryptoEngine.sha1Hash(buff.array());
             return result;
         } catch (Exception e) {
+            // TODO consider catching specific exceptions
             throw new OtrException(e);
         }
     }
@@ -136,14 +139,17 @@ public class SessionKeys {
         if (sendingAESKey != null)
             return sendingAESKey;
 
-        byte sendbyte = LOW_SEND_BYTE;
-        if (this.isHigh)
+        final byte sendbyte;
+        if (this.isHigh) {
             sendbyte = HIGH_SEND_BYTE;
+        } else {
+            sendbyte = LOW_SEND_BYTE;
+        }
 
-        byte[] h1 = h1(sendbyte);
+        final byte[] h1 = h1(sendbyte);
 
-        byte[] key = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
-        ByteBuffer buff = ByteBuffer.wrap(h1);
+        final byte[] key = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
+        final ByteBuffer buff = ByteBuffer.wrap(h1);
         buff.get(key);
         logger.finest("Calculated sending AES key.");
         this.sendingAESKey = key;
@@ -154,14 +160,17 @@ public class SessionKeys {
         if (receivingAESKey != null)
             return receivingAESKey;
 
-        byte receivebyte = LOW_RECEIVE_BYTE;
-        if (this.isHigh)
+        final byte receivebyte;
+        if (this.isHigh) {
             receivebyte = HIGH_RECEIVE_BYTE;
+        } else {
+            receivebyte = LOW_RECEIVE_BYTE;
+        }
 
-        byte[] h1 = h1(receivebyte);
+        final byte[] h1 = h1(receivebyte);
 
-        byte[] key = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
-        ByteBuffer buff = ByteBuffer.wrap(h1);
+        final byte[] key = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
+        final ByteBuffer buff = ByteBuffer.wrap(h1);
         buff.get(key);
         logger.finest("Calculated receiving AES key.");
         this.receivingAESKey = key;
@@ -195,11 +204,11 @@ public class SessionKeys {
         return s;
     }
 
-    public void setS(BigInteger s) {
+    public void setS(final BigInteger s) {
         this.s = s;
     }
 
-    public void setIsUsedReceivingMACKey(Boolean isUsedReceivingMACKey) {
+    public void setIsUsedReceivingMACKey(final Boolean isUsedReceivingMACKey) {
         this.isUsedReceivingMACKey = isUsedReceivingMACKey;
     }
 
@@ -207,7 +216,7 @@ public class SessionKeys {
         return isUsedReceivingMACKey;
     }
 
-    private void setLocalKeyID(int localKeyID) {
+    private void setLocalKeyID(final int localKeyID) {
         this.localKeyID = localKeyID;
     }
 
@@ -215,7 +224,7 @@ public class SessionKeys {
         return localKeyID;
     }
 
-    private void setRemoteKeyID(int remoteKeyID) {
+    private void setRemoteKeyID(final int remoteKeyID) {
         this.remoteKeyID = remoteKeyID;
     }
 
@@ -223,7 +232,7 @@ public class SessionKeys {
         return remoteKeyID;
     }
 
-    private void setRemoteKey(DHPublicKey remoteKey) {
+    private void setRemoteKey(final DHPublicKey remoteKey) {
         this.remoteKey = remoteKey;
     }
 

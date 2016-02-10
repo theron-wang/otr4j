@@ -19,8 +19,8 @@ public class DHCommitMessage extends AbstractEncodedMessage {
 	public byte[] dhPublicKeyHash;
 
 	// Ctor.
-	public DHCommitMessage(int protocolVersion, byte[] dhPublicKeyHash,
-			byte[] dhPublicKeyEncrypted) {
+	public DHCommitMessage(final int protocolVersion, final byte[] dhPublicKeyHash,
+			final byte[] dhPublicKeyEncrypted) {
 		super(MESSAGE_DH_COMMIT, protocolVersion);
 		this.dhPublicKeyEncrypted = dhPublicKeyEncrypted;
 		this.dhPublicKeyHash = dhPublicKeyHash;

@@ -19,20 +19,20 @@ public abstract class AbstractEncodedMessage extends AbstractMessage {
 	public int receiverInstanceTag;
 
 	// Ctor.
-	public AbstractEncodedMessage(int messageType, int protocolVersion) {
+	public AbstractEncodedMessage(final int messageType, final int protocolVersion) {
 		super(messageType);
 		this.protocolVersion = protocolVersion;
 	}
 
-	public AbstractEncodedMessage(
-			int messageType, int protocolVersion, int senderInstanceTag) {
-		this(messageType, protocolVersion, senderInstanceTag, 0);
-	}
+    public AbstractEncodedMessage(
+            final int messageType, final int protocolVersion, final int senderInstanceTag) {
+        this(messageType, protocolVersion, senderInstanceTag, 0);
+    }
 
-	public AbstractEncodedMessage(  int messageType,
-									int protocolVersion,
-									int senderInstanceTag,
-									int recipientInstanceTag) {
+	public AbstractEncodedMessage(  final int messageType,
+									final int protocolVersion,
+									final int senderInstanceTag,
+									final int recipientInstanceTag) {
 		super(messageType);
 		this.protocolVersion = protocolVersion;
 		this.senderInstanceTag = senderInstanceTag;

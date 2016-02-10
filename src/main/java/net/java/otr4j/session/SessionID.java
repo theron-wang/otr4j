@@ -29,6 +29,7 @@ public final class SessionID {
     private final String remoteUserID;
     private final String protocolName;
 
+    // TODO rename constant
     public static final SessionID Empty = new SessionID(null, null, null);
 
     /**

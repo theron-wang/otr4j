@@ -23,33 +23,33 @@ public class SignatureMessage extends AbstractEncodedMessage {
 	public byte[] xEncryptedMAC;
 
 	// Ctor.
-	protected SignatureMessage(int messageType, int protocolVersion,
-			byte[] xEncrypted, byte[] xEncryptedMAC) {
+	protected SignatureMessage(final int messageType, final int protocolVersion,
+			final byte[] xEncrypted, final byte[] xEncryptedMAC) {
 		super(messageType, protocolVersion);
 		this.xEncrypted = xEncrypted;
 		this.xEncryptedMAC = xEncryptedMAC;
 	}
 
-	public SignatureMessage(int protocolVersion, byte[] xEncrypted,
-			byte[] xEncryptedMAC) {
+	public SignatureMessage(final int protocolVersion, final byte[] xEncrypted,
+			final byte[] xEncryptedMAC) {
 		this(MESSAGE_SIGNATURE, protocolVersion, xEncrypted, xEncryptedMAC);
 	}
 
 	// Memthods.
-	public byte[] decrypt(byte[] key) throws OtrException {
+	public byte[] decrypt(final byte[] key) throws OtrException {
 		return OtrCryptoEngine.aesDecrypt(key, null, xEncrypted);
 	}
 
-	public boolean verify(byte[] key) throws OtrException {
+	public boolean verify(final byte[] key) throws OtrException {
 		// Hash the key.
-		byte[] xbEncrypted;
+		final byte[] xbEncrypted;
 		try {
 			xbEncrypted = SerializationUtils.writeData(xEncrypted);
 		} catch (IOException e) {
 			throw new OtrException(e);
 		}
 
-		byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(
+		final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(
 				xbEncrypted, key);
 		// Verify signature.
 		return Arrays.equals(this.xEncryptedMAC, xEncryptedMAC);

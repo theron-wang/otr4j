@@ -59,7 +59,7 @@ public class OtrCryptoEngine {
     public static final BigInteger BIGINTEGER_TWO = BigInteger.valueOf(2);
     public static final BigInteger MODULUS_MINUS_TWO = MODULUS.subtract(BIGINTEGER_TWO);
 
-    public static String GENERATOR_TEXT = "2";
+    public static final String GENERATOR_TEXT = "2";
     public static BigInteger GENERATOR = new BigInteger(GENERATOR_TEXT, 10);
 
     public static final int AES_KEY_BYTE_LENGTH = 16;
@@ -80,65 +80,70 @@ public class OtrCryptoEngine {
     public static KeyPair generateDHKeyPair(final SecureRandom secureRandom) throws OtrCryptoException {
 
         // Generate a AsymmetricCipherKeyPair using BC.
-        DHParameters dhParams = new DHParameters(MODULUS, GENERATOR, null,
+        final DHParameters dhParams = new DHParameters(MODULUS, GENERATOR, null,
                 DH_PRIVATE_KEY_MINIMUM_BIT_LENGTH);
-        DHKeyGenerationParameters params = new DHKeyGenerationParameters(
+        final DHKeyGenerationParameters params = new DHKeyGenerationParameters(
                 secureRandom, dhParams);
-        DHKeyPairGenerator kpGen = new DHKeyPairGenerator();
+        final DHKeyPairGenerator kpGen = new DHKeyPairGenerator();
 
         kpGen.init(params);
-        AsymmetricCipherKeyPair pair = kpGen.generateKeyPair();
+        final AsymmetricCipherKeyPair pair = kpGen.generateKeyPair();
 
         // Convert this AsymmetricCipherKeyPair to a standard JCE KeyPair.
-        DHPublicKeyParameters pub = (DHPublicKeyParameters) pair.getPublic();
-        DHPrivateKeyParameters priv = (DHPrivateKeyParameters) pair
+        final DHPublicKeyParameters pub = (DHPublicKeyParameters) pair.getPublic();
+        final DHPrivateKeyParameters priv = (DHPrivateKeyParameters) pair
                 .getPrivate();
 
         try {
-            KeyFactory keyFac = KeyFactory.getInstance("DH");
+            final KeyFactory keyFac = KeyFactory.getInstance("DH");
 
-            DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(pub.getY(),
+            final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(pub.getY(),
                     MODULUS, GENERATOR);
-            DHPublicKey pubKey = (DHPublicKey) keyFac
+            final DHPublicKey pubKey = (DHPublicKey) keyFac
                     .generatePublic(pubKeySpecs);
 
-            DHParameters dhParameters = priv.getParameters();
-            DHPrivateKeySpec privKeySpecs = new DHPrivateKeySpec(priv.getX(),
+            final DHParameters dhParameters = priv.getParameters();
+            final DHPrivateKeySpec privKeySpecs = new DHPrivateKeySpec(priv.getX(),
                     dhParameters.getP(), dhParameters.getG());
-            DHPrivateKey privKey = (DHPrivateKey) keyFac
+            final DHPrivateKey privKey = (DHPrivateKey) keyFac
                     .generatePrivate(privKeySpecs);
 
             return new KeyPair(pubKey, privKey);
         } catch (Exception e) {
+            // TODO consider catching specific exceptions and letting RTE through as signal of programming error
             throw new OtrCryptoException(e);
         }
     }
 
-    public static DHPublicKey getDHPublicKey(byte[] mpiBytes)
+    public static DHPublicKey getDHPublicKey(final byte[] mpiBytes)
             throws OtrCryptoException {
         return getDHPublicKey(new BigInteger(mpiBytes));
     }
 
-    public static DHPublicKey getDHPublicKey(BigInteger mpi) throws OtrCryptoException {
-        DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(mpi, MODULUS,
+    public static DHPublicKey getDHPublicKey(final BigInteger mpi) throws OtrCryptoException {
+        final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(mpi, MODULUS,
                 GENERATOR);
         try {
-            KeyFactory keyFac = KeyFactory.getInstance("DH");
+            final KeyFactory keyFac = KeyFactory.getInstance("DH");
             return (DHPublicKey) keyFac.generatePublic(pubKeySpecs);
         } catch (Exception e) {
+            // TODO consider catching specific exceptions and letting RTEs through as signal of programming error
             throw new OtrCryptoException(e);
         }
     }
 
-    public static byte[] sha256Hmac(byte[] b, byte[] key) throws OtrCryptoException {
+    public static byte[] sha256Hmac(final byte[] b, final byte[] key) throws OtrCryptoException {
+        // TODO consider moving this to Util, as it is not dependent on any instance or class field
         return sha256Hmac(b, key, 0);
     }
 
-    public static byte[] sha256Hmac(byte[] b, byte[] key, int length)
+    public static byte[] sha256Hmac(final byte[] b, final byte[] key, final int length)
             throws OtrCryptoException {
+        // TODO consider moving this to Util, as it is not dependent on any instance or class field
 
-        SecretKeySpec keyspec = new SecretKeySpec(key, "HmacSHA256");
-        javax.crypto.Mac mac;
+        // TODO extract constant
+        final SecretKeySpec keyspec = new SecretKeySpec(key, "HmacSHA256");
+        final javax.crypto.Mac mac;
         try {
             mac = javax.crypto.Mac.getInstance("HmacSHA256");
         } catch (NoSuchAlgorithmException e) {
@@ -150,11 +155,11 @@ public class OtrCryptoEngine {
             throw new OtrCryptoException(e);
         }
 
-        byte[] macBytes = mac.doFinal(b);
+        final byte[] macBytes = mac.doFinal(b);
 
         if (length > 0) {
-            byte[] bytes = new byte[length];
-            ByteBuffer buff = ByteBuffer.wrap(macBytes);
+            final byte[] bytes = new byte[length];
+            final ByteBuffer buff = ByteBuffer.wrap(macBytes);
             buff.get(bytes);
             return bytes;
         } else {
@@ -162,19 +167,20 @@ public class OtrCryptoEngine {
         }
     }
 
-    public static byte[] sha1Hmac(byte[] b, byte[] key, int length)
+    public static byte[] sha1Hmac(final byte[] b, final byte[] key, final int length)
             throws OtrCryptoException {
 
         try {
-            SecretKeySpec keyspec = new SecretKeySpec(key, "HmacSHA1");
-            javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA1");
+            // TODO consider catching individual statement errors instead of single large try-catch block
+            final SecretKeySpec keyspec = new SecretKeySpec(key, "HmacSHA1");
+            final javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA1");
             mac.init(keyspec);
 
-            byte[] macBytes = mac.doFinal(b);
+            final byte[] macBytes = mac.doFinal(b);
 
             if (length > 0) {
-                byte[] bytes = new byte[length];
-                ByteBuffer buff = ByteBuffer.wrap(macBytes);
+                final byte[] bytes = new byte[length];
+                final ByteBuffer buff = ByteBuffer.wrap(macBytes);
                 buff.get(bytes);
                 return bytes;
             } else {
@@ -185,13 +191,15 @@ public class OtrCryptoEngine {
         }
     }
 
-    public static byte[] sha256Hmac160(byte[] b, byte[] key) throws OtrCryptoException {
+    public static byte[] sha256Hmac160(final byte[] b, final byte[] key) throws OtrCryptoException {
+        // TODO consider moving this to Util, as it is not dependent on any instance or class field
         return sha256Hmac(b, key, SerializationConstants.TYPE_LEN_MAC);
     }
 
-    public static byte[] sha256Hash(byte[] b) throws OtrCryptoException {
+    public static byte[] sha256Hash(final byte[] b) throws OtrCryptoException {
+        // TODO consider moving this to Util, as it is not dependent on any instance or class field
         try {
-            MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+            final MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
             sha256.update(b, 0, b.length);
             return sha256.digest();
         } catch (Exception e) {
@@ -199,7 +207,8 @@ public class OtrCryptoEngine {
         }
     }
 
-    public static byte[] sha1Hash(byte[] b) throws OtrCryptoException {
+    public static byte[] sha1Hash(final byte[] b) throws OtrCryptoException {
+        // TODO consider moving this to Util, as it is not dependent on any instance or class field
         try {
             MessageDigest sha256 = MessageDigest.getInstance("SHA-1");
             sha256.update(b, 0, b.length);
@@ -209,143 +218,154 @@ public class OtrCryptoEngine {
         }
     }
 
-    public static byte[] aesDecrypt(byte[] key, byte[] ctr, byte[] b)
+    public static byte[] aesDecrypt(final byte[] key, byte[] ctr, final byte[] b)
             throws OtrCryptoException {
 
-        AESFastEngine aesDec = new AESFastEngine();
-        SICBlockCipher sicAesDec = new SICBlockCipher(aesDec);
-        BufferedBlockCipher bufSicAesDec = new BufferedBlockCipher(sicAesDec);
+        final AESFastEngine aesDec = new AESFastEngine();
+        final SICBlockCipher sicAesDec = new SICBlockCipher(aesDec);
+        final BufferedBlockCipher bufSicAesDec = new BufferedBlockCipher(sicAesDec);
 
         // Create initial counter value 0.
         if (ctr == null)
             ctr = ZERO_CTR;
         bufSicAesDec.init(false, new ParametersWithIV(new KeyParameter(key),
                 ctr));
-        byte[] aesOutLwDec = new byte[b.length];
-        int done = bufSicAesDec.processBytes(b, 0, b.length, aesOutLwDec, 0);
+        final byte[] aesOutLwDec = new byte[b.length];
+        final int done = bufSicAesDec.processBytes(b, 0, b.length, aesOutLwDec, 0);
         try {
             bufSicAesDec.doFinal(aesOutLwDec, done);
         } catch (Exception e) {
+            // TODO consider catching specific exceptions
             throw new OtrCryptoException(e);
         }
 
         return aesOutLwDec;
     }
 
-    public static byte[] aesEncrypt(byte[] key, byte[] ctr, byte[] b)
+    public static byte[] aesEncrypt(final byte[] key, byte[] ctr, final byte[] b)
             throws OtrCryptoException {
 
-        AESFastEngine aesEnc = new AESFastEngine();
-        SICBlockCipher sicAesEnc = new SICBlockCipher(aesEnc);
-        BufferedBlockCipher bufSicAesEnc = new BufferedBlockCipher(sicAesEnc);
+        final AESFastEngine aesEnc = new AESFastEngine();
+        final SICBlockCipher sicAesEnc = new SICBlockCipher(aesEnc);
+        final BufferedBlockCipher bufSicAesEnc = new BufferedBlockCipher(sicAesEnc);
 
         // Create initial counter value 0.
         if (ctr == null)
             ctr = ZERO_CTR;
         bufSicAesEnc.init(true,
                 new ParametersWithIV(new KeyParameter(key), ctr));
-        byte[] aesOutLwEnc = new byte[b.length];
-        int done = bufSicAesEnc.processBytes(b, 0, b.length, aesOutLwEnc, 0);
+        final byte[] aesOutLwEnc = new byte[b.length];
+        final int done = bufSicAesEnc.processBytes(b, 0, b.length, aesOutLwEnc, 0);
         try {
             bufSicAesEnc.doFinal(aesOutLwEnc, done);
         } catch (Exception e) {
+            // TODO consider catching specific exceptions
             throw new OtrCryptoException(e);
         }
         return aesOutLwEnc;
     }
 
-    public static BigInteger generateSecret(PrivateKey privKey, PublicKey pubKey)
+    public static BigInteger generateSecret(final PrivateKey privKey, final PublicKey pubKey)
             throws OtrCryptoException {
         try {
-            KeyAgreement ka = KeyAgreement.getInstance("DH");
+            final KeyAgreement ka = KeyAgreement.getInstance("DH");
             ka.init(privKey);
             ka.doPhase(pubKey, true);
-            byte[] sb = ka.generateSecret();
-            BigInteger s = new BigInteger(1, sb);
+            final byte[] sb = ka.generateSecret();
+            final BigInteger s = new BigInteger(1, sb);
             return s;
 
         } catch (Exception e) {
+            // TODO consider catching specific exceptions
             throw new OtrCryptoException(e);
         }
     }
 
-    public static byte[] sign(byte[] b, PrivateKey privatekey)
+    public static byte[] sign(final byte[] b, final PrivateKey privatekey)
             throws OtrCryptoException {
 
         if (!(privatekey instanceof DSAPrivateKey))
             throw new IllegalArgumentException();
 
-        DSAParams dsaParams = ((DSAPrivateKey) privatekey).getParams();
-        DSAParameters bcDSAParameters = new DSAParameters(dsaParams.getP(),
+        final DSAParams dsaParams = ((DSAPrivateKey) privatekey).getParams();
+        final DSAParameters bcDSAParameters = new DSAParameters(dsaParams.getP(),
                 dsaParams.getQ(), dsaParams.getG());
 
-        DSAPrivateKey dsaPrivateKey = (DSAPrivateKey) privatekey;
-        DSAPrivateKeyParameters bcDSAPrivateKeyParms = new DSAPrivateKeyParameters(
+        final DSAPrivateKey dsaPrivateKey = (DSAPrivateKey) privatekey;
+        final DSAPrivateKeyParameters bcDSAPrivateKeyParms = new DSAPrivateKeyParameters(
                 dsaPrivateKey.getX(), bcDSAParameters);
 
-        DSASigner dsaSigner = new DSASigner();
+        final DSASigner dsaSigner = new DSASigner();
         dsaSigner.init(true, bcDSAPrivateKeyParms);
 
-        BigInteger q = dsaParams.getQ();
+        final BigInteger q = dsaParams.getQ();
 
         // Ian: Note that if you can get the standard DSA implementation you're
         // using to not hash its input, you should be able to pass it ((256-bit
         // value) mod q), (rather than truncating the 256-bit value) and all
         // should be well.
         // ref: Interop problems with libotr - DSA signature
-        BigInteger bmpi = new BigInteger(1, b);
-        BigInteger[] rs = dsaSigner.generateSignature(BigIntegers
+        final BigInteger bmpi = new BigInteger(1, b);
+        final BigInteger[] rs = dsaSigner.generateSignature(BigIntegers
                 .asUnsignedByteArray(bmpi.mod(q)));
 
-        int siglen = q.bitLength() / 4;
-        int rslen = siglen / 2;
-        byte[] rb = BigIntegers.asUnsignedByteArray(rs[0]);
-        byte[] sb = BigIntegers.asUnsignedByteArray(rs[1]);
+        final int siglen = q.bitLength() / 4;
+        final int rslen = siglen / 2;
+        final byte[] rb = BigIntegers.asUnsignedByteArray(rs[0]);
+        final byte[] sb = BigIntegers.asUnsignedByteArray(rs[1]);
 
         // Create the final signature array, padded with zeros if necessary.
-        byte[] sig = new byte[siglen];
+        final byte[] sig = new byte[siglen];
         System.arraycopy(rb, 0, sig, rslen - rb.length, rb.length);
         System.arraycopy(sb, 0, sig, sig.length - sb.length, sb.length);
         return sig;
     }
 
-    public static boolean verify(byte[] b, PublicKey pubKey, byte[] rs)
+    /**
+     * Verify ...
+     * 
+     * @param b
+     * @param pubKey Public key. Provided public key must be an instance of DSAPublicKey.
+     * @param rs
+     * @return
+     * @throws OtrCryptoException 
+     */
+    public static boolean verify(final byte[] b, final PublicKey pubKey, final byte[] rs)
             throws OtrCryptoException {
 
         if (!(pubKey instanceof DSAPublicKey))
             throw new IllegalArgumentException();
 
-        DSAParams dsaParams = ((DSAPublicKey) pubKey).getParams();
-        int qlen = dsaParams.getQ().bitLength() / 8;
-        ByteBuffer buff = ByteBuffer.wrap(rs);
-        byte[] r = new byte[qlen];
+        final DSAParams dsaParams = ((DSAPublicKey) pubKey).getParams();
+        final int qlen = dsaParams.getQ().bitLength() / 8;
+        final ByteBuffer buff = ByteBuffer.wrap(rs);
+        final byte[] r = new byte[qlen];
         buff.get(r);
-        byte[] s = new byte[qlen];
+        final byte[] s = new byte[qlen];
         buff.get(s);
         return verify(b, pubKey, r, s);
     }
 
-    private static Boolean verify(byte[] b, PublicKey pubKey, byte[] r, byte[] s)
+    private static boolean verify(final byte[] b, final PublicKey pubKey, final byte[] r, final byte[] s)
             throws OtrCryptoException {
-        Boolean result = verify(b, pubKey, new BigInteger(1, r),
-                new BigInteger(1, s));
+        final Boolean result = verify(b, pubKey, new BigInteger(1, r), new BigInteger(1, s));
         return result;
     }
 
-    private static Boolean verify(byte[] b, PublicKey pubKey, BigInteger r,
-            BigInteger s) throws OtrCryptoException {
+    private static boolean verify(final byte[] b, final PublicKey pubKey, final BigInteger r,
+            final BigInteger s) throws OtrCryptoException {
 
         if (!(pubKey instanceof DSAPublicKey))
             throw new IllegalArgumentException();
 
-        DSAParams dsaParams = ((DSAPublicKey) pubKey).getParams();
+        final DSAParams dsaParams = ((DSAPublicKey) pubKey).getParams();
 
-        BigInteger q = dsaParams.getQ();
-        DSAParameters bcDSAParams = new DSAParameters(dsaParams.getP(), q,
+        final BigInteger q = dsaParams.getQ();
+        final DSAParameters bcDSAParams = new DSAParameters(dsaParams.getP(), q,
                 dsaParams.getG());
 
-        DSAPublicKey dsaPrivateKey = (DSAPublicKey) pubKey;
-        DSAPublicKeyParameters dsaPrivParms = new DSAPublicKeyParameters(
+        final DSAPublicKey dsaPrivateKey = (DSAPublicKey) pubKey;
+        final DSAPublicKeyParameters dsaPrivParms = new DSAPublicKeyParameters(
                 dsaPrivateKey.getY(), bcDSAParams);
 
         // Ian: Note that if you can get the standard DSA implementation you're
@@ -353,25 +373,27 @@ public class OtrCryptoEngine {
         // value) mod q), (rather than truncating the 256-bit value) and all
         // should be well.
         // ref: Interop problems with libotr - DSA signature
-        DSASigner dsaSigner = new DSASigner();
+        final DSASigner dsaSigner = new DSASigner();
         dsaSigner.init(false, dsaPrivParms);
 
-        BigInteger bmpi = new BigInteger(1, b);
-        Boolean result = dsaSigner.verifySignature(BigIntegers
+        final BigInteger bmpi = new BigInteger(1, b);
+        final Boolean result = dsaSigner.verifySignature(BigIntegers
                 .asUnsignedByteArray(bmpi.mod(q)), r, s);
         return result;
     }
 
-    public static String getFingerprint(PublicKey pubKey) throws OtrCryptoException {
-        byte[] b = getFingerprintRaw(pubKey);
+    public static String getFingerprint(final PublicKey pubKey) throws OtrCryptoException {
+        // TODO consider moving to Util class as it uses no instance or class fields or methods
+        final byte[] b = getFingerprintRaw(pubKey);
         return SerializationUtils.byteArrayToHexString(b);
     }
 
-    public static byte[] getFingerprintRaw(PublicKey pubKey)
+    public static byte[] getFingerprintRaw(final PublicKey pubKey)
             throws OtrCryptoException {
-        byte[] b;
+        // TODO consider moving to Util class as it uses no instance or class fields or methods
+        final byte[] b;
         try {
-            byte[] bRemotePubKey = SerializationUtils.writePublicKey(pubKey);
+            final byte[] bRemotePubKey = SerializationUtils.writePublicKey(pubKey);
 
             if (pubKey.getAlgorithm().equals("DSA")) {
                 byte[] trimmed = new byte[bRemotePubKey.length - 2];

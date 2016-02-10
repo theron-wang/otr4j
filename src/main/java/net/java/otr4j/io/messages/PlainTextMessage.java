@@ -17,7 +17,7 @@ public class PlainTextMessage extends QueryMessage {
 	public String cleanText;
 
 	// Ctor.
-	public PlainTextMessage(List<Integer> versions, String cleanText) {
+	public PlainTextMessage(final List<Integer> versions, final String cleanText) {
 		super(MESSAGE_PLAINTEXT, versions);
 		this.cleanText = cleanText;
 	}

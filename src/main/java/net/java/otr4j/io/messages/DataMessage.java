@@ -28,9 +28,9 @@ public class DataMessage extends AbstractEncodedMessage {
 	public byte[] encryptedMessage;
 
 	// Ctor.
-	public DataMessage(int protocolVersion, int flags, int senderKeyID,
-			int recipientKeyID, DHPublicKey nextDH, byte[] ctr,
-			byte[] encryptedMessage, byte[] mac, byte[] oldMacKeys) {
+	public DataMessage(final int protocolVersion, final int flags, final int senderKeyID,
+			final int recipientKeyID, final DHPublicKey nextDH, final byte[] ctr,
+			final byte[] encryptedMessage, final byte[] mac, final byte[] oldMacKeys) {
 		super(MESSAGE_DATA, protocolVersion);
 
 		this.flags = flags;
@@ -43,7 +43,7 @@ public class DataMessage extends AbstractEncodedMessage {
 		this.oldMACKeys = oldMacKeys;
 	}
 
-	public DataMessage(MysteriousT t, byte[] mac, byte[] oldMacKeys) {
+	public DataMessage(final MysteriousT t, final byte[] mac, final byte[] oldMacKeys) {
 		this(t.protocolVersion, t.flags, t.senderKeyID, t.recipientKeyID,
 				t.nextDH, t.ctr, t.encryptedMessage, mac, oldMacKeys);
 	}

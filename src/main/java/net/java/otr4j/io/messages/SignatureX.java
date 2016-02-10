@@ -20,8 +20,8 @@ public class SignatureX {
 	public byte[] signature;
 
 	// Ctor.
-	public SignatureX(PublicKey ourLongTermPublicKey, int ourKeyID,
-			byte[] signature) {
+	public SignatureX(final PublicKey ourLongTermPublicKey, final int ourKeyID,
+			final byte[] signature) {
 		this.longTermPublicKey = ourLongTermPublicKey;
 		this.dhKeyID = ourKeyID;
 		this.signature = signature;
