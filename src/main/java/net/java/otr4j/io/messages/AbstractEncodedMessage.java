@@ -20,8 +20,7 @@ public abstract class AbstractEncodedMessage extends AbstractMessage {
 
 	// Ctor.
 	public AbstractEncodedMessage(final int messageType, final int protocolVersion) {
-		super(messageType);
-		this.protocolVersion = protocolVersion;
+		this(messageType, protocolVersion, 0);
 	}
 
     public AbstractEncodedMessage(

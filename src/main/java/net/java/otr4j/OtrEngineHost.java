@@ -21,15 +21,23 @@ import net.java.otr4j.session.SessionID;
  */
 public abstract interface OtrEngineHost {
 
+    /**
+     * Request host to inject a new message into the IM communication stream
+     * upon which the OTR session is built.
+     *
+     * @param sessionID The session ID
+     * @param msg The message to inject
+     * @throws OtrException
+     */
 	public abstract void injectMessage(SessionID sessionID, String msg)
 			throws OtrException;
 
     /**
      * Warn the user that an encrypted message was received that could not be
-     * unencrypted, most likely because it was encrypted to a different session,
+     * decrypted, most likely because it was encrypted to a different session,
      * or an old session.
      *
-     * @param sessionID
+     * @param sessionID The session ID
      * @throws OtrException
      */
 	public abstract void unreadableMessageReceived(SessionID sessionID)
@@ -37,9 +45,9 @@ public abstract interface OtrEngineHost {
 
     /**
      * Display the message to the user, but warn him that the message was
-     * received unencrypted.
+     * received decrypted.
      *
-     * @param sessionID
+     * @param sessionID The session ID
      * @param msg the body of the received message that was not encrypted
      * @throws OtrException
      */

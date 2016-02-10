@@ -127,8 +127,7 @@ public class SessionKeys {
             final ByteBuffer buff = ByteBuffer.allocate(len);
             buff.put(b);
             buff.put(secbytes);
-            final byte[] result = OtrCryptoEngine.sha1Hash(buff.array());
-            return result;
+            return OtrCryptoEngine.sha1Hash(buff.array());
         } catch (Exception e) {
             // TODO consider catching specific exceptions
             throw new OtrException(e);

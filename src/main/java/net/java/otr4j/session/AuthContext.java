@@ -795,8 +795,7 @@ public class AuthContext {
         getSession().setProtocolVersion(version);
         this.setAuthenticationState(AuthContext.AWAITING_DHKEY);
         logger.finest("Generating D-H Commit.");
-        final DHCommitMessage message = messageFactory.getDHCommitMessage();
-        return message;
+        return messageFactory.getDHCommitMessage();
     }
 
     private void setSession(final Session session) {

@@ -77,7 +77,7 @@ public class SM {
 		{
 			super(message);
 		}
-	};
+	}
 	
 	public static final int EXPECT1 = 0;
 	public static final int EXPECT2 = 1;
@@ -511,9 +511,9 @@ public class SM {
 	    bstate.x3 = randomExponent(sr);
 
 	    /* Combine the two halves from Bob and Alice and determine g2 and g3 */
-	    bstate.g2= msg1[0].modPow(bstate.x2, MODULUS_S);
+	    bstate.g2 = msg1[0].modPow(bstate.x2, MODULUS_S);
 	    //Util.checkBytes("g2b", bstate.g2.getValue());
-	    bstate.g3= msg1[3].modPow(bstate.x3, MODULUS_S);
+	    bstate.g3 = msg1[3].modPow(bstate.x3, MODULUS_S);
 	    //Util.checkBytes("g3b", bstate.g3.getValue());
 	    
 	    bstate.smProgState = PROG_OK;

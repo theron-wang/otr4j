@@ -116,7 +116,7 @@ public class Session {
         outgoingSession = this;
         isMasterSession = true;
 
-        assembler = new OtrAssembler(getSenderInstanceTag());
+        assembler = new OtrAssembler(this.senderTag);
         fragmenter = new OtrFragmenter(outgoingSession, listener);
     }
 

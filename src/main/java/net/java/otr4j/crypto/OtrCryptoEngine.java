@@ -272,8 +272,7 @@ public class OtrCryptoEngine {
             ka.init(privKey);
             ka.doPhase(pubKey, true);
             final byte[] sb = ka.generateSecret();
-            final BigInteger s = new BigInteger(1, sb);
-            return s;
+            return new BigInteger(1, sb);
 
         } catch (Exception e) {
             // TODO consider catching specific exceptions
@@ -348,8 +347,7 @@ public class OtrCryptoEngine {
 
     private static boolean verify(final byte[] b, final PublicKey pubKey, final byte[] r, final byte[] s)
             throws OtrCryptoException {
-        final Boolean result = verify(b, pubKey, new BigInteger(1, r), new BigInteger(1, s));
-        return result;
+        return verify(b, pubKey, new BigInteger(1, r), new BigInteger(1, s));
     }
 
     private static boolean verify(final byte[] b, final PublicKey pubKey, final BigInteger r,
@@ -377,9 +375,8 @@ public class OtrCryptoEngine {
         dsaSigner.init(false, dsaPrivParms);
 
         final BigInteger bmpi = new BigInteger(1, b);
-        final Boolean result = dsaSigner.verifySignature(BigIntegers
+        return dsaSigner.verifySignature(BigIntegers
                 .asUnsignedByteArray(bmpi.mod(q)), r, s);
-        return result;
     }
 
     public static String getFingerprint(final PublicKey pubKey) throws OtrCryptoException {
@@ -399,8 +396,9 @@ public class OtrCryptoEngine {
                 byte[] trimmed = new byte[bRemotePubKey.length - 2];
                 System.arraycopy(bRemotePubKey, 2, trimmed, 0, trimmed.length);
                 b = OtrCryptoEngine.sha1Hash(trimmed);
-            } else
+            } else {
                 b = OtrCryptoEngine.sha1Hash(bRemotePubKey);
+            }
         } catch (IOException e) {
             throw new OtrCryptoException(e);
         }

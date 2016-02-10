@@ -1,5 +1,8 @@
 package net.java.otr4j.session;
 
+/**
+ * Class representing OTR Type-Length-Value tuples.
+ */
 public class TLV {
     /* This is just padding for the encrypted message, and should be ignored. */
     public static final int PADDING=0;
@@ -16,27 +19,19 @@ public class TLV {
      * beginning */
     public static final int SMP1Q=0x0007;
 
-	public TLV(int type, byte[] value) {
-		this.setType(type);
-		this.setValue(value);
-	}
+	final int type;
+	final byte[] value;
 
-	public void setType(int type) {
-		this.type = type;
+	public TLV(final int type, final byte[] value) {
+        this.type = type;
+        this.value = value;
 	}
 
 	public int getType() {
 		return type;
 	}
 
-	public void setValue(byte[] value) {
-		this.value = value;
-	}
-
 	public byte[] getValue() {
 		return value;
 	}
-
-	int type;
-	byte[] value;
 }

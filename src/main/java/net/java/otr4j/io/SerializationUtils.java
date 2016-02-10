@@ -293,7 +293,7 @@ public class SerializationUtils {
 					|| contentType == SerializationConstants.HEAD_QUERY_Q) {
 				// Query tag found.
 
-				final List<Integer> versions = new Vector<Integer>();
+				final Vector<Integer> versions = new Vector<Integer>();
 				String versionString = null;
 				if (SerializationConstants.HEAD_QUERY_Q == contentType) {
 					versions.add(OTRv.ONE);
@@ -313,8 +313,7 @@ public class SerializationUtils {
 							versions.add(Integer.parseInt(String
 									.valueOf((char) c)));
 				}
-                final QueryMessage query = new QueryMessage(versions);
-				return query;
+				return new QueryMessage(versions);
 			} else if (idxHead == 0 && contentType == SerializationConstants.HEAD_ENCODED) {
 				// Data message found.
 
@@ -445,11 +444,11 @@ public class SerializationUtils {
 			'6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
 	public static String byteArrayToHexString(final byte in[]) {
-		int i = 0;
 		if (in == null || in.length <= 0)
 			return null;
         // TODO replace with StringBuilder as this is only executed locally
 		final StringBuffer out = new StringBuffer(in.length * 2);
+		int i = 0;
 		while (i < in.length) {
 			out.append(HEX_ENCODER[(in[i] >>> 4) & 0x0F]);
 			out.append(HEX_ENCODER[in[i] & 0x0F]);
