@@ -21,7 +21,6 @@ import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SM;
 import net.java.otr4j.crypto.SM.SMException;
 import net.java.otr4j.crypto.SM.SMAbortedException;
-import net.java.otr4j.crypto.SMStatus;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 
@@ -92,7 +91,7 @@ public class SmpTlvHandler {
 	 */
 	public List<TLV> initRespondSmp(@Nullable final String question, @Nonnull final String secret,
             final boolean initiating) throws OtrException {
-        if (!initiating && this.sm.status() != SMStatus.INPROGRESS) {
+        if (!initiating && this.sm.status() != SM.Status.INPROGRESS) {
             throw new OtrException(new IllegalStateException(
                     "There is no question to be answered."));
         }
@@ -195,7 +194,7 @@ public class SmpTlvHandler {
     }
 
 	public boolean isSmpInProgress() {
-	    return this.sm.status() == SMStatus.INPROGRESS;
+	    return this.sm.status() == SM.Status.INPROGRESS;
 	}
 
 	public String getFingerprint() {
@@ -241,7 +240,7 @@ public class SmpTlvHandler {
         }
         catch (SMException e) {
             OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
-                    tlv.getType(), this.sm.status() == SMStatus.CHEATED);
+                    tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);
         }
     }
@@ -261,7 +260,7 @@ public class SmpTlvHandler {
         }
         catch (SMException e) {
             OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
-                    tlv.getType(), this.sm.status() == SMStatus.CHEATED);
+                    tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);
         }
     }
@@ -283,7 +282,7 @@ public class SmpTlvHandler {
         }
         catch (SMException e) {
             OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
-                    tlv.getType(), this.sm.status() == SMStatus.CHEATED);
+                    tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);
         }
     }
@@ -292,7 +291,7 @@ public class SmpTlvHandler {
         try {
             final byte[] nextmsg = sm.step4(tlv.getValue());
             /* Set trust level based on result */
-            if (this.sm.status() == SMStatus.SUCCEEDED) {
+            if (this.sm.status() == SM.Status.SUCCEEDED) {
                 // FIXME find alternative for APPROVED variable. What does this accomplish exactly?
                 OtrEngineHostUtil.verify(engineHost, session.getSessionID(),
                         getFingerprint(), true /*smstate.approved*/);
@@ -310,7 +309,7 @@ public class SmpTlvHandler {
         }
         catch (SMException e) {
             OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
-                    tlv.getType(), this.sm.status() == SMStatus.CHEATED);
+                    tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);
         }
     }
@@ -318,7 +317,7 @@ public class SmpTlvHandler {
     public void processTlvSMP4(@Nonnull final TLV tlv) throws OtrException {
         try {
             sm.step5(tlv.getValue());
-            if (this.sm.status() == SMStatus.SUCCEEDED) {
+            if (this.sm.status() == SM.Status.SUCCEEDED) {
                 // FIXME find alternative for APPROVED variable. What does this accomplish exactly?
                 OtrEngineHostUtil.verify(engineHost, session.getSessionID(),
                         getFingerprint(), true /*smstate.approved*/);
@@ -332,7 +331,7 @@ public class SmpTlvHandler {
         }
         catch (SMException e) {
             OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
-                    tlv.getType(), this.sm.status() == SMStatus.CHEATED);
+                    tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);
         }
     }

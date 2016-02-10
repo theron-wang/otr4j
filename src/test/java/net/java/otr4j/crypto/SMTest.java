@@ -83,8 +83,8 @@ public class SMTest {
     public void testCheckKnowLog() throws SM.SMException {
         final State sm = new State(sr) {
             @Override
-            SMStatus status() {
-                return SMStatus.UNDECIDED;
+            SM.Status status() {
+                return SM.Status.UNDECIDED;
             }
         };
         sm.checkKnowLog(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, 0);
@@ -94,8 +94,8 @@ public class SMTest {
     public void testCheckEqualCoords() throws SM.SMException {
         final State sm = new State(sr) {
             @Override
-            SMStatus status() {
-                return SMStatus.UNDECIDED;
+            SM.Status status() {
+                return SM.Status.UNDECIDED;
             }
         };
         sm.checkEqualCoords(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, BigInteger.valueOf(100L), BigInteger.valueOf(50L), BigInteger.valueOf(25L), BigInteger.valueOf(12L), 0);
@@ -105,8 +105,8 @@ public class SMTest {
     public void testCheckEqualLogs() throws SM.SMException {
         final State sm = new State(sr) {
             @Override
-            SMStatus status() {
-                return SMStatus.UNDECIDED;
+            SM.Status status() {
+                return SM.Status.UNDECIDED;
             }
         };
         sm.checkEqualLogs(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, BigInteger.valueOf(23L), BigInteger.valueOf(35L), 0);
@@ -171,33 +171,33 @@ public class SMTest {
         final byte[] combinedSecretBytes = combinedSecret(alicePublic, bobPublic, s, secret);
 
         // SMP session execution
-        assertEquals(SMStatus.UNDECIDED, alice.status());
-        assertEquals(SMStatus.UNDECIDED, bob.status());
+        assertEquals(SM.Status.UNDECIDED, alice.status());
+        assertEquals(SM.Status.UNDECIDED, bob.status());
 
         final byte[] msg1 = alice.step1(combinedSecretBytes);
-        assertEquals(SMStatus.INPROGRESS, alice.status());
-        assertEquals(SMStatus.UNDECIDED, bob.status());
+        assertEquals(SM.Status.INPROGRESS, alice.status());
+        assertEquals(SM.Status.UNDECIDED, bob.status());
 
         bob.step2a(msg1);
-        assertEquals(SMStatus.INPROGRESS, alice.status());
-        assertEquals(SMStatus.INPROGRESS, bob.status());
+        assertEquals(SM.Status.INPROGRESS, alice.status());
+        assertEquals(SM.Status.INPROGRESS, bob.status());
 
         final byte[] msg2 = bob.step2b(combinedSecretBytes);
-        assertEquals(SMStatus.INPROGRESS, alice.status());
-        assertEquals(SMStatus.INPROGRESS, bob.status());
+        assertEquals(SM.Status.INPROGRESS, alice.status());
+        assertEquals(SM.Status.INPROGRESS, bob.status());
 
         final byte[] msg3 = alice.step3(msg2);
-        assertEquals(SMStatus.INPROGRESS, alice.status());
-        assertEquals(SMStatus.INPROGRESS, bob.status());
+        assertEquals(SM.Status.INPROGRESS, alice.status());
+        assertEquals(SM.Status.INPROGRESS, bob.status());
 
         final byte[] msg4 = bob.step4(msg3);
-        assertEquals(SMStatus.INPROGRESS, alice.status());
-        assertEquals(SMStatus.SUCCEEDED, bob.status());
+        assertEquals(SM.Status.INPROGRESS, alice.status());
+        assertEquals(SM.Status.SUCCEEDED, bob.status());
 
         alice.step5(msg4);
         // Evaluate session end result
-        assertEquals(SMStatus.SUCCEEDED, alice.status());
-        assertEquals(SMStatus.SUCCEEDED, bob.status());
+        assertEquals(SM.Status.SUCCEEDED, alice.status());
+        assertEquals(SM.Status.SUCCEEDED, bob.status());
     }
 
     @Test

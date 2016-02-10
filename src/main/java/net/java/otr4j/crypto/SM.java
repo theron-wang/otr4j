@@ -221,8 +221,8 @@ public final class SM {
 	}
 
     @Nonnull
-    public SMStatus status() {
-        final SMStatus status = this.state.status();
+    public Status status() {
+        final Status status = this.state.status();
         LOGGER.fine("Retrieving status for SMP exchange: " + status.name());
         return status;
     }
@@ -289,11 +289,11 @@ public final class SM {
             throw e;
         }
         catch (SMException e) {
-            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw e;
         }
         catch (RuntimeException e) {
-            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw new SMException(e);
         }
 	}
@@ -326,11 +326,11 @@ public final class SM {
             throw e;
         }
         catch (SMException e) {
-            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw e;
         }
         catch (RuntimeException e) {
-            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw new SMException(e);
         }
 	}
@@ -361,11 +361,11 @@ public final class SM {
             throw e;
         }
         catch (SMException e) {
-            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw e;
         }
         catch (RuntimeException e) {
-            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw new SMException(e);
         }
 	}
@@ -396,11 +396,11 @@ public final class SM {
             throw e;
         }
         catch (SMException e) {
-            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw e;
         }
         catch (RuntimeException e) {
-            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw new SMException(e);
         }
         finally {
@@ -430,17 +430,49 @@ public final class SM {
             throw e;
         }
         catch (SMException e) {
-            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw e;
         }
         catch (RuntimeException e) {
-            this.state = new StateExpect1(this.state.secureRandom(), SMStatus.CHEATED);
+            this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw new SMException(e);
         }
         finally {
             LOGGER.fine("Final SMP exchange state: " + this.state.status().name());
         }
 	}
+
+    /**
+     * Enum of SM statuses.
+     *
+     * @author Danny van Heumen
+     */
+    public enum Status {
+        /**
+         * Status is undecided. No SMP exchange has started.
+         */
+        UNDECIDED,
+        /**
+         * SMP exchange is in progress. (First message has arrived/is sent.)
+         */
+        INPROGRESS,
+        /**
+         * SMP exchange final state for normal cases. SMP exchange has been
+         * fully completed and it has succeeded, i.e. with positive outcome.
+         */
+        SUCCEEDED,
+        /**
+         * SMP exchange final state for normal cases. SMP exchange has been
+         * completed, but with negative outcome.
+         */
+        FAILED,
+        /**
+         * SMP exchange final state for exceptional cases. This might indicate
+         * that invalid message were sent on purpose to play the protocol and as
+         * a consequence processing did not finish as expected.
+         */
+        CHEATED;
+    }
 }
 
 /**
@@ -450,6 +482,7 @@ public final class SM {
  * only. Specific exceptions are thrown to indicate the unexpected state
  * changes.
  */
+// TODO according to State pattern, we should extract an interface.
 abstract class State {
     // FIXME SMP state should only be preserved in MSGSTATE_ENCRYPTED.
     // FIXME any unexpected message should result in an smpError
@@ -474,7 +507,7 @@ abstract class State {
      * unsuccessfully.
      */
     @Nonnull
-    abstract SMStatus status();
+    abstract SM.Status status();
 
     /**
      * Start SMP negotiation.
@@ -794,7 +827,7 @@ abstract class State {
  */
 final class StateExpect1 extends State {
 
-    private final SMStatus status;
+    private final SM.Status status;
 
     final BigInteger x2;
     final BigInteger x3;
@@ -805,15 +838,15 @@ final class StateExpect1 extends State {
     final BigInteger g3o;
 
     StateExpect1(@Nonnull final SecureRandom sr) {
-        this(sr, SMStatus.UNDECIDED, null, null, null, null, null);
+        this(sr, SM.Status.UNDECIDED, null, null, null, null, null);
     }
 
-    StateExpect1(@Nonnull final SecureRandom sr, @Nonnull final SMStatus status) {
+    StateExpect1(@Nonnull final SecureRandom sr, @Nonnull final SM.Status status) {
         this(sr, status, null, null, null, null, null);
     }
 
     private StateExpect1(@Nonnull final SecureRandom sr,
-            @Nonnull final SMStatus status, @Nullable final BigInteger x2,
+            @Nonnull final SM.Status status, @Nullable final BigInteger x2,
             @Nullable final BigInteger x3, @Nullable final BigInteger g2,
             @Nullable final BigInteger g3, @Nullable final BigInteger g3o) {
         super(sr);
@@ -826,7 +859,7 @@ final class StateExpect1 extends State {
     }
 
     @Override
-    SMStatus status() {
+    SM.Status status() {
         return this.status;
     }
 
@@ -883,12 +916,12 @@ final class StateExpect1 extends State {
         final BigInteger g2 = msg1[0].modPow(x2, SM.MODULUS_S);
 	    final BigInteger g3 = msg1[3].modPow(x3, SM.MODULUS_S);
 	    
-        bstate.setState(new StateExpect1(this.secureRandom(), SMStatus.INPROGRESS, x2, x3, g2, g3, g3o));
+        bstate.setState(new StateExpect1(this.secureRandom(), SM.Status.INPROGRESS, x2, x3, g2, g3, g3o));
     }
 
     @Override
     byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
-        if (status() != SMStatus.INPROGRESS) {
+        if (status() != SM.Status.INPROGRESS) {
             // In case a question gets answered before the question is recieved,
             // this is considered bad order of messages. Abort protocol and
             // reset to default.
@@ -952,8 +985,8 @@ final class StateExpect2 extends State {
     }
 
     @Override
-    SMStatus status() {
-        return SMStatus.INPROGRESS;
+    SM.Status status() {
+        return SM.Status.INPROGRESS;
     }
 
     @Override
@@ -1048,8 +1081,8 @@ final class StateExpect3 extends State {
     }
 
     @Override
-    SMStatus status() {
-        return SMStatus.INPROGRESS;
+    SM.Status status() {
+        return SM.Status.INPROGRESS;
     }
 
     @Override
@@ -1093,7 +1126,7 @@ final class StateExpect3 extends State {
 	    final BigInteger rab = msg3[5].modPow(x3, SM.MODULUS_S);
 	    final int comp = rab.compareTo(pab);
 
-        final SMStatus status = (comp == 0) ? SMStatus.SUCCEEDED : SMStatus.FAILED;
+        final SM.Status status = (comp == 0) ? SM.Status.SUCCEEDED : SM.Status.FAILED;
         bstate.setState(new StateExpect1(this.secureRandom(), status));
 
 	    return output;
@@ -1123,8 +1156,8 @@ final class StateExpect4 extends State {
     }
 
     @Override
-    SMStatus status() {
-        return SMStatus.INPROGRESS;
+    SM.Status status() {
+        return SM.Status.INPROGRESS;
     }
 
     @Override
@@ -1144,7 +1177,7 @@ final class StateExpect4 extends State {
 	    final BigInteger rab = msg4[0].modPow(x3, SM.MODULUS_S);
 	    final int comp = rab.compareTo(pab);
 
-        final SMStatus status = (comp == 0) ? SMStatus.SUCCEEDED : SMStatus.FAILED;
+        final SM.Status status = (comp == 0) ? SM.Status.SUCCEEDED : SM.Status.FAILED;
         astate.setState(new StateExpect1(this.secureRandom(), status));
     }
 }
