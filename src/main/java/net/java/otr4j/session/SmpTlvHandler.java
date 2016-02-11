@@ -118,8 +118,8 @@ public class SmpTlvHandler {
 			throw new OtrException(ex);
 		}
 
-		byte[] bytes = secret.getBytes(SerializationUtils.UTF8);
-		final int combined_buf_len = 41 + sessionId.length + bytes.length;
+		final byte[] secretBytes = secret.getBytes(SerializationUtils.UTF8);
+		final int combined_buf_len = 41 + sessionId.length + secretBytes.length;
 		final byte[] combined_buf = new byte[combined_buf_len];
 		combined_buf[0]=1;
 		if (initiating){
@@ -130,8 +130,8 @@ public class SmpTlvHandler {
 			System.arraycopy(our_fp, 0, combined_buf, 21, 20);
 		}
 		System.arraycopy(sessionId, 0, combined_buf, 41, sessionId.length);
-		System.arraycopy(bytes, 0,
-				combined_buf, 41 + sessionId.length, bytes.length);
+		System.arraycopy(secretBytes, 0,
+				combined_buf, 41 + sessionId.length, secretBytes.length);
 
 		final MessageDigest sha256;
 		try {
@@ -180,10 +180,10 @@ public class SmpTlvHandler {
 
 		// If we've got a question, attach it to the smpmsg
 		if (question != null && initiating){
-			bytes = question.getBytes(SerializationUtils.UTF8);
-			final byte[] qsmpmsg = new byte[bytes.length + 1 + smpmsg.length];
-			System.arraycopy(bytes, 0, qsmpmsg, 0, bytes.length);
-			System.arraycopy(smpmsg, 0, qsmpmsg, bytes.length + 1, smpmsg.length);
+			final byte[] questionBytes = question.getBytes(SerializationUtils.UTF8);
+			final byte[] qsmpmsg = new byte[questionBytes.length + 1 + smpmsg.length];
+			System.arraycopy(questionBytes, 0, qsmpmsg, 0, questionBytes.length);
+			System.arraycopy(smpmsg, 0, qsmpmsg, questionBytes.length + 1, smpmsg.length);
 			smpmsg = qsmpmsg;
 		}
 
