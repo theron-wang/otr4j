@@ -31,6 +31,15 @@ public class SmpTlvHandler {
     private final SM sm;
 
     /**
+     * Indicates whether this is an approved exchange.
+     *
+     * An approved exchange means that the exchange was set up in such a way
+     * that the user can be sure of verification in a way that a user can be
+     */
+    // FIXME I'm not sure that there is any real value to this indicator. Both with and without question, there is a notion of a shared secret. Question only hints at which 'shared secret' is expected.
+    private boolean approved = false;
+
+    /**
 	 * Construct an OTR Socialist Millionaire handler object.
 	 * 
 	 * @param session The session reference.
@@ -189,8 +198,7 @@ public class SmpTlvHandler {
 
 		final TLV sendtlv = new TLV(initiating?
 				(question != null ? TLV.SMP1Q:TLV.SMP1) : TLV.SMP2, smpmsg);
-        // FIXME find alternative for APPROVED variable. What does this accomplish exactly?
-		//smstate.approved = initiating || question == null;
+		approved = initiating || question == null;
         return Collections.singletonList(sendtlv);
 	}
 
@@ -313,9 +321,8 @@ public class SmpTlvHandler {
             final byte[] nextmsg = sm.step4(tlv.getValue());
             /* Set trust level based on result */
             if (this.sm.status() == SM.Status.SUCCEEDED) {
-                // FIXME find alternative for APPROVED variable. What does this accomplish exactly?
                 OtrEngineHostUtil.verify(engineHost, session.getSessionID(),
-                        getFingerprint(), true /*smstate.approved*/);
+                        getFingerprint(), approved);
             } else {
                 OtrEngineHostUtil.unverify(engineHost, session.getSessionID(),
                         getFingerprint());
@@ -339,9 +346,8 @@ public class SmpTlvHandler {
         try {
             sm.step5(tlv.getValue());
             if (this.sm.status() == SM.Status.SUCCEEDED) {
-                // FIXME find alternative for APPROVED variable. What does this accomplish exactly?
                 OtrEngineHostUtil.verify(engineHost, session.getSessionID(),
-                        getFingerprint(), true /*smstate.approved*/);
+                        getFingerprint(), approved);
             } else {
                 OtrEngineHostUtil.unverify(engineHost, session.getSessionID(), getFingerprint());
             }
