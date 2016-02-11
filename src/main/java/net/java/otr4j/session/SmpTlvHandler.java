@@ -142,20 +142,41 @@ public class SmpTlvHandler {
 
 		final byte[] combined_secret = sha256.digest(combined_buf);
 		byte[] smpmsg;
-		try {
-			if (initiating) {
-				smpmsg = sm.step1(combined_secret);
-                // FIXME catch exception in case of abort and retry with now-reset SMP state.
-			} else {
-				smpmsg = sm.step2b(combined_secret);
-			}
-        } catch (SMAbortedException ex) {
-            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
-            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
-            throw new OtrException(ex);
-		} catch (SMException ex) {
-			throw new OtrException(ex);
-		}
+        if (initiating) {
+            try {
+                smpmsg = sm.step1(combined_secret);
+            }
+            catch (SM.SMAbortedException e) {
+                // As prescribed by OTR, we must always be allowed to initiate a
+                // new SMP exchange. In case another SMP exchange is in
+                // progress, an abort is signaled. We honor the abort exception
+                // and send the abort signal to the counter party. Then we
+                // immediately initiate a new SMP exchange as requested.
+                sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+                OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
+                try {
+                    smpmsg = sm.step1(combined_secret);
+                }
+                catch (SMException ex) {
+                    throw new OtrException(ex);
+                }
+            }
+            catch (SMException ex) {
+                throw new OtrException(ex);
+            }
+        } else {
+            try {
+                smpmsg = sm.step2b(combined_secret);
+            }
+            catch (SMAbortedException ex) {
+                sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+                OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
+                throw new OtrException(ex);
+            }
+            catch (SMException ex) {
+                throw new OtrException(ex);
+            }
+        }
 
 		// If we've got a question, attach it to the smpmsg
 		if (question != null && initiating){
