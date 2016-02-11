@@ -39,6 +39,7 @@ import net.java.otr4j.io.SerializationUtils;
 
 
 public final class SM {
+    // FIXME eradicate use of SMException directly in favor of either SMAbortedException or some SM Error exception. This should not need to break public API.
 
     /**
      * Safe maximum array size. Copied from OpenJDK 7 implementation.
@@ -220,6 +221,11 @@ public final class SM {
         }
 	}
 
+    /**
+     * The current status of the SM state machine.
+     *
+     * @return Returns the current status.
+     */
     @Nonnull
     public Status status() {
         final Status status = this.state.status();
@@ -227,6 +233,14 @@ public final class SM {
         return status;
     }
 
+    /**
+     * Abort the current SM exchange. This resets the state machine to the
+     * default/initial state.
+     *
+     * In case the abort is initiated by the local user, it may be necessary to
+     * send a type 6 TLV to the counterparty as to inform them of the decision.
+     * This is outside the scope of responsibility of the state machine.
+     */
     @Nonnull
     public void abort() {
         LOGGER.fine("Aborting SMP exchange.");
@@ -253,14 +267,6 @@ public final class SM {
 	public byte[] step1(@Nonnull final byte[] secret) throws SMAbortedException, SMException
 	{
         LOGGER.fine("Initiating SMP exchange.");
-
-        // FIXME Document: It would not make sense to check the
-        // status() == CHEATED beforehand as this would have been historical
-        // information. Only after having called on SM would the state be of any
-        // relevance. That being said. If this is known, this should not be a
-        // problem, since we can assume that any final state (SUCCEEDED, FAILED,
-        // CHEATED) will only occur in SMP_EXPECT1, which is also the starting
-        // state for new exchanges.
 
         // startSMP is solely controlled by the local user. In case an exception
         // occurs here, it is related to a programming error.
@@ -484,8 +490,6 @@ public final class SM {
  */
 // TODO according to State pattern, we should extract an interface.
 abstract class State {
-    // FIXME SMP state should only be preserved in MSGSTATE_ENCRYPTED.
-    // FIXME any unexpected message should result in an smpError
 
     static final BigInteger G1 = SM.GENERATOR_S;
 
