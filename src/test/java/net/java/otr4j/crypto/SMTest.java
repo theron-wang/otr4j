@@ -185,6 +185,60 @@ public class SMTest {
         assertEquals(SM.PROG_SUCCEEDED, bob.smProgState);
     }
 
+    @Test
+    public void testUnsuccessfulSMPConversationBadSecret() throws SM.SMException, OtrCryptoException, Exception {
+        final SecureRandom rand = new SecureRandom();
+
+        // Alice
+        final SM.SMState alice = new SM.SMState();
+        final KeyPair aliceKeyPair = generateKeyPair();
+        final KeyPair aliceDHKeyPair = OtrCryptoEngine.generateDHKeyPair(rand);
+        final byte[] alicePublic = OtrCryptoEngine.getFingerprintRaw(aliceKeyPair.getPublic());
+
+        // Bob
+        final SM.SMState bob = new SM.SMState();
+        final KeyPair bobKeyPair = generateKeyPair();
+        final KeyPair bobDHKeyPair = OtrCryptoEngine.generateDHKeyPair(rand);
+        final byte[] bobPublic = OtrCryptoEngine.getFingerprintRaw(bobKeyPair.getPublic());
+
+        // Shared secret
+        final byte[] secretAlice = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 'd' };
+        final byte[] secretBob = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 't' };
+        final BigInteger s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
+        final byte[] combinedSecretBytesAlice = combinedSecret(alicePublic, bobPublic, s, secretAlice);
+        final byte[] combinedSecretBytesBob = combinedSecret(alicePublic, bobPublic, s, secretBob);
+
+        // SMP session execution
+        final SM sm = new SM(rand);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_OK, bob.smProgState);
+
+        final byte[] msg1 = sm.step1(alice, combinedSecretBytesAlice);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_OK, bob.smProgState);
+
+        sm.step2a(bob, msg1);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_OK, bob.smProgState);
+
+        final byte[] msg2 = sm.step2b(bob, combinedSecretBytesBob);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_OK, bob.smProgState);
+
+        final byte[] msg3 = sm.step3(alice, msg2);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_OK, bob.smProgState);
+
+        final byte[] msg4 = sm.step4(bob, msg3);
+        assertEquals(SM.PROG_OK, alice.smProgState);
+        assertEquals(SM.PROG_FAILED, bob.smProgState);
+
+        sm.step5(alice, msg4);
+        // Evaluate session end result
+        assertEquals(SM.PROG_FAILED, alice.smProgState);
+        assertEquals(SM.PROG_FAILED, bob.smProgState);
+    }
+
     private byte[] combinedSecret(final byte[] alicePublic, final byte[] bobPublic, final BigInteger s, final byte[] secret) throws Exception {
         final byte[] sessionBytes = computeSessionId(s);
         final byte[] combinedSecret = new byte[1 + alicePublic.length + bobPublic.length + sessionBytes.length + secret.length];
@@ -193,7 +247,7 @@ public class SMTest {
         System.arraycopy(bobPublic, 0, combinedSecret, 1+alicePublic.length, bobPublic.length);
         System.arraycopy(sessionBytes, 0, combinedSecret, 1+alicePublic.length+bobPublic.length, sessionBytes.length);
         System.arraycopy(secret, 0, combinedSecret, 1+alicePublic.length+bobPublic.length+sessionBytes.length, secret.length);
-        return combinedSecret;
+        return MessageDigest.getInstance("SHA-256").digest(combinedSecret);
     }
 
 	/* Compute secret session ID as hash of agreed secret */
