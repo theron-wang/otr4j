@@ -1,8 +1,20 @@
-Backwards incompatibility:
+New Features:
+* State machine for Socialist Millionaire protocol.
+  * Fully immutable fields.
+  * Atomic state updates.
+  * State transitions managed by the states themselves. 
+  * Primary state machine state fully managed by state machine. There is no outside interaction with core protocol interaction. SmpTlvHandler handles secondary responsiblities.
+  * Implemented as "defensive by default". Any deviation from expectations results in reset and possibly error.
+
+
+Backwards incompatibility / behavioral changes:
+- SM now signals bad messages with 'SM aborted' instead of 'SM error'. (This is according to OTR spec.)
+- SM protocol state machine resets to default/initial state whenever an unexpected message is received. (Again, according to OTR spec, was not implemented in otr4j.)
 - SerializationUtils.toMessage(body:String) (observed in Xabber)
   * New exception OtrCryptoException thrown.
   * OtrCryptoException was originally wrapped in IOException, so less IOExceptions are thrown.
 - Potentially more RuntimeExceptions. Not explicitly thrown, but less are caught with the general catch-all "catch (Exception)".
+
 
 Modifications in improvements branch:
 * More leverage of (static) type-safety.

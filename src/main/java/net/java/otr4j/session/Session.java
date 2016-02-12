@@ -948,6 +948,7 @@ public class Session {
                 final OtrPolicy otrPolicy = getSessionPolicy();
                 if (otrPolicy.getRequireEncryption()) {
                     this.startSession();
+                    // FIXME msgText may be NULL, we expect to inform OtrEngineHost with non-null message
                     OtrEngineHostUtil.requireEncryptedMessage(getHost(), sessionID, msgText);
                     return null;
                 } else {

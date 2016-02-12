@@ -15,6 +15,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for Socialist Millionaire Protocol.
@@ -146,23 +147,22 @@ public class SMTest {
     @Test
     @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public void testConstructionWithValidSecureRandom() {
-        new SM(new SecureRandom());
+        new SM(sr);
     }
 
     @Test
     public void testSuccessfulSMPConversation() throws SM.SMException, OtrCryptoException, Exception {
-        final SecureRandom rand = new SecureRandom();
 
         // Alice
-        final SM alice = new SM(rand);
+        final SM alice = new SM(sr);
         final KeyPair aliceKeyPair = generateKeyPair();
-        final KeyPair aliceDHKeyPair = OtrCryptoEngine.generateDHKeyPair(rand);
+        final KeyPair aliceDHKeyPair = OtrCryptoEngine.generateDHKeyPair(sr);
         final byte[] alicePublic = OtrCryptoEngine.getFingerprintRaw(aliceKeyPair.getPublic());
 
         // Bob
-        final SM bob = new SM(rand);
+        final SM bob = new SM(sr);
         final KeyPair bobKeyPair = generateKeyPair();
-        final KeyPair bobDHKeyPair = OtrCryptoEngine.generateDHKeyPair(rand);
+        final KeyPair bobDHKeyPair = OtrCryptoEngine.generateDHKeyPair(sr);
         final byte[] bobPublic = OtrCryptoEngine.getFingerprintRaw(bobKeyPair.getPublic());
 
         // Shared secret
@@ -202,56 +202,217 @@ public class SMTest {
 
     @Test
     public void testUnsuccessfulSMPConversationBadSecret() throws SM.SMException, OtrCryptoException, Exception {
-        final SecureRandom rand = new SecureRandom();
 
         // Alice
-        final SM.SMState alice = new SM.SMState();
+        final SM alice = new SM(sr);
         final KeyPair aliceKeyPair = generateKeyPair();
-        final KeyPair aliceDHKeyPair = OtrCryptoEngine.generateDHKeyPair(rand);
+        final KeyPair aliceDHKeyPair = OtrCryptoEngine.generateDHKeyPair(sr);
         final byte[] alicePublic = OtrCryptoEngine.getFingerprintRaw(aliceKeyPair.getPublic());
 
         // Bob
-        final SM.SMState bob = new SM.SMState();
+        final SM bob = new SM(sr);
         final KeyPair bobKeyPair = generateKeyPair();
-        final KeyPair bobDHKeyPair = OtrCryptoEngine.generateDHKeyPair(rand);
+        final KeyPair bobDHKeyPair = OtrCryptoEngine.generateDHKeyPair(sr);
         final byte[] bobPublic = OtrCryptoEngine.getFingerprintRaw(bobKeyPair.getPublic());
 
         // Shared secret
-        final byte[] secretAlice = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 'd' };
-        final byte[] secretBob = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 't' };
+        final byte[] aliceSecret = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 'd' };
+        final byte[] bobSecret = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 't' };
         final BigInteger s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
-        final byte[] combinedSecretBytesAlice = combinedSecret(alicePublic, bobPublic, s, secretAlice);
-        final byte[] combinedSecretBytesBob = combinedSecret(alicePublic, bobPublic, s, secretBob);
+        final byte[] combinedSecretBytesAlice = combinedSecret(alicePublic, bobPublic, s, aliceSecret);
+        final byte[] combinedSecretBytesBob = combinedSecret(alicePublic, bobPublic, s, bobSecret);
 
         // SMP session execution
-        final SM sm = new SM(rand);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_OK, bob.smProgState);
+        assertEquals(SM.Status.UNDECIDED, alice.status());
+        assertEquals(SM.Status.UNDECIDED, bob.status());
 
-        final byte[] msg1 = sm.step1(alice, combinedSecretBytesAlice);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_OK, bob.smProgState);
+        final byte[] msg1 = alice.step1(combinedSecretBytesAlice);
+        assertEquals(SM.Status.INPROGRESS, alice.status());
+        assertEquals(SM.Status.UNDECIDED, bob.status());
 
-        sm.step2a(bob, msg1);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_OK, bob.smProgState);
+        bob.step2a(msg1);
+        assertEquals(SM.Status.INPROGRESS, alice.status());
+        assertEquals(SM.Status.INPROGRESS, bob.status());
 
-        final byte[] msg2 = sm.step2b(bob, combinedSecretBytesBob);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_OK, bob.smProgState);
+        final byte[] msg2 = bob.step2b(combinedSecretBytesBob);
+        assertEquals(SM.Status.INPROGRESS, alice.status());
+        assertEquals(SM.Status.INPROGRESS, bob.status());
 
-        final byte[] msg3 = sm.step3(alice, msg2);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_OK, bob.smProgState);
+        final byte[] msg3 = alice.step3(msg2);
+        assertEquals(SM.Status.INPROGRESS, alice.status());
+        assertEquals(SM.Status.INPROGRESS, bob.status());
 
-        final byte[] msg4 = sm.step4(bob, msg3);
-        assertEquals(SM.PROG_OK, alice.smProgState);
-        assertEquals(SM.PROG_FAILED, bob.smProgState);
+        final byte[] msg4 = bob.step4(msg3);
+        assertEquals(SM.Status.INPROGRESS, alice.status());
+        assertEquals(SM.Status.FAILED, bob.status());
 
-        sm.step5(alice, msg4);
+        alice.step5(msg4);
         // Evaluate session end result
-        assertEquals(SM.PROG_FAILED, alice.smProgState);
-        assertEquals(SM.PROG_FAILED, bob.smProgState);
+        assertEquals(SM.Status.FAILED, alice.status());
+        assertEquals(SM.Status.FAILED, bob.status());
+    }
+
+    @Test
+    public void testVerifyCorrectSpecifiedStatusStateExpect1() {
+        assertEquals(SM.Status.FAILED, new StateExpect1(sr, SM.Status.FAILED).status());
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect1CorrectlyAbortOnAnswerBeforeQuestion() throws SM.SMException {
+        final SM sm = new SM(sr);
+        sm.step2b(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect1CorrectlyAbortOnMessage2() throws SM.SMException {
+        final SM sm = new SM(sr);
+        sm.step3(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect1CorrectlyAbortOnMessage3() throws SM.SMException {
+        final SM sm = new SM(sr);
+        sm.step4(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect1CorrectlyAbortOnMessage4() throws SM.SMException {
+        final SM sm = new SM(sr);
+        sm.step5(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect2CorrectlyAbortOnInit() throws SM.SMException {
+        final SM sm = new SM(sr);
+        sm.setState(new StateExpect2(sr, BigInteger.ZERO, BigInteger.ONE, BigInteger.ONE));
+        sm.step1(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect2CorrectlyAbortOnMessage1() throws SM.SMException {
+        final SM sm = new SM(sr);
+        sm.setState(new StateExpect2(sr, BigInteger.ZERO, BigInteger.ONE, BigInteger.ONE));
+        sm.step2a(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect2CorrectlyAbortOnMessage1Continuation() throws SM.SMException {
+        final SM sm = new SM(sr);
+        sm.setState(new StateExpect2(sr, BigInteger.ZERO, BigInteger.ONE, BigInteger.ONE));
+        sm.step2b(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect2CorrectlyAbortOnMessage3() throws SM.SMException {
+        final SM sm = new SM(sr);
+        sm.setState(new StateExpect2(sr, BigInteger.ZERO, BigInteger.ONE, BigInteger.ONE));
+        sm.step4(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect2CorrectlyAbortOnMessage4() throws SM.SMException {
+        final SM sm = new SM(sr);
+        sm.setState(new StateExpect2(sr, BigInteger.ZERO, BigInteger.ONE, BigInteger.ONE));
+        sm.step5(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect3CorrectlyAbortOnInit() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {
+        final SM sm = prepareStateExpect3();
+        sm.step1(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect3CorrectlyAbortOnMessage1() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {
+        final SM sm = prepareStateExpect3();
+        sm.step2a(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect3CorrectlyAbortOnMessage1Continuation() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {
+        final SM sm = prepareStateExpect3();
+        sm.step2b(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect3CorrectlyAbortOnMessage4() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {
+        final SM sm = prepareStateExpect3();
+        sm.step5(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect4CorrectlyAbortOnInit() throws NoSuchProviderException, OtrCryptoException, SM.SMException, Exception {
+        final SM sm = prepareStateExpect4();
+        sm.step1(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect4CorrectlyAbortOnMessage1() throws NoSuchProviderException, OtrCryptoException, SM.SMException, Exception {
+        final SM sm = prepareStateExpect4();
+        sm.step2a(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect4CorrectlyAbortOnMessage1Continuation() throws NoSuchProviderException, OtrCryptoException, SM.SMException, Exception {
+        final SM sm = prepareStateExpect4();
+        sm.step2b(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect4CorrectlyAbortOnMessage2() throws NoSuchProviderException, OtrCryptoException, SM.SMException, Exception {
+        final SM sm = prepareStateExpect4();
+        sm.step3(new byte[0]);
+    }
+
+    @Test(expected = SM.SMAbortedException.class)
+    public void testVerifyStateExpect4CorrectlyAbortOnMessage3() throws NoSuchProviderException, OtrCryptoException, SM.SMException, Exception {
+        final SM sm = prepareStateExpect4();
+        sm.step4(new byte[0]);
+    }
+
+    private SM prepareStateExpect4() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {
+        // Alice
+        final SM alice = new SM(sr);
+        final KeyPair aliceKeyPair = generateKeyPair();
+        final KeyPair aliceDHKeyPair = OtrCryptoEngine.generateDHKeyPair(sr);
+        final byte[] alicePublic = OtrCryptoEngine.getFingerprintRaw(aliceKeyPair.getPublic());
+        // Bob
+        final SM bob = new SM(sr);
+        final KeyPair bobKeyPair = generateKeyPair();
+        final KeyPair bobDHKeyPair = OtrCryptoEngine.generateDHKeyPair(sr);
+        final byte[] bobPublic = OtrCryptoEngine.getFingerprintRaw(bobKeyPair.getPublic());
+
+        // Prepare sm instance for StateExpect3.
+        final byte[] secret = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 'd' };
+        final BigInteger s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
+        final byte[] combinedSecretBytes = combinedSecret(alicePublic, bobPublic, s, secret);
+        final byte[] msg1 = alice.step1(combinedSecretBytes);
+        bob.step2a(msg1);
+        final byte[] msg2 = bob.step2b(combinedSecretBytes);
+        alice.step3(msg2);
+        return alice;
+    }
+
+    private SM prepareStateExpect3() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {
+        // Alice
+        final SM alice = new SM(sr);
+        final KeyPair aliceKeyPair = generateKeyPair();
+        final KeyPair aliceDHKeyPair = OtrCryptoEngine.generateDHKeyPair(sr);
+        final byte[] alicePublic = OtrCryptoEngine.getFingerprintRaw(aliceKeyPair.getPublic());
+        // Bob
+        final SM bob = new SM(sr);
+        final KeyPair bobKeyPair = generateKeyPair();
+        final KeyPair bobDHKeyPair = OtrCryptoEngine.generateDHKeyPair(sr);
+        final byte[] bobPublic = OtrCryptoEngine.getFingerprintRaw(bobKeyPair.getPublic());
+
+        // Prepare sm instance for StateExpect3.
+        final byte[] secret = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 'd' };
+        final BigInteger s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
+        final byte[] combinedSecretBytes = combinedSecret(alicePublic, bobPublic, s, secret);
+        final byte[] msg1 = alice.step1(combinedSecretBytes);
+        bob.step2a(msg1);
+        bob.step2b(combinedSecretBytes);
+        return bob;
     }
 
     private byte[] combinedSecret(final byte[] alicePublic, final byte[] bobPublic, final BigInteger s, final byte[] secret) throws Exception {

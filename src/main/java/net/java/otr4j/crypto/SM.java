@@ -39,7 +39,6 @@ import net.java.otr4j.io.SerializationUtils;
 
 
 public final class SM {
-    // FIXME eradicate use of SMException directly in favor of either SMAbortedException or some SM Error exception. This should not need to break public API.
 
     /**
      * Safe maximum array size. Copied from OpenJDK 7 implementation.
@@ -488,7 +487,6 @@ public final class SM {
  * only. Specific exceptions are thrown to indicate the unexpected state
  * changes.
  */
-// TODO according to State pattern, we should extract an interface.
 abstract class State {
 
     static final BigInteger G1 = SM.GENERATOR_S;
