@@ -9,13 +9,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.Security;
+import net.java.otr4j.crypto.SM.SMException;
 import net.java.otr4j.io.OtrOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import org.junit.Test;
-import static org.mockito.Mockito.mock;
 
 /**
  * Tests for Socialist Millionaire Protocol.
@@ -28,6 +29,41 @@ public class SMTest {
 
     static {
         Security.addProvider(new BouncyCastleProvider());
+    }
+
+    @Test
+    @SuppressWarnings({"ThrowableInstanceNotThrown", "ThrowableInstanceNeverThrown", "ResultOfObjectAllocationIgnored"})
+    public void testConstructSMException() {
+        new SM.SMException();
+    }
+
+    @Test
+    public void testConstructSMExceptionMessage() {
+        final SM.SMException e = new SM.SMException("Hello world!");
+        assertEquals("Hello world!", e.getMessage());
+    }
+
+    @Test
+    public void testConstructSMExceptionThrowable() {
+        @SuppressWarnings({"ThrowableInstanceNotThrown", "ThrowableInstanceNeverThrown"})
+        final Throwable t = new Throwable("bad stuff happened");
+        final SM.SMException e = new SM.SMException(t);
+        assertSame(t, e.getCause());
+    }
+
+    @Test
+    public void testConstructSMExceptionMessageThrowable() {
+        @SuppressWarnings({"ThrowableInstanceNotThrown", "ThrowableInstanceNeverThrown"})
+        final Throwable t = new Throwable("bad stuff happened");
+        final SM.SMException e = new SM.SMException("Hello world!", t);
+        assertEquals("Hello world!", e.getMessage());
+        assertSame(t, e.getCause());
+    }
+
+    @Test
+    @SuppressWarnings({"ThrowableInstanceNotThrown", "ThrowableInstanceNeverThrown", "ResultOfObjectAllocationIgnored"})
+    public void testAbortedException() {
+        new SM.SMAbortedException("Stuff was aborted!");
     }
 
     @Test
@@ -368,6 +404,296 @@ public class SMTest {
     public void testVerifyStateExpect4CorrectlyAbortOnMessage3() throws NoSuchProviderException, OtrCryptoException, SM.SMException, Exception {
         final SM sm = prepareStateExpect4();
         sm.step4(new byte[0]);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testConstructStateWithNullSecureRandom() {
+        new State(null) {
+            @Override
+            SM.Status status() {
+                return SM.Status.UNDECIDED;
+            }
+        };
+    }
+
+    @Test
+    public void testSMStep2aWithSMException() throws SM.SMException {
+        final byte[] input = new byte[0];
+        final SMException e = new SMException("intentionally bad");
+        final State s = new State(sr) {
+
+            @Override
+            void smpMessage1a(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+                throw e;
+            }
+
+            @Override
+            SM.Status status() {
+                return SM.Status.UNDECIDED;
+            }
+        };
+        final SM sm = new SM(sr);
+        sm.setState(s);
+        // prepare throwing exception on processing
+        try {
+            sm.step2a(input);
+        }
+        catch (SMException ex) {
+            assertSame(e, ex);
+        }
+        assertEquals(SM.Status.CHEATED, sm.status());
+    }
+
+    @Test
+    public void testSMStep2aWithRuntimeException() throws SM.SMException {
+        final byte[] input = new byte[0];
+        final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
+        final State s = new State(sr) {
+
+            @Override
+            void smpMessage1a(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+                throw e;
+            }
+
+            @Override
+            SM.Status status() {
+                return SM.Status.UNDECIDED;
+            }
+        };
+        final SM sm = new SM(sr);
+        sm.setState(s);
+        // prepare throwing exception on processing
+        try {
+            sm.step2a(input);
+        }
+        catch (SMException ex) {
+            assertSame(e, ex.getCause());
+        }
+        assertEquals(SM.Status.CHEATED, sm.status());
+    }
+
+    @Test
+    public void testSMStep2bWithSMException() throws SM.SMException {
+        final byte[] input = new byte[0];
+        final SMException e = new SMException("intentionally bad");
+        final State s = new State(sr) {
+
+            @Override
+            byte[] smpMessage1b(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+                throw e;
+            }
+
+            @Override
+            SM.Status status() {
+                return SM.Status.INPROGRESS;
+            }
+        };
+        final SM sm = new SM(sr);
+        sm.setState(s);
+        // prepare throwing exception on processing
+        try {
+            sm.step2b(input);
+        }
+        catch (SMException ex) {
+            assertSame(e, ex);
+        }
+        assertEquals(SM.Status.CHEATED, sm.status());
+    }
+
+    @Test
+    public void testSMStep2bWithRuntimeException() throws SM.SMException {
+        final byte[] input = new byte[0];
+        final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
+        final State s = new State(sr) {
+
+            @Override
+            byte[] smpMessage1b(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+                throw e;
+            }
+
+            @Override
+            SM.Status status() {
+                return SM.Status.INPROGRESS;
+            }
+        };
+        final SM sm = new SM(sr);
+        sm.setState(s);
+        // prepare throwing exception on processing
+        try {
+            sm.step2b(input);
+        }
+        catch (SMException ex) {
+            assertSame(e, ex.getCause());
+        }
+        assertEquals(SM.Status.CHEATED, sm.status());
+    }
+
+    @Test
+    public void testSMStep3WithSMException() throws SM.SMException {
+        final byte[] input = new byte[0];
+        final SMException e = new SMException("intentionally bad");
+        final State s = new State(sr) {
+
+            @Override
+            byte[] smpMessage2(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+                throw e;
+            }
+
+            @Override
+            SM.Status status() {
+                return SM.Status.INPROGRESS;
+            }
+        };
+        final SM sm = new SM(sr);
+        sm.setState(s);
+        // prepare throwing exception on processing
+        try {
+            sm.step3(input);
+        }
+        catch (SMException ex) {
+            assertSame(e, ex);
+        }
+        assertEquals(SM.Status.CHEATED, sm.status());
+    }
+
+    @Test
+    public void testSMStep3WithRuntimeException() throws SM.SMException {
+        final byte[] input = new byte[0];
+        final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
+        final State s = new State(sr) {
+
+            @Override
+            byte[] smpMessage2(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+                throw e;
+            }
+
+            @Override
+            SM.Status status() {
+                return SM.Status.INPROGRESS;
+            }
+        };
+        final SM sm = new SM(sr);
+        sm.setState(s);
+        // prepare throwing exception on processing
+        try {
+            sm.step3(input);
+        }
+        catch (SMException ex) {
+            assertSame(e, ex.getCause());
+        }
+        assertEquals(SM.Status.CHEATED, sm.status());
+    }
+
+    @Test
+    public void testSMStep4WithSMException() throws SM.SMException {
+        final byte[] input = new byte[0];
+        final SMException e = new SMException("intentionally bad");
+        final State s = new State(sr) {
+
+            @Override
+            byte[] smpMessage3(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+                throw e;
+            }
+
+            @Override
+            SM.Status status() {
+                return SM.Status.INPROGRESS;
+            }
+        };
+        final SM sm = new SM(sr);
+        sm.setState(s);
+        // prepare throwing exception on processing
+        try {
+            sm.step4(input);
+        }
+        catch (SMException ex) {
+            assertSame(e, ex);
+        }
+        assertEquals(SM.Status.CHEATED, sm.status());
+    }
+
+    @Test
+    public void testSMStep4WithRuntimeException() throws SM.SMException {
+        final byte[] input = new byte[0];
+        final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
+        final State s = new State(sr) {
+
+            @Override
+            byte[] smpMessage3(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+                throw e;
+            }
+
+            @Override
+            SM.Status status() {
+                return SM.Status.INPROGRESS;
+            }
+        };
+        final SM sm = new SM(sr);
+        sm.setState(s);
+        // prepare throwing exception on processing
+        try {
+            sm.step4(input);
+        }
+        catch (SMException ex) {
+            assertSame(e, ex.getCause());
+        }
+        assertEquals(SM.Status.CHEATED, sm.status());
+    }
+
+    @Test
+    public void testSMStep5WithSMException() throws SM.SMException {
+        final byte[] input = new byte[0];
+        final SMException e = new SMException("intentionally bad");
+        final State s = new State(sr) {
+
+            @Override
+            void smpMessage4(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+                throw e;
+            }
+
+            @Override
+            SM.Status status() {
+                return SM.Status.INPROGRESS;
+            }
+        };
+        final SM sm = new SM(sr);
+        sm.setState(s);
+        // prepare throwing exception on processing
+        try {
+            sm.step5(input);
+        }
+        catch (SMException ex) {
+            assertSame(e, ex);
+        }
+        assertEquals(SM.Status.CHEATED, sm.status());
+    }
+
+    @Test
+    public void testSMStep5WithRuntimeException() throws SM.SMException {
+        final byte[] input = new byte[0];
+        final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
+        final State s = new State(sr) {
+
+            @Override
+            void smpMessage4(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+                throw e;
+            }
+
+            @Override
+            SM.Status status() {
+                return SM.Status.INPROGRESS;
+            }
+        };
+        final SM sm = new SM(sr);
+        sm.setState(s);
+        // prepare throwing exception on processing
+        try {
+            sm.step5(input);
+        }
+        catch (SMException ex) {
+            assertSame(e, ex.getCause());
+        }
+        assertEquals(SM.Status.CHEATED, sm.status());
     }
 
     private SM prepareStateExpect4() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {
