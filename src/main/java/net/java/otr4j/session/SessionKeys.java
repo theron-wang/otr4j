@@ -18,7 +18,6 @@ import javax.crypto.interfaces.DHPublicKey;
 
 import net.java.otr4j.OtrException;
 import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.SerializationUtils;
 
 /**
@@ -127,7 +126,7 @@ public class SessionKeys {
         try {
             secbytes = SerializationUtils.writeMpi(getS());
         } catch (IOException ex) {
-            throw new OtrCryptoException(ex);
+            throw new OtrException(ex);
         }
         final int len = secbytes.length + 1;
         final ByteBuffer buff = ByteBuffer.allocate(len);
