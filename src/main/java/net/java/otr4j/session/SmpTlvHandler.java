@@ -364,9 +364,9 @@ public class SmpTlvHandler {
     }
 
     public void processTlvSMP_ABORT(@Nonnull final TLV tlv) throws OtrException {
-        // FIXME if we inform host after resetting state, host cannot check if SMP exchange was actually in progress
-        this.sm.abort();
-        OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
+        if (this.sm.abort()) {
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
+        }
     }
 
     private void sendTLV(@Nonnull final TLV tlv) throws OtrException {

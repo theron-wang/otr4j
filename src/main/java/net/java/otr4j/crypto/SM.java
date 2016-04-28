@@ -239,11 +239,13 @@ public final class SM {
      * In case the abort is initiated by the local user, it may be necessary to
      * send a type 6 TLV to the counterparty as to inform them of the decision.
      * This is outside the scope of responsibility of the state machine.
+     *
+     * @return Returns true if SMP exchange was originally in progress. It will
+     * return false in initial state and final states.
      */
-    @Nonnull
-    public void abort() {
+    public boolean abort() {
         LOGGER.fine("Aborting SMP exchange.");
-        this.state.smpAbort(this);
+        return this.state.smpAbort(this);
     }
 
     /**
@@ -541,9 +543,13 @@ abstract class State {
      * to send type 6 TLV to signal SMP abort.
      *
      * @param state The current state of SMP exchange.
+     * @return Returns true if SMP was originally in progress, or false for SMP
+     * that was already in the initial/final state.
      */
-    void smpAbort(@Nonnull final SM state) {
+    boolean smpAbort(@Nonnull final SM state) {
+        final boolean inprogress = status() == SM.Status.INPROGRESS;
         state.setState(new StateExpect1(this.sr));
+        return inprogress;
     }
 
     /**
