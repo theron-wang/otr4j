@@ -88,6 +88,7 @@ public class OtrCryptoEngine {
         // this class is never instantiated, it only has static methods
     }
 
+    @Nonnull
     public static KeyPair generateDHKeyPair(@Nonnull final SecureRandom secureRandom) throws OtrCryptoException {
 
         // Generate a AsymmetricCipherKeyPair using BC.
@@ -124,11 +125,13 @@ public class OtrCryptoEngine {
         }
     }
 
+    @Nonnull
     public static DHPublicKey getDHPublicKey(@Nonnull final byte[] mpiBytes)
             throws OtrCryptoException {
         return getDHPublicKey(new BigInteger(mpiBytes));
     }
 
+    @Nonnull
     public static DHPublicKey getDHPublicKey(@Nonnull final BigInteger mpi) throws OtrCryptoException {
         final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(mpi, MODULUS,
                 GENERATOR);
@@ -147,6 +150,7 @@ public class OtrCryptoEngine {
         return sha256Hmac(b, key, 0);
     }
 
+    @Nonnull
     public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key, final int length)
             throws OtrCryptoException {
 
@@ -175,6 +179,7 @@ public class OtrCryptoEngine {
         }
     }
 
+    @Nonnull
     public static byte[] sha1Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key, final int length)
             throws OtrCryptoException {
         final byte[] macBytes;
@@ -198,10 +203,12 @@ public class OtrCryptoEngine {
         }
     }
 
+    @Nonnull
     public static byte[] sha256Hmac160(@Nonnull final byte[] b, @Nonnull final byte[] key) throws OtrCryptoException {
         return sha256Hmac(b, key, SerializationConstants.TYPE_LEN_MAC);
     }
 
+    @Nonnull
     public static byte[] sha256Hash(@Nonnull final byte[] b) throws OtrCryptoException {
         try {
             final MessageDigest sha256 = MessageDigest.getInstance(MD_SHA256);
@@ -212,6 +219,7 @@ public class OtrCryptoEngine {
         }
     }
 
+    @Nonnull
     public static byte[] sha1Hash(@Nonnull final byte[] b) throws OtrCryptoException {
         try {
             final MessageDigest sha1 = MessageDigest.getInstance(MD_SHA1);
@@ -222,6 +230,7 @@ public class OtrCryptoEngine {
         }
     }
 
+    @Nonnull
     public static byte[] aesDecrypt(@Nonnull final byte[] key, @Nullable byte[] ctr, @Nonnull final byte[] b)
             throws OtrCryptoException {
 
@@ -246,6 +255,7 @@ public class OtrCryptoEngine {
         return aesOutLwDec;
     }
 
+    @Nonnull
     public static byte[] aesEncrypt(@Nonnull final byte[] key, @Nullable byte[] ctr, @Nonnull final byte[] b)
             throws OtrCryptoException {
 
@@ -269,6 +279,7 @@ public class OtrCryptoEngine {
         return aesOutLwEnc;
     }
 
+    @Nonnull
     public static BigInteger generateSecret(@Nonnull final PrivateKey privKey, @Nonnull final PublicKey pubKey)
             throws OtrCryptoException {
         try {
@@ -284,6 +295,7 @@ public class OtrCryptoEngine {
         }
     }
 
+    @Nonnull
     public static byte[] sign(@Nonnull final byte[] b, @Nonnull final PrivateKey privatekey)
             throws OtrCryptoException {
 
@@ -386,11 +398,13 @@ public class OtrCryptoEngine {
                 .asUnsignedByteArray(bmpi.mod(q)), r, s);
     }
 
+    @Nonnull
     public static String getFingerprint(@Nonnull final PublicKey pubKey) throws OtrCryptoException {
         final byte[] b = getFingerprintRaw(pubKey);
         return SerializationUtils.byteArrayToHexString(b);
     }
 
+    @Nonnull
     public static byte[] getFingerprintRaw(@Nonnull final PublicKey pubKey)
             throws OtrCryptoException {
         try {
@@ -410,6 +424,7 @@ public class OtrCryptoEngine {
         }
     }
 
+    @Nonnull
     private static DHPublicKeyParameters convertToPublicKeyParams(@Nonnull final AsymmetricKeyParameter params) {
         if (!(params instanceof DHPublicKeyParameters)) {
             throw new IllegalArgumentException("Expected to acquire DHPublicKeyParameters instance, but it isn't. (" + params.getClass().getCanonicalName() + ")");
@@ -417,6 +432,7 @@ public class OtrCryptoEngine {
         return (DHPublicKeyParameters) params;
     }
 
+    @Nonnull
     private static DHPrivateKeyParameters convertToPrivateKeyParams(@Nonnull final AsymmetricKeyParameter params) {
         if (!(params instanceof DHPrivateKeyParameters)) {
             throw new IllegalArgumentException("Expected to acquire DHPrivateKeyParameters instance, but it isn't. (" + params.getClass().getCanonicalName() + ")");

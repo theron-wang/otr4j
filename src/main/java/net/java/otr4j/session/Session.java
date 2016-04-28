@@ -917,6 +917,7 @@ public class Session {
         return plainTextMessage.cleanText;
     }
 
+    @Nonnull
     public String[] transformSending(@Nonnull final String msgText)
             throws OtrException {
         return this.transformSending(msgText, Collections.<TLV>emptyList());
@@ -931,12 +932,14 @@ public class Session {
      * @return Returns the array of messages to be sent over IM network.
      * @throws OtrException OtrException in case of exceptions.
      */
-    // TODO Consider returning empty arrays in case no message are left to send, instead of null
-    public String[] transformSending(@Nullable final String msgText, @Nullable List<TLV> tlvs)
+    @Nonnull
+    public String[] transformSending(@Nullable String msgText, @Nullable List<TLV> tlvs)
             throws OtrException {
         // TODO Do we really want transformSending to handle NULL messages? (It seems we allow it.)
+        if (msgText == null) {
+            msgText = "";
+        }
         if (tlvs == null) {
-            // ensure that tlvs is non-null
             tlvs = Collections.<TLV>emptyList();
         }
         if (isMasterSession && outgoingSession != this && getProtocolVersion() == OTRv.THREE) {
@@ -950,7 +953,7 @@ public class Session {
                     this.startSession();
                     // FIXME msgText may be NULL, we expect to inform OtrEngineHost with non-null message
                     OtrEngineHostUtil.requireEncryptedMessage(getHost(), sessionID, msgText);
-                    return null;
+                    return new String[0];
                 } else {
                     if (otrPolicy.getSendWhitespaceTag()
                             && offerStatus != OfferStatus.rejected) {
@@ -996,7 +999,7 @@ public class Session {
                 final byte[] ctr = encryptionKeys.getSendingCtr();
 
                 final ByteArrayOutputStream out = new ByteArrayOutputStream();
-                if (msgText != null && msgText.length() > 0) {
+                if (msgText.length() > 0) {
                     try {
                         out.write(SerializationUtils.convertTextToBytes(msgText));
                     } catch (IOException e) {
@@ -1071,7 +1074,7 @@ public class Session {
                 }
             case FINISHED:
                 OtrEngineHostUtil.finishedSessionMessage(getHost(), sessionID, msgText);
-                return null;
+                return new String[0];
             default:
                 throw new OtrException("Unknown message state, not processing");
         }
