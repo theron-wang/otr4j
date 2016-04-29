@@ -1106,7 +1106,7 @@ public class Session {
                 this.setSessionStatus(SessionStatus.PLAINTEXT);
                 break;
             case PLAINTEXT:
-                return;
+                break;
         }
 
     }
