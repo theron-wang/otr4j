@@ -84,7 +84,12 @@ public class Session {
     private SessionStatus sessionStatus;
     private AuthContext authContext;
     private SessionKeys[][] sessionKeys;
+
+    /**
+     * List of old MAC keys for this session. (Synchronized)
+     */
     private final List<byte[]> oldMacKeys = Collections.synchronizedList(new ArrayList<byte[]>(0));
+    
     private final Logger logger;
     private SmpTlvHandler smpTlvHandler;
     private BigInteger ess;
@@ -234,7 +239,7 @@ public class Session {
         if (sess1.getIsUsedReceivingMACKey()) {
             logger
                     .finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            getOldMacKeys().add(sess1.getReceivingMACKey());
+            this.oldMacKeys.add(sess1.getReceivingMACKey());
         }
 
         final SessionKeys sess2 = getSessionKeysByIndex(SessionKeys.PREVIOUS,
@@ -242,7 +247,7 @@ public class Session {
         if (sess2.getIsUsedReceivingMACKey()) {
             logger
                     .finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            getOldMacKeys().add(sess2.getReceivingMACKey());
+            this.oldMacKeys.add(sess2.getReceivingMACKey());
         }
 
         final SessionKeys sess3 = getSessionKeysByIndex(SessionKeys.CURRENT,
@@ -264,14 +269,14 @@ public class Session {
                 SessionKeys.CURRENT);
         if (sess1.getIsUsedReceivingMACKey()) {
             logger.finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            getOldMacKeys().add(sess1.getReceivingMACKey());
+            this.oldMacKeys.add(sess1.getReceivingMACKey());
         }
 
         final SessionKeys sess2 = getSessionKeysByIndex(SessionKeys.PREVIOUS,
                 SessionKeys.PREVIOUS);
         if (sess2.getIsUsedReceivingMACKey()) {
             logger.finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            getOldMacKeys().add(sess2.getReceivingMACKey());
+            this.oldMacKeys.add(sess2.getReceivingMACKey());
         }
 
         final SessionKeys sess3 = getSessionKeysByIndex(SessionKeys.CURRENT,
@@ -288,19 +293,18 @@ public class Session {
 
     private byte[] collectOldMacKeys() {
         logger.finest("Collecting old MAC keys to be revealed.");
-        final List<byte[]> oldKeys = getOldMacKeys();
-        synchronized (oldKeys) {
+        synchronized (this.oldMacKeys) {
             int len = 0;
-            for (final byte[] k : oldKeys) {
+            for (final byte[] k : this.oldMacKeys) {
                 len += k.length;
             }
 
             final ByteBuffer buff = ByteBuffer.allocate(len);
-            for (final byte[] k : oldKeys) {
+            for (final byte[] k : this.oldMacKeys) {
                 buff.put(k);
             }
 
-            oldKeys.clear();
+            this.oldMacKeys.clear();
             return buff.array();
         }
     }
@@ -344,7 +348,7 @@ public class Session {
         this.sessionStatus = sessionStatus;
 
         OtrEngineListenerUtil.sessionStatusChanged(
-                OtrEngineListenerUtil.duplicate(listeners), getSessionID());
+                OtrEngineListenerUtil.duplicate(listeners), this.sessionID);
     }
 
     public SessionStatus getSessionStatus() {
@@ -383,19 +387,6 @@ public class Session {
         return authContext;
     }
 
-    /**
-     * Access to the list of old MAC keys for this session.
-     *
-     * The current implementation returns a thread-safe list but groups of
-     * operations would still need to be performed inside a 'synchronized' block
-     * to ensure consistency for concurrent use.
-     *
-     * @return Returns the list of old MAC keys.
-     */
-    private List<byte[]> getOldMacKeys() {
-        return oldMacKeys;
-    }
-
     public String transformReceiving(@Nonnull String msgText) throws OtrException {
 
         final OtrPolicy policy = getSessionPolicy();
@@ -410,7 +401,7 @@ public class Session {
         } catch (UnknownInstanceException e) {
             // The fragment is not intended for us
             logger.finest(e.getMessage());
-            OtrEngineHostUtil.messageFromAnotherInstanceReceived(getHost(), getSessionID());
+            OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionID);
             return null;
         } catch (ProtocolException e) {
             logger.log(Level.WARNING, "An invalid message fragment was discarded.", e);
@@ -450,7 +441,7 @@ public class Session {
                         // The message is not intended for us. Discarding...
                         logger.finest("Received an encoded message with receiver instance tag" +
                                 " that is different from ours, ignore this message");
-                        OtrEngineHostUtil.messageFromAnotherInstanceReceived(getHost(), getSessionID());
+                        OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionID);
                         return null;
                     }
                 }
@@ -475,7 +466,7 @@ public class Session {
 
                             final Session session =
                                     new Session(sessionID,
-                                            getHost(),
+                                            this.host,
                                             getSenderInstanceTag(),
                                             newReceiverTag,
                                             this.secureRandom);
@@ -512,7 +503,7 @@ public class Session {
 
                             slaveSessions.put(newReceiverTag, session);
 
-                            OtrEngineHostUtil.multipleInstancesDetected(getHost(), sessionID);
+                            OtrEngineHostUtil.multipleInstancesDetected(this.host, sessionID);
                             OtrEngineListenerUtil.multipleInstancesDetected(
                                     OtrEngineListenerUtil.duplicate(listeners), sessionID);
                         }
@@ -553,10 +544,10 @@ public class Session {
 
     private void handleQueryMessage(@Nonnull final QueryMessage queryMessage)
             throws OtrException {
-        logger.finest(getSessionID().getAccountID()
+        logger.finest(this.sessionID.getAccountID()
                 + " received a query message from "
-                + getSessionID().getUserID() + " through "
-                + getSessionID().getProtocolName() + ".");
+                + this.sessionID.getUserID() + " through "
+                + this.sessionID.getProtocolName() + ".");
 
         final OtrPolicy policy = getSessionPolicy();
         if (queryMessage.versions.contains(OTRv.THREE) && policy.getAllowV3()) {
@@ -593,12 +584,12 @@ public class Session {
 
     private void handleErrorMessage(@Nonnull final ErrorMessage errorMessage)
             throws OtrException {
-        logger.finest(getSessionID().getAccountID()
+        logger.finest(this.sessionID.getAccountID()
                 + " received an error message from "
-                + getSessionID().getUserID() + " through "
-                + getSessionID().getProtocolName() + ".");
+                + this.sessionID.getUserID() + " through "
+                + this.sessionID.getProtocolName() + ".");
 
-        OtrEngineHostUtil.showError(getHost(), this.getSessionID(), errorMessage.error);
+        OtrEngineHostUtil.showError(this.host, this.sessionID, errorMessage.error);
 
         final OtrPolicy policy = getSessionPolicy();
         // Re-negotiate if we got an error and we are encrypted
@@ -623,8 +614,8 @@ public class Session {
     }
 
     private String handleDataMessage(@Nonnull final DataMessage data) throws OtrException {
-        logger.finest(getSessionID().getAccountID()
-                + " received a data message from " + getSessionID().getUserID()
+        logger.finest(this.sessionID.getAccountID()
+                + " received a data message from " + this.sessionID.getUserID()
                 + ".");
 
         switch (this.getSessionStatus()) {
@@ -638,9 +629,9 @@ public class Session {
 
                 if (matchingKeys == null) {
                     logger.finest("No matching keys found.");
-                    OtrEngineHostUtil.unreadableMessageReceived(getHost(),
-                            this.getSessionID());
-                    final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(getHost(), getSessionID(), DEFAULT_REPLY_UNREADABLE_MESSAGE);
+                    OtrEngineHostUtil.unreadableMessageReceived(this.host,
+                            this.sessionID);
+                    final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(this.host, this.sessionID, DEFAULT_REPLY_UNREADABLE_MESSAGE);
                     injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
                     return null;
                 }
@@ -661,9 +652,9 @@ public class Session {
                         SerializationConstants.TYPE_LEN_MAC);
                 if (!Arrays.equals(computedMAC, data.mac)) {
                     logger.finest("MAC verification failed, ignoring message");
-                    OtrEngineHostUtil.unreadableMessageReceived(getHost(),
-                            this.getSessionID());
-                    final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(getHost(), getSessionID(), DEFAULT_REPLY_UNREADABLE_MESSAGE);
+                    OtrEngineHostUtil.unreadableMessageReceived(this.host,
+                            this.sessionID);
+                    final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(this.host, this.sessionID, DEFAULT_REPLY_UNREADABLE_MESSAGE);
                     injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
                     return null;
                 }
@@ -764,9 +755,9 @@ public class Session {
 
             case FINISHED:
             case PLAINTEXT:
-                OtrEngineHostUtil.unreadableMessageReceived(getHost(),
-                        this.getSessionID());
-                final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(getHost(), getSessionID(), DEFAULT_REPLY_UNREADABLE_MESSAGE);
+                OtrEngineHostUtil.unreadableMessageReceived(this.host,
+                        this.sessionID);
+                final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(this.host, this.sessionID, DEFAULT_REPLY_UNREADABLE_MESSAGE);
                 injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
                 break;
         }
@@ -782,8 +773,8 @@ public class Session {
             throw new OtrException(e);
         }
         if (m instanceof QueryMessage) {
-            String fallback = OtrEngineHostUtil.getFallbackMessage(getHost(),
-                    getSessionID());
+            String fallback = OtrEngineHostUtil.getFallbackMessage(this.host,
+                    this.sessionID);
             if (fallback == null || fallback.equals("")) {
                 fallback = SerializationConstants.DEFAULT_FALLBACK_MESSAGE;
             }
@@ -796,23 +787,23 @@ public class Session {
             try {
                 fragments = this.fragmenter.fragment(msg);
                 for (final String fragment : fragments) {
-                    getHost().injectMessage(getSessionID(), fragment);
+                    this.host.injectMessage(this.sessionID, fragment);
                 }
             } catch (IOException e) {
                 logger.warning("Failed to fragment message according to provided instructions.");
                 throw new OtrException(e);
             }
         } else {
-            getHost().injectMessage(getSessionID(), msg);
+            this.host.injectMessage(this.sessionID, msg);
         }
     }
 
     private String handlePlainTextMessage(@Nonnull final PlainTextMessage plainTextMessage)
             throws OtrException {
-        logger.finest(getSessionID().getAccountID()
+        logger.finest(this.sessionID.getAccountID()
                 + " received a plaintext message from "
-                + getSessionID().getUserID() + " through "
-                + getSessionID().getProtocolName() + ".");
+                + this.sessionID.getUserID() + " through "
+                + this.sessionID.getProtocolName() + ".");
 
         final OtrPolicy policy = getSessionPolicy();
         if (plainTextMessage.versions.isEmpty()) {
@@ -825,7 +816,7 @@ public class Session {
                      * Display the message to the user, but warn him that the
                      * message was received unencrypted.
                      */
-                    OtrEngineHostUtil.unencryptedMessageReceived(getHost(),
+                    OtrEngineHostUtil.unencryptedMessageReceived(this.host,
                             sessionID, plainTextMessage.cleanText);
                     return plainTextMessage.cleanText;
                 case PLAINTEXT:
@@ -835,7 +826,7 @@ public class Session {
                      * received unencrypted.
                      */
                     if (policy.getRequireEncryption()) {
-                        OtrEngineHostUtil.unencryptedMessageReceived(getHost(),
+                        OtrEngineHostUtil.unencryptedMessageReceived(this.host,
                                 sessionID, plainTextMessage.cleanText);
                     }
                     return plainTextMessage.cleanText;
@@ -851,7 +842,7 @@ public class Session {
                      * user, but warn him that the message was received
                      * unencrypted.
                      */
-                    OtrEngineHostUtil.unencryptedMessageReceived(getHost(),
+                    OtrEngineHostUtil.unencryptedMessageReceived(this.host,
                             sessionID, plainTextMessage.cleanText);
                     break;
                 case PLAINTEXT:
@@ -861,7 +852,7 @@ public class Session {
                      * message was received unencrypted.
                      */
                     if (policy.getRequireEncryption()) {
-                        OtrEngineHostUtil.unencryptedMessageReceived(getHost(),
+                        OtrEngineHostUtil.unencryptedMessageReceived(this.host,
                                 sessionID, plainTextMessage.cleanText);
                     }
                     break;
@@ -952,7 +943,7 @@ public class Session {
                 if (otrPolicy.getRequireEncryption()) {
                     this.startSession();
                     // FIXME msgText may be NULL, we expect to inform OtrEngineHost with non-null message
-                    OtrEngineHostUtil.requireEncryptedMessage(getHost(), sessionID, msgText);
+                    OtrEngineHostUtil.requireEncryptedMessage(this.host, sessionID, msgText);
                     return new String[0];
                 } else {
                     if (otrPolicy.getSendWhitespaceTag()
@@ -984,10 +975,10 @@ public class Session {
                     }
                 }
             case ENCRYPTED:
-                logger.finest(getSessionID().getAccountID()
+                logger.finest(this.sessionID.getAccountID()
                         + " sends an encrypted message to "
-                        + getSessionID().getUserID() + " through "
-                        + getSessionID().getProtocolName() + ".");
+                        + this.sessionID.getUserID() + " through "
+                        + this.sessionID.getProtocolName() + ".");
 
                 // Get encryption keys.
                 final SessionKeys encryptionKeys = this.getEncryptionSessionKeys();
@@ -1073,7 +1064,7 @@ public class Session {
                     throw new OtrException(e);
                 }
             case FINISHED:
-                OtrEngineHostUtil.finishedSessionMessage(getHost(), sessionID, msgText);
+                OtrEngineHostUtil.finishedSessionMessage(this.host, sessionID, msgText);
                 return new String[0];
             default:
                 throw new OtrException("Unknown message state, not processing");
@@ -1107,7 +1098,7 @@ public class Session {
                 final TLV disconnectTlv = new TLV(TLV.DISCONNECTED, null);
                 final String[] msg = this.transformSending(null, Collections.singletonList(disconnectTlv));
                 for (final String part : msg) {
-                    getHost().injectMessage(getSessionID(), part);
+                    this.host.injectMessage(this.sessionID, part);
                 }
                 this.setSessionStatus(SessionStatus.PLAINTEXT);
                 break;
@@ -1161,11 +1152,11 @@ public class Session {
     }
 
     public OtrPolicy getSessionPolicy() {
-        return getHost().getSessionPolicy(getSessionID());
+        return this.host.getSessionPolicy(this.sessionID);
     }
 
     public KeyPair getLocalKeyPair() throws OtrException {
-        return getHost().getLocalKeyPair(this.getSessionID());
+        return this.host.getLocalKeyPair(this.sessionID);
     }
 
     public void initSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
@@ -1179,7 +1170,7 @@ public class Session {
         final List<TLV> tlvs = getSmpTlvHandler().initRespondSmp(question, secret, true);
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
-            getHost().injectMessage(getSessionID(), part);
+            this.host.injectMessage(this.sessionID, part);
         }
     }
 
@@ -1194,7 +1185,7 @@ public class Session {
         final List<TLV> tlvs = getSmpTlvHandler().initRespondSmp(question, secret, false);
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
-            getHost().injectMessage(getSessionID(), part);
+            this.host.injectMessage(this.sessionID, part);
         }
     }
 
@@ -1209,7 +1200,7 @@ public class Session {
         final List<TLV> tlvs = getSmpTlvHandler().abortSmp();
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
-            getHost().injectMessage(getSessionID(), part);
+            this.host.injectMessage(this.sessionID, part);
         }
     }
 
