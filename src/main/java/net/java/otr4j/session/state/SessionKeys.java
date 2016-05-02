@@ -5,7 +5,7 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j.session;
+package net.java.otr4j.session.state;
 
 import java.io.IOException;
 import java.math.BigInteger;
