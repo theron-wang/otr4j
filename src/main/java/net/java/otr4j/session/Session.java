@@ -205,8 +205,8 @@ public class Session implements Context {
         this.offerStatus = Objects.requireNonNull(status);
     }
     
-    @Nonnull
     @Override
+    @Nonnull
     public AuthContext getAuthContext() {
         if (authContext == null) {
             authContext = new AuthContext(this);
