@@ -1,6 +1,8 @@
 
 package net.java.otr4j.session;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
@@ -12,11 +14,17 @@ import net.java.otr4j.test.dummyclient.DummyClient;
 import net.java.otr4j.test.dummyclient.PriorityServer;
 import net.java.otr4j.test.dummyclient.ProcessedTestMessage;
 import net.java.otr4j.test.dummyclient.Server;
+import org.junit.Before;
 
 import org.junit.Test;
 
 public class SessionTest {
 
+    @Before
+    public void setUp() {
+        Logger.getGlobal().setLevel(Level.ALL);
+    }
+    
     @Test
     public void testMultipleSessions() throws Exception {
         DummyClient bob1 = new DummyClient("Bob@Wonderland");

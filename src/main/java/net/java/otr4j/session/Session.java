@@ -7,12 +7,8 @@
 
 package net.java.otr4j.session;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.ProtocolException;
-import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -21,16 +17,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import javax.crypto.interfaces.DHPublicKey;
 
 import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrEngineHostUtil;
@@ -38,9 +33,6 @@ import net.java.otr4j.OtrEngineListener;
 import net.java.otr4j.OtrEngineListenerUtil;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
-import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.io.OtrInputStream;
-import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
@@ -48,15 +40,18 @@ import net.java.otr4j.io.messages.AbstractMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
-import net.java.otr4j.io.messages.MysteriousT;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.io.messages.QueryMessage;
+import net.java.otr4j.session.state.Context;
+import net.java.otr4j.session.state.State;
+import net.java.otr4j.session.state.StatePlaintext;
 
 /**
  * @author George Politis
  * @author Danny van Heumen
  */
-public class Session {
+// TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
+public class Session implements Context {
 
     public interface OTRv {
         int ONE = 1;
@@ -64,9 +59,8 @@ public class Session {
         int THREE = 3;
         Set<Integer> ALL = new HashSet<Integer>(Arrays.asList(ONE, TWO, THREE));
     }
-
-    // FIXME decide on decent default unreadable-reply message
-    private static final String DEFAULT_REPLY_UNREADABLE_MESSAGE = "This message cannot be read.";
+    
+    private State sessionState;
 
     /**
      * Slave sessions contain the mappings of instance tags to outgoing sessions.
@@ -79,25 +73,15 @@ public class Session {
 
     private final boolean isMasterSession;
 
-    private final SessionID sessionID;
     private final OtrEngineHost host;
-    private SessionStatus sessionStatus;
     private AuthContext authContext;
-    private SessionKeys[][] sessionKeys;
-
-    /**
-     * List of old MAC keys for this session. (Synchronized)
-     */
-    private final List<byte[]> oldMacKeys = Collections.synchronizedList(new ArrayList<byte[]>(0));
     
     private final Logger logger;
-    private SmpTlvHandler smpTlvHandler;
-    private BigInteger ess;
     private OfferStatus offerStatus;
     private final InstanceTag senderTag;
     private InstanceTag receiverTag;
     private int protocolVersion;
-    private OtrAssembler assembler;
+    private final OtrAssembler assembler;
     private final OtrFragmenter fragmenter;
 
     /**
@@ -119,7 +103,7 @@ public class Session {
             throw new NullPointerException("sessionID cannot be null");
         }
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
-        this.sessionID = sessionID;
+        this.sessionState = new StatePlaintext(sessionID);
 
         if (listener == null) {
             throw new NullPointerException("listener cannot be null");
@@ -130,7 +114,6 @@ public class Session {
         // -> create new session if it does not exist, end up here
         // -> setSessionStatus() fires statusChangedEvent
         // -> client application calls OtrSessionManager.getSessionStatus()
-        this.sessionStatus = SessionStatus.PLAINTEXT;
         this.offerStatus = OfferStatus.idle;
 
         this.senderTag = InstanceTag.random(this.secureRandom);
@@ -158,10 +141,9 @@ public class Session {
         this.secureRandom = secureRandom;
 
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
-        this.sessionID = sessionID;
+        this.sessionState = new StatePlaintext(sessionID);
         this.host = listener;
 
-        this.sessionStatus = SessionStatus.PLAINTEXT;
         this.offerStatus = OfferStatus.idle;
 
         this.senderTag = senderTag;
@@ -183,204 +165,53 @@ public class Session {
      *
      * @return Returns the Session's secure random instance.
      */
-    SecureRandom secureRandom() {
+    @Override
+    @Nonnull
+    public SecureRandom secureRandom() {
         return this.secureRandom;
     }
 
-    public BigInteger getS() {
-        return ess;
+    @Override
+    @Nonnull
+    public OtrFragmenter fragmenter() {
+        return this.fragmenter;
     }
-
-    private SessionKeys getEncryptionSessionKeys() {
-        logger.finest("Getting encryption keys");
-        return getSessionKeysByIndex(SessionKeys.PREVIOUS, SessionKeys.CURRENT);
-    }
-
-    private SessionKeys getMostRecentSessionKeys() {
-        logger.finest("Getting most recent keys.");
-        return getSessionKeysByIndex(SessionKeys.CURRENT, SessionKeys.CURRENT);
-    }
-
-    private SessionKeys getSessionKeysByID(final int localKeyID, final int remoteKeyID) {
-        logger.finest("Searching for session keys with (localKeyID, remoteKeyID) = ("
-                + localKeyID + "," + remoteKeyID + ")");
-
-        // TODO consider introducing local sessionKeys variable instead of repeated getSessionKeys() calls
-        for (int i = 0; i < getSessionKeys().length; i++) {
-            for (int j = 0; j < getSessionKeys()[i].length; j++) {
-                final SessionKeys current = getSessionKeysByIndex(i, j);
-                if (current.getLocalKeyID() == localKeyID
-                        && current.getRemoteKeyID() == remoteKeyID) {
-                    logger.finest("Matching keys found.");
-                    return current;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private SessionKeys getSessionKeysByIndex(final int localKeyIndex,
-            final int remoteKeyIndex) {
-        if (getSessionKeys()[localKeyIndex][remoteKeyIndex] == null) {
-            getSessionKeys()[localKeyIndex][remoteKeyIndex] = new SessionKeys(
-                    localKeyIndex, remoteKeyIndex);
-        }
-
-        return getSessionKeys()[localKeyIndex][remoteKeyIndex];
-    }
-
-    private void rotateRemoteSessionKeys(final DHPublicKey pubKey)
-            throws OtrException {
-
-        logger.finest("Rotating remote keys.");
-        final SessionKeys sess1 = getSessionKeysByIndex(SessionKeys.CURRENT,
-                SessionKeys.PREVIOUS);
-        if (sess1.getIsUsedReceivingMACKey()) {
-            logger
-                    .finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            this.oldMacKeys.add(sess1.getReceivingMACKey());
-        }
-
-        final SessionKeys sess2 = getSessionKeysByIndex(SessionKeys.PREVIOUS,
-                SessionKeys.PREVIOUS);
-        if (sess2.getIsUsedReceivingMACKey()) {
-            logger
-                    .finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            this.oldMacKeys.add(sess2.getReceivingMACKey());
-        }
-
-        final SessionKeys sess3 = getSessionKeysByIndex(SessionKeys.CURRENT,
-                SessionKeys.CURRENT);
-        sess1.setRemoteDHPublicKey(sess3.getRemoteKey(), sess3.getRemoteKeyID());
-
-        final SessionKeys sess4 = getSessionKeysByIndex(SessionKeys.PREVIOUS,
-                SessionKeys.CURRENT);
-        sess2.setRemoteDHPublicKey(sess4.getRemoteKey(), sess4.getRemoteKeyID());
-
-        sess3.setRemoteDHPublicKey(pubKey, sess3.getRemoteKeyID() + 1);
-        sess4.setRemoteDHPublicKey(pubKey, sess4.getRemoteKeyID() + 1);
-    }
-
-    private void rotateLocalSessionKeys() throws OtrException {
-
-        logger.finest("Rotating local keys.");
-        final SessionKeys sess1 = getSessionKeysByIndex(SessionKeys.PREVIOUS,
-                SessionKeys.CURRENT);
-        if (sess1.getIsUsedReceivingMACKey()) {
-            logger.finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            this.oldMacKeys.add(sess1.getReceivingMACKey());
-        }
-
-        final SessionKeys sess2 = getSessionKeysByIndex(SessionKeys.PREVIOUS,
-                SessionKeys.PREVIOUS);
-        if (sess2.getIsUsedReceivingMACKey()) {
-            logger.finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            this.oldMacKeys.add(sess2.getReceivingMACKey());
-        }
-
-        final SessionKeys sess3 = getSessionKeysByIndex(SessionKeys.CURRENT,
-                SessionKeys.CURRENT);
-        sess1.setLocalPair(sess3.getLocalPair(), sess3.getLocalKeyID());
-        final SessionKeys sess4 = getSessionKeysByIndex(SessionKeys.CURRENT,
-                SessionKeys.PREVIOUS);
-        sess2.setLocalPair(sess4.getLocalPair(), sess4.getLocalKeyID());
-
-        final KeyPair newPair = OtrCryptoEngine.generateDHKeyPair(this.secureRandom);
-        sess3.setLocalPair(newPair, sess3.getLocalKeyID() + 1);
-        sess4.setLocalPair(newPair, sess4.getLocalKeyID() + 1);
-    }
-
-    private byte[] collectOldMacKeys() {
-        logger.finest("Collecting old MAC keys to be revealed.");
-        synchronized (this.oldMacKeys) {
-            int len = 0;
-            for (final byte[] k : this.oldMacKeys) {
-                len += k.length;
-            }
-
-            final ByteBuffer buff = ByteBuffer.allocate(len);
-            for (final byte[] k : this.oldMacKeys) {
-                buff.put(k);
-            }
-
-            this.oldMacKeys.clear();
-            return buff.array();
-        }
-    }
-
-    private void setSessionStatus(@Nonnull final SessionStatus sessionStatus)
-            throws OtrException {
-
-        switch (sessionStatus) {
-            case ENCRYPTED:
-                final AuthContext auth = this.getAuthContext();
-                ess = auth.getS();
-                logger.finest("Setting most recent session keys from auth.");
-                for (int i = 0; i < this.getSessionKeys()[0].length; i++) {
-                    final SessionKeys current = getSessionKeysByIndex(0, i);
-                    current.setLocalPair(auth.getLocalDHKeyPair(), 1);
-                    current.setRemoteDHPublicKey(auth.getRemoteDHPublicKey(), 1);
-                    current.setS(auth.getS());
-                }
-
-                final KeyPair nextDH = OtrCryptoEngine.generateDHKeyPair(this.secureRandom);
-                for (int i = 0; i < this.getSessionKeys()[1].length; i++) {
-                    final SessionKeys current = getSessionKeysByIndex(1, i);
-                    current.setRemoteDHPublicKey(auth.getRemoteDHPublicKey(), 1);
-                    current.setLocalPair(nextDH, 2);
-                }
-
-                this.setRemotePublicKey(auth.getRemoteLongTermPublicKey());
-
-                auth.reset();
-                getSmpTlvHandler().reset();
-                break;
-            case FINISHED:
-            case PLAINTEXT:
-                break;
-        }
-
-        if (sessionStatus == this.sessionStatus) {
-            return;
-        }
-
-        this.sessionStatus = sessionStatus;
-
+    
+    @Override
+    public void setState(@Nonnull final State state) {
+        this.sessionState = Objects.requireNonNull(state);
         OtrEngineListenerUtil.sessionStatusChanged(
-                OtrEngineListenerUtil.duplicate(listeners), this.sessionID);
+                OtrEngineListenerUtil.duplicate(listeners), state.getSessionId());
     }
 
     public SessionStatus getSessionStatus() {
-        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
-            return outgoingSession.getSessionStatus();
-        }
-        return sessionStatus;
+        return this.sessionState.getStatus();
     }
 
     public SessionID getSessionID() {
-        return sessionID;
+        return this.sessionState.getSessionId();
     }
 
-    OtrEngineHost getHost() {
+    @Override
+    public OtrEngineHost getHost() {
         return host;
     }
 
-    private SmpTlvHandler getSmpTlvHandler() {
-        if (smpTlvHandler == null) {
-            smpTlvHandler = new SmpTlvHandler(this);
-        }
-        return smpTlvHandler;
+    @Override
+    @Nonnull
+    public OfferStatus getOfferStatus() {
+        return this.offerStatus;
     }
 
-    private SessionKeys[][] getSessionKeys() {
-        if (sessionKeys == null) {
-            sessionKeys = new SessionKeys[2][2];
-        }
-        return sessionKeys;
+    @Override
+    public void setOfferStatus(@Nonnull final OfferStatus status) {
+        this.offerStatus = Objects.requireNonNull(status);
     }
 
-    AuthContext getAuthContext() {
+    
+    @Nonnull
+    @Override
+    public AuthContext getAuthContext() {
         if (authContext == null) {
             authContext = new AuthContext(this);
         }
@@ -391,17 +222,16 @@ public class Session {
 
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.getAllowV1() && !policy.getAllowV2() && !policy.getAllowV3()) {
-            logger
-                    .finest("Policy does not allow neither V1 nor V2 & V3, ignoring message.");
+            logger.finest("Policy does not allow neither V1 nor V2 & V3, ignoring message.");
             return msgText;
         }
 
         try {
             msgText = assembler.accumulate(msgText);
-        } catch (UnknownInstanceException e) {
+        } catch (final UnknownInstanceException e) {
             // The fragment is not intended for us
             logger.finest(e.getMessage());
-            OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionID);
+            OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionId());
             return null;
         } catch (ProtocolException e) {
             logger.log(Level.WARNING, "An invalid message fragment was discarded.", e);
@@ -419,7 +249,7 @@ public class Session {
             throw new OtrException(e);
         }
         if (m == null) {
-            return msgText; // Propably null or empty.
+            return msgText; // Probably null or empty.
         }
 
         if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT) {
@@ -441,7 +271,7 @@ public class Session {
                         // The message is not intended for us. Discarding...
                         logger.finest("Received an encoded message with receiver instance tag" +
                                 " that is different from ours, ignore this message");
-                        OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionID);
+                        OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionId());
                         return null;
                     }
                 }
@@ -465,7 +295,7 @@ public class Session {
                         if (!slaveSessions.containsKey(newReceiverTag)) {
 
                             final Session session =
-                                    new Session(sessionID,
+                                    new Session(this.sessionState.getSessionId(),
                                             this.host,
                                             getSenderInstanceTag(),
                                             newReceiverTag,
@@ -503,9 +333,9 @@ public class Session {
 
                             slaveSessions.put(newReceiverTag, session);
 
-                            OtrEngineHostUtil.multipleInstancesDetected(this.host, sessionID);
+                            OtrEngineHostUtil.multipleInstancesDetected(this.host, this.sessionState.getSessionId());
                             OtrEngineListenerUtil.multipleInstancesDetected(
-                                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
+                                    OtrEngineListenerUtil.duplicate(listeners), this.sessionState.getSessionId());
                         }
                     }
                     return slaveSessions.get(newReceiverTag).transformReceiving(msgText);
@@ -528,11 +358,11 @@ public class Session {
             case AbstractEncodedMessage.MESSAGE_DHKEY:
             case AbstractEncodedMessage.MESSAGE_REVEALSIG:
             case AbstractEncodedMessage.MESSAGE_SIGNATURE:
+                // FIXME Do we care about testing 'isSecure' on every auth message?
                 final AuthContext auth = this.getAuthContext();
                 auth.handleReceivingMessage(m);
-
                 if (auth.getIsSecure()) {
-                    this.setSessionStatus(SessionStatus.ENCRYPTED);
+                    this.sessionState.secure(this);
                     logger.finest("Gone Secure.");
                 }
                 return null;
@@ -542,12 +372,12 @@ public class Session {
         }
     }
 
+    // FIXME Move handleQueryMessage to State or keep here?
     private void handleQueryMessage(@Nonnull final QueryMessage queryMessage)
             throws OtrException {
-        logger.finest(this.sessionID.getAccountID()
-                + " received a query message from "
-                + this.sessionID.getUserID() + " through "
-                + this.sessionID.getProtocolName() + ".");
+        final SessionID sessionId = this.sessionState.getSessionId();
+        logger.log(Level.FINEST, "{0} received a query message from {1} through {2}.",
+                new Object[]{sessionId.getAccountID(), sessionId.getUserID(), sessionId.getProtocolName()});
 
         final OtrPolicy policy = getSessionPolicy();
         if (queryMessage.versions.contains(OTRv.THREE) && policy.getAllowV3()) {
@@ -584,188 +414,22 @@ public class Session {
 
     private void handleErrorMessage(@Nonnull final ErrorMessage errorMessage)
             throws OtrException {
-        logger.finest(this.sessionID.getAccountID()
-                + " received an error message from "
-                + this.sessionID.getUserID() + " through "
-                + this.sessionID.getProtocolName() + ".");
-
-        OtrEngineHostUtil.showError(this.host, this.sessionID, errorMessage.error);
-
-        final OtrPolicy policy = getSessionPolicy();
-        // Re-negotiate if we got an error and we are encrypted
-        if (policy.getErrorStartAKE() && getSessionStatus() == SessionStatus.ENCRYPTED) {
-            logger.finest("Error message starts AKE.");
-            final ArrayList<Integer> versions = new ArrayList<Integer>(4);
-            if (policy.getAllowV1()) {
-                versions.add(OTRv.ONE);
-            }
-
-            if (policy.getAllowV2()) {
-                versions.add(OTRv.TWO);
-            }
-
-            if (policy.getAllowV3()) {
-                versions.add(OTRv.THREE);
-            }
-
-            logger.finest("Sending Query");
-            injectMessage(new QueryMessage(versions));
-        }
+        final SessionID sessionId = this.sessionState.getSessionId();
+        logger.log(Level.FINEST, "{0} received an error message from {1} through {2}.",
+                new Object[]{sessionId.getAccountID(), sessionId.getUserID(), sessionId.getProtocolName()});
+        this.sessionState.handleErrorMessage(this, errorMessage);
     }
 
     private String handleDataMessage(@Nonnull final DataMessage data) throws OtrException {
-        logger.finest(this.sessionID.getAccountID()
-                + " received a data message from " + this.sessionID.getUserID()
-                + ".");
-
-        switch (this.getSessionStatus()) {
-            case ENCRYPTED:
-                logger.finest("Message state is ENCRYPTED. Trying to decrypt message.");
-                // Find matching session keys.
-                final int senderKeyID = data.senderKeyID;
-                final int receipientKeyID = data.recipientKeyID;
-                final SessionKeys matchingKeys = this.getSessionKeysByID(receipientKeyID,
-                        senderKeyID);
-
-                if (matchingKeys == null) {
-                    logger.finest("No matching keys found.");
-                    OtrEngineHostUtil.unreadableMessageReceived(this.host,
-                            this.sessionID);
-                    final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(this.host, this.sessionID, DEFAULT_REPLY_UNREADABLE_MESSAGE);
-                    injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
-                    return null;
-                }
-
-                // Verify received MAC with a locally calculated MAC.
-                logger
-                        .finest("Transforming T to byte[] to calculate it's HmacSHA1.");
-
-                final byte[] serializedT;
-                try {
-                    serializedT = SerializationUtils.toByteArray(data.getT());
-                } catch (IOException e) {
-                    throw new OtrException(e);
-                }
-
-                final byte[] computedMAC = OtrCryptoEngine.sha1Hmac(serializedT,
-                        matchingKeys.getReceivingMACKey(),
-                        SerializationConstants.TYPE_LEN_MAC);
-                if (!Arrays.equals(computedMAC, data.mac)) {
-                    logger.finest("MAC verification failed, ignoring message");
-                    OtrEngineHostUtil.unreadableMessageReceived(this.host,
-                            this.sessionID);
-                    final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(this.host, this.sessionID, DEFAULT_REPLY_UNREADABLE_MESSAGE);
-                    injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
-                    return null;
-                }
-
-                logger.finest("Computed HmacSHA1 value matches sent one.");
-
-                // Mark this MAC key as old to be revealed.
-                matchingKeys.setIsUsedReceivingMACKey(true);
-
-                matchingKeys.setReceivingCtr(data.ctr);
-
-                final byte[] dmc = OtrCryptoEngine.aesDecrypt(matchingKeys
-                        .getReceivingAESKey(), matchingKeys.getReceivingCtr(),
-                        data.encryptedMessage);
-
-                // Rotate keys if necessary.
-                final SessionKeys mostRecent = this.getMostRecentSessionKeys();
-                if (mostRecent.getLocalKeyID() == receipientKeyID) {
-                    this.rotateLocalSessionKeys();
-                }
-
-                if (mostRecent.getRemoteKeyID() == senderKeyID) {
-                    this.rotateRemoteSessionKeys(data.nextDH);
-                }
-
-                // find the null TLV separator in the package, or just use the end value
-                int tlvIndex = dmc.length;
-                for (int i = 0; i < dmc.length; i++) {
-                    if (dmc[i] == 0x00) {
-                        tlvIndex = i;
-                        break;
-                    }
-                }
-
-                // get message body without trailing 0x00, expect UTF-8 bytes
-                final String decryptedMsgContent = new String(dmc, 0, tlvIndex, SerializationUtils.UTF8);
-
-                // if the null TLV separator is somewhere in the middle, there are TLVs
-                final LinkedList<TLV> tlvs = new LinkedList<TLV>();
-                tlvIndex++;  // to ignore the null
-                if (tlvIndex < dmc.length) {
-                    byte[] tlvsb = new byte[dmc.length - tlvIndex];
-                    System.arraycopy(dmc, tlvIndex, tlvsb, 0, tlvsb.length);
-
-                    final ByteArrayInputStream tin = new ByteArrayInputStream(tlvsb);
-                    final OtrInputStream eois = new OtrInputStream(tin);
-                    try {
-                        while (tin.available() > 0) {
-                            final int type = eois.readShort();
-                            final byte[] tdata = eois.readTlvData();
-                            tlvs.add(new TLV(type, tdata));
-                        }
-                    } catch (IOException e) {
-                        throw new OtrException(e);
-                    } finally {
-                        try {
-                            eois.close();
-                        } catch (IOException e) {
-                            throw new OtrException(e);
-                        }
-                    }
-                }
-                if (!tlvs.isEmpty()) {
-                    for (final TLV tlv : tlvs) {
-                        logger.fine("Received TLV type " + tlv.getType());
-                        switch (tlv.getType()) {
-                            case TLV.PADDING: // TLV0
-                                // nothing to do here, just ignore the padding
-                                break;
-                            case TLV.DISCONNECTED: // TLV1
-                                this.setSessionStatus(SessionStatus.FINISHED);
-                                break;
-                            case TLV.SMP1Q: //TLV7
-                                getSmpTlvHandler().processTlvSMP1Q(tlv);
-                                break;
-                            case TLV.SMP1: // TLV2
-                                getSmpTlvHandler().processTlvSMP1(tlv);
-                                break;
-                            case TLV.SMP2: // TLV3
-                                getSmpTlvHandler().processTlvSMP2(tlv);
-                                break;
-                            case TLV.SMP3: // TLV4
-                                getSmpTlvHandler().processTlvSMP3(tlv);
-                                break;
-                            case TLV.SMP4: // TLV5
-                                getSmpTlvHandler().processTlvSMP4(tlv);
-                                break;
-                            case TLV.SMP_ABORT: //TLV6
-                                getSmpTlvHandler().processTlvSMP_ABORT(tlv);
-                                break;
-                            default:
-                                logger.warning("Unsupported TLV #" + tlv.getType() + " received!");
-                                break;
-                        }
-                    }
-                }
-                return decryptedMsgContent;
-
-            case FINISHED:
-            case PLAINTEXT:
-                OtrEngineHostUtil.unreadableMessageReceived(this.host,
-                        this.sessionID);
-                final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(this.host, this.sessionID, DEFAULT_REPLY_UNREADABLE_MESSAGE);
-                injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
-                break;
-        }
-
-        return null;
+        final SessionID sessionId = this.sessionState.getSessionId();
+        logger.log(Level.FINEST, "{0} received a data message from {1}.",
+                new Object[]{sessionId.getAccountID(), sessionId.getUserID()});
+        return this.sessionState.handleDataMessage(this, data);
     }
 
+    @Override
     public void injectMessage(@Nonnull final AbstractMessage m) throws OtrException {
+        final SessionID sessionId = this.sessionState.getSessionId();
         String msg;
         try {
             msg = SerializationUtils.toString(m);
@@ -774,7 +438,7 @@ public class Session {
         }
         if (m instanceof QueryMessage) {
             String fallback = OtrEngineHostUtil.getFallbackMessage(this.host,
-                    this.sessionID);
+                    sessionId);
             if (fallback == null || fallback.equals("")) {
                 fallback = SerializationConstants.DEFAULT_FALLBACK_MESSAGE;
             }
@@ -787,125 +451,83 @@ public class Session {
             try {
                 fragments = this.fragmenter.fragment(msg);
                 for (final String fragment : fragments) {
-                    this.host.injectMessage(this.sessionID, fragment);
+                    this.host.injectMessage(sessionId, fragment);
                 }
             } catch (IOException e) {
                 logger.warning("Failed to fragment message according to provided instructions.");
                 throw new OtrException(e);
             }
         } else {
-            this.host.injectMessage(this.sessionID, msg);
+            this.host.injectMessage(sessionId, msg);
         }
     }
 
+    // FIXME Consider how much logic we still want to move to Session State instances.
+    // FIXME On quick investigation, it seems that all the logic that is currently in this method, are related only to message parsing, i.e. not to session state management. We do however manage authentication process, i.e. AuthContext DH-commit message. What to do with the Slave Sessions.
     private String handlePlainTextMessage(@Nonnull final PlainTextMessage plainTextMessage)
             throws OtrException {
-        logger.finest(this.sessionID.getAccountID()
-                + " received a plaintext message from "
-                + this.sessionID.getUserID() + " through "
-                + this.sessionID.getProtocolName() + ".");
-
-        final OtrPolicy policy = getSessionPolicy();
+        final SessionID sessionId = this.sessionState.getSessionId();
+        logger.log(Level.FINEST, "{0} received a plaintext message from {1} through {2}.",
+                new Object[]{sessionId.getAccountID(), sessionId.getUserID(), sessionId.getProtocolName()});
+        final String messagetext = this.sessionState.handlePlainTextMessage(this, plainTextMessage);
         if (plainTextMessage.versions.isEmpty()) {
-            logger
-                    .finest("Received plaintext message without the whitespace tag.");
-            switch (this.getSessionStatus()) {
-                case ENCRYPTED:
-                case FINISHED:
-                    /*
-                     * Display the message to the user, but warn him that the
-                     * message was received unencrypted.
-                     */
-                    OtrEngineHostUtil.unencryptedMessageReceived(this.host,
-                            sessionID, plainTextMessage.cleanText);
-                    return plainTextMessage.cleanText;
-                case PLAINTEXT:
-                    /*
-                     * Simply display the message to the user. If
-                     * REQUIRE_ENCRYPTION is set, warn him that the message was
-                     * received unencrypted.
-                     */
-                    if (policy.getRequireEncryption()) {
-                        OtrEngineHostUtil.unencryptedMessageReceived(this.host,
-                                sessionID, plainTextMessage.cleanText);
-                    }
-                    return plainTextMessage.cleanText;
-            }
+            logger.finest("Received plaintext message without the whitespace tag.");
         } else {
-            logger
-                    .finest("Received plaintext message with the whitespace tag.");
-            switch (this.getSessionStatus()) {
-                case ENCRYPTED:
-                case FINISHED:
-                    /*
-                     * Remove the whitespace tag and display the message to the
-                     * user, but warn him that the message was received
-                     * unencrypted.
-                     */
-                    OtrEngineHostUtil.unencryptedMessageReceived(this.host,
-                            sessionID, plainTextMessage.cleanText);
-                    break;
-                case PLAINTEXT:
-                    /*
-                     * Remove the whitespace tag and display the message to the
-                     * user. If REQUIRE_ENCRYPTION is set, warn him that the
-                     * message was received unencrypted.
-                     */
-                    if (policy.getRequireEncryption()) {
-                        OtrEngineHostUtil.unencryptedMessageReceived(this.host,
-                                sessionID, plainTextMessage.cleanText);
-                    }
-                    break;
-            }
-
-            if (policy.getWhitespaceStartAKE()) {
-                logger.finest("WHITESPACE_START_AKE is set");
-
-                if (plainTextMessage.versions.contains(OTRv.THREE)
-                        && policy.getAllowV3()) {
-                    logger.finest("V3 tag found.");
-                    try {
-                        final DHCommitMessage dhCommit = getAuthContext().respondAuth(OTRv.THREE);
-                        if (isMasterSession) {
-                            synchronized (slaveSessions) {
-                                for (final Session session : slaveSessions.values()) {
-                                    session.getAuthContext().reset();
-                                    session.getAuthContext().r
-                                            = this.getAuthContext().r;
-                                    session.getAuthContext().localDHKeyPair
-                                            = this.getAuthContext().localDHKeyPair;
-                                    session.getAuthContext().localDHPublicKeyBytes
-                                            = this.getAuthContext().localDHPublicKeyBytes;
-                                    session.getAuthContext().localDHPublicKeyEncrypted
-                                            = this.getAuthContext().localDHPublicKeyEncrypted;
-                                    session.getAuthContext().localDHPublicKeyHash
-                                            = this.getAuthContext().localDHPublicKeyHash;
-                                }
-                            }
-                        }
-                        logger.finest("Sending D-H Commit Message");
-                        injectMessage(dhCommit);
-                    } catch (OtrException e) {
-                        logger.log(Level.WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv3)", e);
-                    }
-                } else if (plainTextMessage.versions.contains(OTRv.TWO)
-                        && policy.getAllowV2()) {
-                    logger.finest("V2 tag found.");
-                    try {
-                        final DHCommitMessage dhCommit = getAuthContext().respondAuth(OTRv.TWO);
-                        logger.finest("Sending D-H Commit Message");
-                        injectMessage(dhCommit);
-                    } catch (OtrException e) {
-                        logger.log(Level.WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv2)", e);
-                    }
-                } else if (plainTextMessage.versions.contains(1)
-                        && policy.getAllowV1()) {
-                    throw new UnsupportedOperationException();
-                }
-            }
+            logger.finest("Received plaintext message with the whitespace tag.");
+            handleWhitespaceTag(plainTextMessage);
         }
+        return messagetext;
+    }
 
-        return plainTextMessage.cleanText;
+    private void handleWhitespaceTag(final PlainTextMessage plainTextMessage) {
+        final OtrPolicy policy = getSessionPolicy();
+        if (!policy.getWhitespaceStartAKE()) {
+            // no policy w.r.t. starting AKE on whitespace tag
+            return;
+        }
+        logger.finest("WHITESPACE_START_AKE is set");
+        if (plainTextMessage.versions.contains(Session.OTRv.THREE)
+                && policy.getAllowV3()) {
+            logger.finest("V3 tag found.");
+            try {
+                final DHCommitMessage dhCommit = getAuthContext().respondAuth(Session.OTRv.THREE);
+                if (isMasterSession) {
+                    synchronized (slaveSessions) {
+                        for (final Session session : slaveSessions.values()) {
+                            session.getAuthContext().reset();
+                            session.getAuthContext().r
+                                    = this.getAuthContext().r;
+                            session.getAuthContext().localDHKeyPair
+                                    = this.getAuthContext().localDHKeyPair;
+                            session.getAuthContext().localDHPublicKeyBytes
+                                    = this.getAuthContext().localDHPublicKeyBytes;
+                            session.getAuthContext().localDHPublicKeyEncrypted
+                                    = this.getAuthContext().localDHPublicKeyEncrypted;
+                            session.getAuthContext().localDHPublicKeyHash
+                                    = this.getAuthContext().localDHPublicKeyHash;
+                        }
+                    }
+                }
+                logger.finest("Sending D-H Commit Message");
+                injectMessage(dhCommit);
+            } catch (OtrException e) {
+                logger.log(Level.WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv3)", e);
+            }
+        } else if (plainTextMessage.versions.contains(Session.OTRv.TWO)
+                && policy.getAllowV2()) {
+            logger.finest("V2 tag found.");
+            try {
+                final DHCommitMessage dhCommit = getAuthContext().respondAuth(Session.OTRv.TWO);
+                logger.finest("Sending D-H Commit Message");
+                injectMessage(dhCommit);
+            } catch (OtrException e) {
+                logger.log(Level.WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv2)", e);
+            }
+        } else if (plainTextMessage.versions.contains(Session.OTRv.ONE)
+                && policy.getAllowV1()) {
+            // FIXME Get rid of OTRv1 support completely
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Nonnull
@@ -936,139 +558,7 @@ public class Session {
         if (isMasterSession && outgoingSession != this && getProtocolVersion() == OTRv.THREE) {
             return outgoingSession.transformSending(msgText, tlvs);
         }
-
-        switch (this.getSessionStatus()) {
-            case PLAINTEXT:
-                final OtrPolicy otrPolicy = getSessionPolicy();
-                if (otrPolicy.getRequireEncryption()) {
-                    this.startSession();
-                    // FIXME msgText may be NULL, we expect to inform OtrEngineHost with non-null message
-                    OtrEngineHostUtil.requireEncryptedMessage(this.host, sessionID, msgText);
-                    return new String[0];
-                } else {
-                    if (otrPolicy.getSendWhitespaceTag()
-                            && offerStatus != OfferStatus.rejected) {
-                        offerStatus = OfferStatus.sent;
-                        final ArrayList<Integer> versions = new ArrayList<Integer>(4);
-                        if (otrPolicy.getAllowV1()) {
-                            versions.add(OTRv.ONE);
-                        }
-                        if (otrPolicy.getAllowV2()) {
-                            versions.add(OTRv.TWO);
-                        }
-                        if (otrPolicy.getAllowV3()) {
-                            versions.add(OTRv.THREE);
-                        }
-                        final AbstractMessage abstractMessage = new PlainTextMessage(
-                                versions, msgText);
-                        try {
-                            return new String[] {
-                                    SerializationUtils.toString(abstractMessage)
-                            };
-                        } catch (IOException e) {
-                            throw new OtrException(e);
-                        }
-                    } else {
-                        return new String[] {
-                                msgText
-                        };
-                    }
-                }
-            case ENCRYPTED:
-                logger.finest(this.sessionID.getAccountID()
-                        + " sends an encrypted message to "
-                        + this.sessionID.getUserID() + " through "
-                        + this.sessionID.getProtocolName() + ".");
-
-                // Get encryption keys.
-                final SessionKeys encryptionKeys = this.getEncryptionSessionKeys();
-                final int senderKeyID = encryptionKeys.getLocalKeyID();
-                final int receipientKeyID = encryptionKeys.getRemoteKeyID();
-
-                // Increment CTR.
-                encryptionKeys.incrementSendingCtr();
-                final byte[] ctr = encryptionKeys.getSendingCtr();
-
-                final ByteArrayOutputStream out = new ByteArrayOutputStream();
-                if (msgText.length() > 0) {
-                    try {
-                        out.write(SerializationUtils.convertTextToBytes(msgText));
-                    } catch (IOException e) {
-                        throw new OtrException(e);
-                    }
-                }
-
-                // Append tlvs
-                if (!tlvs.isEmpty()) {
-                    out.write((byte) 0x00);
-
-                    final OtrOutputStream eoos = new OtrOutputStream(out);
-                    try {
-                        for (TLV tlv : tlvs) {
-                            eoos.writeShort(tlv.type);
-                            eoos.writeTlvData(tlv.value);
-                        }
-                    } catch (IOException ex) {
-                        throw new OtrException(ex);
-                    } finally {
-                        try {
-                            eoos.close();
-                        } catch (IOException e) {
-                            throw new OtrException(e);
-                        }
-                    }
-                }
-
-                final byte[] data = out.toByteArray();
-                // Encrypt message.
-                logger.finest("Encrypting message with keyids (localKeyID, remoteKeyID) = ("
-                        + senderKeyID + ", " + receipientKeyID + ")");
-                final byte[] encryptedMsg = OtrCryptoEngine.aesEncrypt(encryptionKeys
-                        .getSendingAESKey(), ctr, data);
-
-                // Get most recent keys to get the next D-H public key.
-                final SessionKeys mostRecentKeys = this.getMostRecentSessionKeys();
-                final DHPublicKey nextDH = (DHPublicKey) mostRecentKeys.getLocalPair()
-                        .getPublic();
-
-                // Calculate T.
-                final MysteriousT t =
-                        new MysteriousT(this.protocolVersion, getSenderInstanceTag().getValue(),
-                                getReceiverInstanceTag().getValue(),
-                                0, senderKeyID, receipientKeyID, nextDH, ctr, encryptedMsg);
-
-                // Calculate T hash.
-                final byte[] sendingMACKey = encryptionKeys.getSendingMACKey();
-
-                logger.finest("Transforming T to byte[] to calculate it's HmacSHA1.");
-                final byte[] serializedT;
-                try {
-                    serializedT = SerializationUtils.toByteArray(t);
-                } catch (IOException e) {
-                    throw new OtrException(e);
-                }
-
-                final byte[] mac = OtrCryptoEngine.sha1Hmac(serializedT, sendingMACKey,
-                        SerializationConstants.TYPE_LEN_MAC);
-
-                // Get old MAC keys to be revealed.
-                final byte[] oldKeys = this.collectOldMacKeys();
-                final DataMessage m = new DataMessage(t, mac, oldKeys);
-                m.senderInstanceTag = getSenderInstanceTag().getValue();
-                m.receiverInstanceTag = getReceiverInstanceTag().getValue();
-
-                try {
-                    final String completeMessage = SerializationUtils.toString(m);
-                    return this.fragmenter.fragment(completeMessage);
-                } catch (IOException e) {
-                    throw new OtrException(e);
-                }
-            case FINISHED:
-                OtrEngineHostUtil.finishedSessionMessage(this.host, sessionID, msgText);
-                return new String[0];
-            default:
-                throw new OtrException("Unknown message state, not processing");
-        }
+        return this.sessionState.transformSending(this, msgText, tlvs);
     }
 
     public void startSession() throws OtrException {
@@ -1079,11 +569,10 @@ public class Session {
         if (this.getSessionStatus() == SessionStatus.ENCRYPTED) {
             return;
         }
-
-        if (!getSessionPolicy().getAllowV2() && !getSessionPolicy().getAllowV3()) {
+        final OtrPolicy policy = getSessionPolicy();
+        if (!policy.getAllowV2() && !policy.getAllowV3()) {
             throw new UnsupportedOperationException();
         }
-
         this.getAuthContext().startAuth();
     }
 
@@ -1092,23 +581,7 @@ public class Session {
             outgoingSession.endSession();
             return;
         }
-        final SessionStatus status = this.getSessionStatus();
-        switch (status) {
-            case ENCRYPTED:
-                final TLV disconnectTlv = new TLV(TLV.DISCONNECTED, null);
-                final String[] msg = this.transformSending(null, Collections.singletonList(disconnectTlv));
-                for (final String part : msg) {
-                    this.host.injectMessage(this.sessionID, part);
-                }
-                this.setSessionStatus(SessionStatus.PLAINTEXT);
-                break;
-            case FINISHED:
-                this.setSessionStatus(SessionStatus.PLAINTEXT);
-                break;
-            case PLAINTEXT:
-                break;
-        }
-
+        this.sessionState.end(this);
     }
 
     public void refreshSession() throws OtrException {
@@ -1116,17 +589,11 @@ public class Session {
         this.startSession();
     }
 
-    private PublicKey remotePublicKey;
-
-    private void setRemotePublicKey(final PublicKey pubKey) {
-        this.remotePublicKey = pubKey;
-    }
-
     public PublicKey getRemotePublicKey() {
         if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
             return outgoingSession.getRemotePublicKey();
         }
-        return remotePublicKey;
+        return this.sessionState.getRemotePublicKey();
     }
 
     /**
@@ -1151,70 +618,21 @@ public class Session {
         }
     }
 
+    @Override
     public OtrPolicy getSessionPolicy() {
-        return this.host.getSessionPolicy(this.sessionID);
+        return this.host.getSessionPolicy(this.sessionState.getSessionId());
     }
 
     public KeyPair getLocalKeyPair() throws OtrException {
-        return this.host.getLocalKeyPair(this.sessionID);
+        return this.host.getLocalKeyPair(this.sessionState.getSessionId());
     }
 
-    public void initSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
-        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
-            outgoingSession.initSmp(question, secret);
-            return;
-        }
-        if (this.getSessionStatus() != SessionStatus.ENCRYPTED) {
-            return;
-        }
-        final List<TLV> tlvs = getSmpTlvHandler().initRespondSmp(question, secret, true);
-        final String[] msg = transformSending("", tlvs);
-        for (final String part : msg) {
-            this.host.injectMessage(this.sessionID, part);
-        }
-    }
-
-    public void respondSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
-        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
-            outgoingSession.respondSmp(question, secret);
-            return;
-        }
-        if (this.getSessionStatus() != SessionStatus.ENCRYPTED) {
-            return;
-        }
-        final List<TLV> tlvs = getSmpTlvHandler().initRespondSmp(question, secret, false);
-        final String[] msg = transformSending("", tlvs);
-        for (final String part : msg) {
-            this.host.injectMessage(this.sessionID, part);
-        }
-    }
-
-    public void abortSmp() throws OtrException {
-        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
-            outgoingSession.abortSmp();
-            return;
-        }
-        if (this.getSessionStatus() != SessionStatus.ENCRYPTED) {
-            return;
-        }
-        final List<TLV> tlvs = getSmpTlvHandler().abortSmp();
-        final String[] msg = transformSending("", tlvs);
-        for (final String part : msg) {
-            this.host.injectMessage(this.sessionID, part);
-        }
-    }
-
-    public boolean isSmpInProgress() {
-        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
-            return outgoingSession.isSmpInProgress();
-        }
-        return getSmpTlvHandler().isSmpInProgress();
-    }
-
+    @Override
     public InstanceTag getSenderInstanceTag() {
         return senderTag;
     }
 
+    @Override
     public InstanceTag getReceiverInstanceTag() {
         return receiverTag;
     }
@@ -1235,6 +653,7 @@ public class Session {
         this.protocolVersion = protocolVersion;
     }
 
+    @Override
     public int getProtocolVersion() {
         return isMasterSession ? this.protocolVersion : 3;
     }
@@ -1251,10 +670,11 @@ public class Session {
         if (!isMasterSession) {
             return false;
         }
+        final SessionID sessionId = this.sessionState.getSessionId();
         if (tag.equals(getReceiverInstanceTag())) {
             outgoingSession = this;
             OtrEngineListenerUtil.outgoingSessionChanged(
-                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
+                    OtrEngineListenerUtil.duplicate(listeners), sessionId);
             return true;
         }
 
@@ -1262,7 +682,7 @@ public class Session {
         if (newActiveSession != null) {
             outgoingSession = newActiveSession;
             OtrEngineListenerUtil.outgoingSessionChanged(
-                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
+                    OtrEngineListenerUtil.duplicate(listeners), sessionId);
             return true;
         } else {
             outgoingSession = this;
@@ -1270,44 +690,89 @@ public class Session {
         }
     }
 
-    public void respondSmp(@Nonnull final InstanceTag receiverTag, @Nullable final String question, @Nonnull final String secret)
-            throws OtrException
-    {
-        if (receiverTag.equals(getReceiverInstanceTag()))
-        {
-            respondSmp(question, secret);
-            return;
-        }
-        else
-        {
-            final Session slave = slaveSessions.get(receiverTag);
-            if (slave != null) {
-                slave.respondSmp(question, secret);
-            } else {
-                respondSmp(question, secret);
-            }
-        }
-    }
-
     public SessionStatus getSessionStatus(@Nonnull final InstanceTag tag) {
         if (tag.equals(getReceiverInstanceTag())) {
-            return sessionStatus;
+            return this.sessionState.getStatus();
         } else {
             final Session slave = slaveSessions.get(tag);
-            return slave != null ? slave.getSessionStatus() : sessionStatus;
+            return slave != null ? slave.getSessionStatus()
+                    : this.sessionState.getStatus();
         }
     }
 
     public PublicKey getRemotePublicKey(@Nonnull final InstanceTag tag) {
         if (tag.equals(getReceiverInstanceTag())) {
-            return remotePublicKey;
+            return this.sessionState.getRemotePublicKey();
         } else {
             final Session slave = slaveSessions.get(tag);
-            return slave != null ? slave.getRemotePublicKey() : remotePublicKey;
+            return slave != null ? slave.getRemotePublicKey()
+                    : this.sessionState.getRemotePublicKey();
         }
     }
 
     public Session getOutgoingInstance() {
         return outgoingSession;
+    }
+    
+    public void initSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
+        if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
+            outgoingSession.initSmp(question, secret);
+            return;
+        }
+        // FIXME Only for encrypted sessions!
+        final SmpTlvHandler handler = this.sessionState.getSmpTlvHandler();
+        final List<TLV> tlvs = handler.initRespondSmp(question, secret, true);
+        final String[] msg = transformSending("", tlvs);
+        for (final String part : msg) {
+            this.host.injectMessage(this.sessionState.getSessionId(), part);
+        }
+    }
+
+    public void respondSmp(@Nonnull final InstanceTag receiverTag, @Nullable final String question, @Nonnull final String secret)
+            throws OtrException
+    {
+        if (receiverTag.equals(getReceiverInstanceTag())) {
+            respondSmp(question, secret);
+            return;
+        }
+        final Session slave = slaveSessions.get(receiverTag);
+        if (slave != null) {
+            slave.respondSmp(question, secret);
+        } else {
+            respondSmp(question, secret);
+        }
+    }
+
+    public void respondSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
+        if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
+            outgoingSession.respondSmp(question, secret);
+            return;
+        }
+        // FIXME Only for encrypted sessions!
+        final List<TLV> tlvs = this.sessionState.getSmpTlvHandler().initRespondSmp(question, secret, false);
+        final String[] msg = transformSending("", tlvs);
+        for (final String part : msg) {
+            this.host.injectMessage(this.sessionState.getSessionId(), part);
+        }
+    }
+
+    public void abortSmp() throws OtrException {
+        if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
+            outgoingSession.abortSmp();
+            return;
+        }
+        // FIXME Only for encrypted sessions!
+        final List<TLV> tlvs = this.sessionState.getSmpTlvHandler().abortSmp();
+        final String[] msg = transformSending("", tlvs);
+        for (final String part : msg) {
+            this.host.injectMessage(this.sessionState.getSessionId(), part);
+        }
+    }
+
+    public boolean isSmpInProgress() {
+        if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
+            return outgoingSession.isSmpInProgress();
+        }
+        return this.sessionState.getSmpTlvHandler().isSmpInProgress();
     }
 }

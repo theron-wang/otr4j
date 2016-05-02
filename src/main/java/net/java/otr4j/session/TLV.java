@@ -19,9 +19,10 @@ public class TLV {
      * beginning */
     public static final int SMP1Q=0x0007;
 
-	final int type;
-	final byte[] value;
+	private final int type;
+	private final byte[] value;
 
+    // FIXME Verify that we always provide an array, even if 0-length
 	public TLV(final int type, final byte[] value) {
         this.type = type;
         this.value = value;
