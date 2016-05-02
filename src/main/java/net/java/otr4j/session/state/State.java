@@ -37,12 +37,15 @@ public interface State {
     SessionStatus getStatus();
 
     /**
-     * Get remote's public key.
+     * Get remote public key.
      *
-     * @return Returns the remote's public key.
+     * @return Returns the remote public key.
+     * @throws net.java.otr4j.session.state.State.IncorrectStateException Throws
+     * IncorrectStateException in any non-encrypted state, since no public key
+     * is available there.
      */
     @Nonnull
-    PublicKey getRemotePublicKey();
+    PublicKey getRemotePublicKey() throws IncorrectStateException;
 
     /**
      * Transforms a message ready to be sent given the current session state of

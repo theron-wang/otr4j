@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-
 import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrEngineHostUtil;
 import net.java.otr4j.OtrEngineListener;
@@ -585,7 +584,7 @@ public class Session implements Context {
         this.startSession();
     }
 
-    public PublicKey getRemotePublicKey() {
+    public PublicKey getRemotePublicKey() throws State.IncorrectStateException {
         if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
             return outgoingSession.getRemotePublicKey();
         }
@@ -677,6 +676,7 @@ public class Session implements Context {
         }
     }
 
+    @Nonnull
     public SessionStatus getSessionStatus(@Nonnull final InstanceTag tag) {
         if (tag.equals(getReceiverInstanceTag())) {
             return this.sessionState.getStatus();
@@ -687,7 +687,8 @@ public class Session implements Context {
         }
     }
 
-    public PublicKey getRemotePublicKey(@Nonnull final InstanceTag tag) {
+    @Nonnull
+    public PublicKey getRemotePublicKey(@Nonnull final InstanceTag tag) throws State.IncorrectStateException {
         if (tag.equals(getReceiverInstanceTag())) {
             return this.sessionState.getRemotePublicKey();
         } else {
@@ -706,7 +707,6 @@ public class Session implements Context {
             outgoingSession.initSmp(question, secret);
             return;
         }
-        // FIXME Only for encrypted sessions!
         final SmpTlvHandler handler = this.sessionState.getSmpTlvHandler();
         final List<TLV> tlvs = handler.initRespondSmp(question, secret, true);
         final String[] msg = transformSending("", tlvs);

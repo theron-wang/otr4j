@@ -56,9 +56,8 @@ public final class StatePlaintext extends AbstractState {
 
     @Override
     @Nonnull
-    public PublicKey getRemotePublicKey() {
-        // TODO How to handle this ... with checked exception?
-        throw new IllegalStateException("Not in an encrypted session.");
+    public PublicKey getRemotePublicKey() throws IncorrectStateException {
+        throw new IncorrectStateException("Remote public key is not available in plaintext state.");
     }
 
     @Override

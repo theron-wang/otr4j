@@ -18,6 +18,7 @@ import net.java.otr4j.session.SessionStatus;
 import net.java.otr4j.session.SmpTlvHandler;
 import net.java.otr4j.session.TLV;
 
+// TODO Consider preserving remote public key in Finished state for after-the-fact requests.
 public final class StateFinished extends AbstractState {
 
     @SuppressWarnings("NonConstantLogger")
@@ -50,9 +51,8 @@ public final class StateFinished extends AbstractState {
 
     @Override
     @Nonnull
-    public PublicKey getRemotePublicKey() {
-        // TODO How to handle this? We could preserve public key for now so that we can answer this request. Or we could throw a checked exception, since this is case could reasonably happen.
-        throw new IllegalStateException("Encrypted session has been finished by other party.");
+    public PublicKey getRemotePublicKey() throws IncorrectStateException {
+        throw new IncorrectStateException("Remote public key is not available in finished state.");
     }
 
     @Override
