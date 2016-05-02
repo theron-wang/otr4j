@@ -8,6 +8,7 @@ package net.java.otr4j.session;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 
 import net.java.otr4j.OtrEngineHost;
@@ -56,14 +57,8 @@ public class OtrFragmenter {
 	 * @param host OTR engine host calling upon OTR session
 	 */
 	public OtrFragmenter(@Nonnull final Session session, @Nonnull final OtrEngineHost host) {
-		if (session == null) {
-			throw new NullPointerException("session cannot be null");
-		}
-		this.session = session;
-		if (host == null) {
-			throw new NullPointerException("host cannot be null");
-		}
-		this.host = host;
+		this.session = Objects.requireNonNull(session, "session cannot be null");
+		this.host = Objects.requireNonNull(host, "host cannot be null");
 	}
 
 	/**

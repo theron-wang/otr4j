@@ -12,7 +12,7 @@ abstract class AbstractState implements State {
 
     @Override
     public void handleErrorMessage(@Nonnull final Context context, @Nonnull final ErrorMessage errorMessage) throws OtrException {
-        OtrEngineHostUtil.showError(context.getHost(), this.getSessionId(), errorMessage.error);
+        OtrEngineHostUtil.showError(context.getHost(), this.getSessionID(), errorMessage.error);
     }
     
 }

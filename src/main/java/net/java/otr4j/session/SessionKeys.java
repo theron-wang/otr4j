@@ -20,7 +20,6 @@ import javax.crypto.interfaces.DHPublicKey;
 
 import net.java.otr4j.OtrException;
 import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.SerializationUtils;
 
 /**
@@ -109,7 +108,7 @@ public class SessionKeys {
     }
 
     private void reset() {
-        LOGGER.finest("Resetting " + keyDescription + " session keys.");
+        LOGGER.log(Level.FINEST, "Resetting {0} session keys.", keyDescription);
         Arrays.fill(this.sendingCtr, (byte) 0x00);
         Arrays.fill(this.receivingCtr, (byte) 0x00);
         this.sendingAESKey = null;

@@ -74,6 +74,7 @@ public class Session implements Context {
     private final boolean isMasterSession;
 
     private final OtrEngineHost host;
+    // TODO consider instantiating AuthContext immediately at construction of the class
     private AuthContext authContext;
     
     private final Logger logger;
@@ -96,19 +97,19 @@ public class Session implements Context {
      */
     private final SecureRandom secureRandom;
 
+    /**
+     * List of registered listeners.
+     *
+     * Synchronized access is required. This is currently managed in methods
+     * accessing the list.
+     */
+    private final ArrayList<OtrEngineListener> listeners = new ArrayList<OtrEngineListener>();
+
     public Session(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost listener) {
         this.secureRandom = new SecureRandom();
-
-        if (sessionID == null) {
-            throw new NullPointerException("sessionID cannot be null");
-        }
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.sessionState = new StatePlaintext(sessionID);
-
-        if (listener == null) {
-            throw new NullPointerException("listener cannot be null");
-        }
-        this.host = listener;
+        this.host = Objects.requireNonNull(listener);
 
         // client application calls OtrSessionManager.getSessionStatus()
         // -> create new session if it does not exist, end up here
@@ -126,7 +127,7 @@ public class Session implements Context {
         isMasterSession = true;
 
         assembler = new OtrAssembler(this.senderTag);
-        fragmenter = new OtrFragmenter(outgoingSession, listener);
+        fragmenter = new OtrFragmenter(this, listener);
     }
 
     // A private constructor for instantiating 'slave' sessions.
@@ -135,11 +136,7 @@ public class Session implements Context {
             @Nonnull final InstanceTag senderTag,
             @Nonnull final InstanceTag receiverTag,
             @Nonnull final SecureRandom secureRandom) {
-        if (secureRandom == null) {
-            throw new NullPointerException("secureRandom");
-        }
-        this.secureRandom = secureRandom;
-
+        this.secureRandom = Objects.requireNonNull(secureRandom);
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.sessionState = new StatePlaintext(sessionID);
         this.host = listener;
@@ -156,7 +153,7 @@ public class Session implements Context {
         protocolVersion = OTRv.THREE;
 
         assembler = new OtrAssembler(this.senderTag);
-        fragmenter = new OtrFragmenter(outgoingSession, listener);
+        fragmenter = new OtrFragmenter(this, listener);
     }
 
     /**
@@ -181,7 +178,7 @@ public class Session implements Context {
     public void setState(@Nonnull final State state) {
         this.sessionState = Objects.requireNonNull(state);
         OtrEngineListenerUtil.sessionStatusChanged(
-                OtrEngineListenerUtil.duplicate(listeners), state.getSessionId());
+                OtrEngineListenerUtil.duplicate(listeners), state.getSessionID());
     }
 
     public SessionStatus getSessionStatus() {
@@ -189,7 +186,7 @@ public class Session implements Context {
     }
 
     public SessionID getSessionID() {
-        return this.sessionState.getSessionId();
+        return this.sessionState.getSessionID();
     }
 
     @Override
@@ -207,7 +204,6 @@ public class Session implements Context {
     public void setOfferStatus(@Nonnull final OfferStatus status) {
         this.offerStatus = Objects.requireNonNull(status);
     }
-
     
     @Nonnull
     @Override
@@ -231,7 +227,7 @@ public class Session implements Context {
         } catch (final UnknownInstanceException e) {
             // The fragment is not intended for us
             logger.finest(e.getMessage());
-            OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionId());
+            OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionID());
             return null;
         } catch (ProtocolException e) {
             logger.log(Level.WARNING, "An invalid message fragment was discarded.", e);
@@ -271,7 +267,7 @@ public class Session implements Context {
                         // The message is not intended for us. Discarding...
                         logger.finest("Received an encoded message with receiver instance tag" +
                                 " that is different from ours, ignore this message");
-                        OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionId());
+                        OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionID());
                         return null;
                     }
                 }
@@ -295,7 +291,7 @@ public class Session implements Context {
                         if (!slaveSessions.containsKey(newReceiverTag)) {
 
                             final Session session =
-                                    new Session(this.sessionState.getSessionId(),
+                                    new Session(this.sessionState.getSessionID(),
                                             this.host,
                                             getSenderInstanceTag(),
                                             newReceiverTag,
@@ -333,9 +329,9 @@ public class Session implements Context {
 
                             slaveSessions.put(newReceiverTag, session);
 
-                            OtrEngineHostUtil.multipleInstancesDetected(this.host, this.sessionState.getSessionId());
+                            OtrEngineHostUtil.multipleInstancesDetected(this.host, this.sessionState.getSessionID());
                             OtrEngineListenerUtil.multipleInstancesDetected(
-                                    OtrEngineListenerUtil.duplicate(listeners), this.sessionState.getSessionId());
+                                    OtrEngineListenerUtil.duplicate(listeners), this.sessionState.getSessionID());
                         }
                     }
                     return slaveSessions.get(newReceiverTag).transformReceiving(msgText);
@@ -375,7 +371,7 @@ public class Session implements Context {
     // FIXME Move handleQueryMessage to State or keep here?
     private void handleQueryMessage(@Nonnull final QueryMessage queryMessage)
             throws OtrException {
-        final SessionID sessionId = this.sessionState.getSessionId();
+        final SessionID sessionId = this.sessionState.getSessionID();
         logger.log(Level.FINEST, "{0} received a query message from {1} through {2}.",
                 new Object[]{sessionId.getAccountID(), sessionId.getUserID(), sessionId.getProtocolName()});
 
@@ -414,14 +410,14 @@ public class Session implements Context {
 
     private void handleErrorMessage(@Nonnull final ErrorMessage errorMessage)
             throws OtrException {
-        final SessionID sessionId = this.sessionState.getSessionId();
+        final SessionID sessionId = this.sessionState.getSessionID();
         logger.log(Level.FINEST, "{0} received an error message from {1} through {2}.",
                 new Object[]{sessionId.getAccountID(), sessionId.getUserID(), sessionId.getProtocolName()});
         this.sessionState.handleErrorMessage(this, errorMessage);
     }
 
     private String handleDataMessage(@Nonnull final DataMessage data) throws OtrException {
-        final SessionID sessionId = this.sessionState.getSessionId();
+        final SessionID sessionId = this.sessionState.getSessionID();
         logger.log(Level.FINEST, "{0} received a data message from {1}.",
                 new Object[]{sessionId.getAccountID(), sessionId.getUserID()});
         return this.sessionState.handleDataMessage(this, data);
@@ -429,17 +425,17 @@ public class Session implements Context {
 
     @Override
     public void injectMessage(@Nonnull final AbstractMessage m) throws OtrException {
-        final SessionID sessionId = this.sessionState.getSessionId();
         String msg;
         try {
             msg = SerializationUtils.toString(m);
         } catch (IOException e) {
             throw new OtrException(e);
         }
+        final SessionID sessionId = this.sessionState.getSessionID();
         if (m instanceof QueryMessage) {
             String fallback = OtrEngineHostUtil.getFallbackMessage(this.host,
                     sessionId);
-            if (fallback == null || fallback.equals("")) {
+            if (fallback == null || fallback.isEmpty()) {
                 fallback = SerializationConstants.DEFAULT_FALLBACK_MESSAGE;
             }
             msg += fallback;
@@ -466,7 +462,7 @@ public class Session implements Context {
     // FIXME On quick investigation, it seems that all the logic that is currently in this method, are related only to message parsing, i.e. not to session state management. We do however manage authentication process, i.e. AuthContext DH-commit message. What to do with the Slave Sessions.
     private String handlePlainTextMessage(@Nonnull final PlainTextMessage plainTextMessage)
             throws OtrException {
-        final SessionID sessionId = this.sessionState.getSessionId();
+        final SessionID sessionId = this.sessionState.getSessionID();
         logger.log(Level.FINEST, "{0} received a plaintext message from {1} through {2}.",
                 new Object[]{sessionId.getAccountID(), sessionId.getUserID(), sessionId.getProtocolName()});
         final String messagetext = this.sessionState.handlePlainTextMessage(this, plainTextMessage);
@@ -548,15 +544,15 @@ public class Session implements Context {
     @Nonnull
     public String[] transformSending(@Nullable String msgText, @Nullable List<TLV> tlvs)
             throws OtrException {
+        if (isMasterSession && outgoingSession != this && getProtocolVersion() == OTRv.THREE) {
+            return outgoingSession.transformSending(msgText, tlvs);
+        }
         // TODO Do we really want transformSending to handle NULL messages? (It seems we allow it.)
         if (msgText == null) {
             msgText = "";
         }
         if (tlvs == null) {
             tlvs = Collections.<TLV>emptyList();
-        }
-        if (isMasterSession && outgoingSession != this && getProtocolVersion() == OTRv.THREE) {
-            return outgoingSession.transformSending(msgText, tlvs);
         }
         return this.sessionState.transformSending(this, msgText, tlvs);
     }
@@ -596,14 +592,6 @@ public class Session implements Context {
         return this.sessionState.getRemotePublicKey();
     }
 
-    /**
-     * List of registered listeners.
-     *
-     * Synchronized access is required. This is currently managed in methods
-     * accessing the list.
-     */
-    private final ArrayList<OtrEngineListener> listeners = new ArrayList<OtrEngineListener>();
-
     public void addOtrEngineListener(@Nonnull OtrEngineListener l) {
         synchronized (listeners) {
             if (!listeners.contains(l)) {
@@ -620,11 +608,11 @@ public class Session implements Context {
 
     @Override
     public OtrPolicy getSessionPolicy() {
-        return this.host.getSessionPolicy(this.sessionState.getSessionId());
+        return this.host.getSessionPolicy(this.sessionState.getSessionID());
     }
 
     public KeyPair getLocalKeyPair() throws OtrException {
-        return this.host.getLocalKeyPair(this.sessionState.getSessionId());
+        return this.host.getLocalKeyPair(this.sessionState.getSessionID());
     }
 
     @Override
@@ -666,27 +654,26 @@ public class Session implements Context {
     }
 
     public boolean setOutgoingInstance(@Nonnull final InstanceTag tag) {
-        // Only master session can set the outgoing session.
         if (!isMasterSession) {
+            // Only master session can set the outgoing session.
             return false;
         }
-        final SessionID sessionId = this.sessionState.getSessionId();
+        final SessionID sessionId = this.sessionState.getSessionID();
         if (tag.equals(getReceiverInstanceTag())) {
             outgoingSession = this;
             OtrEngineListenerUtil.outgoingSessionChanged(
                     OtrEngineListenerUtil.duplicate(listeners), sessionId);
             return true;
         }
-
         final Session newActiveSession = slaveSessions.get(tag);
-        if (newActiveSession != null) {
+        if (newActiveSession == null) {
+            outgoingSession = this;
+            return false;
+        } else {
             outgoingSession = newActiveSession;
             OtrEngineListenerUtil.outgoingSessionChanged(
                     OtrEngineListenerUtil.duplicate(listeners), sessionId);
             return true;
-        } else {
-            outgoingSession = this;
-            return false;
         }
     }
 
@@ -695,8 +682,8 @@ public class Session implements Context {
             return this.sessionState.getStatus();
         } else {
             final Session slave = slaveSessions.get(tag);
-            return slave != null ? slave.getSessionStatus()
-                    : this.sessionState.getStatus();
+            return slave == null ? this.sessionState.getStatus()
+                    : slave.getSessionStatus();
         }
     }
 
@@ -705,8 +692,8 @@ public class Session implements Context {
             return this.sessionState.getRemotePublicKey();
         } else {
             final Session slave = slaveSessions.get(tag);
-            return slave != null ? slave.getRemotePublicKey()
-                    : this.sessionState.getRemotePublicKey();
+            return slave == null ? this.sessionState.getRemotePublicKey()
+                    : slave.getRemotePublicKey();
         }
     }
 
@@ -724,7 +711,7 @@ public class Session implements Context {
         final List<TLV> tlvs = handler.initRespondSmp(question, secret, true);
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
-            this.host.injectMessage(this.sessionState.getSessionId(), part);
+            this.host.injectMessage(this.sessionState.getSessionID(), part);
         }
     }
 
@@ -748,11 +735,11 @@ public class Session implements Context {
             outgoingSession.respondSmp(question, secret);
             return;
         }
-        // FIXME Only for encrypted sessions!
+        // TODO Consider whether to pass through IncorrectStateException or to log bad timing and let it pass silently.
         final List<TLV> tlvs = this.sessionState.getSmpTlvHandler().initRespondSmp(question, secret, false);
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
-            this.host.injectMessage(this.sessionState.getSessionId(), part);
+            this.host.injectMessage(this.sessionState.getSessionID(), part);
         }
     }
 
@@ -761,11 +748,11 @@ public class Session implements Context {
             outgoingSession.abortSmp();
             return;
         }
-        // FIXME Only for encrypted sessions!
+        // TODO Consider whether to pass through IncorrectStateException or to log bad timing and let it pass silently.
         final List<TLV> tlvs = this.sessionState.getSmpTlvHandler().abortSmp();
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
-            this.host.injectMessage(this.sessionState.getSessionId(), part);
+            this.host.injectMessage(this.sessionState.getSessionID(), part);
         }
     }
 
@@ -773,6 +760,10 @@ public class Session implements Context {
         if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
             return outgoingSession.isSmpInProgress();
         }
-        return this.sessionState.getSmpTlvHandler().isSmpInProgress();
+        try {
+            return this.sessionState.getSmpTlvHandler().isSmpInProgress();
+        } catch (State.IncorrectStateException ex) {
+            return false;
+        }
     }
 }

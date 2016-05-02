@@ -106,7 +106,7 @@ public final class StateEncrypted extends AbstractState {
 
     @Override
     @Nonnull
-    public SessionID getSessionId() {
+    public SessionID getSessionID() {
         return this.sessionId;
     }
 

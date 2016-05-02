@@ -32,7 +32,7 @@ public final class StateFinished extends AbstractState {
 
     @Override
     @Nonnull
-    public SessionID getSessionId() {
+    public SessionID getSessionID() {
         return this.sessionId;
     }
 
@@ -44,9 +44,8 @@ public final class StateFinished extends AbstractState {
 
     @Override
     @Nonnull
-    public SmpTlvHandler getSmpTlvHandler() {
-        // FIXME consider checked exception since this can happen without programmer's fault in real life situation
-        throw new IllegalStateException("SmpTlvHandler not available in finished state.");
+    public SmpTlvHandler getSmpTlvHandler() throws IncorrectStateException {
+        throw new IncorrectStateException("SMP negotiation is not available in finished state.");
     }
 
     @Override

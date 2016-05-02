@@ -120,7 +120,7 @@ public class SmpTlvHandler {
 		 * responder fingerprint (20 bytes), secure session id, input secret
 		 */
 		final byte[] our_fp = engineHost.getLocalFingerprintRaw(session
-				.getSessionId());
+				.getSessionID());
 		final byte[] their_fp;
 		final PublicKey remotePublicKey = session.getRemotePublicKey();
 		try {
@@ -171,7 +171,7 @@ public class SmpTlvHandler {
                 // and send the abort signal to the counter party. Then we
                 // immediately initiate a new SMP exchange as requested.
                 sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
-                OtrEngineHostUtil.smpAborted(engineHost, session.getSessionId());
+                OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
                 try {
                     smpmsg = sm.step1(combined_secret);
                 }
@@ -188,7 +188,7 @@ public class SmpTlvHandler {
             }
             catch (SMAbortedException ex) {
                 sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
-                OtrEngineHostUtil.smpAborted(engineHost, session.getSessionId());
+                OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
                 throw new OtrException(ex);
             }
             catch (SMException ex) {
@@ -269,15 +269,15 @@ public class SmpTlvHandler {
             final byte[] plainq = new byte[qlen];
             System.arraycopy(question, 0, plainq, 0, qlen);
             final String questionUTF = new String(plainq, SerializationUtils.UTF8);
-            OtrEngineHostUtil.askForSecret(engineHost, session.getSessionId(),
+            OtrEngineHostUtil.askForSecret(engineHost, session.getSessionID(),
                     this.receiverInstanceTag, questionUTF);
         }
         catch (SMAbortedException e) {
             sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
-            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionId());
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
         catch (SMException e) {
-            OtrEngineHostUtil.smpError(engineHost, session.getSessionId(),
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
                     tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);
         }
@@ -289,15 +289,15 @@ public class SmpTlvHandler {
 			 * to continue. */
         try {
             sm.step2a(tlv.getValue());
-            OtrEngineHostUtil.askForSecret(engineHost, session.getSessionId(),
+            OtrEngineHostUtil.askForSecret(engineHost, session.getSessionID(),
                     this.receiverInstanceTag, null);
         }
         catch (SMAbortedException e) {
             sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
-            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionId());
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
         catch (SMException e) {
-            OtrEngineHostUtil.smpError(engineHost, session.getSessionId(),
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
                     tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);
         }
@@ -312,15 +312,15 @@ public class SmpTlvHandler {
             final String[] msg = session.transformSending(this.sessionContext,
                     "", Collections.singletonList(sendtlv));
             for (String part : msg) {
-                engineHost.injectMessage(session.getSessionId(), part);
+                engineHost.injectMessage(session.getSessionID(), part);
             }
         }
         catch (SMAbortedException e) {
             sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
-            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionId());
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
         catch (SMException e) {
-            OtrEngineHostUtil.smpError(engineHost, session.getSessionId(),
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
                     tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);
         }
@@ -331,10 +331,10 @@ public class SmpTlvHandler {
             final byte[] nextmsg = sm.step4(tlv.getValue());
             /* Set trust level based on result */
             if (this.sm.status() == SM.Status.SUCCEEDED) {
-                OtrEngineHostUtil.verify(engineHost, session.getSessionId(),
+                OtrEngineHostUtil.verify(engineHost, session.getSessionID(),
                         getFingerprint(), approved);
             } else {
-                OtrEngineHostUtil.unverify(engineHost, session.getSessionId(),
+                OtrEngineHostUtil.unverify(engineHost, session.getSessionID(),
                         getFingerprint());
             }
             /* Send msg with next smp msg content */
@@ -343,10 +343,10 @@ public class SmpTlvHandler {
         }
         catch (SMAbortedException e) {
             sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
-            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionId());
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
         catch (SMException e) {
-            OtrEngineHostUtil.smpError(engineHost, session.getSessionId(),
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
                     tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);
         }
@@ -356,18 +356,18 @@ public class SmpTlvHandler {
         try {
             sm.step5(tlv.getValue());
             if (this.sm.status() == SM.Status.SUCCEEDED) {
-                OtrEngineHostUtil.verify(engineHost, session.getSessionId(),
+                OtrEngineHostUtil.verify(engineHost, session.getSessionID(),
                         getFingerprint(), approved);
             } else {
-                OtrEngineHostUtil.unverify(engineHost, session.getSessionId(), getFingerprint());
+                OtrEngineHostUtil.unverify(engineHost, session.getSessionID(), getFingerprint());
             }
         }
         catch (SMAbortedException e) {
             sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
-            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionId());
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
         catch (SMException e) {
-            OtrEngineHostUtil.smpError(engineHost, session.getSessionId(),
+            OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
                     tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);
         }
@@ -375,7 +375,7 @@ public class SmpTlvHandler {
 
     public void processTlvSMP_ABORT(@Nonnull final TLV tlv) throws OtrException {
         if (this.sm.abort()) {
-            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionId());
+            OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
     }
 
@@ -383,7 +383,7 @@ public class SmpTlvHandler {
         final String[] msg = session.transformSending(this.sessionContext,
                 "", Collections.singletonList(tlv));
         for (final String part : msg) {
-            engineHost.injectMessage(session.getSessionId(), part);
+            engineHost.injectMessage(session.getSessionID(), part);
         }
     }
 }
