@@ -1,4 +1,4 @@
-package net.java.otr4j.session;
+package net.java.otr4j.session.state;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,6 +24,8 @@ import net.java.otr4j.crypto.SM.SMException;
 import net.java.otr4j.crypto.SM.SMAbortedException;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
+import net.java.otr4j.session.InstanceTag;
+import net.java.otr4j.session.TLV;
 import net.java.otr4j.session.state.Context;
 import net.java.otr4j.session.state.StateEncrypted;
 

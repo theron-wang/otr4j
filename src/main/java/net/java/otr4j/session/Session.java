@@ -7,6 +7,7 @@
 
 package net.java.otr4j.session;
 
+import net.java.otr4j.session.state.SmpTlvHandler;
 import java.io.IOException;
 import java.net.ProtocolException;
 import java.security.KeyPair;

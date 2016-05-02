@@ -21,7 +21,6 @@ import net.java.otr4j.session.OfferStatus;
 import net.java.otr4j.session.Session;
 import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.SessionStatus;
-import net.java.otr4j.session.SmpTlvHandler;
 import net.java.otr4j.session.TLV;
 
 public final class StatePlaintext extends AbstractState {

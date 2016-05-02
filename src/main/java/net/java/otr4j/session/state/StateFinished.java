@@ -15,7 +15,6 @@ import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.SessionStatus;
-import net.java.otr4j.session.SmpTlvHandler;
 import net.java.otr4j.session.TLV;
 
 // TODO Consider preserving remote public key in Finished state for after-the-fact requests.
