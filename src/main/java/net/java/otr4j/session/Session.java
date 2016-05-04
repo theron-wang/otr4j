@@ -7,7 +7,6 @@
 
 package net.java.otr4j.session;
 
-import net.java.otr4j.session.state.SmpTlvHandler;
 import java.io.IOException;
 import java.net.ProtocolException;
 import java.security.KeyPair;
@@ -43,6 +42,7 @@ import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.io.messages.QueryMessage;
 import net.java.otr4j.session.state.Context;
+import net.java.otr4j.session.state.SmpTlvHandler;
 import net.java.otr4j.session.state.State;
 import net.java.otr4j.session.state.StatePlaintext;
 
@@ -54,12 +54,14 @@ import net.java.otr4j.session.state.StatePlaintext;
 public class Session implements Context {
 
     public interface OTRv {
+        // FIXME consider eliminating OTRv1 completely
         int ONE = 1;
         int TWO = 2;
         int THREE = 3;
         Set<Integer> ALL = new HashSet<Integer>(Arrays.asList(ONE, TWO, THREE));
     }
     
+    @Nonnull
     private State sessionState;
 
     /**
@@ -69,6 +71,7 @@ public class Session implements Context {
      */
     private final Map<InstanceTag, Session> slaveSessions;
 
+    @Nonnull
     private volatile Session outgoingSession;
 
     private final boolean isMasterSession;
@@ -135,11 +138,12 @@ public class Session implements Context {
             @Nonnull final OtrEngineHost listener,
             @Nonnull final InstanceTag senderTag,
             @Nonnull final InstanceTag receiverTag,
-            @Nonnull final SecureRandom secureRandom) {
+            @Nonnull final SecureRandom secureRandom,
+            @Nullable final AuthContext authContext) {
         this.secureRandom = Objects.requireNonNull(secureRandom);
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.sessionState = new StatePlaintext(sessionID);
-        this.host = listener;
+        this.host = Objects.requireNonNull(listener);
 
         this.offerStatus = OfferStatus.idle;
 
@@ -154,6 +158,12 @@ public class Session implements Context {
 
         assembler = new OtrAssembler(this.senderTag);
         fragmenter = new OtrFragmenter(this, listener);
+        
+        if (authContext != null) {
+            // In case an AuthContext is provided, duplicate AuthContext for
+            // this session instance.
+            this.authContext = new AuthContext(this, authContext);
+        }
     }
 
     /**
@@ -241,7 +251,7 @@ public class Session implements Context {
         final AbstractMessage m;
         try {
             m = SerializationUtils.toMessage(msgText);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new OtrException(e);
         }
         if (m == null) {
@@ -290,26 +300,17 @@ public class Session implements Context {
 
                         if (!slaveSessions.containsKey(newReceiverTag)) {
 
-                            final Session session =
-                                    new Session(this.sessionState.getSessionID(),
+                            // construct a new slave session based on an
+                            // existing AuthContext, if it exists.
+                            final Session session
+                                    = new Session(this.sessionState.getSessionID(),
                                             this.host,
                                             getSenderInstanceTag(),
                                             newReceiverTag,
-                                            this.secureRandom);
-
-                            if (encodedM.messageType == AbstractEncodedMessage.MESSAGE_DHKEY) {
-
-                                session.getAuthContext().r =
-                                        this.getAuthContext().r;
-                                session.getAuthContext().localDHKeyPair =
-                                        this.getAuthContext().localDHKeyPair;
-                                session.getAuthContext().localDHPublicKeyBytes =
-                                        this.getAuthContext().localDHPublicKeyBytes;
-                                session.getAuthContext().localDHPublicKeyEncrypted =
-                                        this.getAuthContext().localDHPublicKeyEncrypted;
-                                session.getAuthContext().localDHPublicKeyHash =
-                                        this.getAuthContext().localDHPublicKeyHash;
-                            }
+                                            this.secureRandom,
+                                            encodedM.messageType == AbstractEncodedMessage.MESSAGE_DHKEY
+                                                    ? this.getAuthContext() : null);
+                            
                             session.addOtrEngineListener(new OtrEngineListener() {
 
                                 @Override
@@ -382,17 +383,7 @@ public class Session implements Context {
             if (isMasterSession) {
                 synchronized (slaveSessions) {
                     for (final Session session : slaveSessions.values()) {
-                        session.getAuthContext().reset();
-                        session.getAuthContext().r
-                                = this.getAuthContext().r;
-                        session.getAuthContext().localDHKeyPair
-                                = this.getAuthContext().localDHKeyPair;
-                        session.getAuthContext().localDHPublicKeyBytes
-                                = this.getAuthContext().localDHPublicKeyBytes;
-                        session.getAuthContext().localDHPublicKeyEncrypted
-                                = this.getAuthContext().localDHPublicKeyEncrypted;
-                        session.getAuthContext().localDHPublicKeyHash
-                                = this.getAuthContext().localDHPublicKeyHash;
+                        session.getAuthContext().reset(this.getAuthContext());
                     }
                 }
             }
@@ -490,17 +481,7 @@ public class Session implements Context {
                 if (isMasterSession) {
                     synchronized (slaveSessions) {
                         for (final Session session : slaveSessions.values()) {
-                            session.getAuthContext().reset();
-                            session.getAuthContext().r
-                                    = this.getAuthContext().r;
-                            session.getAuthContext().localDHKeyPair
-                                    = this.getAuthContext().localDHKeyPair;
-                            session.getAuthContext().localDHPublicKeyBytes
-                                    = this.getAuthContext().localDHPublicKeyBytes;
-                            session.getAuthContext().localDHPublicKeyEncrypted
-                                    = this.getAuthContext().localDHPublicKeyEncrypted;
-                            session.getAuthContext().localDHPublicKeyHash
-                                    = this.getAuthContext().localDHPublicKeyHash;
+                            session.getAuthContext().reset(this.getAuthContext());
                         }
                     }
                 }

@@ -13,8 +13,10 @@ import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import javax.crypto.interfaces.DHPublicKey;
 
@@ -56,18 +58,27 @@ public class AuthContext {
         SessionID sID = session.getSessionID();
         this.logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
         this.session = session;
-        this.reset();
+        logger.finest("Construct new authentication state.");
+        this.reset(null);
     }
 
+    public AuthContext(final Session session, final AuthContext other) {
+        SessionID sID = session.getSessionID();
+        this.logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
+        this.session = Objects.requireNonNull(session);
+        logger.finest("Copy-construct authentication state.");
+        this.reset(other);
+    }
+    
     // These parameters are initialized when generating D-H Commit Messages.
     // If the Session that this AuthContext belongs to is the 'master' session
     // then these parameters must be replicated to all slave session's auth
     // contexts.
-    byte[] r;
-    KeyPair localDHKeyPair;
-    byte[] localDHPublicKeyBytes;
-    byte[] localDHPublicKeyHash;
-    byte[] localDHPublicKeyEncrypted;
+    private byte[] r;
+    private KeyPair localDHKeyPair;
+    private byte[] localDHPublicKeyBytes;
+    private byte[] localDHPublicKeyHash;
+    private byte[] localDHPublicKeyEncrypted;
 
     private final Session session;
 
@@ -90,6 +101,7 @@ public class AuthContext {
 
     private final Logger logger;
 
+    // FIXME consider making MessageFactory static class and provide session instance at construction
     class MessageFactory {
 
         QueryMessage getQueryMessage() {
@@ -192,20 +204,31 @@ public class AuthContext {
      *
      * Reset is made final so that it cannot be overridden to make sure that
      * cleaning state does not accidentally fail.
+     *
+     * @param other Other AuthContext instance to use to duplicate state from
+     * when resetting the state.
      */
-    public final void reset() {
+    public final void reset(@Nullable final AuthContext other) {
         logger.finest("Resetting authentication state.");
         authenticationState = AuthContext.NONE;
-        r = null;
+
+        if (other == null) {
+            r = null;
+            localDHKeyPair = null;
+            localDHPublicKeyBytes = null;
+            localDHPublicKeyHash = null;
+            localDHPublicKeyEncrypted = null;
+        } else {
+            this.r = other.r;
+            this.localDHKeyPair = other.localDHKeyPair;
+            this.localDHPublicKeyBytes = other.localDHPublicKeyBytes;
+            this.localDHPublicKeyEncrypted = other.localDHPublicKeyEncrypted;
+            this.localDHPublicKeyHash = other.localDHPublicKeyHash;
+        }
 
         remoteDHPublicKey = null;
         remoteDHPublicKeyEncrypted = null;
         remoteDHPublicKeyHash = null;
-
-        localDHKeyPair = null;
-        localDHPublicKeyBytes = null;
-        localDHPublicKeyHash = null;
-        localDHPublicKeyEncrypted = null;
 
         s = null;
         c = m1 = m2 = cp = m1p = m2p = null;
@@ -699,7 +722,7 @@ public class AuthContext {
             case NONE:
                 // Reply with a D-H Key Message, and transition authstate to
                 // AUTHSTATE_AWAITING_REVEALSIG.
-                this.reset();
+                this.reset(null);
                 session.setProtocolVersion(m.protocolVersion);
                 this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                 this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
@@ -735,7 +758,7 @@ public class AuthContext {
                     // and pretend you're in AUTHSTATE_NONE; i.e. reply with a
                     // D-H Key Message, and transition authstate to
                     // AUTHSTATE_AWAITING_REVEALSIG.
-                    this.reset();
+                    this.reset(null);
                     session.setProtocolVersion(m.protocolVersion);
                     this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                     this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
@@ -758,7 +781,7 @@ public class AuthContext {
             case AWAITING_SIG:
                 // Reply with a new D-H Key message, and transition authstate to
                 // AUTHSTATE_AWAITING_REVEALSIG
-                this.reset();
+                this.reset(null);
                 this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                 this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
                 this.setAuthenticationState(AuthContext.AWAITING_REVEALSIG);
@@ -766,6 +789,7 @@ public class AuthContext {
                 logger.finest("Sent D-H key.");
                 break;
             case V1_SETUP:
+                // FIXME consider cleaning up OTRv1 support remains
                 throw new UnsupportedOperationException();
         }
     }
@@ -781,7 +805,7 @@ public class AuthContext {
         }
 
         logger.finest("Responding to Query Message");
-        this.reset();
+        this.reset(null);
         session.setProtocolVersion(version);
         this.setAuthenticationState(AuthContext.AWAITING_DHKEY);
         logger.finest("Generating D-H Commit.");
