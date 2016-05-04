@@ -206,7 +206,8 @@ public class AuthContext {
      * cleaning state does not accidentally fail.
      *
      * @param other Other AuthContext instance to use to duplicate state from
-     * when resetting the state.
+     * when resetting the state. This is optional. If null is provided, then we
+     * will not copy state from other instance.
      */
     public final void reset(@Nullable final AuthContext other) {
         logger.finest("Resetting authentication state.");
@@ -544,19 +545,16 @@ public class AuthContext {
         switch (this.authenticationState) {
             case AWAITING_REVEALSIG:
                 // Use the received value of r to decrypt the value of gx
-                // received
-                // in the D-H Commit Message, and verify the hash therein.
-                // Decrypt
-                // the encrypted signature, and verify the signature and the
-                // MACs.
+                // received in the D-H Commit Message, and verify the hash
+                // therein. Decrypt the encrypted signature, and verify the
+                // signature and the MACs.
+                //
                 // If everything checks out:
-
                 // * Reply with a Signature Message.
                 // * Transition authstate to AUTHSTATE_NONE.
                 // * Transition msgstate to MSGSTATE_ENCRYPTED.
                 // * TODO If there is a recent stored message, encrypt it and
-                // send
-                // it as a Data Message.
+                // send it as a Data Message.
 
                 // Uses r to decrypt the value of gx sent earlier
                 final byte[] remoteDHPublicKeyDecrypted = OtrCryptoEngine.aesDecrypt(
@@ -656,8 +654,7 @@ public class AuthContext {
             case NONE:
             case AWAITING_DHKEY:
                 // Reply with a Reveal Signature Message and transition
-                // authstate to
-                // AUTHSTATE_AWAITING_SIG
+                // authstate to AUTHSTATE_AWAITING_SIG
                 this.setRemoteDHPublicKey(m.dhPublicKey);
                 this.authenticationState = AuthContext.AWAITING_SIG;
                 session.injectMessage(messageFactory.getRevealSignatureMessage());
@@ -668,8 +665,7 @@ public class AuthContext {
                 if (m.dhPublicKey.getY().equals(this.getRemoteDHPublicKey().getY())) {
                     // If this D-H Key message is the same the one you received
                     // earlier (when you entered AUTHSTATE_AWAITING_SIG):
-                    // Retransmit
-                    // your Reveal Signature Message.
+                    // Retransmit your Reveal Signature Message.
                     session.injectMessage(messageFactory.getRevealSignatureMessage());
                     logger.finest("Resent Reveal Signature.");
                 } else {
@@ -720,15 +716,11 @@ public class AuthContext {
             case AWAITING_DHKEY:
                 // This is the trickiest transition in the whole protocol. It
                 // indicates that you have already sent a D-H Commit message to
-                // your
-                // correspondent, but that he either didn't receive it, or just
-                // didn't receive it yet, and has sent you one as well. The
-                // symmetry
-                // will be broken by comparing the hashed gx you sent in your
-                // D-H
-                // Commit Message with the one you received, considered as
-                // 32-byte
-                // unsigned big-endian values.
+                // your correspondent, but that he either didn't receive it, or
+                // just didn't receive it yet, and has sent you one as well. The
+                // symmetry will be broken by comparing the hashed gx you sent
+                // in your D-H Commit Message with the one you received,
+                // considered as 32-byte unsigned big-endian values.
                 final BigInteger ourHash = new BigInteger(1, this
                         .getLocalDHPublicKeyHash());
                 final BigInteger theirHash = new BigInteger(1, m.dhPublicKeyHash);
@@ -740,9 +732,8 @@ public class AuthContext {
                     logger.finest("Ignored the incoming D-H Commit message, but resent our D-H Commit message.");
                 } else {
                     // *Forget* your old gx value that you sent (encrypted)
-                    // earlier,
-                    // and pretend you're in AUTHSTATE_NONE; i.e. reply with a
-                    // D-H Key Message, and transition authstate to
+                    // earlier, and pretend you're in AUTHSTATE_NONE; i.e. reply
+                    // with a D-H Key Message, and transition authstate to
                     // AUTHSTATE_AWAITING_REVEALSIG.
                     this.reset(null);
                     session.setProtocolVersion(m.protocolVersion);
@@ -756,9 +747,8 @@ public class AuthContext {
 
             case AWAITING_REVEALSIG:
                 // Retransmit your D-H Key Message (the same one as you sent
-                // when
-                // you entered AUTHSTATE_AWAITING_REVEALSIG). Forget the old D-H
-                // Commit message, and use this new one instead.
+                // when you entered AUTHSTATE_AWAITING_REVEALSIG). Forget the
+                // old D-H Commit message, and use this new one instead.
                 this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                 this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
                 session.injectMessage(messageFactory.getDHKeyMessage());
@@ -766,7 +756,7 @@ public class AuthContext {
                 break;
             case AWAITING_SIG:
                 // Reply with a new D-H Key message, and transition authstate to
-                // AUTHSTATE_AWAITING_REVEALSIG
+                // AUTHSTATE_AWAITING_REVEALSIG.
                 this.reset(null);
                 this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                 this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
