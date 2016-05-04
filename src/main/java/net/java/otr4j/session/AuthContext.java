@@ -14,6 +14,7 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -97,12 +98,11 @@ public class AuthContext {
     private byte[] m2p;
 
     private KeyPair localLongTermKeyPair;
-    private Boolean isSecure = false;
+    private boolean isSecure = false;
 
     private final Logger logger;
 
-    // FIXME consider making MessageFactory static class and provide session instance at construction
-    class MessageFactory {
+    private class MessageFactory {
 
         QueryMessage getQueryMessage() {
             return new QueryMessage(Arrays.asList(OTRv.TWO, OTRv.THREE));
@@ -239,14 +239,6 @@ public class AuthContext {
 
     public boolean getIsSecure() {
         return isSecure;
-    }
-
-    void setAuthenticationState(final int authenticationState) {
-        this.authenticationState = authenticationState;
-    }
-
-    private int getAuthenticationState() {
-        return authenticationState;
     }
 
     private byte[] getR() {
@@ -471,9 +463,8 @@ public class AuthContext {
 
     private void handleSignatureMessage(@Nonnull final SignatureMessage m) throws OtrException {
         final SessionID sessionID = session.getSessionID();
-        logger.finest(sessionID.getAccountID()
-                + " received a signature message from " + sessionID.getUserID()
-                + " through " + sessionID.getProtocolName() + ".");
+        logger.log(Level.FINEST, "{0} received a signature message from {1} through {2}.",
+                new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
 
         if (m.protocolVersion == OTRv.TWO && !session.getSessionPolicy().getAllowV2()) {
             logger.finest("If ALLOW_V2 is not set, ignore this message.");
@@ -488,7 +479,7 @@ public class AuthContext {
             return;
         }
 
-        switch (this.getAuthenticationState()) {
+        switch (this.authenticationState) {
             case AWAITING_SIG:
                 // Verify MAC.
                 if (!m.verify(this.getM2p())) {
@@ -528,17 +519,15 @@ public class AuthContext {
                 break;
             default:
                 logger.finest("We were not expecting a signature, ignoring message.");
-                return;
+                break;
         }
     }
 
     private void handleRevealSignatureMessage(@Nonnull final RevealSignatureMessage m)
             throws OtrException {
         final SessionID sessionID = session.getSessionID();
-        logger.finest(sessionID.getAccountID()
-                + " received a reveal signature message from "
-                + sessionID.getUserID() + " through "
-                + sessionID.getProtocolName() + ".");
+        logger.log(Level.FINEST, "{0} received a reveal signature message from {1} through {2}.",
+                new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
         if (m.protocolVersion == OTRv.TWO && !session.getSessionPolicy().getAllowV2()) {
             logger.finest("If ALLOW_V2 is not set, ignore this message.");
             return;
@@ -552,7 +541,7 @@ public class AuthContext {
             return;
         }
 
-        switch (this.getAuthenticationState()) {
+        switch (this.authenticationState) {
             case AWAITING_REVEALSIG:
                 // Use the received value of r to decrypt the value of gx
                 // received
@@ -633,7 +622,7 @@ public class AuthContext {
 
                 logger.finest("Signature verification succeeded.");
 
-                this.setAuthenticationState(AuthContext.NONE);
+                this.authenticationState = AuthContext.NONE;
                 this.isSecure = true;
                 this.remoteLongTermPublicKey = remoteLongTermPublicKey;
                 session.injectMessage(messageFactory.getSignatureMessage());
@@ -646,9 +635,8 @@ public class AuthContext {
 
     private void handleDHKeyMessage(@Nonnull final DHKeyMessage m) throws OtrException {
         final SessionID sessionID = session.getSessionID();
-        logger.finest(sessionID.getAccountID()
-                + " received a D-H key message from " + sessionID.getUserID()
-                + " through " + sessionID.getProtocolName() + ".");
+        logger.log(Level.FINEST, "{0} received a D-H key message from {1} through {2}.",
+                new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
 
         if (m.protocolVersion == OTRv.TWO && !session.getSessionPolicy().getAllowV2()) {
             logger.finest("If ALLOW_V2 is not set, ignore this message.");
@@ -664,14 +652,14 @@ public class AuthContext {
         }
 
         session.setReceiverInstanceTag(new InstanceTag(m.senderInstanceTag));
-        switch (this.getAuthenticationState()) {
+        switch (this.authenticationState) {
             case NONE:
             case AWAITING_DHKEY:
                 // Reply with a Reveal Signature Message and transition
                 // authstate to
                 // AUTHSTATE_AWAITING_SIG
                 this.setRemoteDHPublicKey(m.dhPublicKey);
-                this.setAuthenticationState(AuthContext.AWAITING_SIG);
+                this.authenticationState = AuthContext.AWAITING_SIG;
                 session.injectMessage(messageFactory.getRevealSignatureMessage());
                 logger.finest("Sent Reveal Signature.");
                 break;
@@ -697,10 +685,8 @@ public class AuthContext {
 
     private void handleDHCommitMessage(@Nonnull final DHCommitMessage m) throws OtrException {
         final SessionID sessionID = session.getSessionID();
-        logger.finest(sessionID.getAccountID()
-                + " received a D-H commit message from "
-                + sessionID.getUserID() + " through "
-                + sessionID.getProtocolName() + ".");
+        logger.log(Level.FINEST, "{0} received a D-H commit message from {1} through {2}.",
+                new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
 
         if (m.protocolVersion == OTRv.TWO && !session.getSessionPolicy().getAllowV2()) {
             logger.finest("ALLOW_V2 is not set, ignore this message.");
@@ -718,7 +704,7 @@ public class AuthContext {
         }
 
         session.setReceiverInstanceTag(new InstanceTag(m.senderInstanceTag));
-        switch (this.getAuthenticationState()) {
+        switch (this.authenticationState) {
             case NONE:
                 // Reply with a D-H Key Message, and transition authstate to
                 // AUTHSTATE_AWAITING_REVEALSIG.
@@ -726,7 +712,7 @@ public class AuthContext {
                 session.setProtocolVersion(m.protocolVersion);
                 this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                 this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
-                this.setAuthenticationState(AuthContext.AWAITING_REVEALSIG);
+                this.authenticationState = AuthContext.AWAITING_REVEALSIG;
                 session.injectMessage(messageFactory.getDHKeyMessage());
                 logger.finest("Sent D-H key.");
                 break;
@@ -762,7 +748,7 @@ public class AuthContext {
                     session.setProtocolVersion(m.protocolVersion);
                     this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                     this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
-                    this.setAuthenticationState(AuthContext.AWAITING_REVEALSIG);
+                    this.authenticationState = AuthContext.AWAITING_REVEALSIG;
                     session.injectMessage(messageFactory.getDHKeyMessage());
                     logger.finest("Forgot our old gx value that we sent (encrypted) earlier, and pretended we're in AUTHSTATE_NONE -> Sent D-H key.");
                 }
@@ -784,7 +770,7 @@ public class AuthContext {
                 this.reset(null);
                 this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                 this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
-                this.setAuthenticationState(AuthContext.AWAITING_REVEALSIG);
+                this.authenticationState = AuthContext.AWAITING_REVEALSIG;
                 session.injectMessage(messageFactory.getDHKeyMessage());
                 logger.finest("Sent D-H key.");
                 break;
@@ -807,7 +793,7 @@ public class AuthContext {
         logger.finest("Responding to Query Message");
         this.reset(null);
         session.setProtocolVersion(version);
-        this.setAuthenticationState(AuthContext.AWAITING_DHKEY);
+        this.authenticationState = AuthContext.AWAITING_DHKEY;
         logger.finest("Generating D-H Commit.");
         return messageFactory.getDHCommitMessage();
     }
