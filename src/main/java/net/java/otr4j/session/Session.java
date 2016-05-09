@@ -60,9 +60,20 @@ public class Session implements Context {
         int THREE = 3;
         Set<Integer> ALL = new HashSet<Integer>(Arrays.asList(ONE, TWO, THREE));
     }
-    
+
+    /**
+     * Session state contains the currently active message state of the session.
+     *
+     * The message state, being plaintext, encrypted or finished, is the
+     * instance that contains the logic concerning message handling for both
+     * incoming and outgoing messages, and everything related to this message
+     * state.
+     *
+     * Field is volatile to ensure that state changes are communicated as soon
+     * as known they have been processed.
+     */
     @Nonnull
-    private State sessionState;
+    private volatile State sessionState;
 
     /**
      * Slave sessions contain the mappings of instance tags to outgoing sessions.
