@@ -293,6 +293,7 @@ public final class StateEncrypted extends AbstractState {
         }
         // Re-negotiate if we got an error and we are encrypted
         logger.finest("Error message starts AKE.");
+        // FIXME consider extracting a utility method for this
         final ArrayList<Integer> versions = new ArrayList<Integer>(4);
         if (policy.getAllowV1()) {
             versions.add(Session.OTRv.ONE);
@@ -402,6 +403,7 @@ public final class StateEncrypted extends AbstractState {
 
     @Override
     public void secure(@Nonnull final Context context) throws OtrException {
+        // FIXME Should we re-establish secure messaging state when already in such state?
         context.setState(new StateEncrypted(context, this.sessionId));
     }
 

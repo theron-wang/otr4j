@@ -101,6 +101,10 @@ public class Session implements Context {
     private AuthContext authContext;
     
     private final Logger logger;
+    // FIXME investigate whether offer status can be reduced to 2-state
+    // construction: not-offered, offered. 'rejected' state is probably not
+    // "waterproof" as messages could cross, considering it rejected even though
+    // that particular message was not yet replied to.
     private OfferStatus offerStatus;
     private final InstanceTag senderTag;
     private InstanceTag receiverTag;
@@ -415,6 +419,7 @@ public class Session implements Context {
             logger.finest("Sending D-H Commit Message");
             injectMessage(dhCommit);
         } else if (queryMessage.versions.contains(OTRv.ONE) && policy.getAllowV1()) {
+            // FIXME Get rid of OTRv1 support completely
             logger.finest("Query message with V1 support found - ignoring.");
         }
     }
