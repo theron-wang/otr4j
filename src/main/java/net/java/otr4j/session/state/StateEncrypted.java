@@ -55,6 +55,9 @@ public final class StateEncrypted extends AbstractState {
     private final int protocolVersion;
     private final SmpTlvHandler smpTlvHandler;
 
+    /**
+     * Shared secret s.
+     */
     private final BigInteger s;
 
     /**

@@ -82,12 +82,21 @@ public class Session implements Context {
      */
     private final Map<InstanceTag, Session> slaveSessions;
 
+    /**
+     * The currently selected slave session that will be used as the session
+     * for outgoing messages.
+     */
     @Nonnull
     private volatile Session outgoingSession;
 
+    /**
+     * Flag indicating whether this instance is a master session or a slave
+     * session.
+     */
     private final boolean isMasterSession;
 
     private final OtrEngineHost host;
+
     // TODO consider instantiating AuthContext immediately at construction of the class
     private AuthContext authContext;
     
