@@ -37,7 +37,8 @@ public class SessionKeys {
     public static final byte LOW_RECEIVE_BYTE = (byte) 0x01;
 
     private static final Logger LOGGER = Logger.getLogger(SessionKeys.class.getName());
-    private String keyDescription;
+
+    private final String keyDescription;
 
     private int localKeyID;
     private int remoteKeyID;
@@ -53,17 +54,18 @@ public class SessionKeys {
     private boolean isHigh;
 
     public SessionKeys(final int localKeyIndex, final int remoteKeyIndex) {
+        final StringBuilder desc = new StringBuilder();
         if (localKeyIndex == 0) {
-            keyDescription = "(Previous local, ";
+            desc.append("(Previous local, ");
         } else {
-            keyDescription = "(Most recent local, ";
+            desc.append("(Most recent local, ");
         }
-
         if (remoteKeyIndex == 0) {
-            keyDescription += "Previous remote)";
+            desc.append("Previous remote)");
         } else {
-            keyDescription += "Most recent remote)";
+            desc.append("Most recent remote)");
         }
+        this.keyDescription = desc.toString();
     }
 
     public void setLocalPair(final KeyPair keyPair, final int localPairKeyID) {
