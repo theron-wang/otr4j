@@ -69,8 +69,12 @@ public final class StateEncrypted extends AbstractState {
      * Current and next session keys.
      */
     private final SessionKeys[][] sessionKeys = new SessionKeys[][]{
-        new SessionKeys[]{new SessionKeys(0, 0), new SessionKeys(0, 1)},
-        new SessionKeys[]{new SessionKeys(1, 0), new SessionKeys(1, 1)}};
+        new SessionKeys[]{
+            new SessionKeys(SessionKeys.PREVIOUS, SessionKeys.PREVIOUS),
+            new SessionKeys(SessionKeys.PREVIOUS, SessionKeys.CURRENT)},
+        new SessionKeys[]{
+            new SessionKeys(SessionKeys.CURRENT, SessionKeys.PREVIOUS),
+            new SessionKeys(SessionKeys.CURRENT, SessionKeys.CURRENT)}};
 
     /**
      * List of old MAC keys for this session. (Synchronized)
