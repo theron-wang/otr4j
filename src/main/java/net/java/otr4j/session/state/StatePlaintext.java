@@ -9,7 +9,6 @@ package net.java.otr4j.session.state;
 
 import java.io.IOException;
 import java.security.PublicKey;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -19,13 +18,13 @@ import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrEngineHostUtil;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.OtrPolicyUtil;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.AbstractMessage;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.session.OfferStatus;
-import net.java.otr4j.session.Session;
 import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.SessionStatus;
 import net.java.otr4j.session.TLV;
@@ -103,17 +102,7 @@ public final class StatePlaintext extends AbstractState {
         if (otrPolicy.getSendWhitespaceTag()
                 && context.getOfferStatus() != OfferStatus.rejected) {
             context.setOfferStatus(OfferStatus.sent);
-            // FIXME extract utility method for determining versions according to policy
-            final ArrayList<Integer> versions = new ArrayList<Integer>(4);
-            if (otrPolicy.getAllowV1()) {
-                versions.add(Session.OTRv.ONE);
-            }
-            if (otrPolicy.getAllowV2()) {
-                versions.add(Session.OTRv.TWO);
-            }
-            if (otrPolicy.getAllowV3()) {
-                versions.add(Session.OTRv.THREE);
-            }
+            final List<Integer> versions = OtrPolicyUtil.allowedVersions(otrPolicy);
             final AbstractMessage abstractMessage = new PlainTextMessage(versions, msgText);
             try {
                 return new String[]{

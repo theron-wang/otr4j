@@ -30,6 +30,7 @@ import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrEngineHostUtil;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.OtrPolicyUtil;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
@@ -42,7 +43,6 @@ import net.java.otr4j.io.messages.MysteriousT;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.io.messages.QueryMessage;
 import net.java.otr4j.session.AuthContext;
-import net.java.otr4j.session.Session;
 import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.SessionStatus;
 import net.java.otr4j.session.TLV;
@@ -297,17 +297,7 @@ public final class StateEncrypted extends AbstractState {
         }
         // Re-negotiate if we got an error and we are encrypted
         logger.finest("Error message starts AKE.");
-        // FIXME consider extracting a utility method for this
-        final ArrayList<Integer> versions = new ArrayList<Integer>(4);
-        if (policy.getAllowV1()) {
-            versions.add(Session.OTRv.ONE);
-        }
-        if (policy.getAllowV2()) {
-            versions.add(Session.OTRv.TWO);
-        }
-        if (policy.getAllowV3()) {
-            versions.add(Session.OTRv.THREE);
-        }
+        final List<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
         logger.finest("Sending Query");
         context.injectMessage(new QueryMessage(versions));
         super.handleErrorMessage(context, errorMessage);
