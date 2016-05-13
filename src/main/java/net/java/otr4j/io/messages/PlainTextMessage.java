@@ -7,6 +7,7 @@
 package net.java.otr4j.io.messages;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 
 /**
  * 
@@ -17,7 +18,7 @@ public class PlainTextMessage extends QueryMessage {
 	public String cleanText;
 
 	// Ctor.
-	public PlainTextMessage(final List<Integer> versions, final String cleanText) {
+	public PlainTextMessage(@Nonnull final List<Integer> versions, @Nonnull final String cleanText) {
 		super(MESSAGE_PLAINTEXT, versions);
 		this.cleanText = cleanText;
 	}

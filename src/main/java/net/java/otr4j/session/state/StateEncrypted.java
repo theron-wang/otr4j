@@ -53,6 +53,10 @@ public final class StateEncrypted extends AbstractState {
     private final Logger logger;
     private final SessionID sessionId;
     private final int protocolVersion;
+    
+    /**
+     * The Socialist Millionaire Protocol handler.
+     */
     private final SmpTlvHandler smpTlvHandler;
 
     /**
@@ -66,7 +70,7 @@ public final class StateEncrypted extends AbstractState {
     private final PublicKey remotePublicKey;
 
     /**
-     * Current and next session keys.
+     * Current and next session keys containers.
      */
     private final SessionKeys[][] sessionKeys = new SessionKeys[][]{
         new SessionKeys[]{
@@ -145,6 +149,7 @@ public final class StateEncrypted extends AbstractState {
         return this.s;
     }
     
+    @Nonnull
     @Override
     public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage plainTextMessage) throws OtrException {
         // Display the message to the user, but warn him that the message was
@@ -306,7 +311,8 @@ public final class StateEncrypted extends AbstractState {
     @Override
     @Nonnull
     public String[] transformSending(@Nonnull final Context context, @Nonnull final String msgText, @Nonnull final List<TLV> tlvs) throws OtrException {
-        logger.log(Level.FINEST, "{0} sends an encrypted message to {1} through {2}.", new Object[]{sessionId.getAccountID(), sessionId.getUserID(), sessionId.getProtocolName()});
+        logger.log(Level.FINEST, "{0} sends an encrypted message to {1} through {2}.",
+                new Object[]{sessionId.getAccountID(), sessionId.getUserID(), sessionId.getProtocolName()});
 
         // Get encryption keys.
         final SessionKeys encryptionKeys = this.getEncryptionSessionKeys();

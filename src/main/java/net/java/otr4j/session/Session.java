@@ -101,10 +101,10 @@ public class Session implements Context {
     private AuthContext authContext;
     
     private final Logger logger;
-    // FIXME investigate whether offer status can be reduced to 2-state
-    // construction: not-offered, offered. 'rejected' state is probably not
-    // "waterproof" as messages could cross, considering it rejected even though
-    // that particular message was not yet replied to.
+
+    /**
+     * Offer status for whitespace-tagged message indicating OTR supported.
+     */
     private OfferStatus offerStatus;
     private final InstanceTag senderTag;
     private InstanceTag receiverTag;
@@ -248,6 +248,7 @@ public class Session implements Context {
         return authContext;
     }
 
+    @Nullable
     public String transformReceiving(@Nonnull String msgText) throws OtrException {
 
         final OtrPolicy policy = getSessionPolicy();
@@ -432,6 +433,7 @@ public class Session implements Context {
         this.sessionState.handleErrorMessage(this, errorMessage);
     }
 
+    @Nullable
     private String handleDataMessage(@Nonnull final DataMessage data) throws OtrException {
         final SessionID sessionId = this.sessionState.getSessionID();
         logger.log(Level.FINEST, "{0} received a data message from {1}.",
@@ -491,7 +493,7 @@ public class Session implements Context {
         return messagetext;
     }
 
-    private void handleWhitespaceTag(final PlainTextMessage plainTextMessage) {
+    private void handleWhitespaceTag(@Nonnull final PlainTextMessage plainTextMessage) {
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.getWhitespaceStartAKE()) {
             // no policy w.r.t. starting AKE on whitespace tag
@@ -512,7 +514,7 @@ public class Session implements Context {
                 }
                 logger.finest("Sending D-H Commit Message");
                 injectMessage(dhCommit);
-            } catch (OtrException e) {
+            } catch (final OtrException e) {
                 logger.log(Level.WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv3)", e);
             }
         } else if (plainTextMessage.versions.contains(Session.OTRv.TWO)
@@ -522,7 +524,7 @@ public class Session implements Context {
                 final DHCommitMessage dhCommit = getAuthContext().respondAuth(Session.OTRv.TWO);
                 logger.finest("Sending D-H Commit Message");
                 injectMessage(dhCommit);
-            } catch (OtrException e) {
+            } catch (final OtrException e) {
                 logger.log(Level.WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv2)", e);
             }
         } else if (plainTextMessage.versions.contains(Session.OTRv.ONE)
@@ -769,7 +771,7 @@ public class Session implements Context {
         }
         try {
             return this.sessionState.getSmpTlvHandler().isSmpInProgress();
-        } catch (State.IncorrectStateException ex) {
+        } catch (final State.IncorrectStateException ex) {
             return false;
         }
     }

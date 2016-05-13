@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.security.PublicKey;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.java.otr4j.OtrEngineHost;
@@ -31,13 +30,9 @@ import net.java.otr4j.session.TLV;
 
 public final class StatePlaintext extends AbstractState {
 
-    @SuppressWarnings("NonConstantLogger")
-    private final Logger logger;
     private final SessionID sessionId;
 
     public StatePlaintext(final SessionID sessionId) {
-        // FIXME Identify session state in logger
-        this.logger = Logger.getLogger(sessionId.getAccountID() + "-->" + sessionId.getUserID());
         this.sessionId = Objects.requireNonNull(sessionId);
     }
 

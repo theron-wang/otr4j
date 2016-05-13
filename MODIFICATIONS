@@ -1,4 +1,10 @@
 New Features:
+* State machine for session message state.
+  * All encryption logic in single State implementation: StateEncrypted.
+  * Logic for each state isolated and bundled with corresponding state.
+  * Simplifies logic and improvements managability.
+  * Frees up memory for fields that are used only in some states.
+  * Enables more fields to be initialized at construction time since they are only constructed in relevant states, enabling final modifier which helps in ensure code correctness.
 * State machine for Socialist Millionaire protocol.
   * Fully immutable fields.
   * Atomic state updates.
