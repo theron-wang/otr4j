@@ -57,7 +57,7 @@ import org.bouncycastle.util.BigIntegers;
 /**
  * @author George Politis
  */
-public class OtrCryptoEngine {
+public final class OtrCryptoEngine {
 
     private static final String ALGORITHM_DSA = "DSA";
     private static final String KA_DH = "DH";
