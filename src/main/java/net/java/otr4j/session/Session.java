@@ -58,7 +58,9 @@ public class Session implements Context {
         int ONE = 1;
         int TWO = 2;
         int THREE = 3;
-        Set<Integer> ALL = new HashSet<Integer>(Arrays.asList(ONE, TWO, THREE));
+
+        final Set<Integer> ALL = Collections.unmodifiableSet(
+                new HashSet<Integer>(Arrays.asList(ONE, TWO, THREE)));
     }
 
     /**
