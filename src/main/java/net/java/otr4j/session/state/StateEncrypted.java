@@ -407,7 +407,7 @@ public final class StateEncrypted extends AbstractState {
 
     @Override
     public void end(@Nonnull final Context context) throws OtrException {
-        final TLV disconnectTlv = new TLV(TLV.DISCONNECTED, null);
+        final TLV disconnectTlv = new TLV(TLV.DISCONNECTED, new byte[0]);
         final String[] msg = transformSending(context, "", Collections.singletonList(disconnectTlv));
         for (final String part : msg) {
             context.getHost().injectMessage(this.sessionId, part);

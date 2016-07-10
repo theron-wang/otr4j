@@ -1,5 +1,8 @@
 package net.java.otr4j.session;
 
+import java.util.Objects;
+import javax.annotation.Nonnull;
+
 /**
  * Class representing OTR Type-Length-Value tuples.
  */
@@ -22,10 +25,9 @@ public class TLV {
 	private final int type;
 	private final byte[] value;
 
-    // FIXME Verify that we always provide an array, even if 0-length
-	public TLV(final int type, final byte[] value) {
+	public TLV(final int type, @Nonnull final byte[] value) {
         this.type = type;
-        this.value = value;
+        this.value = Objects.requireNonNull(value);
 	}
 
 	public int getType() {
