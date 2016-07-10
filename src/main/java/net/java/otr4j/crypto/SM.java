@@ -99,9 +99,30 @@ public final class SM {
     public static class SMAbortedException extends SMException {
 
         private static final long serialVersionUID = 8062094133300893010L;
+        
+        private final boolean inProgress;
 
-        SMAbortedException(@Nonnull final String message) {
+        /**
+         * Constructor for SMAbortedException.
+         *
+         * @param inProgress Indicates whether status was INPROGRESS before
+         * triggering abort.
+         * @param message Message
+         */
+        SMAbortedException(final boolean inProgress, @Nonnull final String message) {
             super(message);
+            this.inProgress = inProgress;
+        }
+
+        /**
+         * Indicates whether an SMP conversation was in progress before it was
+         * aborted.
+         *
+         * @return Returns true if SMP conversation was previously in progress,
+         * or false if it was not.
+         */
+        public boolean isInProgress() {
+            return this.inProgress;
         }
     }
 
@@ -440,17 +461,16 @@ public final class SM {
         try {
             this.state.smpMessage4(this, input);
         }
-        catch (SMAbortedException e) {
-            // FIXME if we inform host after resetting state, host cannot check if SMP exchange was actually in progress
+        catch (final SMAbortedException e) {
             // Let SMAbortedException pass. This exception may at times occur
             // and is a valid interruption that is not considered cheating.
             throw e;
         }
-        catch (SMException e) {
+        catch (final SMException e) {
             this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw e;
         }
-        catch (RuntimeException e) {
+        catch (final RuntimeException e) {
             this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw new SMException(e);
         }
@@ -540,8 +560,10 @@ abstract class State {
      * @throws net.java.otr4j.crypto.SM.SMStateException
      */
     byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
+        final boolean inprogress = status() == SM.Status.INPROGRESS;
         astate.setState(new StateExpect1(this.sr));
-        throw new SM.SMAbortedException("Received start SMP request at incorrect state of the protocol. ("
+        throw new SM.SMAbortedException(inprogress,
+                "Received start SMP request at incorrect state of the protocol. ("
                 + this.getClass().getCanonicalName()
                 + ") It is allowed to call startSMP() immediately after having sent the type 6 TLV signaling SMP abort in order to immediately start a new SMP exchange.");
     }
@@ -570,8 +592,11 @@ abstract class State {
      * @param input Input of initiation message.
      */
     void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+        final boolean inprogress = status() == SM.Status.INPROGRESS;
         bstate.setState(new StateExpect1(this.sr));
-        throw new SM.SMAbortedException("Received SMP message 1 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
+        throw new SM.SMAbortedException(inprogress,
+                "Received SMP message 1 at incorrect state of the protocol. ("
+                + this.getClass().getCanonicalName() + ")");
     }
 
     /**
@@ -583,8 +608,11 @@ abstract class State {
      * @return Returns reply to initiation message.
      */
     byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
+        final boolean inprogress = status() == SM.Status.INPROGRESS;
         bstate.setState(new StateExpect1(this.sr));
-        throw new SM.SMAbortedException("Received follow up to SMP message 1 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
+        throw new SM.SMAbortedException(inprogress,
+                "Received follow up to SMP message 1 at incorrect state of the protocol. ("
+                + this.getClass().getCanonicalName() + ")");
     }
 
     /**
@@ -596,8 +624,11 @@ abstract class State {
      * @return Returns reply.
      */
     byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+        final boolean inprogress = status() == SM.Status.INPROGRESS;
         astate.setState(new StateExpect1(this.sr));
-        throw new SM.SMAbortedException("Received SMP message 2 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
+        throw new SM.SMAbortedException(inprogress,
+                "Received SMP message 2 at incorrect state of the protocol. ("
+                + this.getClass().getCanonicalName() + ")");
     }
 
     /**
@@ -609,8 +640,11 @@ abstract class State {
      * @return Returns the final message of SMP exchange to Alice.
      */
     byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+        final boolean inprogress = status() == SM.Status.INPROGRESS;
         bstate.setState(new StateExpect1(this.sr));
-        throw new SM.SMAbortedException("Received SMP message 3 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
+        throw new SM.SMAbortedException(inprogress,
+                "Received SMP message 3 at incorrect state of the protocol. ("
+                + this.getClass().getCanonicalName() + ")");
     }
 
     /**
@@ -621,8 +655,11 @@ abstract class State {
      * @param input Final reply from Bob with last parameters of SMP exchange.
      */
     void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+        final boolean inprogress = status() == SM.Status.INPROGRESS;
         astate.setState(new StateExpect1(this.sr));
-        throw new SM.SMAbortedException("Received SMP message 4 at incorrect state of the protocol. (" + this.getClass().getCanonicalName() + ")");
+        throw new SM.SMAbortedException(inprogress,
+                "Received SMP message 4 at incorrect state of the protocol. ("
+                + this.getClass().getCanonicalName() + ")");
     }
 
     /**
@@ -944,7 +981,8 @@ final class StateExpect1 extends State {
             // this is considered bad order of messages. Abort protocol and
             // reset to default.
             bstate.setState(new StateExpect1(this.secureRandom()));
-            throw new SM.SMAbortedException("An SMP exchange initial request was not yet received. There is no question posed that can be answered with a shared secret.");
+            throw new SM.SMAbortedException(false,
+                    "An SMP exchange initial request was not yet received. There is no question posed that can be answered with a shared secret.");
         }
 
 	    /* Convert the given secret to the proper form and store it */

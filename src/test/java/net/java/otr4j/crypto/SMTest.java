@@ -14,6 +14,7 @@ import net.java.otr4j.io.OtrOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import org.junit.Test;
@@ -63,7 +64,9 @@ public class SMTest {
     @Test
     @SuppressWarnings({"ThrowableInstanceNotThrown", "ThrowableInstanceNeverThrown", "ResultOfObjectAllocationIgnored"})
     public void testAbortedException() {
-        new SM.SMAbortedException("Stuff was aborted!");
+        final SM.SMAbortedException e = new SM.SMAbortedException(false, "Stuff was aborted!");
+        assertFalse(e.isInProgress());
+        assertEquals("Stuff was aborted!", e.getMessage());
     }
 
     @Test
