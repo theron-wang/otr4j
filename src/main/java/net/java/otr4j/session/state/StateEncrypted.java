@@ -390,7 +390,6 @@ public final class StateEncrypted extends AbstractState {
         m.receiverInstanceTag = context.getReceiverInstanceTag().getValue();
 
         try {
-            // FIXME Consider moving fragmenter to Session object, probably need to introduce "PlainMessage" type that does not add any kind of additional (meta)data.
             final String completeMessage = SerializationUtils.toString(m);
             return context.fragmenter().fragment(completeMessage);
         } catch (IOException e) {
