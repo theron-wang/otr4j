@@ -99,7 +99,7 @@ public class Session implements Context {
 
     private final OtrEngineHost host;
 
-    // TODO consider instantiating AuthContext immediately at construction of the class
+    @Nullable
     private AuthContext authContext;
     
     private final Logger logger;
