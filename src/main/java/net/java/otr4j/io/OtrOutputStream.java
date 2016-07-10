@@ -18,7 +18,7 @@ import net.java.otr4j.io.messages.SignatureX;
 
 import org.bouncycastle.util.BigIntegers;
 
-public class OtrOutputStream extends FilterOutputStream implements
+public final class OtrOutputStream extends FilterOutputStream implements
 		SerializationConstants {
 
 	public OtrOutputStream(@Nonnull final OutputStream out) {

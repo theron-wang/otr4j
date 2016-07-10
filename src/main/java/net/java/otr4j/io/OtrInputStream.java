@@ -19,7 +19,7 @@ import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.SignatureX;
 
-public class OtrInputStream extends FilterInputStream implements
+public final class OtrInputStream extends FilterInputStream implements
 		SerializationConstants {
 
     /**

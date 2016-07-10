@@ -23,7 +23,6 @@ import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.SessionStatus;
 import net.java.otr4j.session.TLV;
 
-// TODO Consider preserving remote public key in Finished state for after-the-fact requests.
 public final class StateFinished extends AbstractState {
 
     private final SessionID sessionId;

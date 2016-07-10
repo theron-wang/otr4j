@@ -396,7 +396,6 @@ public class Session implements Context {
         }
     }
 
-    // FIXME Move handleQueryMessage to State or keep here?
     private void handleQueryMessage(@Nonnull final QueryMessage queryMessage)
             throws OtrException {
         final SessionID sessionId = this.sessionState.getSessionID();
@@ -478,8 +477,6 @@ public class Session implements Context {
         }
     }
 
-    // FIXME Consider how much logic we still want to move to Session State instances.
-    // FIXME On quick investigation, it seems that all the logic that is currently in this method, are related only to message parsing, i.e. not to session state management. We do however manage authentication process, i.e. AuthContext DH-commit message. What to do with the Slave Sessions.
     private String handlePlainTextMessage(@Nonnull final PlainTextMessage plainTextMessage)
             throws OtrException {
         final SessionID sessionId = this.sessionState.getSessionID();
@@ -557,7 +554,6 @@ public class Session implements Context {
         if (isMasterSession && outgoingSession != this && getProtocolVersion() == OTRv.THREE) {
             return outgoingSession.transformSending(msgText, tlvs);
         }
-        // TODO Do we really want transformSending to handle NULL messages? (It seems we allow it.)
         if (msgText == null) {
             msgText = "";
         }
@@ -746,7 +742,6 @@ public class Session implements Context {
             outgoingSession.respondSmp(question, secret);
             return;
         }
-        // TODO Consider whether to pass through IncorrectStateException or to log bad timing and let it pass silently.
         final List<TLV> tlvs = this.sessionState.getSmpTlvHandler().initRespondSmp(question, secret, false);
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
@@ -759,7 +754,6 @@ public class Session implements Context {
             outgoingSession.abortSmp();
             return;
         }
-        // TODO Consider whether to pass through IncorrectStateException or to log bad timing and let it pass silently.
         final List<TLV> tlvs = this.sessionState.getSmpTlvHandler().abortSmp();
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {

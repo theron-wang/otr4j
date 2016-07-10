@@ -553,8 +553,8 @@ public class AuthContext {
                 // * Reply with a Signature Message.
                 // * Transition authstate to AUTHSTATE_NONE.
                 // * Transition msgstate to MSGSTATE_ENCRYPTED.
-                // * TODO If there is a recent stored message, encrypt it and
-                // send it as a Data Message.
+                // * If there is a recent stored message, encrypt it and send it
+                //   as Data Message. (This is currently not supported by otr4j.)
 
                 // Uses r to decrypt the value of gx sent earlier
                 final byte[] remoteDHPublicKeyDecrypted = OtrCryptoEngine.aesDecrypt(

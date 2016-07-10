@@ -26,14 +26,11 @@ import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.TLV;
-import net.java.otr4j.session.state.Context;
-import net.java.otr4j.session.state.StateEncrypted;
 
 public class SmpTlvHandler {
 
     private final OtrEngineHost engineHost;
 	private final StateEncrypted session;
-    // FIXME I think we should not store this context, however it cannot hurt since we access this SMP handler through the same instance.
     private final Context sessionContext;
     private final SM sm;
     private final InstanceTag receiverInstanceTag;

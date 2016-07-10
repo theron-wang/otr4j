@@ -22,11 +22,6 @@ public interface State {
     @Nonnull
     SessionID getSessionID();
 
-    // TODO getStatus() should eventually be removed. After successful
-    // refactoring we should not need to check the status anymore, since any
-    // status-related actions are performed inside the state instances
-    // themselves. However, that does mean that we have to move all
-    // SMP interaction/SMP TLV handler too.
     /**
      * Get session status for currently active session.
      *
