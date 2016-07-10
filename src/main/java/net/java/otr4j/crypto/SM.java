@@ -48,6 +48,14 @@ public final class SM {
      */
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
+    /**
+     * Constant indicating the maximum accepted MPI array size. This array size
+     * can in principle be as large as {@link #MAX_ARRAY_SIZE} however such a
+     * size will not be needed for typical SMP TLV types 2-5 messages. To reduce
+     * risk of misuse, go with far smaller value.
+     */
+    private static final int MAX_MPI_ARRAY_SIZE = 100;
+
     private static final Logger LOGGER = Logger.getLogger(SM.class.getCanonicalName());
 
     private State state;
@@ -197,11 +205,13 @@ public final class SM {
                 // thus negative for values where sign bit is set.
                 throw new SMException("Invalid number of ints: " + len);
             }
-            // FIXME Do we want to limit this to a smaller number? Which number?
-			if (len > MAX_ARRAY_SIZE) {
+			if (len > MAX_MPI_ARRAY_SIZE) {
                 // The maximum supported length by otr4j. Because of the reason
                 // described above, the maximum supported value is only 2**31
                 // big (minus some overhead).
+                // To avoid risk of misuse, we typically use a smaller upper
+                // bound for the MPI array. The MPI array may in principle be as
+                // large as MAX_ARRAY_SIZE.
 				throw new SMException("Too many ints");
 			}
 			final BigInteger[] ints = new BigInteger[len];
