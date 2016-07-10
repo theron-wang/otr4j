@@ -380,10 +380,12 @@ public class Session implements Context {
                 return null;
             case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
             case AbstractEncodedMessage.MESSAGE_DHKEY:
+                this.getAuthContext().handleReceivingMessage(m);
+                return null;
             case AbstractEncodedMessage.MESSAGE_REVEALSIG:
             case AbstractEncodedMessage.MESSAGE_SIGNATURE:
-                // FIXME Do we care about testing 'isSecure' on every auth message?
                 final AuthContext auth = this.getAuthContext();
+                // FIXME ensure that independent of success of handling these 2 ("finalizing") messages, we always transition AUTHSTATE_NONE.
                 auth.handleReceivingMessage(m);
                 if (auth.getIsSecure()) {
                     this.sessionState.secure(this);
