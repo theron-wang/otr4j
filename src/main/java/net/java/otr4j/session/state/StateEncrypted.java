@@ -86,7 +86,6 @@ public final class StateEncrypted extends AbstractState {
     private final List<byte[]> oldMacKeys = Collections.synchronizedList(new ArrayList<byte[]>(0));
 
     StateEncrypted(@Nonnull final Context context, @Nonnull final SessionID sessionId) throws OtrException {
-        // FIXME Identify session state in logger
         this.logger = Logger.getLogger(sessionId.getAccountID() + "-->" + sessionId.getUserID());
         this.sessionId = Objects.requireNonNull(sessionId);
         this.protocolVersion = context.getProtocolVersion();
@@ -403,7 +402,6 @@ public final class StateEncrypted extends AbstractState {
 
     @Override
     public void secure(@Nonnull final Context context) throws OtrException {
-        // FIXME Should we re-establish secure messaging state when already in such state?
         context.setState(new StateEncrypted(context, this.sessionId));
     }
 

@@ -197,7 +197,6 @@ public class OtrInputStream extends FilterInputStream implements
      *
      * @param length the requested length to be verified
      */
-    // TODO is there a better sanity check for data length?
     private void checkDataLength(final int length) throws IOException {
         if (length < 0) {
             throw new UnsupportedLengthException(length);

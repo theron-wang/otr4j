@@ -29,7 +29,6 @@ public final class OtrPolicyUtil {
      * @param policy The active OTR policy.
      * @return Returns list of allowed OTR versions.
      */
-    // TODO Should be replaced with Set at some point.
     @Nonnull
     public static List<Integer> allowedVersions(@Nonnull final OtrPolicy policy) {
         final ArrayList<Integer> versions = new ArrayList<Integer>(4);
