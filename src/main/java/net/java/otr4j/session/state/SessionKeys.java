@@ -26,15 +26,14 @@ import net.java.otr4j.io.SerializationUtils;
  * @author George Politis
  * @author Danny van Heumen
  */
-public class SessionKeys {
-    // TODO consider making this class totally package-protected. Keys and counters are mutable and are used in Session. I don't think they need to be exposed outside of package.
+class SessionKeys {
 
-    public static final int PREVIOUS = 0;
-    public static final int CURRENT = 1;
-    public static final byte HIGH_SEND_BYTE = (byte) 0x01;
-    public static final byte HIGH_RECEIVE_BYTE = (byte) 0x02;
-    public static final byte LOW_SEND_BYTE = (byte) 0x02;
-    public static final byte LOW_RECEIVE_BYTE = (byte) 0x01;
+    static final int PREVIOUS = 0;
+    static final int CURRENT = 1;
+    static final byte HIGH_SEND_BYTE = (byte) 0x01;
+    static final byte HIGH_RECEIVE_BYTE = (byte) 0x02;
+    static final byte LOW_SEND_BYTE = (byte) 0x02;
+    static final byte LOW_RECEIVE_BYTE = (byte) 0x01;
 
     private static final Logger LOGGER = Logger.getLogger(SessionKeys.class.getName());
 
