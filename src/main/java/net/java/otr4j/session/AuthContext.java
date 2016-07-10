@@ -766,7 +766,7 @@ public class AuthContext {
                 logger.finest("Sent D-H key.");
                 break;
             case V1_SETUP:
-                // FIXME consider cleaning up OTRv1 support remains
+                // TODO consider cleaning up OTRv1 support remains
                 throw new UnsupportedOperationException();
         }
     }

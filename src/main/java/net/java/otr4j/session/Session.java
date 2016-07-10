@@ -54,7 +54,7 @@ import net.java.otr4j.session.state.StatePlaintext;
 public class Session implements Context {
 
     public interface OTRv {
-        // FIXME consider eliminating OTRv1 completely
+        // TODO consider eliminating OTRv1 completely
         int ONE = 1;
         int TWO = 2;
         int THREE = 3;
@@ -429,7 +429,7 @@ public class Session implements Context {
             logger.finest("Sending D-H Commit Message");
             injectMessage(dhCommit);
         } else if (queryMessage.versions.contains(OTRv.ONE) && policy.getAllowV1()) {
-            // FIXME Get rid of OTRv1 support completely
+            // TODO Get rid of OTRv1 support completely
             logger.finest("Query message with V1 support found - ignoring.");
         }
     }
@@ -536,7 +536,7 @@ public class Session implements Context {
             }
         } else if (plainTextMessage.versions.contains(Session.OTRv.ONE)
                 && policy.getAllowV1()) {
-            // FIXME Get rid of OTRv1 support completely
+            // TODO Get rid of OTRv1 support completely
             throw new UnsupportedOperationException();
         }
     }
@@ -581,6 +581,7 @@ public class Session implements Context {
         }
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.getAllowV2() && !policy.getAllowV3()) {
+            // TODO if not v2 and not v3 then must be v1 which is not supported
             throw new UnsupportedOperationException();
         }
         this.getAuthContext().startAuth();

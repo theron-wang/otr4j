@@ -88,6 +88,7 @@ public final class StatePlaintext extends AbstractState {
         final OtrPolicy otrPolicy = context.getSessionPolicy();
         if (otrPolicy.getRequireEncryption()) {
             if (!otrPolicy.getAllowV2() && !otrPolicy.getAllowV3()) {
+                // TODO if not v2 and not v3 then must be v1 which is unsupported.
                 throw new UnsupportedOperationException();
             }
             context.getAuthContext().startAuth();
