@@ -385,13 +385,19 @@ public class Session implements Context {
             case AbstractEncodedMessage.MESSAGE_REVEALSIG:
             case AbstractEncodedMessage.MESSAGE_SIGNATURE:
                 final AuthContext auth = this.getAuthContext();
-                // FIXME ensure that independent of success of handling these 2 ("finalizing") messages, we always transition AUTHSTATE_NONE.
-                auth.handleReceivingMessage(m);
-                if (auth.getIsSecure()) {
-                    this.sessionState.secure(this);
-                    logger.finest("Gone Secure.");
+                try {
+                    auth.handleReceivingMessage(m);
+                    if (auth.getIsSecure()) {
+                        this.sessionState.secure(this);
+                        logger.finest("Gone Secure.");
+                    }
+                    return null;
+                } finally {
+                    // This ensures that independent of processing result, we
+                    // always reset the AuthContext after receiving these
+                    // messages. (This is according to otr spec.)
+                    auth.reset(null);
                 }
-                return null;
             default:
                 throw new UnsupportedOperationException(
                         "Received an unknown message type.");

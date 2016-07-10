@@ -115,8 +115,6 @@ public final class StateEncrypted extends AbstractState {
             next.setRemoteDHPublicKey(auth.getRemoteDHPublicKey(), 1);
             next.setLocalPair(nextDH, 2);
         }
-
-        auth.reset(null);
     }
 
     @Override
