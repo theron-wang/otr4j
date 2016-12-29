@@ -442,7 +442,6 @@ public class AuthContext {
         return localDHPublicKeyBytes;
     }
 
-    // FIXME Get rid of intermediate "handleReceivingMessage" and call correct message's method immediately.
     public void handleReceivingMessage(@Nonnull final AbstractMessage m) throws OtrException {
 
         switch (m.messageType) {
