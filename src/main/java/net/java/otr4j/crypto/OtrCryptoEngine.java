@@ -214,8 +214,7 @@ public final class OtrCryptoEngine {
             final MessageDigest sha256 = MessageDigest.getInstance(MD_SHA256);
             sha256.update(b, 0, b.length);
             return sha256.digest();
-        } catch (final Exception e) {
-            // FIXME fix catching general Exception class
+        } catch (final NoSuchAlgorithmException e) {
             throw new OtrCryptoException(e);
         }
     }
@@ -226,8 +225,7 @@ public final class OtrCryptoEngine {
             final MessageDigest sha1 = MessageDigest.getInstance(MD_SHA1);
             sha1.update(b, 0, b.length);
             return sha1.digest();
-        } catch (Exception e) {
-            // FIXME fix catching general Exception class
+        } catch (NoSuchAlgorithmException e) {
             throw new OtrCryptoException(e);
         }
     }
