@@ -118,9 +118,9 @@ public final class OtrCryptoEngine {
                     .generatePrivate(privKeySpecs);
 
             return new KeyPair(pubKey, privKey);
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
             throw new OtrCryptoException(ex);
-        } catch (InvalidKeySpecException ex) {
+        } catch (final InvalidKeySpecException ex) {
             throw new OtrCryptoException(ex);
         }
     }
@@ -138,9 +138,9 @@ public final class OtrCryptoEngine {
         try {
             final KeyFactory keyFac = KeyFactory.getInstance(KF_DH);
             return (DHPublicKey) keyFac.generatePublic(pubKeySpecs);
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
             throw new OtrCryptoException(ex);
-        } catch (InvalidKeySpecException ex) {
+        } catch (final InvalidKeySpecException ex) {
             throw new OtrCryptoException(ex);
         }
     }
@@ -158,12 +158,12 @@ public final class OtrCryptoEngine {
         final javax.crypto.Mac mac;
         try {
             mac = javax.crypto.Mac.getInstance(HMAC_SHA256);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (final NoSuchAlgorithmException e) {
             throw new OtrCryptoException(e);
         }
         try {
             mac.init(keyspec);
-        } catch (InvalidKeyException e) {
+        } catch (final InvalidKeyException e) {
             throw new OtrCryptoException(e);
         }
 
@@ -187,9 +187,9 @@ public final class OtrCryptoEngine {
             final javax.crypto.Mac mac = javax.crypto.Mac.getInstance(HMAC_SHA1);
             mac.init(new SecretKeySpec(key, HMAC_SHA1));
             macBytes = mac.doFinal(b);
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
             throw new OtrCryptoException(ex);
-        } catch (InvalidKeyException ex) {
+        } catch (final InvalidKeyException ex) {
             throw new OtrCryptoException(ex);
         }
 
@@ -214,7 +214,8 @@ public final class OtrCryptoEngine {
             final MessageDigest sha256 = MessageDigest.getInstance(MD_SHA256);
             sha256.update(b, 0, b.length);
             return sha256.digest();
-        } catch (Exception e) {
+        } catch (final Exception e) {
+            // FIXME fix catching general Exception class
             throw new OtrCryptoException(e);
         }
     }
@@ -226,6 +227,7 @@ public final class OtrCryptoEngine {
             sha1.update(b, 0, b.length);
             return sha1.digest();
         } catch (Exception e) {
+            // FIXME fix catching general Exception class
             throw new OtrCryptoException(e);
         }
     }
@@ -248,7 +250,7 @@ public final class OtrCryptoEngine {
         final int done = bufSicAesDec.processBytes(b, 0, b.length, aesOutLwDec, 0);
         try {
             bufSicAesDec.doFinal(aesOutLwDec, done);
-        } catch (InvalidCipherTextException ex) {
+        } catch (final InvalidCipherTextException ex) {
             throw new OtrCryptoException(ex);
         }
 
@@ -273,7 +275,7 @@ public final class OtrCryptoEngine {
         final int done = bufSicAesEnc.processBytes(b, 0, b.length, aesOutLwEnc, 0);
         try {
             bufSicAesEnc.doFinal(aesOutLwEnc, done);
-        } catch (InvalidCipherTextException ex) {
+        } catch (final InvalidCipherTextException ex) {
             throw new OtrCryptoException(ex);
         }
         return aesOutLwEnc;
@@ -288,9 +290,9 @@ public final class OtrCryptoEngine {
             ka.doPhase(pubKey, true);
             final byte[] sb = ka.generateSecret();
             return new BigInteger(1, sb);
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
             throw new OtrCryptoException(ex);
-        } catch (InvalidKeyException ex) {
+        } catch (final InvalidKeyException ex) {
             throw new OtrCryptoException(ex);
         }
     }
@@ -419,7 +421,7 @@ public final class OtrCryptoEngine {
                 b = OtrCryptoEngine.sha1Hash(bRemotePubKey);
             }
             return b;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new OtrCryptoException(e);
         }
     }

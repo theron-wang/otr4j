@@ -28,25 +28,16 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-
 import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 
 
 public final class SM {
-
-    /**
-     * Safe maximum array size. Copied from OpenJDK 7 implementation.
-     * (http://hg.openjdk.java.net/jdk7/jdk7/jdk/file/tip/src/share/classes/java/util/ArrayList.java#l190)
-     * A few bytes are reserved for overhead. This value seems to be quite
-     * universally accepted safe maximum.
-     */
-    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
     /**
      * Constant indicating the maximum accepted MPI array size. This array size
@@ -61,15 +52,12 @@ public final class SM {
     private State state;
 
     public SM(@Nonnull final SecureRandom sr) {
-        if (sr == null) {
-            throw new NullPointerException("sr");
-        }
         this.state = new StateExpect1(sr);
     }
 
     void setState(@Nonnull final State state) {
         LOGGER.finer("Updating SMP state to: " + state);
-        this.state = state;
+        this.state = Objects.requireNonNull(state);
     }
 
 	public static class SMException extends Exception {
@@ -96,7 +84,7 @@ public final class SM {
      * SM Aborted exception indicates that the current SMP exchange is aborted
      * and the state reset to default.
      */
-    public static class SMAbortedException extends SMException {
+    public static final class SMAbortedException extends SMException {
 
         private static final long serialVersionUID = 8062094133300893010L;
         
@@ -187,10 +175,10 @@ public final class SM {
                 sha256.update(SerializationUtils.writeMpi(b));
             }
 			return new BigInteger(1, sha256.digest());
-		} catch (NoSuchAlgorithmException e) {
-			throw new SMException("cannot find SHA-256");
-		} catch (IOException e) {
-			throw new SMException("cannot serialize bigint");
+		} catch (final NoSuchAlgorithmException e) {
+			throw new SMException("cannot find SHA-256", e);
+		} catch (final IOException e) {
+			throw new SMException("cannot serialize bigint", e);
 		}
 	}
 
@@ -203,8 +191,8 @@ public final class SM {
 				oos.writeBigInt(i);
 			}
 			return out.toByteArray();
-		} catch (IOException ex) {
-			throw new SMException("cannot serialize bigints");
+		} catch (final IOException ex) {
+			throw new SMException("cannot serialize bigints", ex);
 		} finally {
             try {
                 oos.close();
@@ -233,6 +221,7 @@ public final class SM {
                 // To avoid risk of misuse, we typically use a smaller upper
                 // bound for the MPI array. The MPI array may in principle be as
                 // large as MAX_ARRAY_SIZE.
+                // (http://hg.openjdk.java.net/jdk7/jdk7/jdk/file/tip/src/share/classes/java/util/ArrayList.java#l190)
 				throw new SMException("Too many ints");
 			}
 			final BigInteger[] ints = new BigInteger[len];
@@ -240,8 +229,8 @@ public final class SM {
 				ints[i] = ois.readBigInt();
 			}
 			return ints;
-		} catch (IOException ex) {
-			throw new SMException("cannot unserialize bigints");
+		} catch (final IOException ex) {
+			throw new SMException("cannot unserialize bigints", ex);
 		} finally {
             try {
                 ois.close();
@@ -321,16 +310,16 @@ public final class SM {
         try {
             this.state.smpMessage1a(this, input);
         }
-        catch (SMAbortedException e) {
+        catch (final SMAbortedException e) {
             // Let SMAbortedException pass. This exception may at times occur
             // and is a valid interruption that is not considered cheating.
             throw e;
         }
-        catch (SMException e) {
+        catch (final SMException e) {
             this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw e;
         }
-        catch (RuntimeException e) {
+        catch (final RuntimeException e) {
             this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw new SMException(e);
         }
@@ -358,16 +347,16 @@ public final class SM {
         try {
             return this.state.smpMessage1b(this, secret);
         }
-        catch (SMAbortedException e) {
+        catch (final SMAbortedException e) {
             // Let SMAbortedException pass. This exception may at times occur
             // and is a valid interruption that is not considered cheating.
             throw e;
         }
-        catch (SMException e) {
+        catch (final SMException e) {
             this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw e;
         }
-        catch (RuntimeException e) {
+        catch (final RuntimeException e) {
             this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw new SMException(e);
         }
@@ -393,16 +382,16 @@ public final class SM {
         try {
             return this.state.smpMessage2(this, input);
         }
-        catch (SMAbortedException e) {
+        catch (final SMAbortedException e) {
             // Let SMAbortedException pass. This exception may at times occur
             // and is a valid interruption that is not considered cheating.
             throw e;
         }
-        catch (SMException e) {
+        catch (final SMException e) {
             this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw e;
         }
-        catch (RuntimeException e) {
+        catch (final RuntimeException e) {
             this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw new SMException(e);
         }
@@ -428,16 +417,16 @@ public final class SM {
         try {
             return this.state.smpMessage3(this, input);
         }
-        catch (SMAbortedException e) {
+        catch (final SMAbortedException e) {
             // Let SMAbortedException pass. This exception may at times occur
             // and is a valid interruption that is not considered cheating.
             throw e;
         }
-        catch (SMException e) {
+        catch (final SMException e) {
             this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw e;
         }
-        catch (RuntimeException e) {
+        catch (final RuntimeException e) {
             this.state = new StateExpect1(this.state.secureRandom(), Status.CHEATED);
             throw new SMException(e);
         }
