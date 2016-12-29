@@ -144,7 +144,7 @@ public final class OtrEngineHostUtil {
             @Nonnull final SessionID sessionID) {
         try {
             return host.getFallbackMessage(sessionID);
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'getFallbackMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
         return null;

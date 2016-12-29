@@ -15,8 +15,8 @@ import net.java.otr4j.session.SessionID;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import org.junit.Test;
 import org.junit.Before;
+import org.junit.Test;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -148,7 +148,8 @@ public class OtrEngineHostUtilTest {
     public void testGetFallbackMessageOnFaultyHost() throws OtrException {
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
-        doThrow(new IllegalArgumentException("programming error occurred")).when(host).unreadableMessageReceived(sessionID);
+        when(host.getFallbackMessage(sessionID)).thenReturn("Hey dude, get OTR to talk to me!");
+        doThrow(new IllegalArgumentException("programming error occurred")).when(host).getFallbackMessage(sessionID);
         assertNull(OtrEngineHostUtil.getFallbackMessage(host, sessionID));
         verify(host).getFallbackMessage(sessionID);
     }
