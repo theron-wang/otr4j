@@ -105,6 +105,8 @@ public class AuthContext {
     private class MessageFactory {
 
         QueryMessage getQueryMessage() {
+            // FIXME it does not make sense to send both versions, if policy maybe disallows one of them.
+            // FIXME check if policy allows at least one viable version, as otherwise we should consider this a programming error.
             return new QueryMessage(Arrays.asList(OTRv.TWO, OTRv.THREE));
         }
 
