@@ -45,7 +45,7 @@ import net.java.otr4j.session.Session.OTRv;
 /**
  * @author George Politis
  */
-public class SerializationUtils {
+public final class SerializationUtils {
 
 	/**
 	 * Charset for base64-encoded content.
@@ -56,6 +56,10 @@ public class SerializationUtils {
 	 * Charset for message content according to OTR spec.
 	 */
 	public static final Charset UTF8 = Charset.forName("UTF-8");
+
+    private SerializationUtils() {
+        // Utility class cannot be instantiated.
+    }
 
 	// Mysterious X IO.
 	public static SignatureX toMysteriousX(@Nonnull final byte[] b) throws IOException, OtrCryptoException {

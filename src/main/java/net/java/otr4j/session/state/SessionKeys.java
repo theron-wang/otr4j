@@ -128,7 +128,7 @@ class SessionKeys {
         final byte[] secbytes;
         try {
             secbytes = SerializationUtils.writeMpi(getS());
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             throw new OtrException(ex);
         }
         final int len = secbytes.length + 1;

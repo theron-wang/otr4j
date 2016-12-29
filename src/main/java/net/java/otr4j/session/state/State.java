@@ -122,7 +122,7 @@ public interface State {
      * at any time. The nature of the checked exception can be used to handle
      * unexpected state transitions appropriately.
      */
-    public class IncorrectStateException extends OtrException {
+    public final class IncorrectStateException extends OtrException {
 
         private static final long serialVersionUID = -5335635776510194254L;
 
