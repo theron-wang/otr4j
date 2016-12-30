@@ -156,23 +156,21 @@ public class OtrEngineHostUtilTest {
 
     @Test
     public void testVerifyOnGoodHost() {
-        final boolean approved = true;
         final String fingerprint = "myfingerprint";
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHostUtil.verify(host, sessionID, fingerprint, approved);
-        verify(host).verify(sessionID, fingerprint, approved);
+        OtrEngineHostUtil.verify(host, sessionID, fingerprint);
+        verify(host).verify(sessionID, fingerprint);
     }
 
     @Test
     public void testVerifyOnBadHost() {
-        final boolean approved = true;
         final String fingerprint = "myfingerprint";
         final SessionID sessionID = new SessionID(null, null, null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
-        doThrow(new IllegalStateException("some bad stuff happened")).when(host).verify(sessionID, fingerprint, approved);
-        OtrEngineHostUtil.verify(host, sessionID, fingerprint, approved);
-        verify(host).verify(sessionID, fingerprint, approved);
+        doThrow(new IllegalStateException("some bad stuff happened")).when(host).verify(sessionID, fingerprint);
+        OtrEngineHostUtil.verify(host, sessionID, fingerprint);
+        verify(host).verify(sessionID, fingerprint);
     }
 
     @Test

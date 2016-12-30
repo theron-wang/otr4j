@@ -180,9 +180,8 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID of the session where the SMP happened.
      * @param fingerprint of the key to verify
-     * @param approved
      */
-	void verify(@Nonnull SessionID sessionID, @Nonnull String fingerprint, boolean approved);
+	void verify(@Nonnull SessionID sessionID, @Nonnull String fingerprint);
 
     /**
      * If the Socialist Millionaire's Protocol (SMP) process fails, then this

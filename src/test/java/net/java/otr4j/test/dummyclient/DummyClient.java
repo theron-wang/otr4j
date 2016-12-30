@@ -360,13 +360,8 @@ public class DummyClient {
                 lock.countDown();
 		}
 
-		public void verify(SessionID sessionID, String fingerprint, boolean approved) {
+		public void verify(SessionID sessionID, String fingerprint) {
             logger.finer("Session was verified: " + sessionID);
-            if (approved)
-                logger.fine("Your answer was approved");
-            else
-                logger.fine("Your answer for the question was verified."
-                        + "You should ask your opponent too or check shared secret.");
             verified = VERIFIED;
             if (lock != null)
                 lock.countDown();

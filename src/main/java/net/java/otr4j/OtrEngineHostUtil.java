@@ -160,12 +160,12 @@ public final class OtrEngineHostUtil {
      * @param host the Engine Host
      * @param sessionID the session ID
      * @param fingerprint the fingerprint of the verified chat partner
-     * @param approved approved
      */
-    public static void verify(@Nonnull final OtrEngineHost host, @Nonnull final SessionID sessionID,
-            @Nonnull final String fingerprint, final boolean approved) {
+    public static void verify(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID,
+            @Nonnull final String fingerprint) {
         try {
-            host.verify(sessionID, fingerprint, approved);
+            host.verify(sessionID, fingerprint);
         } catch (RuntimeException e) {
             LOGGER.log(Level.SEVERE, "Faulty OtrEngineHost! Runtime exception thrown while calling 'verify' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
