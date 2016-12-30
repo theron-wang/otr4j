@@ -87,10 +87,6 @@ public final class StatePlaintext extends AbstractState {
     public String[] transformSending(@Nonnull final Context context, @Nonnull final String msgText, @Nonnull final List<TLV> tlvs) throws OtrException {
         final OtrPolicy otrPolicy = context.getSessionPolicy();
         if (otrPolicy.getRequireEncryption()) {
-            if (!otrPolicy.getAllowV2() && !otrPolicy.getAllowV3()) {
-                // TODO if not v2 and not v3 then must be v1 which is unsupported.
-                throw new UnsupportedOperationException();
-            }
             context.getAuthContext().startAuth();
             OtrEngineHostUtil.requireEncryptedMessage(context.getHost(), sessionId, msgText);
             return new String[0];

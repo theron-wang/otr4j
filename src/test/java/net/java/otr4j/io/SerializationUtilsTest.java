@@ -70,7 +70,7 @@ public class SerializationUtilsTest {
     @Test
     public void testPlaintextMessageNoNullMangling() throws IOException {
         final String data = "This is a test with \0 null \0 values.";
-        final PlainTextMessage m = new PlainTextMessage(Arrays.asList(OTRv.ONE, OTRv.TWO, OTRv.THREE), data);
+        final PlainTextMessage m = new PlainTextMessage(Arrays.asList(OTRv.TWO, OTRv.THREE), data);
         assertTrue(SerializationUtils.toString(m).startsWith("This is a test with \0 null \0 values."));
     }
 

@@ -6,6 +6,8 @@
  */
 package net.java.otr4j.io.messages;
 
+import javax.annotation.Nonnull;
+
 /**
  * 
  * @author George Politis
@@ -72,7 +74,8 @@ public abstract class AbstractMessage {
      * @return Returns message casted in specified type if correct. Throws
      * IllegalArgumentException if message type does not match.
      */
-    public static final <T extends AbstractMessage> T checkCast(final Class<T> clazz, final AbstractMessage m) {
+    @Nonnull
+    public static final <T extends AbstractMessage> T checkCast(@Nonnull final Class<T> clazz, @Nonnull final AbstractMessage m) {
         if (!clazz.isInstance(m)) {
             throw new IllegalArgumentException("Mismatch in 'messageType' value vs actual message type: we expected to cast message of type " + m.getClass().getCanonicalName() + " to " + clazz.getCanonicalName() + ", but it isn't.");
         }

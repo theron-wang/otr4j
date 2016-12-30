@@ -31,8 +31,7 @@ public class OtrPolicyUtilTest {
     public void testAllowedVersionsDefaultPolicy() {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.OTRL_POLICY_DEFAULT);
         final List<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
-        assertEquals(3, versions.size());
-        assertTrue(versions.contains(Session.OTRv.ONE));
+        assertEquals(2, versions.size());
         assertTrue(versions.contains(Session.OTRv.TWO));
         assertTrue(versions.contains(Session.OTRv.THREE));
     }
@@ -59,5 +58,12 @@ public class OtrPolicyUtilTest {
         assertEquals(2, versions.size());
         assertTrue(versions.contains(Session.OTRv.TWO));
         assertTrue(versions.contains(Session.OTRv.THREE));
+    }
+
+    @Test
+    public void testAllowedVersionOneHasNoEffect() {
+        final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V1);
+        final List<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
+        assertEquals(0, versions.size());
     }
 }

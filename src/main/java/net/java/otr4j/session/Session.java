@@ -54,13 +54,11 @@ import net.java.otr4j.session.state.StatePlaintext;
 public class Session implements Context {
 
     public interface OTRv {
-        // TODO consider eliminating OTRv1 completely
-        int ONE = 1;
         int TWO = 2;
         int THREE = 3;
 
         final Set<Integer> ALL = Collections.unmodifiableSet(
-                new HashSet<Integer>(Arrays.asList(ONE, TWO, THREE)));
+                new HashSet<Integer>(Arrays.asList(TWO, THREE)));
     }
 
     /**
@@ -422,15 +420,13 @@ public class Session implements Context {
                 }
             }
             injectMessage(dhCommit);
-        }
-        else if (queryMessage.versions.contains(OTRv.TWO) && policy.getAllowV2()) {
+        } else if (queryMessage.versions.contains(OTRv.TWO) && policy.getAllowV2()) {
             logger.finest("Query message with V2 support found.");
             final DHCommitMessage dhCommit = getAuthContext().respondAuth(OTRv.TWO);
             logger.finest("Sending D-H Commit Message");
             injectMessage(dhCommit);
-        } else if (queryMessage.versions.contains(OTRv.ONE) && policy.getAllowV1()) {
-            // TODO Get rid of OTRv1 support completely
-            logger.finest("Query message with V1 support found - ignoring.");
+        } else {
+            logger.info("Query message received, but none of the versions are useful. They are either excluded by policy or by lack of support.");
         }
     }
 
@@ -534,10 +530,8 @@ public class Session implements Context {
             } catch (final OtrException e) {
                 logger.log(Level.WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv2)", e);
             }
-        } else if (plainTextMessage.versions.contains(Session.OTRv.ONE)
-                && policy.getAllowV1()) {
-            // TODO Get rid of OTRv1 support completely
-            throw new UnsupportedOperationException();
+        } else {
+            logger.info("Message with whitespace tags received, but none of the tags are useful. They are either excluded by policy or by lack of support.");
         }
     }
 
@@ -577,12 +571,8 @@ public class Session implements Context {
             return;
         }
         if (this.getSessionStatus() == SessionStatus.ENCRYPTED) {
+            logger.fine("startSession was called, however an encrypted session is already established.");
             return;
-        }
-        final OtrPolicy policy = getSessionPolicy();
-        if (!policy.getAllowV2() && !policy.getAllowV3()) {
-            // TODO if not v2 and not v3 then must be v1 which is not supported
-            throw new UnsupportedOperationException();
         }
         this.getAuthContext().startAuth();
     }

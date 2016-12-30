@@ -18,7 +18,7 @@ import net.java.otr4j.session.Session;
  * @author Danny van Heumen
  */
 public final class OtrPolicyUtil {
-    
+
     private OtrPolicyUtil() {
         // utility class, should not be instantiated
     }
@@ -32,9 +32,6 @@ public final class OtrPolicyUtil {
     @Nonnull
     public static List<Integer> allowedVersions(@Nonnull final OtrPolicy policy) {
         final ArrayList<Integer> versions = new ArrayList<Integer>(4);
-        if (policy.getAllowV1()) {
-            versions.add(Session.OTRv.ONE);
-        }
         if (policy.getAllowV2()) {
             versions.add(Session.OTRv.TWO);
         }

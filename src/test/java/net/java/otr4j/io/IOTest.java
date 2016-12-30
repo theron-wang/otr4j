@@ -163,7 +163,7 @@ public class IOTest {
 
 	@Test
 	public void testIORevealSignature() throws Exception {
-		int protocolVersion = 1;
+		int protocolVersion = 2;
 		byte[] xEncrypted = new byte[] { 1, 2, 3, 4 };
 		byte[] xEncryptedMAC = new byte[SerializationConstants.TYPE_LEN_MAC];
 		for (int i = 0; i < xEncryptedMAC.length; i++)

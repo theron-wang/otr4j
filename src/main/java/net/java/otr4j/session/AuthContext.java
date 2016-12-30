@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 import javax.crypto.interfaces.DHPublicKey;
 
 import net.java.otr4j.OtrException;
+import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
@@ -42,11 +43,11 @@ import net.java.otr4j.session.Session.OTRv;
 public class AuthContext {
     // TODO consider converting this to a state machine. This enables better separation of state variables such that we only provide fields that are used in the current state.
 
+    // TODO replace constants for authentication state to enum.
     public static final int NONE = 0;
     public static final int AWAITING_DHKEY = 1;
     public static final int AWAITING_REVEALSIG = 2;
     public static final int AWAITING_SIG = 3;
-    public static final int V1_SETUP = 4;
     public static final byte C_START = (byte) 0x01;
     public static final byte M1_START = (byte) 0x02;
     public static final byte M2_START = (byte) 0x03;
@@ -460,7 +461,7 @@ public class AuthContext {
                 handleSignatureMessage(checkCast(SignatureMessage.class, m));
                 break;
             default:
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException("Unsupported message type encountered: " + m.messageType);
         }
     }
 
@@ -766,14 +767,18 @@ public class AuthContext {
                 session.injectMessage(messageFactory.getDHKeyMessage());
                 logger.finest("Sent D-H key.");
                 break;
-            case V1_SETUP:
-                // TODO consider cleaning up OTRv1 support remains
-                throw new UnsupportedOperationException();
+            default:
+                throw new IllegalStateException("Unknown or unsupported authentication state encountered. This should not happen and is likely a programming error.");
         }
     }
 
     public void startAuth() throws OtrException {
         logger.finest("Starting Authenticated Key Exchange, sending query message");
+        final OtrPolicy policy = session.getSessionPolicy();
+        if (!policy.getAllowV2() && !policy.getAllowV3()) {
+            // FIXME replace this if condition with utility method that checks for viable policy.
+            throw new IllegalStateException("Current OTR policy declines all supported versions of OTR. There is no way to start an OTR session that complies with the policy.");
+        }
         session.injectMessage(messageFactory.getQueryMessage());
     }
 

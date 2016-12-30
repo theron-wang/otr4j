@@ -157,14 +157,9 @@ public final class SerializationUtils {
 				if (!plaintxt.versions.isEmpty()) {
 					writer.write(" \t  \t\t\t\t \t \t \t  ");
 					for (int version : plaintxt.versions) {
-						if (version == OTRv.ONE) {
-                            writer.write(" \t \t  \t ");
-                        }
-
 						if (version == OTRv.TWO) {
                             writer.write("  \t\t  \t ");
                         }
-
 						if (version == OTRv.THREE) {
                             writer.write("  \t\t  \t\t");
                         }
@@ -172,6 +167,7 @@ public final class SerializationUtils {
 				}
 				break;
 			case AbstractMessage.MESSAGE_QUERY:
+                // FIXME does this implementation correctly support creating query messages with v1 support? ?OTR?v23 (with the extra question mark) We should verify and change if necessary.
 				final QueryMessage query = checkCast(QueryMessage.class, m);
 				if (query.versions.size() == 1 && query.versions.get(0) == 1) {
 					writer.write(SerializationConstants.HEAD_QUERY_Q);
@@ -269,7 +265,11 @@ public final class SerializationUtils {
 		return writer.toString();
 	}
 
-	static final Pattern PATTERN_WHITESPACE = Pattern
+    // PATTERN_WHITESPACE recognizes OTR v1, v2 and v3 whitespace tags. We will
+    // continue to recognize OTR v1 whitespace tag for compatibility purposes
+    // and to avoid bad reinterpretation.
+    // FIXME there is no use in making the whitespace prefix a regex group. We expect it to be present exactly once and we do no use this group afterwards!
+	private static final Pattern PATTERN_WHITESPACE = Pattern
 			.compile("( \\t  \\t\\t\\t\\t \\t \\t \\t  )( \\t \\t  \\t )?(  \\t\\t  \\t )?(  \\t\\t  \\t\\t)?");
 
 	/**
@@ -307,23 +307,26 @@ public final class SerializationUtils {
 			} else if (contentType == SerializationConstants.HEAD_QUERY_V
 					|| contentType == SerializationConstants.HEAD_QUERY_Q) {
 				// Query tag found.
-
-				final ArrayList<Integer> versions = new ArrayList<Integer>(4);
-				String versionString = null;
-				if (SerializationConstants.HEAD_QUERY_Q == contentType) {
-					versions.add(OTRv.ONE);
-					if (content.charAt(0) == 'v') {
-						versionString = content.substring(1, content
-								.indexOf('?'));
-					}
+				final ArrayList<Integer> versions = new ArrayList<Integer>();
+				final String versionString;
+                if (SerializationConstants.HEAD_QUERY_Q == contentType
+                        && content.charAt(0) == 'v') {
+                    // OTR v1 query tag format. However, we do not active
+                    // support OTRv1 anymore. Therefore the logic only supports
+                    // skipping over the OTRv1 tags in order to reach OTR v2 and
+                    // v3 version tags.
+                    versionString = content.substring(1, content.indexOf('?'));
 				} else if (SerializationConstants.HEAD_QUERY_V == contentType) {
+                    // OTR v2+ query tag format.
 					versionString = content.substring(0, content.indexOf('?'));
-				}
-
+				} else {
+                    versionString = null;
+                }
 				if (versionString != null) {
 					StringReader sr = new StringReader(versionString);
 					int c;
 					while ((c = sr.read()) != -1) {
+                        // FIXME code is a bit dubious as it assumes that future versions will correspond 1:1 with our constants for indicating OTR versions. Maybe we should use only those versions we recognize? Might also crash if encountering other chars.
                         if (!versions.contains(c)) {
                             versions.add(Integer.parseInt(String
                                     .valueOf((char) c)));
@@ -340,11 +343,13 @@ public final class SerializationUtils {
                  * Otr4j doesn't strip this point before passing the content to the base64 decoder.
                  * So in order to decode the content string we have to get rid of the '.' first.
                  */
+                // TODO here an assumption is being made that the last character is a '.' Should we check before acting on this?
 				final ByteArrayInputStream bin = new ByteArrayInputStream(Base64
 						.decode(content.substring(0, content.length() - 1).getBytes(ASCII)));
 				final OtrInputStream otr = new OtrInputStream(bin);
 				// We have an encoded message.
 				try {
+                    // FIXME it seems we do not check message's protocol version with policy of allowed versions. What's that about?
 					final int protocolVersion = otr.readShort();
 					if (!OTRv.ALL.contains(protocolVersion)) {
 						throw new IOException("Unsupported protocol version "
@@ -421,36 +426,26 @@ public final class SerializationUtils {
 			}
 		}
 
-
 		// Try to detect whitespace tag.
 		final Matcher matcher = PATTERN_WHITESPACE.matcher(s);
 
-		boolean v1 = false;
 		boolean v2 = false;
 		boolean v3 = false;
 		while (matcher.find()) {
-			if (!v1 && matcher.start(2) > -1) {
-                v1 = true;
-            }
-
 			if (!v2 && matcher.start(3) > -1) {
                 v2 = true;
             }
-
 			if (!v3 && matcher.start(3) > -1) {
+                // FIXME this is a bug? v2 tag and v3 tag cannot be contained in same group if the tags are different. (Also convert to constants!)
                 v3 = true;
             }
-
-			if (v1 && v2 && v3) {
+			if (v2 && v3) {
                 break;
             }
 		}
 
 		final String cleanText = matcher.replaceAll("");
         final ArrayList<Integer> versions = new ArrayList<Integer>(4);
-        if (v1) {
-            versions.add(OTRv.ONE);
-        }
         if (v2) {
             versions.add(OTRv.TWO);
         }
