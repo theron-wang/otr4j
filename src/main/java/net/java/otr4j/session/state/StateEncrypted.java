@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -299,7 +300,8 @@ public final class StateEncrypted extends AbstractState {
         }
         // Re-negotiate if we got an error and we are encrypted
         logger.finest("Error message starts AKE.");
-        final List<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
+        final Set<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
+        // FIXME should we verify that versions contains at least one allowed version? If not we do not immediately reinitiate AKE but we also never log why.
         logger.finest("Sending Query");
         context.injectMessage(new QueryMessage(versions));
         super.handleErrorMessage(context, errorMessage);

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.security.PublicKey;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.java.otr4j.OtrEngineHost;
@@ -93,8 +94,9 @@ public final class StatePlaintext extends AbstractState {
         }
         if (otrPolicy.getSendWhitespaceTag()
                 && context.getOfferStatus() != OfferStatus.rejected) {
+            // FIXME we should verify that we send a whitespace tag before assuming that the offer is sent. What happens if we have 0 versions left after checking policy. Do we still send a whitespace tag and how do we expect the counter party to respond? This is particularly tricky as we only offer the whitespace tag once, so we should know for sure that we offered it.
             context.setOfferStatus(OfferStatus.sent);
-            final List<Integer> versions = OtrPolicyUtil.allowedVersions(otrPolicy);
+            final Set<Integer> versions = OtrPolicyUtil.allowedVersions(otrPolicy);
             final AbstractMessage abstractMessage = new PlainTextMessage(versions, msgText);
             try {
                 return new String[]{

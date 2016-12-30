@@ -15,6 +15,8 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -140,7 +142,9 @@ public final class SerializationUtils {
 	// Message IO.
 	public static String toString(@Nonnull final AbstractMessage m) throws IOException {
 		final StringWriter writer = new StringWriter();
-		if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT) {
+		if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT && m.messageType != AbstractMessage.MESSAGE_QUERY) {
+            // We avoid writing the header until we know for sure we need it. We know for sure that plaintext messages do not need it. We may not need it for a query message if the versions list is empty.
+            // FIXME should we prevent getting into this situation where versions is empty?
             writer.write(SerializationConstants.HEAD);
         }
 
@@ -167,19 +171,23 @@ public final class SerializationUtils {
 				}
 				break;
 			case AbstractMessage.MESSAGE_QUERY:
-                // FIXME does this implementation correctly support creating query messages with v1 support? ?OTR?v23 (with the extra question mark) We should verify and change if necessary.
-				final QueryMessage query = checkCast(QueryMessage.class, m);
-				if (query.versions.size() == 1 && query.versions.get(0) == 1) {
-					writer.write(SerializationConstants.HEAD_QUERY_Q);
-				} else {
-					writer.write(SerializationConstants.HEAD_QUERY_V);
-					for (int version : query.versions) {
-                        writer.write(String.valueOf(version));
+                final QueryMessage query = checkCast(QueryMessage.class, m);
+                if (query.versions.size() == 1 && query.versions.contains(1)) {
+                    throw new UnsupportedOperationException("OTR v1 is no longer supported. Support in the library has been removed, so the query message should not contain a version 1 entry.");
+                }
+                if (query.versions.size() > 0) {
+                    writer.write(SerializationConstants.HEAD);
+                    writer.write(SerializationConstants.HEAD_QUERY_V);
+                    final ArrayList<Integer> versions = new ArrayList(query.versions);
+                    Collections.sort(versions);
+                    for (final int version : versions) {
+                        // FIXME we should prevent writing version 1 as we do not support version one anymore.
+                        // FIXME this is going to be weird with numbers > 9 as we use two digits. Should we check for that?
+                        writer.write(Integer.toString(version));
                     }
-
-					writer.write(SerializationConstants.HEAD_QUERY_Q);
-				}
-				break;
+                    writer.write(SerializationConstants.HEAD_QUERY_Q);
+                }
+                break;
 			case AbstractEncodedMessage.MESSAGE_DHKEY:
 			case AbstractEncodedMessage.MESSAGE_REVEALSIG:
 			case AbstractEncodedMessage.MESSAGE_SIGNATURE:
@@ -306,10 +314,9 @@ public final class SerializationUtils {
 			} else if (contentType == SerializationConstants.HEAD_QUERY_V
 					|| contentType == SerializationConstants.HEAD_QUERY_Q) {
 				// Query tag found.
-				final ArrayList<Integer> versions = new ArrayList<Integer>();
 				final String versionString;
                 if (SerializationConstants.HEAD_QUERY_Q == contentType
-                        && content.charAt(0) == 'v') {
+                        && content.length() > 0 && content.charAt(0) == 'v') {
                     // OTR v1 query tag format. However, we do not active
                     // support OTRv1 anymore. Therefore the logic only supports
                     // skipping over the OTRv1 tags in order to reach OTR v2 and
@@ -319,19 +326,17 @@ public final class SerializationUtils {
                     // OTR v2+ query tag format.
 					versionString = content.substring(0, content.indexOf('?'));
 				} else {
-                    versionString = null;
+                    versionString = "";
                 }
-				if (versionString != null) {
-					StringReader sr = new StringReader(versionString);
-					int c;
-					while ((c = sr.read()) != -1) {
-                        // FIXME code is a bit dubious as it assumes that future versions will correspond 1:1 with our constants for indicating OTR versions. Maybe we should use only those versions we recognize? Might also crash if encountering other chars.
-                        if (!versions.contains(c)) {
-                            versions.add(Integer.parseInt(String
-                                    .valueOf((char) c)));
-                        }
+                final HashSet<Integer> versions = new HashSet<Integer>();
+                final StringReader sr = new StringReader(versionString);
+                int c;
+                while ((c = sr.read()) != -1) {
+                    if (c >= '0' && c <= '9') {
+                        versions.add(Integer.parseInt(String.valueOf((char) c)));
                     }
-				}
+                }
+                // FIXME we should verify afterwards that version '1' is not contained, as there is a different format for version 1. There may be additional checks needed.
 				return new QueryMessage(versions);
 			} else if (idxHead == 0 && contentType == SerializationConstants.HEAD_ENCODED) {
 				// Data message found.
@@ -444,7 +449,7 @@ public final class SerializationUtils {
 		}
 
 		final String cleanText = matcher.replaceAll("");
-        final ArrayList<Integer> versions = new ArrayList<Integer>(4);
+        final HashSet<Integer> versions = new HashSet<Integer>();
         if (v2) {
             versions.add(OTRv.TWO);
         }

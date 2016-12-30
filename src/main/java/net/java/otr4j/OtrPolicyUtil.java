@@ -8,7 +8,9 @@
 package net.java.otr4j;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import net.java.otr4j.session.Session;
 
@@ -30,8 +32,8 @@ public final class OtrPolicyUtil {
      * @return Returns list of allowed OTR versions.
      */
     @Nonnull
-    public static List<Integer> allowedVersions(@Nonnull final OtrPolicy policy) {
-        final ArrayList<Integer> versions = new ArrayList<Integer>(4);
+    public static Set<Integer> allowedVersions(@Nonnull final OtrPolicy policy) {
+        final HashSet<Integer> versions = new HashSet<Integer>();
         if (policy.getAllowV2()) {
             versions.add(Session.OTRv.TWO);
         }

@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -108,7 +109,8 @@ public class AuthContext {
         QueryMessage getQueryMessage() {
             // FIXME it does not make sense to send both versions, if policy maybe disallows one of them.
             // FIXME check if policy allows at least one viable version, as otherwise we should consider this a programming error.
-            return new QueryMessage(Arrays.asList(OTRv.TWO, OTRv.THREE));
+            final HashSet<Integer> versions = new HashSet<Integer>(Arrays.asList(OTRv.TWO, OTRv.THREE));
+            return new QueryMessage(versions);
         }
 
         DHCommitMessage getDHCommitMessage() throws OtrException {

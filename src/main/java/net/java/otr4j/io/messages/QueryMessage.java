@@ -6,7 +6,7 @@
  */
 package net.java.otr4j.io.messages;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * 
@@ -14,15 +14,15 @@ import java.util.List;
  */
 public class QueryMessage extends AbstractMessage {
 	// Fields.
-	public final List<Integer> versions;
+	public final Set<Integer> versions;
 
 	// Ctor.
-	protected QueryMessage(final int messageType, final List<Integer> versions) {
+	protected QueryMessage(final int messageType, final Set<Integer> versions) {
 		super(messageType);
 		this.versions = versions;
 	}
 
-	public QueryMessage(final List<Integer> versions) {
+	public QueryMessage(final Set<Integer> versions) {
 		this(MESSAGE_QUERY, versions);
 	}
 

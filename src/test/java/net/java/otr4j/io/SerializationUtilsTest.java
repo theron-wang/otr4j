@@ -2,8 +2,11 @@ package net.java.otr4j.io;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.PlainTextMessage;
+import net.java.otr4j.io.messages.QueryMessage;
 import net.java.otr4j.session.Session;
 import net.java.otr4j.session.Session.OTRv;
 import static org.junit.Assert.assertArrayEquals;
@@ -75,7 +78,8 @@ public class SerializationUtilsTest {
     @Test
     public void testPlaintextMessageNoNullMangling() throws IOException {
         final String data = "This is a test with \0 null \0 values.";
-        final PlainTextMessage m = new PlainTextMessage(Arrays.asList(OTRv.TWO, OTRv.THREE), data);
+        final PlainTextMessage m = new PlainTextMessage(
+                new HashSet<Integer>(Arrays.asList(OTRv.TWO, OTRv.THREE)), data);
         assertTrue(SerializationUtils.toString(m).startsWith("This is a test with \0 null \0 values."));
     }
 
@@ -139,5 +143,79 @@ public class SerializationUtilsTest {
         assertEquals(1, msg.versions.size());
         assertTrue(msg.versions.contains(Session.OTRv.THREE));
         assertEquals("Hello world!", msg.cleanText);
+    }
+
+    @Test
+    public void testQueryHeaderEmpty() throws IOException {
+        // Verify that we do not send the "bizarre claim" (as documented by otr spec) of willingness to speak otr but we accept not a single version.
+        final QueryMessage msg = new QueryMessage(Collections.<Integer>emptySet());
+        assertEquals("", SerializationUtils.toString(msg));
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testCorrectQueryHeaderV1() throws IOException {
+        final QueryMessage msg = new QueryMessage(Collections.singleton(1));
+        assertEquals("", SerializationUtils.toString(msg));
+    }
+
+    @Test
+    public void testCorrectQueryHeaderV2() throws IOException {
+        final QueryMessage msg = new QueryMessage(Collections.singleton(Session.OTRv.TWO));
+        assertEquals("?OTRv2?", SerializationUtils.toString(msg));
+    }
+
+    @Test
+    public void testCorrectQueryHeaderV3() throws IOException {
+        final QueryMessage msg = new QueryMessage(Collections.singleton(Session.OTRv.THREE));
+        assertEquals("?OTRv3?", SerializationUtils.toString(msg));
+    }
+
+    @Test
+    public void testCorrectQueryHeaderV2AndV3() throws IOException {
+        final QueryMessage msg = new QueryMessage(new HashSet<Integer>(Arrays.asList(Session.OTRv.TWO, Session.OTRv.THREE)));
+        assertEquals("?OTRv23?", SerializationUtils.toString(msg));
+    }
+
+    @Test
+    public void testCorrectDeduplicationOfVersionsWhileParsingQueryMessage() throws IOException, OtrCryptoException {
+        final QueryMessage msg = (QueryMessage) SerializationUtils.toMessage("?OTRv2222222?");
+        assertEquals(1, msg.versions.size());
+        assertTrue(msg.versions.contains(Session.OTRv.TWO));
+    }
+
+    @Test
+    public void testEnsureEmptyVersionStringIsCorrectlyParsed() throws IOException, OtrCryptoException {
+        final QueryMessage msg = (QueryMessage) SerializationUtils.toMessage("?OTRv?");
+        assertTrue(msg.versions.isEmpty());
+    }
+
+    @Test
+    public void testEnsureOTRv1VersionStringIsIgnored() throws IOException, OtrCryptoException {
+        final QueryMessage msg = (QueryMessage) SerializationUtils.toMessage("?OTR?");
+        assertTrue(msg.versions.isEmpty());
+    }
+
+    @Test
+    public void testEnsureFakeOTRHeadersCorrectlyIgnored1() throws IOException, OtrCryptoException {
+        final QueryMessage msg = (QueryMessage) SerializationUtils.toMessage("?");
+        assertTrue(msg.versions.isEmpty());
+    }
+
+    @Test
+    public void testEnsureFakeOTRHeadersCorrectlyIgnored2() throws IOException, OtrCryptoException {
+        final QueryMessage msg = (QueryMessage) SerializationUtils.toMessage("?O");
+        assertTrue(msg.versions.isEmpty());
+    }
+
+    @Test
+    public void testEnsureFakeOTRHeadersCorrectlyIgnored3() throws IOException, OtrCryptoException {
+        final QueryMessage msg = (QueryMessage) SerializationUtils.toMessage("?OTRa");
+        assertTrue(msg.versions.isEmpty());
+    }
+
+    @Test
+    public void testEnsureFakeOTRHeadersCorrectlyIgnored4() throws IOException, OtrCryptoException {
+        final QueryMessage msg = (QueryMessage) SerializationUtils.toMessage("?OTR ");
+        assertTrue(msg.versions.isEmpty());
     }
 }

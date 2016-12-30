@@ -8,6 +8,7 @@
 package net.java.otr4j;
 
 import java.util.List;
+import java.util.Set;
 import net.java.otr4j.session.Session;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -30,7 +31,7 @@ public class OtrPolicyUtilTest {
     @Test
     public void testAllowedVersionsDefaultPolicy() {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.OTRL_POLICY_DEFAULT);
-        final List<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
+        final Set<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
         assertEquals(2, versions.size());
         assertTrue(versions.contains(Session.OTRv.TWO));
         assertTrue(versions.contains(Session.OTRv.THREE));
@@ -39,14 +40,14 @@ public class OtrPolicyUtilTest {
     @Test
     public void testAllowedVersionsNoVersionPolicy() {
         final OtrPolicy policy = new OtrPolicy(0);
-        final List<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
+        final Set<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
         assertEquals(0, versions.size());
     }
 
     @Test
     public void testAllowedVersionsMinimalPolicy() {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V3);
-        final List<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
+        final Set<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
         assertEquals(1, versions.size());
         assertTrue(versions.contains(Session.OTRv.THREE));
     }
@@ -54,7 +55,7 @@ public class OtrPolicyUtilTest {
     @Test
     public void testAllowedVersionsCustomPolicy() {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3 | OtrPolicy.WHITESPACE_START_AKE);
-        final List<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
+        final Set<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
         assertEquals(2, versions.size());
         assertTrue(versions.contains(Session.OTRv.TWO));
         assertTrue(versions.contains(Session.OTRv.THREE));
@@ -63,7 +64,7 @@ public class OtrPolicyUtilTest {
     @Test
     public void testAllowedVersionOneHasNoEffect() {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V1);
-        final List<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
+        final Set<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
         assertEquals(0, versions.size());
     }
 }
