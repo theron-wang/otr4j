@@ -51,6 +51,7 @@ import net.java.otr4j.session.state.StatePlaintext;
  * @author Danny van Heumen
  */
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
+// TODO implement access to symmetric key (TLV 8) that is provided by otr (see spec)
 public class Session implements Context {
 
     public interface OTRv {

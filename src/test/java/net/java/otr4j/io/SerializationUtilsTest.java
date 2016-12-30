@@ -1,11 +1,16 @@
 package net.java.otr4j.io;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.util.Arrays;
+import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.PlainTextMessage;
+import net.java.otr4j.session.Session;
 import net.java.otr4j.session.Session.OTRv;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 public class SerializationUtilsTest {
@@ -78,5 +83,61 @@ public class SerializationUtilsTest {
     public void testBytesConversionNullMangling() {
         assertArrayEquals("This is a test with ? null ? values.".getBytes(SerializationUtils.UTF8),
                 SerializationUtils.convertTextToBytes("This is a test with \0 null \0 values."));
+    }
+
+    @Test
+    public void testCorrectIdentificationOfWhitespaceTagV1() throws IOException, OtrCryptoException {
+        PlainTextMessage msg = (PlainTextMessage) SerializationUtils.toMessage(" \t  \t\t\t\t \t \t \t   \t \t  \t ");
+        assertTrue(msg.versions.isEmpty());
+        assertEquals("", msg.cleanText);
+    }
+
+    @Test
+    public void testCorrectIdentificationOfWhitespaceTagV2() throws IOException, OtrCryptoException {
+        PlainTextMessage msg = (PlainTextMessage) SerializationUtils.toMessage(" \t  \t\t\t\t \t \t \t    \t\t  \t ");
+        assertEquals(1, msg.versions.size());
+        assertTrue(msg.versions.contains(Session.OTRv.TWO));
+        assertEquals("", msg.cleanText);
+    }
+
+    @Test
+    public void testCorrectIdentificationOfWhitespaceTagV3() throws IOException, OtrCryptoException {
+        PlainTextMessage msg = (PlainTextMessage) SerializationUtils.toMessage(" \t  \t\t\t\t \t \t \t    \t\t  \t\t");
+        assertEquals(1, msg.versions.size());
+        assertTrue(msg.versions.contains(Session.OTRv.THREE));
+        assertEquals("", msg.cleanText);
+    }
+
+    @Test
+    public void testCorrectIdentificationOfWhitespaceTagV2AndV3() throws IOException, OtrCryptoException {
+        PlainTextMessage msg = (PlainTextMessage) SerializationUtils.toMessage(" \t  \t\t\t\t \t \t \t    \t\t  \t   \t\t  \t\t");
+        assertEquals(2, msg.versions.size());
+        assertTrue(msg.versions.contains(Session.OTRv.TWO));
+        assertTrue(msg.versions.contains(Session.OTRv.THREE));
+        assertEquals("", msg.cleanText);
+    }
+
+    @Test
+    public void testCorrectIdentificationOfWhitespaceTagV1AndV2() throws IOException, OtrCryptoException {
+        PlainTextMessage msg = (PlainTextMessage) SerializationUtils.toMessage(" \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t  \t ");
+        assertEquals(1, msg.versions.size());
+        assertTrue(msg.versions.contains(Session.OTRv.TWO));
+        assertEquals("", msg.cleanText);
+    }
+
+    @Test
+    public void testCorrectIdentificationOfWhitespaceTagV1AndV3() throws IOException, OtrCryptoException {
+        PlainTextMessage msg = (PlainTextMessage) SerializationUtils.toMessage(" \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t  \t\t");
+        assertEquals(1, msg.versions.size());
+        assertTrue(msg.versions.contains(Session.OTRv.THREE));
+        assertEquals("", msg.cleanText);
+    }
+
+    @Test
+    public void testCorrectWhitespaceErasure() throws IOException, OtrCryptoException {
+        PlainTextMessage msg = (PlainTextMessage) SerializationUtils.toMessage("Hello \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t  \t\t world!");
+        assertEquals(1, msg.versions.size());
+        assertTrue(msg.versions.contains(Session.OTRv.THREE));
+        assertEquals("Hello world!", msg.cleanText);
     }
 }

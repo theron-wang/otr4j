@@ -267,10 +267,9 @@ public final class SerializationUtils {
 
     // PATTERN_WHITESPACE recognizes OTR v1, v2 and v3 whitespace tags. We will
     // continue to recognize OTR v1 whitespace tag for compatibility purposes
-    // and to avoid bad reinterpretation.
-    // FIXME there is no use in making the whitespace prefix a regex group. We expect it to be present exactly once and we do no use this group afterwards!
+    // and to avoid bad interpretation.
 	private static final Pattern PATTERN_WHITESPACE = Pattern
-			.compile("( \\t  \\t\\t\\t\\t \\t \\t \\t  )( \\t \\t  \\t )?(  \\t\\t  \\t )?(  \\t\\t  \\t\\t)?");
+			.compile(" \\t  \\t\\t\\t\\t \\t \\t \\t  ( \\t \\t  \\t )?(  \\t\\t  \\t )?(  \\t\\t  \\t\\t)?");
 
 	/**
 	 * Parses an encoded OTR string into an instance of {@link AbstractMessage}.
@@ -432,11 +431,11 @@ public final class SerializationUtils {
 		boolean v2 = false;
 		boolean v3 = false;
 		while (matcher.find()) {
-			if (!v2 && matcher.start(3) > -1) {
+            // Ignore group 1 (OTRv1 tag) as V1 is not supported anymore.
+			if (!v2 && matcher.start(2) > -1) {
                 v2 = true;
             }
 			if (!v3 && matcher.start(3) > -1) {
-                // FIXME this is a bug? v2 tag and v3 tag cannot be contained in same group if the tags are different. (Also convert to constants!)
                 v3 = true;
             }
 			if (v2 && v3) {
