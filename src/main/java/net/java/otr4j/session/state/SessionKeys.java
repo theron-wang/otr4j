@@ -26,7 +26,7 @@ import net.java.otr4j.io.SerializationUtils;
  * @author George Politis
  * @author Danny van Heumen
  */
-class SessionKeys {
+final class SessionKeys {
 
     static final int PREVIOUS = 0;
     static final int CURRENT = 1;

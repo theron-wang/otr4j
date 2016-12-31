@@ -3,7 +3,7 @@ package net.java.otr4j.session;
 import java.security.SecureRandom;
 import javax.annotation.Nonnull;
 
-public class InstanceTag {
+public final class InstanceTag {
 
     /**
      * Zero-value.
