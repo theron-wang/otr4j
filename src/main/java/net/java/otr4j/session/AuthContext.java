@@ -24,6 +24,7 @@ import javax.crypto.interfaces.DHPublicKey;
 
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.OtrPolicyUtil;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
@@ -777,8 +778,7 @@ public class AuthContext {
     public void startAuth() throws OtrException {
         logger.finest("Starting Authenticated Key Exchange, sending query message");
         final OtrPolicy policy = session.getSessionPolicy();
-        if (!policy.getAllowV2() && !policy.getAllowV3()) {
-            // FIXME replace this if condition with utility method that checks for viable policy.
+        if (!OtrPolicyUtil.viableOtrPolicy(policy)) {
             throw new IllegalStateException("Current OTR policy declines all supported versions of OTR. There is no way to start an OTR session that complies with the policy.");
         }
         session.injectMessage(messageFactory.getQueryMessage());

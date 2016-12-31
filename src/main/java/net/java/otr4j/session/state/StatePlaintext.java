@@ -88,25 +88,34 @@ public final class StatePlaintext extends AbstractState {
     public String[] transformSending(@Nonnull final Context context, @Nonnull final String msgText, @Nonnull final List<TLV> tlvs) throws OtrException {
         final OtrPolicy otrPolicy = context.getSessionPolicy();
         if (otrPolicy.getRequireEncryption()) {
+            // Prevent original message from being sent. Start AKE.
             context.getAuthContext().startAuth();
             OtrEngineHostUtil.requireEncryptedMessage(context.getHost(), sessionId, msgText);
             return new String[0];
         }
-        if (otrPolicy.getSendWhitespaceTag()
-                && context.getOfferStatus() != OfferStatus.rejected) {
-            // FIXME we should verify that we send a whitespace tag before assuming that the offer is sent. What happens if we have 0 versions left after checking policy. Do we still send a whitespace tag and how do we expect the counter party to respond? This is particularly tricky as we only offer the whitespace tag once, so we should know for sure that we offered it.
-            context.setOfferStatus(OfferStatus.sent);
-            final Set<Integer> versions = OtrPolicyUtil.allowedVersions(otrPolicy);
-            final AbstractMessage abstractMessage = new PlainTextMessage(versions, msgText);
-            try {
-                return new String[]{
-                    SerializationUtils.toString(abstractMessage)
-                };
-            } catch (final IOException e) {
-                throw new OtrException(e);
-            }
+        if (!otrPolicy.getSendWhitespaceTag()
+                || context.getOfferStatus() == OfferStatus.rejected) {
+            // As we do not want to send a specially crafted whitespace tag
+            // message, just return the original message text to be sent.
+            return new String[]{msgText};
         }
-        return new String[]{msgText};
+        // Continue with crafting a special whitespace message tag and embedding
+        // it into the original message.
+        final Set<Integer> versions = OtrPolicyUtil.allowedVersions(otrPolicy);
+        if (versions.isEmpty()) {
+            // Catch situation where we do not actually offer any versions.
+            // At this point, reaching this state is considered a bug.
+            throw new IllegalStateException("The current OTR policy does not allow any supported version of OTR. The software should either enable some protocol version or disable sending whitespace tags.");
+        }
+        final String message;
+        try {
+            message = SerializationUtils.toString(
+                    new PlainTextMessage(versions, msgText));
+        } catch (final IOException e) {
+            throw new OtrException(e);
+        }
+        context.setOfferStatus(OfferStatus.sent);
+        return new String[]{message};
     }
 
     @Override

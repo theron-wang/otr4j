@@ -11,6 +11,7 @@ package net.java.otr4j;
  * @author George Politis
  */
 // TODO OtrPolicy currently does not protect the user from configuring a non-viable policy (i.e. disallow all supported OTR versions). This may lead to RuntimeExceptions in the future when this policy is used. (For example, AuthContext#startAuth needs at least one OTR version.)
+// TODO consider some intelligence that automatically disables "whitespace tags" if no viable OTR version is allowed in the policy.
 public class OtrPolicy {
 
     /**

@@ -7,9 +7,7 @@
 
 package net.java.otr4j;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import net.java.otr4j.session.Session;
@@ -41,5 +39,17 @@ public final class OtrPolicyUtil {
             versions.add(Session.OTRv.THREE);
         }
         return versions;
+    }
+
+    /**
+     * Checks if OTR Policy is viable, i.e. we can initiate OTR with the
+     * restrictions in provided policy.
+     *
+     * @param policy The policy instance.
+     * @return Returns true if OTR can be initiated within the constraints of
+     * this policy.
+     */
+    public static boolean viableOtrPolicy(@Nonnull final OtrPolicy policy) {
+        return policy.getAllowV2() || policy.getAllowV3();
     }
 }

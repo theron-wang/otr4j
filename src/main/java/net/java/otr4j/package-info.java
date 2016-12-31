@@ -4,7 +4,8 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
-// TODO Outstanding issue: In several places arrays exposed as public fields/through accessor methods which allows code to modify its contents. (Fixed for crypto constants, not for AES keys + MAC keys + CTR values, TLV values, etc.) (Detected by FindBugs.)
+// TODO In several places arrays exposed as public fields/through accessor methods which allows code to modify its contents. (Fixed for crypto constants, not for AES keys + MAC keys + CTR values, TLV values, etc.) (Detected by FindBugs.)
+// TODO In the current implementation, we always query the host for the current session policy. What do we do if the policy changes during operation? Although not a big issue, it does make it possible to have some interesting unexpected state changes. Should we cache the policy for an encrypted session?
 /**
  * otr4j.
  */

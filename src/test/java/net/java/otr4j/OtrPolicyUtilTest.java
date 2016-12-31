@@ -4,14 +4,12 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
-
 package net.java.otr4j;
 
-import java.util.List;
 import java.util.Set;
 import net.java.otr4j.session.Session;
-import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * Tests for OtrPolicyUtil.
@@ -66,5 +64,35 @@ public class OtrPolicyUtilTest {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V1);
         final Set<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
         assertEquals(0, versions.size());
+    }
+
+    @Test
+    public void testViablePolicyOTRv2Andv3() {
+        final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3 | OtrPolicy.WHITESPACE_START_AKE);
+        assertTrue(OtrPolicyUtil.viableOtrPolicy(policy));
+    }
+
+    @Test
+    public void testViablePolicyOTRv2Only() {
+        final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V2);
+        assertTrue(OtrPolicyUtil.viableOtrPolicy(policy));
+    }
+
+    @Test
+    public void testViablePolicyOTRv3Only() {
+        final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V3);
+        assertTrue(OtrPolicyUtil.viableOtrPolicy(policy));
+    }
+
+    @Test
+    public void testViablePolicyNone() {
+        final OtrPolicy policy = new OtrPolicy(OtrPolicy.WHITESPACE_START_AKE | OtrPolicy.SEND_WHITESPACE_TAG);
+        assertFalse(OtrPolicyUtil.viableOtrPolicy(policy));
+    }
+
+    @Test
+    public void testViablePolicyOpportunistic() {
+        final OtrPolicy policy = new OtrPolicy(OtrPolicy.OPPORTUNISTIC);
+        assertTrue(OtrPolicyUtil.viableOtrPolicy(policy));
     }
 }

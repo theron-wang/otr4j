@@ -32,6 +32,7 @@ import net.java.otr4j.OtrEngineListener;
 import net.java.otr4j.OtrEngineListenerUtil;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.OtrPolicyUtil;
 import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
@@ -253,8 +254,8 @@ public class Session implements Context {
     public String transformReceiving(@Nonnull String msgText) throws OtrException {
 
         final OtrPolicy policy = getSessionPolicy();
-        if (!policy.getAllowV1() && !policy.getAllowV2() && !policy.getAllowV3()) {
-            logger.finest("Policy does not allow neither V1 nor V2 & V3, ignoring message.");
+        if (!OtrPolicyUtil.viableOtrPolicy(policy)) {
+            logger.finest("Policy does not allow any version of OTR, ignoring message.");
             return msgText;
         }
 
