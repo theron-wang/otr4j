@@ -45,11 +45,13 @@ import net.java.otr4j.session.Session.OTRv;
 public class AuthContext {
     // TODO consider converting this to a state machine. This enables better separation of state variables such that we only provide fields that are used in the current state.
 
-    // TODO replace constants for authentication state to enum.
-    public static final int NONE = 0;
-    public static final int AWAITING_DHKEY = 1;
-    public static final int AWAITING_REVEALSIG = 2;
-    public static final int AWAITING_SIG = 3;
+    private enum State {
+        NONE,
+        AWAITING_DHKEY,
+        AWAITING_REVEALSIG,
+        AWAITING_SIG;
+    }
+
     public static final byte C_START = (byte) 0x01;
     public static final byte M1_START = (byte) 0x02;
     public static final byte M2_START = (byte) 0x03;
@@ -86,7 +88,7 @@ public class AuthContext {
 
     private final Session session;
 
-    private int authenticationState;
+    private State authenticationState;
 
     private DHPublicKey remoteDHPublicKey;
     private byte[] remoteDHPublicKeyEncrypted;
@@ -217,7 +219,7 @@ public class AuthContext {
      */
     public final void reset(@Nullable final AuthContext other) {
         logger.finest("Resetting authentication state.");
-        authenticationState = AuthContext.NONE;
+        authenticationState = State.NONE;
 
         if (other == null) {
             r = null;
@@ -626,7 +628,7 @@ public class AuthContext {
 
                 logger.finest("Signature verification succeeded.");
 
-                this.authenticationState = AuthContext.NONE;
+                this.authenticationState = State.NONE;
                 this.isSecure = true;
                 this.remoteLongTermPublicKey = remoteLongTermPublicKey;
                 session.injectMessage(messageFactory.getSignatureMessage());
@@ -662,7 +664,7 @@ public class AuthContext {
                 // Reply with a Reveal Signature Message and transition
                 // authstate to AUTHSTATE_AWAITING_SIG
                 this.setRemoteDHPublicKey(m.dhPublicKey);
-                this.authenticationState = AuthContext.AWAITING_SIG;
+                this.authenticationState = State.AWAITING_SIG;
                 session.injectMessage(messageFactory.getRevealSignatureMessage());
                 logger.finest("Sent Reveal Signature.");
                 break;
@@ -714,7 +716,7 @@ public class AuthContext {
                 session.setProtocolVersion(m.protocolVersion);
                 this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                 this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
-                this.authenticationState = AuthContext.AWAITING_REVEALSIG;
+                this.authenticationState = State.AWAITING_REVEALSIG;
                 session.injectMessage(messageFactory.getDHKeyMessage());
                 logger.finest("Sent D-H key.");
                 break;
@@ -745,7 +747,7 @@ public class AuthContext {
                     session.setProtocolVersion(m.protocolVersion);
                     this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                     this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
-                    this.authenticationState = AuthContext.AWAITING_REVEALSIG;
+                    this.authenticationState = State.AWAITING_REVEALSIG;
                     session.injectMessage(messageFactory.getDHKeyMessage());
                     logger.finest("Forgot our old gx value that we sent (encrypted) earlier, and pretended we're in AUTHSTATE_NONE -> Sent D-H key.");
                 }
@@ -766,7 +768,7 @@ public class AuthContext {
                 this.reset(null);
                 this.setRemoteDHPublicKeyEncrypted(m.dhPublicKeyEncrypted);
                 this.setRemoteDHPublicKeyHash(m.dhPublicKeyHash);
-                this.authenticationState = AuthContext.AWAITING_REVEALSIG;
+                this.authenticationState = State.AWAITING_REVEALSIG;
                 session.injectMessage(messageFactory.getDHKeyMessage());
                 logger.finest("Sent D-H key.");
                 break;
@@ -792,7 +794,7 @@ public class AuthContext {
         logger.finest("Responding to Query Message");
         this.reset(null);
         session.setProtocolVersion(version);
-        this.authenticationState = AuthContext.AWAITING_DHKEY;
+        this.authenticationState = State.AWAITING_DHKEY;
         logger.finest("Generating D-H Commit.");
         return messageFactory.getDHCommitMessage();
     }
