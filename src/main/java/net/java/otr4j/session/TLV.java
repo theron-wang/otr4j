@@ -12,14 +12,16 @@ public class TLV {
     /* The sender has thrown away his OTR session keys with you */
     public static final int DISCONNECTED=0x0001;
 
-    /* The message contains a step in the Socialist Millionaires' Protocol. */ 
+    /* The message contains a step in the Socialist Millionaires' Protocol. */
+    // TODO Replace TLV type constants with enum. (Touches public API so might not be good to do right now.)
     public static final int SMP1=0x0002;
     public static final int SMP2=0x0003;
     public static final int SMP3=0x0004;
     public static final int SMP4=0x0005;
     public static final int SMP_ABORT=0x0006;
-    /* Like OTRL_TLV_SMP1, but there's a question for the buddy at the
-     * beginning */
+    /**
+     * Like SMP1, but there's a question for the buddy at the beginning.
+     */
     public static final int SMP1Q=0x0007;
 
 	private final int type;

@@ -15,9 +15,10 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
@@ -48,6 +49,8 @@ import net.java.otr4j.session.Session.OTRv;
  * @author George Politis
  */
 public final class SerializationUtils {
+
+    private static final Logger LOGGER = Logger.getLogger(SerializationUtils.class.getCanonicalName());
 
 	/**
 	 * Charset for base64-encoded content.
@@ -160,7 +163,7 @@ public final class SerializationUtils {
 				writer.write(plaintxt.cleanText);
 				if (!plaintxt.versions.isEmpty()) {
 					writer.write(" \t  \t\t\t\t \t \t \t  ");
-					for (int version : plaintxt.versions) {
+					for (final int version : plaintxt.versions) {
 						if (version == OTRv.TWO) {
                             writer.write("  \t\t  \t ");
                         }
@@ -179,10 +182,12 @@ public final class SerializationUtils {
                     writer.write(SerializationConstants.HEAD);
                     writer.write(SerializationConstants.HEAD_QUERY_V);
                     final ArrayList<Integer> versions = new ArrayList(query.versions);
-                    Collections.sort(versions);
+                    versions.sort(null);
                     for (final int version : versions) {
-                        // FIXME we should prevent writing version 1 as we do not support version one anymore.
-                        // FIXME this is going to be weird with numbers > 9 as we use two digits. Should we check for that?
+                        if (version <= 1 || version > 9) {
+                            LOGGER.log(Level.WARNING, "Encountered illegal OTR version: {0}. Versions 1 and lower and over 9 are not supported. This version will be skipped. If you see this message, there is likely a bug in otr4j.", version);
+                            continue;
+                        }
                         writer.write(Integer.toString(version));
                     }
                     writer.write(SerializationConstants.HEAD_QUERY_Q);

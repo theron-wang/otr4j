@@ -13,7 +13,6 @@ import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -109,11 +108,8 @@ public class AuthContext {
 
     private class MessageFactory {
 
-        QueryMessage getQueryMessage() {
-            // FIXME it does not make sense to send both versions, if policy maybe disallows one of them.
-            // FIXME check if policy allows at least one viable version, as otherwise we should consider this a programming error.
-            final HashSet<Integer> versions = new HashSet<Integer>(Arrays.asList(OTRv.TWO, OTRv.THREE));
-            return new QueryMessage(versions);
+        QueryMessage createQueryMessage(final OtrPolicy policy) {
+            return new QueryMessage(OtrPolicyUtil.allowedVersions(policy));
         }
 
         DHCommitMessage getDHCommitMessage() throws OtrException {
@@ -783,7 +779,7 @@ public class AuthContext {
         if (!OtrPolicyUtil.viableOtrPolicy(policy)) {
             throw new IllegalStateException("Current OTR policy declines all supported versions of OTR. There is no way to start an OTR session that complies with the policy.");
         }
-        session.injectMessage(messageFactory.getQueryMessage());
+        session.injectMessage(messageFactory.createQueryMessage(policy));
     }
 
     public DHCommitMessage respondAuth(final int version) throws OtrException {
