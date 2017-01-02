@@ -18,8 +18,7 @@ import java.util.logging.Logger;
  *
  * @author George Politis
  */
-// FIXME make class final
-public class OtrPolicy {
+public final class OtrPolicy {
 
     private static final Logger LOGGER = Logger.getLogger(OtrPolicy.class.getCanonicalName());
 
