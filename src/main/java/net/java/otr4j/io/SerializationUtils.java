@@ -62,6 +62,14 @@ public final class SerializationUtils {
 	 */
 	public static final Charset UTF8 = Charset.forName("UTF-8");
 
+    /**
+     * Index of numbers such that we can easily translate from number character
+     * to integer value. We use this index as we can use this also as an index
+     * of valid number characters. This avoids having to do code-table-dependent
+     * checks such as c &gt;= '0' and c &lt;= '9'.
+     */
+    private static final String NUMBERINDEX = "0123456789";
+
     private SerializationUtils() {
         // Utility class cannot be instantiated.
     }
@@ -146,8 +154,9 @@ public final class SerializationUtils {
 	public static String toString(@Nonnull final AbstractMessage m) throws IOException {
 		final StringWriter writer = new StringWriter();
 		if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT && m.messageType != AbstractMessage.MESSAGE_QUERY) {
-            // We avoid writing the header until we know for sure we need it. We know for sure that plaintext messages do not need it. We may not need it for a query message if the versions list is empty.
-            // FIXME should we prevent getting into this situation where versions is empty?
+            // We avoid writing the header until we know for sure we need it. We
+            // know for sure that plaintext messages do not need it. We may not
+            // need it for a query message if the versions list is empty.
             writer.write(SerializationConstants.HEAD);
         }
 
@@ -178,6 +187,7 @@ public final class SerializationUtils {
                 if (query.versions.size() == 1 && query.versions.contains(1)) {
                     throw new UnsupportedOperationException("OTR v1 is no longer supported. Support in the library has been removed, so the query message should not contain a version 1 entry.");
                 }
+                // TODO technically, there still a bug here, as we can end up with 0 versions after dropping invalid versions. How do we respond in that case?
                 if (query.versions.size() > 0) {
                     writer.write(SerializationConstants.HEAD);
                     writer.write(SerializationConstants.HEAD_QUERY_V);
@@ -188,7 +198,7 @@ public final class SerializationUtils {
                             LOGGER.log(Level.WARNING, "Encountered illegal OTR version: {0}. Versions 1 and lower and over 9 are not supported. This version will be skipped. If you see this message, there is likely a bug in otr4j.", version);
                             continue;
                         }
-                        writer.write(Integer.toString(version));
+                        writer.write(NUMBERINDEX.charAt(version));
                     }
                     writer.write(SerializationConstants.HEAD_QUERY_Q);
                 }
@@ -337,11 +347,11 @@ public final class SerializationUtils {
                 final StringReader sr = new StringReader(versionString);
                 int c;
                 while ((c = sr.read()) != -1) {
-                    if (c >= '0' && c <= '9') {
-                        versions.add(Integer.parseInt(String.valueOf((char) c)));
+                    final int idx = NUMBERINDEX.indexOf(c);
+                    if (idx > -1) {
+                        versions.add(idx);
                     }
                 }
-                // FIXME we should verify afterwards that version '1' is not contained, as there is a different format for version 1. There may be additional checks needed.
 				return new QueryMessage(versions);
 			} else if (idxHead == 0 && contentType == SerializationConstants.HEAD_ENCODED) {
 				// Data message found.
