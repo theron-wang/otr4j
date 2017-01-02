@@ -126,9 +126,7 @@ public class OtrPolicy {
      * case an OTR session is not established.
      */
     public boolean getRequireEncryption() {
-        // FIXME BUG! bad calculation for Require Encryption!
-        return getEnableManual()
-                && (policy & OtrPolicy.REQUIRE_ENCRYPTION) != 0;
+        return (policy & OtrPolicy.REQUIRE_ENCRYPTION) != 0;
     }
 
     /**
