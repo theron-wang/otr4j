@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  * policy's setting on various aspects. The policy object is intelligent enough
  * to adjust its answer to its composition. For example, if all OTR protocol
  * versions are denied, it will not return true to sending whitespace tags or
- * restarting AKE.
+ * (re)starting AKE.
  *
  * @author George Politis
  */
@@ -226,19 +226,28 @@ public class OtrPolicy {
     }
 
     public boolean getEnableAlways() {
-        // FIXME bad policy config, ALWAYS should set "Require Encryption" flag, not sendWhitespaceTag.
         return getEnableManual() && getErrorStartAKE()
-                && getSendWhitespaceTag() && getWhitespaceStartAKE();
+                && getRequireEncryption() && getWhitespaceStartAKE();
     }
 
+    /**
+     * Set EnableAlways policy configuration.
+     *
+     * WARNING: You should use this method only to enable the policy. If you
+     * provide false to this it will also disable ErrorStartAKE,
+     * WhitespaceStartAKE and RequireEncryption. This might not be the behavior
+     * you would expect.
+     *
+     * @param value 'true' to enable EnableAlways policy.
+     */
+    // TODO modify this method such that 'false' does not start disabling arbitrary OTR policy features. This behavior simply doesn't make sense.
     public void setEnableAlways(final boolean value) {
         if (value) {
             setEnableManual(true);
         }
 
         setErrorStartAKE(value);
-        // FIXME bad policy config, ALWAYS should set "Require Encryption" flag, not sendWhitespaceTag.
-        setSendWhitespaceTag(value);
+        setRequireEncryption(value);
         setWhitespaceStartAKE(value);
     }
 
@@ -246,6 +255,7 @@ public class OtrPolicy {
         return getAllowV2() && getAllowV3();
     }
 
+    // TODO modify this method such that 'false' does not disable all supported protocols. The 'EnableManual' policy defines OTR's behavior for manually starting an OTR session, but it does not make sense to just disable all protocols if you do not want this behavior.
     public void setEnableManual(final boolean value) {
         setAllowV2(value);
         setAllowV3(value);
