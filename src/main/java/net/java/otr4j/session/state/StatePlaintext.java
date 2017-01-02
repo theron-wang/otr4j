@@ -89,6 +89,7 @@ public final class StatePlaintext extends AbstractState {
         final OtrPolicy otrPolicy = context.getSessionPolicy();
         if (otrPolicy.getRequireEncryption()) {
             // Prevent original message from being sent. Start AKE.
+            // FIXME policy set to require encryption, but startAuth() potentially fails if none of the OTR protocol versions is allowed. We still need to handle this case.
             context.getAuthContext().startAuth();
             OtrEngineHostUtil.requireEncryptedMessage(context.getHost(), sessionId, msgText);
             return new String[0];

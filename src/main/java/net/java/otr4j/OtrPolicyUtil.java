@@ -40,16 +40,4 @@ public final class OtrPolicyUtil {
         }
         return versions;
     }
-
-    /**
-     * Checks if OTR Policy is viable, i.e. we can initiate OTR with the
-     * restrictions in provided policy.
-     *
-     * @param policy The policy instance.
-     * @return Returns true if OTR can be initiated within the constraints of
-     * this policy.
-     */
-    public static boolean viableOtrPolicy(@Nonnull final OtrPolicy policy) {
-        return policy.getAllowV2() || policy.getAllowV3();
-    }
 }

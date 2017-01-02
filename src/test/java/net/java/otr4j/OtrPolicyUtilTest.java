@@ -65,34 +65,4 @@ public class OtrPolicyUtilTest {
         final Set<Integer> versions = OtrPolicyUtil.allowedVersions(policy);
         assertEquals(0, versions.size());
     }
-
-    @Test
-    public void testViablePolicyOTRv2Andv3() {
-        final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3 | OtrPolicy.WHITESPACE_START_AKE);
-        assertTrue(OtrPolicyUtil.viableOtrPolicy(policy));
-    }
-
-    @Test
-    public void testViablePolicyOTRv2Only() {
-        final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V2);
-        assertTrue(OtrPolicyUtil.viableOtrPolicy(policy));
-    }
-
-    @Test
-    public void testViablePolicyOTRv3Only() {
-        final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V3);
-        assertTrue(OtrPolicyUtil.viableOtrPolicy(policy));
-    }
-
-    @Test
-    public void testViablePolicyNone() {
-        final OtrPolicy policy = new OtrPolicy(OtrPolicy.WHITESPACE_START_AKE | OtrPolicy.SEND_WHITESPACE_TAG);
-        assertFalse(OtrPolicyUtil.viableOtrPolicy(policy));
-    }
-
-    @Test
-    public void testViablePolicyOpportunistic() {
-        final OtrPolicy policy = new OtrPolicy(OtrPolicy.OPPORTUNISTIC);
-        assertTrue(OtrPolicyUtil.viableOtrPolicy(policy));
-    }
 }

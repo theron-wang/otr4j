@@ -776,7 +776,7 @@ public class AuthContext {
     public void startAuth() throws OtrException {
         logger.finest("Starting Authenticated Key Exchange, sending query message");
         final OtrPolicy policy = session.getSessionPolicy();
-        if (!OtrPolicyUtil.viableOtrPolicy(policy)) {
+        if (!policy.viable()) {
             throw new IllegalStateException("Current OTR policy declines all supported versions of OTR. There is no way to start an OTR session that complies with the policy.");
         }
         session.injectMessage(messageFactory.createQueryMessage(policy));

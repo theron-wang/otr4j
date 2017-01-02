@@ -64,14 +64,19 @@ public class StatePlaintextTest {
         verify(context, atLeastOnce()).setOfferStatus(OfferStatus.sent);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testTransformSendingEmbedWhitespaceTagWithNonViablePolicy() throws OtrException {
+        final String[] expected = {
+            "Hello world!"
+        };
         final StatePlaintext state = new StatePlaintext(sessionId);
         final Context context = mock(Context.class);
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.SEND_WHITESPACE_TAG);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(OfferStatus.idle);
-        state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
+        final String[] msgs = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
+        assertArrayEquals(expected, msgs);
+        verify(context, never()).setOfferStatus(OfferStatus.sent);
     }
 
     @Test
