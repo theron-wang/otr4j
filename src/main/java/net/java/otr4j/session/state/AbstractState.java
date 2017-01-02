@@ -11,7 +11,6 @@ abstract class AbstractState implements State {
 
     @Override
     public void handleErrorMessage(@Nonnull final Context context, @Nonnull final ErrorMessage errorMessage) throws OtrException {
-        // TODO consider moving the 'handleError' implementation to the concrete states, as the Encrypted state is the only state we would expect to call this method.
         OtrEngineHostUtil.showError(context.getHost(), this.getSessionID(), errorMessage.error);
     }
 }
