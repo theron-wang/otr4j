@@ -232,32 +232,57 @@ public final class OtrPolicy {
     /**
      * Set EnableAlways policy configuration.
      *
-     * WARNING: You should use this method only to enable the policy. If you
-     * provide false to this it will also disable ErrorStartAKE,
-     * WhitespaceStartAKE and RequireEncryption. This might not be the behavior
-     * you would expect.
+     * Pass in 'true' to enable 'EnableAlways' profile. 'false' does not have
+     * any effect.
      *
      * @param value 'true' to enable EnableAlways policy.
+     * @deprecated Deprecated. Please use {@link #setEnableAlways() } as passing
+     * in 'false' for value does not make sense.
      */
-    // TODO modify this method such that 'false' does not start disabling arbitrary OTR policy features. This behavior simply doesn't make sense.
+    @Deprecated
     public void setEnableAlways(final boolean value) {
-        if (value) {
-            setEnableManual(true);
+        if (!value) {
+            LOGGER.warning("setEnableAlways(false) is not supported anymore. This action has no effect. Please switch to using the non-deprecated alternative in the future.");
+            return;
         }
+        setEnableAlways();
+    }
 
-        setErrorStartAKE(value);
-        setRequireEncryption(value);
-        setWhitespaceStartAKE(value);
+    /**
+     * Set EnableAlways policy configuration.
+     */
+    public void setEnableAlways() {
+        setEnableManual();
+        setRequireEncryption(true);
+        setErrorStartAKE(true);
+        setWhitespaceStartAKE(true);
     }
 
     public boolean getEnableManual() {
         return getAllowV2() && getAllowV3();
     }
 
-    // TODO modify this method such that 'false' does not disable all supported protocols. The 'EnableManual' policy defines OTR's behavior for manually starting an OTR session, but it does not make sense to just disable all protocols if you do not want this behavior.
+    /**
+     * Set EnableManual profile.
+     *
+     * @param value true to enable profile, false has no effect.
+     * @deprecated This method is deprecated and replaced with {@link #setEnableManual() }.
+     */
+    @Deprecated
     public void setEnableManual(final boolean value) {
-        setAllowV2(value);
-        setAllowV3(value);
+        if (!value) {
+            LOGGER.warning("setEnableManual(false) is not supported anymore. This action has no effect. Please switch to using the non-deprecated alternative in the future.");
+            return;
+        }
+        setEnableManual();
+    }
+
+    /**
+     * Set EnableManual policy configuration.
+     */
+    public void setEnableManual() {
+        setAllowV2(true);
+        setAllowV3(true);
     }
 
     /**
