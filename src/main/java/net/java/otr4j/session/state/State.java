@@ -11,6 +11,7 @@ import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.SessionStatus;
 import net.java.otr4j.session.TLV;
+import net.java.otr4j.session.ake.SecurityParameters;
 
 public interface State {
 
@@ -91,9 +92,11 @@ public interface State {
      * Call to secure a session after a successful Authentication was performed.
      *
      * @param context The session context.
+     * @param params The security parameters that are needed to set up and
+     * maintain the encrypted message state.
      * @throws OtrException In case an exception occurs.
      */
-    void secure(@Nonnull Context context) throws OtrException;
+    void secure(@Nonnull Context context, @Nonnull final SecurityParameters params) throws OtrException;
 
     /**
      * Call to end encrypted session, if any.
@@ -122,6 +125,7 @@ public interface State {
      * at any time. The nature of the checked exception can be used to handle
      * unexpected state transitions appropriately.
      */
+    // TODO consider moving this to own class such that we can have package-private constructor.
     public final class IncorrectStateException extends OtrException {
 
         private static final long serialVersionUID = -5335635776510194254L;

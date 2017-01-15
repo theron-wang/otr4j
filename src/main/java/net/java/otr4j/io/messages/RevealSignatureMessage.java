@@ -20,7 +20,13 @@ public class RevealSignatureMessage extends SignatureMessage {
 	public RevealSignatureMessage(final int protocolVersion, final byte[] xEncrypted,
 			final byte[] xEncryptedMAC, final byte[] revealedKey) {
 		super(MESSAGE_REVEALSIG, protocolVersion, xEncrypted, xEncryptedMAC);
+		this.revealedKey = revealedKey;
+	}
 
+    public RevealSignatureMessage(final int protocolVersion, final byte[] xEncrypted,
+			final byte[] xEncryptedMAC, final byte[] revealedKey,
+            final int senderInstance, final int receiverInstance) {
+		super(MESSAGE_REVEALSIG, protocolVersion, xEncrypted, xEncryptedMAC, senderInstance, receiverInstance);
 		this.revealedKey = revealedKey;
 	}
 

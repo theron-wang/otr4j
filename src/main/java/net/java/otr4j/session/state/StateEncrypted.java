@@ -10,7 +10,6 @@ package net.java.otr4j.session.state;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.security.PublicKey;
@@ -33,6 +32,7 @@ import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.OtrPolicyUtil;
 import net.java.otr4j.crypto.OtrCryptoEngine;
+import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationConstants;
@@ -43,12 +43,20 @@ import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.MysteriousT;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.io.messages.QueryMessage;
-import net.java.otr4j.session.AuthContext;
 import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.SessionStatus;
 import net.java.otr4j.session.TLV;
+import net.java.otr4j.session.ake.SecurityParameters;
 
-public final class StateEncrypted extends AbstractState {
+/**
+ * Message state in case an encrypted session is established.
+ *
+ * This message state is package-private as we only allow transitioning to this
+ * state through the initial PLAINTEXT state.
+ *
+ * @author Danny van Heumen
+ */
+final class StateEncrypted extends AbstractState {
 
     @SuppressWarnings("NonConstantLogger")
     private final Logger logger;
@@ -63,7 +71,7 @@ public final class StateEncrypted extends AbstractState {
     /**
      * Shared secret s.
      */
-    private final BigInteger s;
+    private final SharedSecret s;
 
     /**
      * Long-term remote public key.
@@ -73,47 +81,41 @@ public final class StateEncrypted extends AbstractState {
     /**
      * Current and next session keys containers.
      */
-    private final SessionKeys[][] sessionKeys = new SessionKeys[][]{
-        new SessionKeys[]{
-            new SessionKeys(SessionKeys.PREVIOUS, SessionKeys.PREVIOUS),
-            new SessionKeys(SessionKeys.PREVIOUS, SessionKeys.CURRENT)},
-        new SessionKeys[]{
-            new SessionKeys(SessionKeys.CURRENT, SessionKeys.PREVIOUS),
-            new SessionKeys(SessionKeys.CURRENT, SessionKeys.CURRENT)}};
+    private final SessionKeys[][] sessionKeys;
 
     /**
      * List of old MAC keys for this session. (Synchronized)
      */
     private final List<byte[]> oldMacKeys = Collections.synchronizedList(new ArrayList<byte[]>(0));
 
-    StateEncrypted(@Nonnull final Context context, @Nonnull final SessionID sessionId) throws OtrException {
+    StateEncrypted(@Nonnull final Context context, @Nonnull final SecurityParameters params) throws OtrException {
+        this.sessionId = Objects.requireNonNull(context.getSessionID());
         this.logger = Logger.getLogger(sessionId.getAccountID() + "-->" + sessionId.getUserID());
-        this.sessionId = Objects.requireNonNull(sessionId);
+        // FIXME do we query for the correct protocol version here?
         this.protocolVersion = context.getProtocolVersion();
-        this.smpTlvHandler = new SmpTlvHandler(this, context);
+        this.smpTlvHandler = new SmpTlvHandler(this, context, params.getS());
+        this.s = Objects.requireNonNull(params.getS());
 
-        final AuthContext auth = context.getAuthContext();
-        if (!auth.getIsSecure()) {
-            // This should not happen. We should only transition states on fully
-            // successful auth negotiation.
-            throw new IllegalArgumentException("AuthContext is not fully secure");
-        }
+        this.remotePublicKey = params.getRemoteLongTermPublicKey();
 
-        this.s = auth.getS();
-        this.remotePublicKey = auth.getRemoteLongTermPublicKey();
-
+        // Initialize session keys array.
+        this.sessionKeys = new SessionKeys[][]{
+        new SessionKeys[]{
+            new SessionKeys(this.s, SessionKeys.PREVIOUS, SessionKeys.PREVIOUS),
+            new SessionKeys(this.s, SessionKeys.PREVIOUS, SessionKeys.CURRENT)},
+        new SessionKeys[]{
+            new SessionKeys(this.s, SessionKeys.CURRENT, SessionKeys.PREVIOUS),
+            new SessionKeys(this.s, SessionKeys.CURRENT, SessionKeys.CURRENT)}};
         // Initialize current session keys
         logger.finest("Setting most recent session keys from auth.");
         for (final SessionKeys current : this.sessionKeys[0]) {
-            current.setLocalPair(auth.getLocalDHKeyPair(), 1);
-            current.setRemoteDHPublicKey(auth.getRemoteDHPublicKey(), 1);
-            current.setS(auth.getS());
+            current.setLocalPair(params.getLocalDHKeyPair(), 1);
+            current.setRemoteDHPublicKey(params.getRemoteDHPublicKey(), 1);
         }
-
         // Prepare for next session keys
         final KeyPair nextDH = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
         for (final SessionKeys next : this.sessionKeys[1]) {
-            next.setRemoteDHPublicKey(auth.getRemoteDHPublicKey(), 1);
+            next.setRemoteDHPublicKey(params.getRemoteDHPublicKey(), 1);
             next.setLocalPair(nextDH, 2);
         }
     }
@@ -141,11 +143,6 @@ public final class StateEncrypted extends AbstractState {
     public PublicKey getRemotePublicKey() {
         return remotePublicKey;
     }
-
-    @Nonnull
-    public BigInteger getS() {
-        return this.s;
-    }
     
     @Nonnull
     @Override
@@ -157,6 +154,7 @@ public final class StateEncrypted extends AbstractState {
         return plainTextMessage.cleanText;
     }
     
+    // TODO should we assume that ctr value is always incremented and should we check our expectations against actual ctr value being sent? What if counter party always picks ctr == 0?
     @Override
     @Nullable
     public String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage data) throws OtrException {
@@ -231,7 +229,7 @@ public final class StateEncrypted extends AbstractState {
         final String decryptedMsgContent = new String(dmc, 0, tlvIndex, SerializationUtils.UTF8);
 
         // if the null TLV separator is somewhere in the middle, there are TLVs
-        final LinkedList<TLV> tlvs = new LinkedList<TLV>();
+        final LinkedList<TLV> tlvs = new LinkedList<>();
         tlvIndex++;  // to ignore the null
         if (tlvIndex < dmc.length) {
             byte[] tlvsb = new byte[dmc.length - tlvIndex];
@@ -399,8 +397,8 @@ public final class StateEncrypted extends AbstractState {
     }
 
     @Override
-    public void secure(@Nonnull final Context context) throws OtrException {
-        context.setState(new StateEncrypted(context, this.sessionId));
+    public void secure(@Nonnull final Context context, @Nonnull final SecurityParameters params) throws OtrException {
+        context.setState(new StateEncrypted(context, params));
     }
 
     @Override

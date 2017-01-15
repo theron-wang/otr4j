@@ -41,6 +41,7 @@ import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.io.messages.QueryMessage;
+import net.java.otr4j.session.ake.SecurityParameters;
 import net.java.otr4j.session.state.Context;
 import net.java.otr4j.session.state.SmpTlvHandler;
 import net.java.otr4j.session.state.State;
@@ -58,8 +59,8 @@ public class Session implements Context {
         int TWO = 2;
         int THREE = 3;
 
-        final Set<Integer> ALL = Collections.unmodifiableSet(
-                new HashSet<Integer>(Arrays.asList(TWO, THREE)));
+        Set<Integer> ALL = Collections.unmodifiableSet(
+                new HashSet<>(Arrays.asList(TWO, THREE)));
     }
 
     /**
@@ -75,6 +76,10 @@ public class Session implements Context {
      */
     @Nonnull
     private volatile State sessionState;
+
+    // TODO in time it might make more sense to get rid of AuthContext as an intermediate context to AKE and use this Session context for this purpose.
+    @Nonnull
+    private final AuthContext authContext;
 
     /**
      * Slave sessions contain the mappings of instance tags to outgoing sessions.
@@ -97,9 +102,6 @@ public class Session implements Context {
     private final boolean isMasterSession;
 
     private final OtrEngineHost host;
-
-    @Nullable
-    private AuthContext authContext;
     
     private final Logger logger;
 
@@ -131,12 +133,13 @@ public class Session implements Context {
      * Synchronized access is required. This is currently managed in methods
      * accessing the list.
      */
-    private final ArrayList<OtrEngineListener> listeners = new ArrayList<OtrEngineListener>();
+    private final ArrayList<OtrEngineListener> listeners = new ArrayList<>();
 
     public Session(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost listener) {
         this.secureRandom = new SecureRandom();
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.sessionState = new StatePlaintext(sessionID);
+        this.authContext = new AuthContext(this);
         this.host = Objects.requireNonNull(listener);
 
         // client application calls OtrSessionManager.getSessionStatus()
@@ -168,6 +171,7 @@ public class Session implements Context {
         this.secureRandom = Objects.requireNonNull(secureRandom);
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.sessionState = new StatePlaintext(sessionID);
+        this.authContext = authContext == null ? new AuthContext(this) : new AuthContext(this, authContext);
         this.host = Objects.requireNonNull(listener);
 
         this.offerStatus = OfferStatus.idle;
@@ -183,12 +187,6 @@ public class Session implements Context {
 
         assembler = new OtrAssembler(this.senderTag);
         fragmenter = new OtrFragmenter(this, listener);
-        
-        if (authContext != null) {
-            // In case an AuthContext is provided, duplicate AuthContext for
-            // this session instance.
-            this.authContext = new AuthContext(this, authContext);
-        }
     }
 
     /**
@@ -208,7 +206,11 @@ public class Session implements Context {
     public OtrFragmenter fragmenter() {
         return this.fragmenter;
     }
-    
+
+    void secure(@Nonnull final SecurityParameters s) throws OtrException {
+        this.sessionState.secure(this, s);
+    }
+
     @Override
     public void setState(@Nonnull final State state) {
         this.sessionState = Objects.requireNonNull(state);
@@ -220,6 +222,7 @@ public class Session implements Context {
         return this.sessionState.getStatus();
     }
 
+    @Override
     public SessionID getSessionID() {
         return this.sessionState.getSessionID();
     }
@@ -240,12 +243,10 @@ public class Session implements Context {
         this.offerStatus = Objects.requireNonNull(status);
     }
     
+    // TODO do we still need getAuthContext()?
     @Override
     @Nonnull
     public AuthContext getAuthContext() {
-        if (authContext == null) {
-            authContext = new AuthContext(this);
-        }
         return authContext;
     }
 
@@ -291,6 +292,7 @@ public class Session implements Context {
         }
 
         if (m instanceof AbstractEncodedMessage && isMasterSession) {
+            // FIXME consider how AuthContext should be copied to slave sessions, in order to preserve any AKE sessions in progress.
 
             final AbstractEncodedMessage encodedM = (AbstractEncodedMessage) m;
 
@@ -386,10 +388,6 @@ public class Session implements Context {
                 final AuthContext auth = this.getAuthContext();
                 try {
                     auth.handleReceivingMessage(m);
-                    if (auth.getIsSecure()) {
-                        this.sessionState.secure(this);
-                        logger.finest("Gone Secure.");
-                    }
                     return null;
                 } finally {
                     // This ensures that independent of processing result, we
@@ -617,7 +615,7 @@ public class Session implements Context {
         return this.host.getSessionPolicy(this.sessionState.getSessionID());
     }
 
-    public KeyPair getLocalKeyPair() throws OtrException {
+    public KeyPair getLocalKeyPair() {
         return this.host.getLocalKeyPair(this.sessionState.getSessionID());
     }
 
@@ -639,6 +637,7 @@ public class Session implements Context {
         this.receiverTag = receiverTag;
     }
 
+    // FIXME do we still need this, or only allow management through AKE in AuthContext?
     public void setProtocolVersion(final int protocolVersion) {
         // Protocol version of a slave session is not supposed to change
         if (!isMasterSession) {
@@ -647,13 +646,14 @@ public class Session implements Context {
         this.protocolVersion = protocolVersion;
     }
 
+    // FIXME do we still need this? Or query at AuthContext? It's a derived value based on the current (or previously completed?) AKE conversation.
     @Override
     public int getProtocolVersion() {
         return isMasterSession ? this.protocolVersion : 3;
     }
 
     public List<Session> getInstances() {
-        final List<Session> result = new ArrayList<Session>();
+        final List<Session> result = new ArrayList<>();
         result.add(this);
         result.addAll(slaveSessions.values());
         return result;

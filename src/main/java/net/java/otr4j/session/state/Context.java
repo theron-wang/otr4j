@@ -10,6 +10,7 @@ import net.java.otr4j.session.AuthContext;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.OfferStatus;
 import net.java.otr4j.session.OtrFragmenter;
+import net.java.otr4j.session.SessionID;
 
 public interface Context {
     
@@ -18,6 +19,8 @@ public interface Context {
     int getProtocolVersion();
     
     void injectMessage(@Nonnull AbstractMessage msg) throws OtrException;
+    
+    @Nonnull SessionID getSessionID();
 
     @Nonnull OtrPolicy getSessionPolicy();
     

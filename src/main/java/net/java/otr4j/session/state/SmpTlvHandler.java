@@ -22,15 +22,18 @@ import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SM;
 import net.java.otr4j.crypto.SM.SMException;
 import net.java.otr4j.crypto.SM.SMAbortedException;
+import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.TLV;
 
-public class SmpTlvHandler {
+public final class SmpTlvHandler {
 
     private final OtrEngineHost engineHost;
 	private final StateEncrypted session;
+    // FIXME consider if we really want to keep a reference to s here ...
+    private final SharedSecret s;
     private final Context sessionContext;
     private final SM sm;
     private final InstanceTag receiverInstanceTag;
@@ -41,14 +44,16 @@ public class SmpTlvHandler {
 	 * @param session The session reference.
      * @param context Session context.
 	 */
-	public SmpTlvHandler(@Nonnull final StateEncrypted session, @Nonnull final Context context) {
+	public SmpTlvHandler(@Nonnull final StateEncrypted session, @Nonnull final Context context, @Nonnull final SharedSecret s) {
 		this.session = Objects.requireNonNull(session);
+        this.s = Objects.requireNonNull(s);
 		this.engineHost = Objects.requireNonNull(context.getHost());
         this.sm = new SM(context.secureRandom());
         this.receiverInstanceTag = context.getReceiverInstanceTag();
         this.sessionContext = Objects.requireNonNull(context);
 	}
 
+    // FIXME AFAICT we have 'h1' for this so I'm surprised that it complete logic is in here!
 	/* Compute secret session ID as hash of agreed secret */
 	private static byte[] computeSessionId(@Nonnull final BigInteger s) throws SMException {
 		final byte[] sdata;
@@ -119,13 +124,8 @@ public class SmpTlvHandler {
 			throw new OtrException(e);
 		}
 
-		final byte[] sessionId;
-		try {
-			sessionId = computeSessionId(session.getS());
-		} catch (SMException ex) {
-			throw new OtrException(ex);
-		}
-
+        // FIXME replaced computeSessionID with variant in SharedSecret, is this okay?
+		final byte[] sessionId = this.s.ssid();
 		final byte[] secretBytes = secret.getBytes(SerializationUtils.UTF8);
 		final int combined_buf_len = 41 + sessionId.length + secretBytes.length;
 		final byte[] combined_buf = new byte[combined_buf_len];

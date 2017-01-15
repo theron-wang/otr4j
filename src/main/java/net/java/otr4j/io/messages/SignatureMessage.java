@@ -8,6 +8,7 @@ package net.java.otr4j.io.messages;
 
 import java.io.IOException;
 import java.util.Arrays;
+import javax.annotation.CheckReturnValue;
 
 import net.java.otr4j.OtrException;
 import net.java.otr4j.crypto.OtrCryptoEngine;
@@ -22,24 +23,40 @@ public class SignatureMessage extends AbstractEncodedMessage {
 	public byte[] xEncrypted;
 	public byte[] xEncryptedMAC;
 
-	// Ctor.
-	protected SignatureMessage(final int messageType, final int protocolVersion,
-			final byte[] xEncrypted, final byte[] xEncryptedMAC) {
-		super(messageType, protocolVersion);
-		this.xEncrypted = xEncrypted;
-		this.xEncryptedMAC = xEncryptedMAC;
-	}
+    // Ctor.
+    public SignatureMessage(final int protocolVersion, final byte[] xEncrypted,
+            final byte[] xEncryptedMAC) {
+        this(MESSAGE_SIGNATURE, protocolVersion, xEncrypted, xEncryptedMAC, 0, 0);
+    }
 
-	public SignatureMessage(final int protocolVersion, final byte[] xEncrypted,
-			final byte[] xEncryptedMAC) {
-		this(MESSAGE_SIGNATURE, protocolVersion, xEncrypted, xEncryptedMAC);
-	}
+    public SignatureMessage(final int protocolVersion, final byte[] xEncrypted,
+            final byte[] xEncryptedMAC, final int senderInstance,
+            final int receiverInstance) {
+        this(MESSAGE_SIGNATURE, protocolVersion, xEncrypted, xEncryptedMAC,
+                senderInstance, receiverInstance);
+    }
 
+    protected SignatureMessage(final int messageType, final int protocolVersion,
+            final byte[] xEncrypted, final byte[] xEncryptedMAC) {
+        this(messageType, protocolVersion, xEncrypted, xEncryptedMAC, 0, 0);
+    }
+
+    protected SignatureMessage(final int messageType, final int protocolVersion,
+            final byte[] xEncrypted, final byte[] xEncryptedMAC,
+            final int senderInstance, final int receiverInstance) {
+        super(messageType, protocolVersion, senderInstance, receiverInstance);
+        this.xEncrypted = xEncrypted;
+        this.xEncryptedMAC = xEncryptedMAC;
+    }
+
+    // TODO does it make sense to keep this method here? Isn't this message type more of a container for keeping the data?
 	// Memthods.
 	public byte[] decrypt(final byte[] key) throws OtrException {
 		return OtrCryptoEngine.aesDecrypt(key, null, xEncrypted);
 	}
 
+    // TODO does it make sense to keep this method here? Isn't this message type more of a container for keeping the data?
+    @CheckReturnValue
 	public boolean verify(final byte[] key) throws OtrException {
 		// Hash the key.
 		final byte[] xbEncrypted;

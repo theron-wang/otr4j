@@ -28,7 +28,15 @@ import net.java.otr4j.session.OfferStatus;
 import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.SessionStatus;
 import net.java.otr4j.session.TLV;
+import net.java.otr4j.session.ake.SecurityParameters;
 
+/**
+ * Message state PLAINTEXT. This is the only message state that is publicly
+ * accessible. Message states and transitions are always initiated from the
+ * initial state.
+ *
+ * @author Danny van Heumen
+ */
 public final class StatePlaintext extends AbstractState {
 
     private final SessionID sessionId;
@@ -120,8 +128,8 @@ public final class StatePlaintext extends AbstractState {
     }
 
     @Override
-    public void secure(@Nonnull final Context context) throws OtrException {
-        context.setState(new StateEncrypted(context, this.sessionId));
+    public void secure(@Nonnull final Context context, @Nonnull final SecurityParameters params) throws OtrException {
+        context.setState(new StateEncrypted(context, params));
     }
 
     @Override

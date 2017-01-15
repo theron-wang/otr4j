@@ -22,8 +22,16 @@ import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.SessionStatus;
 import net.java.otr4j.session.TLV;
+import net.java.otr4j.session.ake.SecurityParameters;
 
-public final class StateFinished extends AbstractState {
+/**
+ * Message state FINISHED. This message state is initiated through events
+ * started from the initial message state PLAINTEXT (and transition through
+ * ENCRYPTED).
+ *
+ * @author Danny van Heumen
+ */
+final class StateFinished extends AbstractState {
 
     private final SessionID sessionId;
 
@@ -82,8 +90,8 @@ public final class StateFinished extends AbstractState {
     }
 
     @Override
-    public void secure(@Nonnull final Context context) throws OtrException {
-        context.setState(new StateEncrypted(context, this.sessionId));
+    public void secure(@Nonnull final Context context, @Nonnull final SecurityParameters params) throws OtrException {
+        context.setState(new StateEncrypted(context, params));
     }
 
     @Override

@@ -21,11 +21,18 @@ public class DHCommitMessage extends AbstractEncodedMessage {
 	// Ctor.
 	public DHCommitMessage(final int protocolVersion, final byte[] dhPublicKeyHash,
 			final byte[] dhPublicKeyEncrypted) {
-		super(MESSAGE_DH_COMMIT, protocolVersion);
-		this.dhPublicKeyEncrypted = dhPublicKeyEncrypted;
-		this.dhPublicKeyHash = dhPublicKeyHash;
+        this(protocolVersion, dhPublicKeyHash, dhPublicKeyEncrypted, 0, 0);
 	}
 
+    public DHCommitMessage(final int protocolVersion, final byte[] dhPublicKeyHash,
+            final byte[] dhPublicKeyEncrypted, final int senderInstance,
+            final int receiverInstance) {
+		super(MESSAGE_DH_COMMIT, protocolVersion, senderInstance, receiverInstance);
+		this.dhPublicKeyEncrypted = dhPublicKeyEncrypted;
+        // TODO consider verifying hash length as way of protecting against swapping hash and encrypted
+		this.dhPublicKeyHash = dhPublicKeyHash;
+    }
+    
 	// Methods.
 	@Override
 	public int hashCode() {

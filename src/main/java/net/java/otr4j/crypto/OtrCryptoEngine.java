@@ -57,6 +57,7 @@ import org.bouncycastle.util.BigIntegers;
 /**
  * @author George Politis
  */
+// FIXME re-evaluate use of (un)checked exceptions for initialization and calculation logic.
 public final class OtrCryptoEngine {
 
     private static final String ALGORITHM_DSA = "DSA";
@@ -118,13 +119,12 @@ public final class OtrCryptoEngine {
                     .generatePrivate(privKeySpecs);
 
             return new KeyPair(pubKey, privKey);
-        } catch (final NoSuchAlgorithmException ex) {
-            throw new OtrCryptoException(ex);
-        } catch (final InvalidKeySpecException ex) {
+        } catch (final NoSuchAlgorithmException | InvalidKeySpecException ex) {
             throw new OtrCryptoException(ex);
         }
     }
 
+    // TODO tricky method as we need to ensure that we parse as unsigned int. This is probably a bug but maybe only in some cases.
     @Nonnull
     public static DHPublicKey getDHPublicKey(@Nonnull final byte[] mpiBytes)
             throws OtrCryptoException {
@@ -133,14 +133,12 @@ public final class OtrCryptoEngine {
 
     @Nonnull
     public static DHPublicKey getDHPublicKey(@Nonnull final BigInteger mpi) throws OtrCryptoException {
-        final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(mpi, MODULUS,
-                GENERATOR);
+        final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(mpi, MODULUS, GENERATOR);
         try {
             final KeyFactory keyFac = KeyFactory.getInstance(KF_DH);
+            // FIXME verify key before returning
             return (DHPublicKey) keyFac.generatePublic(pubKeySpecs);
-        } catch (final NoSuchAlgorithmException ex) {
-            throw new OtrCryptoException(ex);
-        } catch (final InvalidKeySpecException ex) {
+        } catch (final NoSuchAlgorithmException | InvalidKeySpecException ex) {
             throw new OtrCryptoException(ex);
         }
     }
@@ -187,9 +185,7 @@ public final class OtrCryptoEngine {
             final javax.crypto.Mac mac = javax.crypto.Mac.getInstance(HMAC_SHA1);
             mac.init(new SecretKeySpec(key, HMAC_SHA1));
             macBytes = mac.doFinal(b);
-        } catch (final NoSuchAlgorithmException ex) {
-            throw new OtrCryptoException(ex);
-        } catch (final InvalidKeyException ex) {
+        } catch (final NoSuchAlgorithmException | InvalidKeyException ex) {
             throw new OtrCryptoException(ex);
         }
 
@@ -205,31 +201,41 @@ public final class OtrCryptoEngine {
 
     @Nonnull
     public static byte[] sha256Hmac160(@Nonnull final byte[] b, @Nonnull final byte[] key) throws OtrCryptoException {
+        // FIXME verify length of key here, needed?
         return sha256Hmac(b, key, SerializationConstants.TYPE_LEN_MAC);
     }
 
     @Nonnull
-    public static byte[] sha256Hash(@Nonnull final byte[] b) throws OtrCryptoException {
+    public static byte[] sha256Hash(@Nonnull final byte[] first, final byte[]... next) {
+        final MessageDigest sha256;
         try {
-            final MessageDigest sha256 = MessageDigest.getInstance(MD_SHA256);
-            sha256.update(b, 0, b.length);
-            return sha256.digest();
+            sha256 = MessageDigest.getInstance(MD_SHA256);
         } catch (final NoSuchAlgorithmException e) {
-            throw new OtrCryptoException(e);
+            throw new IllegalStateException("Failed to acquire SHA-256 message digest.", e);
         }
+        sha256.update(first);
+        for (final byte[] b : next) {
+            sha256.update(b, 0, b.length);
+        }
+        return sha256.digest();
     }
 
     @Nonnull
-    public static byte[] sha1Hash(@Nonnull final byte[] b) throws OtrCryptoException {
+    public static byte[] sha1Hash(@Nonnull final byte[] first, final byte[]... next) {
+        final MessageDigest sha1;
         try {
-            final MessageDigest sha1 = MessageDigest.getInstance(MD_SHA1);
-            sha1.update(b, 0, b.length);
-            return sha1.digest();
-        } catch (NoSuchAlgorithmException e) {
-            throw new OtrCryptoException(e);
+            sha1 = MessageDigest.getInstance(MD_SHA1);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Failed to acquire SHA1 message digest.", e);
         }
+        sha1.update(first, 0, first.length);
+        for (final byte[] b : next) {
+            sha1.update(b, 0, b.length);
+        }
+        return sha1.digest();
     }
 
+    // FIXME change 'ctr' parameter to accept non-null argument only. Make sure ZERO_CTR constant is public and available for use.
     @Nonnull
     public static byte[] aesDecrypt(@Nonnull final byte[] key, @Nullable byte[] ctr, @Nonnull final byte[] b)
             throws OtrCryptoException {
@@ -274,23 +280,22 @@ public final class OtrCryptoEngine {
         try {
             bufSicAesEnc.doFinal(aesOutLwEnc, done);
         } catch (final InvalidCipherTextException ex) {
+            // FIXME convert to runtime exception because this would be a program error.
             throw new OtrCryptoException(ex);
         }
         return aesOutLwEnc;
     }
 
     @Nonnull
-    public static BigInteger generateSecret(@Nonnull final PrivateKey privKey, @Nonnull final PublicKey pubKey)
-            throws OtrCryptoException {
+    public static SharedSecret generateSecret(@Nonnull final PrivateKey privKey,
+            @Nonnull final PublicKey pubKey) throws OtrCryptoException {
         try {
             final KeyAgreement ka = KeyAgreement.getInstance(KA_DH);
             ka.init(privKey);
+            // FIXME verify key before calculating shared secret.
             ka.doPhase(pubKey, true);
-            final byte[] sb = ka.generateSecret();
-            return new BigInteger(1, sb);
-        } catch (final NoSuchAlgorithmException ex) {
-            throw new OtrCryptoException(ex);
-        } catch (final InvalidKeyException ex) {
+            return new SharedSecret(ka.generateSecret());
+        } catch (final NoSuchAlgorithmException | InvalidKeyException ex) {
             throw new OtrCryptoException(ex);
         }
     }
@@ -343,10 +348,9 @@ public final class OtrCryptoEngine {
      * @param b
      * @param pubKey Public key. Provided public key must be an instance of DSAPublicKey.
      * @param rs
-     * @return
      * @throws OtrCryptoException 
      */
-    public static boolean verify(@Nonnull final byte[] b, @Nonnull final PublicKey pubKey, @Nonnull final byte[] rs)
+    public static void verify(@Nonnull final byte[] b, @Nonnull final PublicKey pubKey, @Nonnull final byte[] rs)
             throws OtrCryptoException {
 
         if (!(pubKey instanceof DSAPublicKey)) {
@@ -360,15 +364,15 @@ public final class OtrCryptoEngine {
         buff.get(r);
         final byte[] s = new byte[qlen];
         buff.get(s);
-        return verify(b, pubKey, r, s);
+        verify(b, pubKey, r, s);
     }
 
-    private static boolean verify(@Nonnull final byte[] b, @Nonnull final PublicKey pubKey, @Nonnull final byte[] r, @Nonnull final byte[] s)
+    private static void verify(@Nonnull final byte[] b, @Nonnull final PublicKey pubKey, @Nonnull final byte[] r, @Nonnull final byte[] s)
             throws OtrCryptoException {
-        return verify(b, pubKey, new BigInteger(1, r), new BigInteger(1, s));
+        verify(b, pubKey, new BigInteger(1, r), new BigInteger(1, s));
     }
 
-    private static boolean verify(@Nonnull final byte[] b, @Nonnull final PublicKey pubKey, @Nonnull final BigInteger r,
+    private static void verify(@Nonnull final byte[] b, @Nonnull final PublicKey pubKey, @Nonnull final BigInteger r,
             @Nonnull final BigInteger s) throws OtrCryptoException {
 
         if (!(pubKey instanceof DSAPublicKey)) {
@@ -394,8 +398,9 @@ public final class OtrCryptoEngine {
         dsaSigner.init(false, dsaPrivParms);
 
         final BigInteger bmpi = new BigInteger(1, b);
-        return dsaSigner.verifySignature(BigIntegers
-                .asUnsignedByteArray(bmpi.mod(q)), r, s);
+        if (!dsaSigner.verifySignature(BigIntegers.asUnsignedByteArray(bmpi.mod(q)), r, s)) {
+            throw new OtrCryptoException("DSA signature verification failed.");
+        }
     }
 
     @Nonnull
@@ -438,5 +443,40 @@ public final class OtrCryptoEngine {
             throw new IllegalArgumentException("Expected to acquire DHPrivateKeyParameters instance, but it isn't. (" + params.getClass().getCanonicalName() + ")");
         }
         return (DHPrivateKeyParameters) params;
+    }
+
+    /**
+     * Fill provided byte-array with random data from provided
+     * {@link SecureRandom} instance. This is a convenience function that can be
+     * used in-line for field or variable instantiation.
+     *
+     * @param random a SecureRandom instance
+     * @param dest The destination byte-array to be fully filled with random
+     * data.
+     * @return Returns 'dest' filled with random data.
+     */
+    // TODO add unit tests.
+    @Nonnull
+    public static byte[] random(@Nonnull final SecureRandom random, @Nonnull final byte[] dest) {
+        random.nextBytes(dest);
+        return dest;
+    }
+    
+    /**
+     * Verify that provided DH public key is a valid key.
+     *
+     * @param dhPublicKey DH public key
+     */
+    // FIXME consider making this an OtrCryptoException.
+    public static void verify(@Nonnull final DHPublicKey dhPublicKey) {
+        // Verifies that Alice's gy is a legal value (2 <= gy <= modulus-2)
+        if (dhPublicKey.getY().compareTo(OtrCryptoEngine.MODULUS_MINUS_TWO) > 0) {
+            throw new IllegalArgumentException(
+                    "Illegal D-H Public Key value, Ignoring message.");
+        }
+        if (dhPublicKey.getY().compareTo(OtrCryptoEngine.BIGINTEGER_TWO) < 0) {
+            throw new IllegalArgumentException(
+                    "Illegal D-H Public Key value, Ignoring message.");
+        }
     }
 }

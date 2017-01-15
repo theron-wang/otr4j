@@ -151,9 +151,9 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID the session ID
      * @return Returns the local key pair.
-     * @throws OtrException OtrException
      */
-	KeyPair getLocalKeyPair(@Nonnull SessionID sessionID) throws OtrException;
+    @Nonnull
+	KeyPair getLocalKeyPair(@Nonnull SessionID sessionID);
 
     /**
      * Request local fingerprint in raw byte form.

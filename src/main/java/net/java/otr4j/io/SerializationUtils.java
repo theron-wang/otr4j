@@ -77,76 +77,85 @@ public final class SerializationUtils {
 	// Mysterious X IO.
 	public static SignatureX toMysteriousX(@Nonnull final byte[] b) throws IOException, OtrCryptoException {
 		final ByteArrayInputStream in = new ByteArrayInputStream(b);
-		final OtrInputStream ois = new OtrInputStream(in);
-		final SignatureX x = ois.readMysteriousX();
-		ois.close();
+		final SignatureX x;
+        try (OtrInputStream ois = new OtrInputStream(in)) {
+            x = ois.readMysteriousX();
+        }
 		return x;
 	}
 
 	public static byte[] toByteArray(@Nonnull final SignatureX x) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final OtrOutputStream oos = new OtrOutputStream(out);
-		oos.writeMysteriousX(x);
-		final byte[] b = out.toByteArray();
-		oos.close();
+		final byte[] b;
+        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+            oos.writeMysteriousX(x);
+            b = out.toByteArray();
+        }
 		return b;
 	}
 
 	// Mysterious M IO.
 	public static byte[] toByteArray(@Nonnull final SignatureM m) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final OtrOutputStream oos = new OtrOutputStream(out);
-		oos.writeMysteriousX(m);
-		final byte[] b = out.toByteArray();
-		oos.close();
+		final byte[] b;
+        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+            oos.writeMysteriousX(m);
+            b = out.toByteArray();
+        }
 		return b;
 	}
 
 	// Mysterious T IO.
 	public static byte[] toByteArray(@Nonnull final MysteriousT t) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final OtrOutputStream oos = new OtrOutputStream(out);
-		oos.writeMysteriousT(t);
-		final byte[] b = out.toByteArray();
-		oos.close();
+		final byte[] b;
+        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+            oos.writeMysteriousT(t);
+            b = out.toByteArray();
+        }
 		return b;
 	}
 
 	// Basic IO.
 	public static byte[] writeData(@Nullable final byte[] b) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final OtrOutputStream oos = new OtrOutputStream(out);
-		oos.writeData(b);
-		final byte[] otrb = out.toByteArray();
-		oos.close();
+		final byte[] otrb;
+        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+            oos.writeData(b);
+            otrb = out.toByteArray();
+        }
 		return otrb;
 	}
 
+    // TODO can we simplify this such that we need not handle IOException?
 	// BigInteger IO.
 	public static byte[] writeMpi(@Nonnull final BigInteger bigInt) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final OtrOutputStream oos = new OtrOutputStream(out);
-		oos.writeBigInt(bigInt);
-		final byte[] b = out.toByteArray();
-		oos.close();
+		final byte[] b;
+        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+            oos.writeBigInt(bigInt);
+            b = out.toByteArray();
+        }
 		return b;
 	}
 
 	public static BigInteger readMpi(@Nonnull final byte[] b) throws IOException {
 		final ByteArrayInputStream in = new ByteArrayInputStream(b);
-		final OtrInputStream ois = new OtrInputStream(in);
-		final BigInteger bigint = ois.readBigInt();
-		ois.close();
+		final BigInteger bigint;
+        try (OtrInputStream ois = new OtrInputStream(in)) {
+            bigint = ois.readBigInt();
+        }
 		return bigint;
 	}
 
 	// Public Key IO.
 	public static byte[] writePublicKey(@Nonnull final PublicKey pubKey) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final OtrOutputStream oos = new OtrOutputStream(out);
-		oos.writePublicKey(pubKey);
-		final byte[] b = out.toByteArray();
-		oos.close();
+		final byte[] b;
+        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+            oos.writePublicKey(pubKey);
+            b = out.toByteArray();
+        }
 		return b;
 	}
 
@@ -343,7 +352,7 @@ public final class SerializationUtils {
 				} else {
                     versionString = "";
                 }
-                final HashSet<Integer> versions = new HashSet<Integer>();
+                final HashSet<Integer> versions = new HashSet<>();
                 final StringReader sr = new StringReader(versionString);
                 int c;
                 while ((c = sr.read()) != -1) {
@@ -365,9 +374,8 @@ public final class SerializationUtils {
                 // TODO here an assumption is being made that the last character is a '.' Should we check before acting on this?
 				final ByteArrayInputStream bin = new ByteArrayInputStream(Base64
 						.decode(content.substring(0, content.length() - 1).getBytes(ASCII)));
-				final OtrInputStream otr = new OtrInputStream(bin);
 				// We have an encoded message.
-				try {
+				try (final OtrInputStream otr = new OtrInputStream(bin)) {
                     // FIXME it seems we do not check message's protocol version with policy of allowed versions. What's that about?
 					final int protocolVersion = otr.readShort();
 					if (!OTRv.ALL.contains(protocolVersion)) {
@@ -427,20 +435,14 @@ public final class SerializationUtils {
 						case AbstractEncodedMessage.MESSAGE_SIGNATURE: {
 							final byte[] xEncryted = otr.readData();
 							final byte[] xEncryptedMac = otr.readMac();
-							final SignatureMessage signatureMessage =
-									new SignatureMessage(protocolVersion, xEncryted,
-											xEncryptedMac);
-							signatureMessage.senderInstanceTag = senderInstanceTag;
-							signatureMessage.receiverInstanceTag = recipientInstanceTag;
-							return signatureMessage;
+                            return new SignatureMessage(protocolVersion, xEncryted,
+                                    xEncryptedMac, senderInstanceTag, recipientInstanceTag);
 						}
 						default:
 							// NOTE by gp: aren't we being a little too harsh here? Passing the message as a plaintext
 							// message to the host application shouldn't hurt anybody.
 							throw new IOException("Illegal message type.");
 					}
-				} finally {
-					otr.close();
 				}
 			}
 		}
@@ -464,7 +466,7 @@ public final class SerializationUtils {
 		}
 
 		final String cleanText = matcher.replaceAll("");
-        final HashSet<Integer> versions = new HashSet<Integer>();
+        final HashSet<Integer> versions = new HashSet<>();
         if (v2) {
             versions.add(OTRv.TWO);
         }

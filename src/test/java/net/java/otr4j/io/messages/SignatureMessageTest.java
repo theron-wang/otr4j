@@ -10,11 +10,14 @@ import java.util.Arrays;
 import java.util.Random;
 
 import net.java.otr4j.OtrException;
+import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.io.SerializationUtils;
-import net.java.otr4j.session.AuthContextGetter;
+import net.java.otr4j.session.AuthContextInspection;
 import net.java.otr4j.session.Session;
 import net.java.otr4j.session.Session.OTRv;
+import net.java.otr4j.session.ake.State;
+import net.java.otr4j.session.ake.StateInspection;
 import net.java.otr4j.test.dummyclient.DummyClient;
 import net.java.otr4j.test.dummyclient.TestMessage;
 
@@ -23,7 +26,7 @@ import org.junit.Test;
 public class SignatureMessageTest {
 
     @Test
-    public void testVerify() throws OtrException, IOException {
+    public void testVerify() throws OtrException, IOException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         DummyClient[] convo = DummyClient.getConversation();
         DummyClient alice = convo[0];
         DummyClient bob = convo[1];
@@ -43,9 +46,11 @@ public class SignatureMessageTest {
         assertTrue("This should be a SignatureMessage",
                 am.getClass() == SignatureMessage.class);
         SignatureMessage sm = (SignatureMessage) am;
-        byte[] M2 = AuthContextGetter.getM2(session);
+        final State state = AuthContextInspection.extractState(session.getAuthContext());
+        final SharedSecret sharedSecret = StateInspection.extractSharedSecret(state);
+        byte[] M2 = sharedSecret.m2();
         assertFalse("This should NOT verify", sm.verify(M2));
-        byte[] M2p = AuthContextGetter.getM2p(session);
+        byte[] M2p = sharedSecret.m2p();
         assertTrue("This should verify", sm.verify(M2p));
         byte[] corruptKey = Arrays.copyOf(M2p, M2p.length);
         int byteToCorrupt = M2p.length - 10;

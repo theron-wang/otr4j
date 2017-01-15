@@ -213,7 +213,7 @@ public class SMTest {
 
         // Shared secret
         final byte[] secret = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 'd' };
-        final BigInteger s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
+        final SharedSecret s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
         final byte[] combinedSecretBytes = combinedSecret(alicePublic, bobPublic, s, secret);
 
         // SMP session execution
@@ -264,7 +264,7 @@ public class SMTest {
         // Shared secret
         final byte[] aliceSecret = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 'd' };
         final byte[] bobSecret = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 't' };
-        final BigInteger s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
+        final SharedSecret s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
         final byte[] combinedSecretBytesAlice = combinedSecret(alicePublic, bobPublic, s, aliceSecret);
         final byte[] combinedSecretBytesBob = combinedSecret(alicePublic, bobPublic, s, bobSecret);
 
@@ -720,7 +720,7 @@ public class SMTest {
 
         // Prepare sm instance for StateExpect3.
         final byte[] secret = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 'd' };
-        final BigInteger s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
+        final SharedSecret s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
         final byte[] combinedSecretBytes = combinedSecret(alicePublic, bobPublic, s, secret);
         final byte[] msg1 = alice.step1(combinedSecretBytes);
         bob.step2a(msg1);
@@ -743,7 +743,7 @@ public class SMTest {
 
         // Prepare sm instance for StateExpect3.
         final byte[] secret = new byte[] { 'p', 'a', 's', 's', 'w', 'o', 'r', 'd' };
-        final BigInteger s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
+        final SharedSecret s = OtrCryptoEngine.generateSecret(aliceDHKeyPair.getPrivate(), bobDHKeyPair.getPublic());
         final byte[] combinedSecretBytes = combinedSecret(alicePublic, bobPublic, s, secret);
         final byte[] msg1 = alice.step1(combinedSecretBytes);
         bob.step2a(msg1);
@@ -751,8 +751,8 @@ public class SMTest {
         return bob;
     }
 
-    private byte[] combinedSecret(final byte[] alicePublic, final byte[] bobPublic, final BigInteger s, final byte[] secret) throws Exception {
-        final byte[] sessionBytes = computeSessionId(s);
+    private byte[] combinedSecret(final byte[] alicePublic, final byte[] bobPublic, final SharedSecret s, final byte[] secret) throws Exception {
+        final byte[] sessionBytes = s.ssid();
         final byte[] combinedSecret = new byte[1 + alicePublic.length + bobPublic.length + sessionBytes.length + secret.length];
         combinedSecret[0] = 1;
         System.arraycopy(alicePublic, 0, combinedSecret, 1, alicePublic.length);
@@ -765,11 +765,12 @@ public class SMTest {
 	/* Compute secret session ID as hash of agreed secret */
 	private static byte[] computeSessionId(final BigInteger s) throws Exception {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final OtrOutputStream oos = new OtrOutputStream(out);
-        oos.write(0x00);
-        oos.writeBigInt(s);
-        final byte[] sdata = out.toByteArray();
-        oos.close();
+        final byte[] sdata;
+        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+            oos.write(0x00);
+            oos.writeBigInt(s);
+            sdata = out.toByteArray();
+        }
 
 		/* Calculate the session id */
 		final MessageDigest sha256 = MessageDigest.getInstance("SHA-256");

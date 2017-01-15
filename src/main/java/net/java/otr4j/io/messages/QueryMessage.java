@@ -17,13 +17,13 @@ public class QueryMessage extends AbstractMessage {
 	public final Set<Integer> versions;
 
 	// Ctor.
-	protected QueryMessage(final int messageType, final Set<Integer> versions) {
-		super(messageType);
-		this.versions = versions;
-	}
-
 	public QueryMessage(final Set<Integer> versions) {
 		this(MESSAGE_QUERY, versions);
+	}
+
+    protected QueryMessage(final int messageType, final Set<Integer> versions) {
+		super(messageType);
+		this.versions = versions;
 	}
 
 	// Methods.
