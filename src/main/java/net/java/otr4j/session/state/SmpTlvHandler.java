@@ -1,8 +1,5 @@
 package net.java.otr4j.session.state;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -23,11 +20,16 @@ import net.java.otr4j.crypto.SM;
 import net.java.otr4j.crypto.SM.SMException;
 import net.java.otr4j.crypto.SM.SMAbortedException;
 import net.java.otr4j.crypto.SharedSecret;
-import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.TLV;
 
+/**
+ * SMP TLV Handler handles any interaction w.r.t. mutual authentication using
+ * SMP (Socialist Millionaires Protocol).
+ *
+ * @author Danny van Heumen
+ */
 public final class SmpTlvHandler {
 
     private final OtrEngineHost engineHost;
@@ -39,54 +41,20 @@ public final class SmpTlvHandler {
     private final InstanceTag receiverInstanceTag;
 
     /**
-	 * Construct an OTR Socialist Millionaire handler object.
-	 * 
-	 * @param session The session reference.
+     * Construct an OTR Socialist Millionaire handler object.
+     *
+     * @param session The session reference.
      * @param context Session context.
-	 */
-	public SmpTlvHandler(@Nonnull final StateEncrypted session, @Nonnull final Context context, @Nonnull final SharedSecret s) {
-		this.session = Objects.requireNonNull(session);
+     * @param s The session's shared secret.
+     */
+    public SmpTlvHandler(@Nonnull final StateEncrypted session, @Nonnull final Context context, @Nonnull final SharedSecret s) {
+        this.session = Objects.requireNonNull(session);
         this.s = Objects.requireNonNull(s);
-		this.engineHost = Objects.requireNonNull(context.getHost());
+        this.engineHost = Objects.requireNonNull(context.getHost());
         this.sm = new SM(context.secureRandom());
         this.receiverInstanceTag = context.getReceiverInstanceTag();
         this.sessionContext = Objects.requireNonNull(context);
-	}
-
-    // FIXME AFAICT we have 'h1' for this so I'm surprised that it complete logic is in here!
-	/* Compute secret session ID as hash of agreed secret */
-	private static byte[] computeSessionId(@Nonnull final BigInteger s) throws SMException {
-		final byte[] sdata;
-
-        /* convert agreed secret to bytes */
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final OtrOutputStream oos = new OtrOutputStream(out);
-		try {
-			oos.write(0x00);
-			oos.writeBigInt(s);
-			sdata = out.toByteArray();
-		} catch (IOException e1) {
-			throw new SMException(e1);
-		} finally {
-            try {
-                oos.close();
-            } catch (IOException ex) {
-                throw new SMException(ex);
-            }
-        }
-
-		/* Calculate the session id */
-		final MessageDigest sha256;
-		try {
-			sha256 = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException e) {
-			throw new SMException("cannot find SHA-256");
-		}
-		final byte[] res = sha256.digest(sdata);
-		final byte[] secure_session_id = new byte[8];
-		System.arraycopy(res, 0, secure_session_id, 0, 8);
-		return secure_session_id;
-	}
+    }
 
 	/**
 	 *  Respond to or initiate an SMP negotiation
