@@ -10,7 +10,11 @@ public final class OtrCryptoException extends OtrException {
         super(message);
     }
 
-    public OtrCryptoException(final Exception e) {
+    public OtrCryptoException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
+
+    public OtrCryptoException(final Throwable e) {
         super(e);
     }
 }

@@ -22,6 +22,9 @@ import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPrivateKey;
 import java.security.interfaces.DSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -90,7 +93,7 @@ public final class OtrCryptoEngine {
     }
 
     @Nonnull
-    public static KeyPair generateDHKeyPair(@Nonnull final SecureRandom secureRandom) throws OtrCryptoException {
+    public static KeyPair generateDHKeyPair(@Nonnull final SecureRandom secureRandom) {
 
         // Generate a AsymmetricCipherKeyPair using BC.
         final DHParameters dhParams = new DHParameters(MODULUS, GENERATOR, null,
@@ -104,24 +107,35 @@ public final class OtrCryptoEngine {
         final DHPublicKeyParameters pub = convertToPublicKeyParams(pair.getPublic());
         final DHPrivateKeyParameters priv = convertToPrivateKeyParams(pair.getPrivate());
 
+        final KeyFactory keyFac;
         try {
-            final KeyFactory keyFac = KeyFactory.getInstance(KF_DH);
-
-            final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(pub.getY(),
-                    MODULUS, GENERATOR);
-            final DHPublicKey pubKey = (DHPublicKey) keyFac
-                    .generatePublic(pubKeySpecs);
-
-            final DHParameters dhParameters = priv.getParameters();
-            final DHPrivateKeySpec privKeySpecs = new DHPrivateKeySpec(priv.getX(),
-                    dhParameters.getP(), dhParameters.getG());
-            final DHPrivateKey privKey = (DHPrivateKey) keyFac
-                    .generatePrivate(privKeySpecs);
-
-            return new KeyPair(pubKey, privKey);
-        } catch (final NoSuchAlgorithmException | InvalidKeySpecException ex) {
-            throw new OtrCryptoException(ex);
+            keyFac = KeyFactory.getInstance(KF_DH);
+        } catch (final NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("DH key factory unavailable.", ex);
         }
+
+        final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(pub.getY(),
+                MODULUS, GENERATOR);
+        final DHPublicKey pubKey;
+        try {
+            pubKey = (DHPublicKey) keyFac
+                    .generatePublic(pubKeySpecs);
+        } catch (final InvalidKeySpecException ex) {
+            throw new IllegalStateException("Failed to generate DH public key.", ex);
+        }
+
+        final DHParameters dhParameters = priv.getParameters();
+        final DHPrivateKeySpec privKeySpecs = new DHPrivateKeySpec(priv.getX(),
+                dhParameters.getP(), dhParameters.getG());
+        final DHPrivateKey privKey;
+        try {
+            privKey = (DHPrivateKey) keyFac
+                    .generatePrivate(privKeySpecs);
+        } catch (final InvalidKeySpecException ex) {
+            throw new IllegalStateException("Failed to generate DH private key.", ex);
+        }
+
+        return new KeyPair(pubKey, privKey);
     }
 
     // TODO tricky method as we need to ensure that we parse as unsigned int. This is probably a bug but maybe only in some cases.
@@ -143,26 +157,22 @@ public final class OtrCryptoEngine {
         }
     }
 
-    public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key)
-            throws OtrCryptoException {
+    public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key) {
         return sha256Hmac(b, key, 0);
     }
 
     @Nonnull
-    public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key, final int length)
-            throws OtrCryptoException {
+    public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key, final int length) {
 
         final SecretKeySpec keyspec = new SecretKeySpec(key, HMAC_SHA256);
         final javax.crypto.Mac mac;
         try {
             mac = javax.crypto.Mac.getInstance(HMAC_SHA256);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new OtrCryptoException(e);
-        }
-        try {
             mac.init(keyspec);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Unable to initialize MAC based on SHA-256.", e);
         } catch (final InvalidKeyException e) {
-            throw new OtrCryptoException(e);
+            throw new IllegalStateException("Invalid keyspec.", e);
         }
 
         final byte[] macBytes = mac.doFinal(b);
@@ -200,7 +210,7 @@ public final class OtrCryptoEngine {
     }
 
     @Nonnull
-    public static byte[] sha256Hmac160(@Nonnull final byte[] b, @Nonnull final byte[] key) throws OtrCryptoException {
+    public static byte[] sha256Hmac160(@Nonnull final byte[] b, @Nonnull final byte[] key) {
         // FIXME verify length of key here, needed?
         return sha256Hmac(b, key, SerializationConstants.TYPE_LEN_MAC);
     }
@@ -235,7 +245,6 @@ public final class OtrCryptoEngine {
         return sha1.digest();
     }
 
-    // FIXME change 'ctr' parameter to accept non-null argument only. Make sure ZERO_CTR constant is public and available for use.
     @Nonnull
     public static byte[] aesDecrypt(@Nonnull final byte[] key, @Nullable byte[] ctr, @Nonnull final byte[] b)
             throws OtrCryptoException {
@@ -295,7 +304,9 @@ public final class OtrCryptoEngine {
             // FIXME verify key before calculating shared secret.
             ka.doPhase(pubKey, true);
             return new SharedSecret(ka.generateSecret());
-        } catch (final NoSuchAlgorithmException | InvalidKeyException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("DH key factory not supported.", ex);
+        } catch (final InvalidKeyException ex) {
             throw new OtrCryptoException(ex);
         }
     }
@@ -477,6 +488,23 @@ public final class OtrCryptoEngine {
         if (dhPublicKey.getY().compareTo(OtrCryptoEngine.BIGINTEGER_TWO) < 0) {
             throw new IllegalArgumentException(
                     "Illegal D-H Public Key value, Ignoring message.");
+        }
+    }
+
+    /**
+     * Equality check for byte arrays that throws an exception in case of
+     * failure. This version enables us to put equality checks in line with
+     * other code and be sure that we immediately "exit" upon failing a check,
+     * hence we cannot forget to handle the verification result.
+     *
+     * @param a byte[] a
+     * @param b byte[] b
+     * @param message The exception message in case of arrays are not equal.
+     * @throws OtrCryptoException Throws exception in case of inequality.
+     */
+    public static void checkEquals(final byte[] a, final byte[] b, final String message) throws OtrCryptoException {
+        if (!Arrays.equals(a, b)) {
+            throw new OtrCryptoException(message);
         }
     }
 }

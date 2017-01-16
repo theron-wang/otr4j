@@ -77,6 +77,7 @@ public class AuthContext implements Context {
 
     @Override
     public void setState(@Nonnull final State state) {
+        logger.log(Level.FINEST, "Updating state from {0} to {1}", new Object[]{this.state, state});
         this.state = Objects.requireNonNull(state);
     }
 

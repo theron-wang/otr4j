@@ -16,4 +16,6 @@
 // FIXME move similar logging statements into new AKE state implementation.
 // FIXME verify that all message-state combinations are now handled
 // FIXME verify all DH public keys before using them! (See 'verify' in OtrCryptoEngine.)
+// TODO verify behavior of state implementation in case message is not expected. (Throw ISE or ignore?)
+// TODO what to do with version mismatch, do we throw runtime exception or silently ignore?
 package net.java.otr4j.session.ake;

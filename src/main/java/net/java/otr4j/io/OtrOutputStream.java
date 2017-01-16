@@ -18,6 +18,7 @@ import net.java.otr4j.io.messages.SignatureX;
 
 import org.bouncycastle.util.BigIntegers;
 
+// TODO consider rewriting OtrOutputStream to use ByteBuffer as to avoid IOExceptions which are kind of senseless.
 public final class OtrOutputStream extends FilterOutputStream implements
 		SerializationConstants {
 

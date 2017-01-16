@@ -4,7 +4,7 @@ public class OtrException extends Exception {
 
     private static final long serialVersionUID = -6327624437614707245L;
 
-    public OtrException(final Exception e) {
+    public OtrException(final Throwable e) {
         super(e);
     }
 

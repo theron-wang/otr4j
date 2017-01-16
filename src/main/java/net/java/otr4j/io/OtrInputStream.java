@@ -19,6 +19,7 @@ import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.SignatureX;
 
+// TODO consider rewriting OtrInputStream to use ByteBuffer as to avoid IOExceptions which are kind of senseless.
 public final class OtrInputStream extends FilterInputStream implements
 		SerializationConstants {
 
@@ -147,16 +148,16 @@ public final class OtrInputStream extends FilterInputStream implements
 			final KeyFactory keyFactory;
 			try {
 				keyFactory = KeyFactory.getInstance("DSA");
-			} catch (NoSuchAlgorithmException e) {
-                throw new OtrCryptoException(e);
+			} catch (final NoSuchAlgorithmException e) {
+                throw new IllegalStateException("Failed to initialize DSA key factory.", e);
 			}
 			try {
 				return keyFactory.generatePublic(keySpec);
-			} catch (InvalidKeySpecException e) {
-				throw new OtrCryptoException(e);
+			} catch (final InvalidKeySpecException e) {
+				throw new OtrCryptoException("Read invalid public key from input stream.", e);
 			}
 		default:
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("Unsupported public key type: " + type);
 		}
 	}
 

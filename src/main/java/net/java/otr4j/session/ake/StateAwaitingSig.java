@@ -2,11 +2,10 @@ package net.java.otr4j.session.ake;
 
 import java.io.IOException;
 import java.security.KeyPair;
-import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.crypto.interfaces.DHPublicKey;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
@@ -20,6 +19,7 @@ import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.io.messages.SignatureX;
 
+// FIXME currently IOExceptions get wrapped with IllegalStateException --> FIX!
 final class StateAwaitingSig implements State {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingSig.class.getCanonicalName());
@@ -68,87 +68,76 @@ final class StateAwaitingSig implements State {
     @Override
     public AbstractEncodedMessage handle(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) throws OtrCryptoException, AKEException {
         if (message instanceof DHCommitMessage) {
-            final DHCommitMessage commitMessage = (DHCommitMessage) message;
-            final KeyPair newKeypair = generateKeyPair(context.secureRandom());
-            // FIXME set version in session?
-            LOGGER.finest("Ignoring AWAITING_SIG state and sending a new DH key message.");
-            context.setState(new StateAwaitingRevealSig(commitMessage.protocolVersion, newKeypair, commitMessage.dhPublicKeyHash, commitMessage.dhPublicKeyEncrypted));
-            return new DHKeyMessage(commitMessage.protocolVersion, (DHPublicKey) newKeypair.getPublic(), context.senderInstance(), context.receiverInstance());
+            return handleDHCommitMessage(context, (DHCommitMessage) message);
         }
         if (version != this.version) {
             // FIXME go with unchecked exception here?
             throw new IllegalArgumentException("unexpected version");
         }
         if (message instanceof DHKeyMessage) {
-            final DHKeyMessage keyMessage = (DHKeyMessage) message;
-            if (!((DHPublicKey) this.localDHKeyPair.getPublic()).getY().equals(keyMessage.dhPublicKey.getY())) {
-                LOGGER.info("DHKeyMessage contains different DH public key. Ignoring message.");
-                return null;
-            }
-            return this.previousRevealSigMessage;
+            return handleDHKeyMessage((DHKeyMessage) message);
         } else if (message instanceof SignatureMessage) {
-            final SignatureMessage sigMessage = (SignatureMessage) message;
-            final byte[] xEncryptedBytes;
-            try {
-                xEncryptedBytes = SerializationUtils.writeData(sigMessage.xEncrypted);
-            } catch (final IOException ex) {
-                throw new IllegalStateException("Failed to serialize xEncrypted from signature message.", ex);
-            }
-            final byte[] xEncryptedMAC;
-            try {
-                xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
-            } catch (final OtrCryptoException ex) {
-                throw new IllegalStateException("Failed to calculate MAC of xEncryptedBytes.", ex);
-            }
-            if (!Arrays.equals(xEncryptedMAC, sigMessage.xEncryptedMAC)) {
-                throw new IllegalStateException("Failed validation of xEncryptedMAC.");
-            }
-            final byte[] remoteXBytes;
-            try {
-                remoteXBytes = OtrCryptoEngine.aesDecrypt(s.cp(), null, sigMessage.xEncrypted);
-            } catch (final OtrCryptoException ex) {
-                throw new IllegalStateException("Failed to decrypt xEncrypted.", ex);
-            }
-            final SignatureX remoteX;
-            try {
-                remoteX = SerializationUtils.toMysteriousX(remoteXBytes);
-            } catch (final IOException | OtrCryptoException ex) {
-                throw new IllegalStateException("Failed to serialize MysteriousX.", ex);
-            }
-            final SignatureM remoteM = new SignatureM(this.remoteDHPublicKey, (DHPublicKey) this.localDHKeyPair.getPublic(), remoteX.longTermPublicKey, remoteX.dhKeyID);
-            final byte[] remoteMBytes;
-            try {
-                remoteMBytes = SerializationUtils.toByteArray(remoteM);
-            } catch (final IOException ex) {
-                throw new IllegalStateException("Failed to serialize remoteM message.", ex);
-            }
-            final byte[] expectedSignature;
-            try {
-                expectedSignature = OtrCryptoEngine.sha256Hmac(remoteMBytes, s.m1p());
-            } catch (final OtrCryptoException ex) {
-                throw new IllegalStateException("Failed to calculate sha256 HMAC of remoteMBytes.", ex);
-            }
-            OtrCryptoEngine.verify(expectedSignature, remoteX.longTermPublicKey, remoteX.signature);
-            // Transition to ENCRYPTED session state.
-            final SecurityParameters params = new SecurityParameters(
-                    this.version, this.localLongTermKeyPair, this.localDHKeyPair,
-                    remoteX.longTermPublicKey, remoteDHPublicKey, this.s);
-            context.secure(params);
-            // TODO consider putting setState in try-finally to ensure that we transition back to NONE once done.
-            context.setState(new StateInitial());
+            return handleSignatureMessage(context, (SignatureMessage) message);
+        } else {
+            throw new IllegalStateException("Unexpected message type received.");
         }
-        throw new IllegalStateException("Unexpected message type received.");
     }
 
-    // TODO this method is not necessary here ... it should be a utility method.
-    private KeyPair generateKeyPair(@Nonnull final SecureRandom secureRandom) {
+    @Nonnull
+    private DHKeyMessage handleDHCommitMessage(@Nonnull final Context context, @Nonnull final DHCommitMessage message) {
+        LOGGER.finest("Generating local D-H key pair.");
+        final KeyPair newKeypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
+        // FIXME set version in session?
+        LOGGER.finest("Ignoring AWAITING_SIG state and sending a new DH key message.");
+        context.setState(new StateAwaitingRevealSig(message.protocolVersion, newKeypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
+        return new DHKeyMessage(message.protocolVersion, (DHPublicKey) newKeypair.getPublic(), context.senderInstance(), context.receiverInstance());
+    }
+
+    @Nullable
+    private RevealSignatureMessage handleDHKeyMessage(@Nonnull final DHKeyMessage message) {
+        if (!((DHPublicKey) this.localDHKeyPair.getPublic()).getY().equals(message.dhPublicKey.getY())) {
+            // DH keypair is not the same as local pair, this message is either
+            // fake or not intended for this session.
+            LOGGER.info("DHKeyMessage contains different DH public key. Ignoring message.");
+            return null;
+        }
+        // DH keypair is the same, so other side apparently didn't receive our
+        // first reveal signature message, let's send the message again.
+        return this.previousRevealSigMessage;
+    }
+
+    private SignatureMessage handleSignatureMessage(@Nonnull final Context context, @Nonnull final SignatureMessage message) throws AKEException, OtrCryptoException {
+        final byte[] xEncryptedBytes;
         try {
-            final KeyPair generatedKeyPair = OtrCryptoEngine.generateDHKeyPair(secureRandom);
-            LOGGER.finest("Generated local D-H key pair.");
-            return generatedKeyPair;
-        } catch (final OtrCryptoException ex) {
-            throw new IllegalStateException("Failed to generate DH keypair.", ex);
+            xEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
+        } catch (final IOException ex) {
+            throw new IllegalStateException("Failed to serialize xEncrypted from signature message.", ex);
         }
+        final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
+        OtrCryptoEngine.checkEquals(xEncryptedMAC, message.xEncryptedMAC, "xEncryptedMAC failed verification.");
+        final byte[] remoteXBytes = OtrCryptoEngine.aesDecrypt(s.cp(), null, message.xEncrypted);
+        final SignatureX remoteX;
+        try {
+            remoteX = SerializationUtils.toMysteriousX(remoteXBytes);
+        } catch (final IOException ex) {
+            throw new IllegalStateException("Failed to serialize MysteriousX.", ex);
+        }
+        final SignatureM remoteM = new SignatureM(this.remoteDHPublicKey, (DHPublicKey) this.localDHKeyPair.getPublic(), remoteX.longTermPublicKey, remoteX.dhKeyID);
+        final byte[] remoteMBytes;
+        try {
+            remoteMBytes = SerializationUtils.toByteArray(remoteM);
+        } catch (final IOException ex) {
+            throw new IllegalStateException("Failed to serialize remoteM message.", ex);
+        }
+        final byte[] expectedSignature = OtrCryptoEngine.sha256Hmac(remoteMBytes, s.m1p());
+        OtrCryptoEngine.verify(expectedSignature, remoteX.longTermPublicKey, remoteX.signature);
+        // Transition to ENCRYPTED session state.
+        final SecurityParameters params = new SecurityParameters(
+                this.version, this.localLongTermKeyPair, this.localDHKeyPair,
+                remoteX.longTermPublicKey, remoteDHPublicKey, this.s);
+        context.secure(params);
+        // TODO consider putting setState in try-finally to ensure that we transition back to NONE once done.
+        context.setState(new StateInitial());
+        return null;
     }
-
 }

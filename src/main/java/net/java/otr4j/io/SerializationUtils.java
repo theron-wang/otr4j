@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ import net.java.otr4j.session.Session.OTRv;
 /**
  * @author George Politis
  */
+// TODO consider converting the logic to use ByteBuffer.
 public final class SerializationUtils {
 
     private static final Logger LOGGER = Logger.getLogger(SerializationUtils.class.getCanonicalName());
