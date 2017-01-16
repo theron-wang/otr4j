@@ -47,7 +47,7 @@ public final class SmpTlvHandler {
      * @param context Session context.
      * @param s The session's shared secret.
      */
-    public SmpTlvHandler(@Nonnull final StateEncrypted session, @Nonnull final Context context, @Nonnull final SharedSecret s) {
+    SmpTlvHandler(@Nonnull final StateEncrypted session, @Nonnull final Context context, @Nonnull final SharedSecret s) {
         this.session = Objects.requireNonNull(session);
         this.s = Objects.requireNonNull(s);
         this.engineHost = Objects.requireNonNull(context.getHost());
