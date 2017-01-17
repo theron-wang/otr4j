@@ -1,6 +1,5 @@
 package net.java.otr4j.session.ake;
 
-import java.io.IOException;
 import javax.crypto.interfaces.DHPublicKey;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
@@ -19,12 +18,7 @@ final class AKEMessage {
 
     static DHCommitMessage createDHCommitMessage(final int version, final byte[] r,
             final DHPublicKey localPublicKey, final int senderInstance) {
-        final byte[] publicKeyBytes;
-        try {
-            publicKeyBytes = SerializationUtils.writeMpi(localPublicKey.getY());
-        } catch (final IOException ex) {
-            throw new IllegalStateException("failed to serialize DH public key", ex);
-        }
+        final byte[] publicKeyBytes = SerializationUtils.writeMpi(localPublicKey.getY());
         final byte[] publicKeyHash = OtrCryptoEngine.sha256Hash(publicKeyBytes);
         final byte[] publicKeyEncrypted;
         try {

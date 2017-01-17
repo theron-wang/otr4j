@@ -94,12 +94,7 @@ final class StateAwaitingRevealSig implements State {
         }
         final DHPublicKey remoteDHPublicKey = OtrCryptoEngine.getDHPublicKey(remotePublicKeyMPI);
         final SharedSecret s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), remoteDHPublicKey);
-        final byte[] remoteXEncryptedBytes;
-        try {
-            remoteXEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Failed to write signature as data.", ex);
-        }
+        final byte[] remoteXEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
         final byte[] expectedXEncryptedMAC = OtrCryptoEngine.sha256Hmac160(remoteXEncryptedBytes, s.m2());
         OtrCryptoEngine.checkEquals(message.xEncryptedMAC, expectedXEncryptedMAC, "xEncryptedMAC failed validation.");
         final byte[] remoteMysteriousXBytes = OtrCryptoEngine.aesDecrypt(s.c(), null, message.xEncrypted);
@@ -112,12 +107,7 @@ final class StateAwaitingRevealSig implements State {
         final SignatureM expectedM = new SignatureM(remoteDHPublicKey,
                 (DHPublicKey) this.keypair.getPublic(),
                 remoteMysteriousX.longTermPublicKey, remoteMysteriousX.dhKeyID);
-        final byte[] expectedMBytes;
-        try {
-            expectedMBytes = SerializationUtils.toByteArray(expectedM);
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to serialize expected SignatureM message.", ex);
-        }
+        final byte[] expectedMBytes = SerializationUtils.toByteArray(expectedM);
         final byte[] expectedSignature = OtrCryptoEngine.sha256Hmac(expectedMBytes, s.m1());
         OtrCryptoEngine.verify(expectedSignature, remoteMysteriousX.longTermPublicKey,
                 remoteMysteriousX.signature);
@@ -128,29 +118,14 @@ final class StateAwaitingRevealSig implements State {
         final SignatureM signatureM = new SignatureM(
                 (DHPublicKey) this.keypair.getPublic(), remoteDHPublicKey,
                 localLongTermKeyPair.getPublic(), LOCAL_DH_PRIVATE_KEY_ID);
-        final byte[] signatureMBytes;
-        try {
-            signatureMBytes = SerializationUtils.toByteArray(signatureM);
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to serialize SignatureM message to be included in Signature response message.", ex);
-        }
+        final byte[] signatureMBytes = SerializationUtils.toByteArray(signatureM);
         final byte[] mhash = OtrCryptoEngine.sha256Hmac(signatureMBytes, s.m1p());
         final byte[] signature = OtrCryptoEngine.sign(mhash, localLongTermKeyPair.getPrivate());
         final SignatureX mysteriousX = new SignatureX(localLongTermKeyPair.getPublic(),
                 LOCAL_DH_PRIVATE_KEY_ID, signature);
-        final byte[] xEncrypted;
-        try {
-            xEncrypted = OtrCryptoEngine.aesEncrypt(s.cp(), null,
+        final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(s.cp(), null,
                     SerializationUtils.toByteArray(mysteriousX));
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to serialize SignatureX.", ex);
-        }
-        final byte[] xEncryptedBytes;
-        try {
-            xEncryptedBytes = SerializationUtils.writeData(xEncrypted);
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to serialize xEncrypted.", ex);
-        }
+        final byte[] xEncryptedBytes = SerializationUtils.writeData(xEncrypted);
         final byte[] xEncryptedHash = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
         final SignatureMessage signatureMessage = new SignatureMessage(
                 this.version, xEncrypted, xEncryptedHash, context.senderInstance(), context.receiverInstance());

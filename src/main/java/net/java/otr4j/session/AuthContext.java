@@ -32,17 +32,18 @@ import net.java.otr4j.session.ake.AKEException;
 import net.java.otr4j.session.ake.Context;
 import net.java.otr4j.session.ake.SecurityParameters;
 import net.java.otr4j.session.ake.State;
+import net.java.otr4j.session.ake.StateInitial;
 
 /**
  * @author George Politis
  */
 public class AuthContext implements Context {
-    // TODO consider converting this to a state machine. This enables better separation of state variables such that we only provide fields that are used in the current state.
 
     public AuthContext(final Session session) {
-        SessionID sID = session.getSessionID();
+        final SessionID sID = session.getSessionID();
         this.logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
         this.session = session;
+        this.state = new StateInitial();
         logger.finest("Construct new authentication state.");
         this.reset(null);
     }
@@ -55,10 +56,11 @@ public class AuthContext implements Context {
      * @param other The other AuthContext instance.
      */
     public AuthContext(final Session session, final AuthContext other) {
-        SessionID sID = session.getSessionID();
+        final SessionID sID = session.getSessionID();
         this.logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
         this.session = Objects.requireNonNull(session);
         logger.finest("Copy-construct authentication state.");
+        this.state = new StateInitial();
         this.reset(other);
     }
 

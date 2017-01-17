@@ -1,6 +1,5 @@
 package net.java.otr4j.crypto;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
@@ -36,13 +35,8 @@ public final class SharedSecret {
 
     // TODO need to store BigInteger s as well?
     SharedSecret(@Nonnull final byte[] secret) throws OtrCryptoException {
-        try {
-            final BigInteger s = new BigInteger(1, secret);
-            this.secbytes = SerializationUtils.writeMpi(s);
-        } catch (final IOException e) {
-            // FIXME is this exception really necessary?
-            throw new OtrCryptoException(e);
-        }
+        final BigInteger s = new BigInteger(1, secret);
+        this.secbytes = SerializationUtils.writeMpi(s);
         LOGGER.finest("Generated shared secret s.");
     }
 

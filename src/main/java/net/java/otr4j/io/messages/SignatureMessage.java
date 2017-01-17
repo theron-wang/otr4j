@@ -6,7 +6,6 @@
  */
 package net.java.otr4j.io.messages;
 
-import java.io.IOException;
 import java.util.Arrays;
 import javax.annotation.CheckReturnValue;
 
@@ -59,15 +58,8 @@ public class SignatureMessage extends AbstractEncodedMessage {
     @CheckReturnValue
 	public boolean verify(final byte[] key) throws OtrException {
 		// Hash the key.
-		final byte[] xbEncrypted;
-		try {
-			xbEncrypted = SerializationUtils.writeData(xEncrypted);
-		} catch (IOException e) {
-			throw new OtrException(e);
-		}
-
-		final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(
-				xbEncrypted, key);
+		final byte[] xbEncryptedBytes = SerializationUtils.writeData(xEncrypted);
+		final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(xbEncryptedBytes, key);
 		// Verify signature.
 		return Arrays.equals(this.xEncryptedMAC, xEncryptedMAC);
 	}

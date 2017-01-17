@@ -1,6 +1,5 @@
 package net.java.otr4j.session.ake;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.util.Objects;
@@ -65,12 +64,7 @@ final class StateAwaitingDHKey implements State {
 
     @Nonnull
     private AbstractEncodedMessage handleDHCommitMessage(@Nonnull final Context context, @Nonnull final DHCommitMessage message) throws OtrCryptoException {
-        final byte[] publicKeyBytes;
-        try {
-            publicKeyBytes = SerializationUtils.writeMpi(((DHPublicKey) keypair.getPublic()).getY());
-        } catch (final IOException ex) {
-            throw new IllegalStateException("failed to serialize DH public key", ex);
-        }
+        final byte[] publicKeyBytes = SerializationUtils.writeMpi(((DHPublicKey) keypair.getPublic()).getY());
         final byte[] publicKeyHash = OtrCryptoEngine.sha256Hash(publicKeyBytes);
         // By explicitly specifying the signum in BigInteger we parse all
         // bytes in the array as values, i.e. including msb, effectively as
@@ -98,29 +92,14 @@ final class StateAwaitingDHKey implements State {
         final SignatureM sigM = new SignatureM(
                 (DHPublicKey) this.keypair.getPublic(), message.dhPublicKey,
                 longTermKeyPair.getPublic(), LOCAL_DH_PRIVATE_KEY_ID);
-        final byte[] mhash;
-        try {
-            mhash = OtrCryptoEngine.sha256Hmac(SerializationUtils
+        final byte[] mhash = OtrCryptoEngine.sha256Hmac(SerializationUtils
                     .toByteArray(sigM), s.m1());
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to construct mhash.", ex);
-        }
         final byte[] signature = OtrCryptoEngine.sign(mhash, longTermKeyPair.getPrivate());
         final SignatureX mysteriousX = new SignatureX(longTermKeyPair.getPublic(),
                 LOCAL_DH_PRIVATE_KEY_ID, signature);
-        final byte[] xEncrypted;
-        try {
-            xEncrypted = OtrCryptoEngine.aesEncrypt(s.c(), null,
+        final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(s.c(), null,
                     SerializationUtils.toByteArray(mysteriousX));
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to calculate xEncrypted.", ex);
-        }
-        final byte[] tmpEncrypted;
-        try {
-            tmpEncrypted = SerializationUtils.writeData(xEncrypted);
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to serialize xEncrypted.", ex);
-        }
+        final byte[] tmpEncrypted = SerializationUtils.writeData(xEncrypted);
         final byte[] xEncryptedHash = OtrCryptoEngine.sha256Hmac160(tmpEncrypted, s.m2());
         final RevealSignatureMessage revealSigMessage = new RevealSignatureMessage(
                 this.version, xEncrypted, xEncryptedHash, this.r,

@@ -107,12 +107,7 @@ final class StateAwaitingSig implements State {
     }
 
     private SignatureMessage handleSignatureMessage(@Nonnull final Context context, @Nonnull final SignatureMessage message) throws AKEException, OtrCryptoException {
-        final byte[] xEncryptedBytes;
-        try {
-            xEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to serialize xEncrypted from signature message.", ex);
-        }
+        final byte[] xEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
         final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
         OtrCryptoEngine.checkEquals(xEncryptedMAC, message.xEncryptedMAC, "xEncryptedMAC failed verification.");
         final byte[] remoteXBytes = OtrCryptoEngine.aesDecrypt(s.cp(), null, message.xEncrypted);
@@ -120,15 +115,12 @@ final class StateAwaitingSig implements State {
         try {
             remoteX = SerializationUtils.toMysteriousX(remoteXBytes);
         } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to serialize MysteriousX.", ex);
+            throw new IllegalStateException("Failed to deserialize MysteriousX.", ex);
         }
-        final SignatureM remoteM = new SignatureM(this.remoteDHPublicKey, (DHPublicKey) this.localDHKeyPair.getPublic(), remoteX.longTermPublicKey, remoteX.dhKeyID);
-        final byte[] remoteMBytes;
-        try {
-            remoteMBytes = SerializationUtils.toByteArray(remoteM);
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to serialize remoteM message.", ex);
-        }
+        final SignatureM remoteM = new SignatureM(this.remoteDHPublicKey,
+                (DHPublicKey) this.localDHKeyPair.getPublic(),
+                remoteX.longTermPublicKey, remoteX.dhKeyID);
+        final byte[] remoteMBytes = SerializationUtils.toByteArray(remoteM);
         final byte[] expectedSignature = OtrCryptoEngine.sha256Hmac(remoteMBytes, s.m1p());
         OtrCryptoEngine.verify(expectedSignature, remoteX.longTermPublicKey, remoteX.signature);
         // Transition to ENCRYPTED session state.

@@ -29,6 +29,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -56,7 +57,7 @@ public final class SM {
     }
 
     void setState(@Nonnull final State state) {
-        LOGGER.finer("Updating SMP state to: " + state);
+        LOGGER.log(Level.FINER, "Updating SMP state to: {0}", state);
         this.state = Objects.requireNonNull(state);
     }
 
@@ -178,15 +179,12 @@ public final class SM {
 			return new BigInteger(1, sha256.digest());
 		} catch (final NoSuchAlgorithmException e) {
 			throw new SMException("cannot find SHA-256", e);
-		} catch (final IOException e) {
-			throw new SMException("cannot serialize bigint", e);
 		}
 	}
 
 	static byte[] serialize(@Nonnull final BigInteger[] ints) throws SMException {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final OtrOutputStream oos = new OtrOutputStream(out);
-		try {
+        try (final OtrOutputStream oos = new OtrOutputStream(out)) {
 			oos.writeInt(ints.length);
 			for (final BigInteger i : ints) {
 				oos.writeBigInt(i);
@@ -194,12 +192,6 @@ public final class SM {
 			return out.toByteArray();
 		} catch (final IOException ex) {
 			throw new SMException("cannot serialize bigints", ex);
-		} finally {
-            try {
-                oos.close();
-            } catch (IOException ex) {
-                throw new SMException(ex);
-            }
         }
 	}
 

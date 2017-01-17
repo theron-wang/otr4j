@@ -447,12 +447,7 @@ public class Session implements Context {
 
     @Override
     public void injectMessage(@Nonnull final AbstractMessage m) throws OtrException {
-        String msg;
-        try {
-            msg = SerializationUtils.toString(m);
-        } catch (IOException e) {
-            throw new OtrException(e);
-        }
+        String msg = SerializationUtils.toString(m);
         final SessionID sessionId = this.sessionState.getSessionID();
         if (m instanceof QueryMessage) {
             String fallback = OtrEngineHostUtil.getFallbackMessage(this.host,
@@ -471,7 +466,7 @@ public class Session implements Context {
                 for (final String fragment : fragments) {
                     this.host.injectMessage(sessionId, fragment);
                 }
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 logger.warning("Failed to fragment message according to provided instructions.");
                 throw new OtrException(e);
             }

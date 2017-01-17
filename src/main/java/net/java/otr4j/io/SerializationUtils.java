@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -86,59 +85,58 @@ public final class SerializationUtils {
 		return x;
 	}
 
-	public static byte[] toByteArray(@Nonnull final SignatureX x) throws IOException {
+	public static byte[] toByteArray(@Nonnull final SignatureX x) {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final byte[] b;
-        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+        try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writeMysteriousX(x);
-            b = out.toByteArray();
+        } catch (final IOException ex) {
+            throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
-		return b;
+		return out.toByteArray();
 	}
 
 	// Mysterious M IO.
-	public static byte[] toByteArray(@Nonnull final SignatureM m) throws IOException {
+	public static byte[] toByteArray(@Nonnull final SignatureM m) {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final byte[] b;
-        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+        try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writeMysteriousX(m);
-            b = out.toByteArray();
+        } catch (final IOException ex) {
+            throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
-		return b;
+		return out.toByteArray();
 	}
 
 	// Mysterious T IO.
-	public static byte[] toByteArray(@Nonnull final MysteriousT t) throws IOException {
+	public static byte[] toByteArray(@Nonnull final MysteriousT t) {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final byte[] b;
-        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+        try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writeMysteriousT(t);
-            b = out.toByteArray();
+        } catch (final IOException ex) {
+            throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
-		return b;
+		return out.toByteArray();
 	}
 
 	// Basic IO.
-	public static byte[] writeData(@Nullable final byte[] b) throws IOException {
+	public static byte[] writeData(@Nullable final byte[] b) {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final byte[] otrb;
-        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+        try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writeData(b);
-            otrb = out.toByteArray();
+        } catch (final IOException ex) {
+            throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
-		return otrb;
+        return out.toByteArray();
 	}
 
-    // TODO can we simplify this such that we need not handle IOException?
 	// BigInteger IO.
-	public static byte[] writeMpi(@Nonnull final BigInteger bigInt) throws IOException {
+	public static byte[] writeMpi(@Nonnull final BigInteger bigInt) {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final byte[] b;
-        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+        try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writeBigInt(bigInt);
-            b = out.toByteArray();
+        } catch (final IOException ex) {
+            throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
-		return b;
+		return out.toByteArray();
 	}
 
 	public static BigInteger readMpi(@Nonnull final byte[] b) throws IOException {
@@ -153,16 +151,16 @@ public final class SerializationUtils {
 	// Public Key IO.
 	public static byte[] writePublicKey(@Nonnull final PublicKey pubKey) throws IOException {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		final byte[] b;
-        try (OtrOutputStream oos = new OtrOutputStream(out)) {
+        try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writePublicKey(pubKey);
-            b = out.toByteArray();
+        } catch (final IOException ex) {
+            throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
-		return b;
+        return out.toByteArray();
 	}
 
 	// Message IO.
-	public static String toString(@Nonnull final AbstractMessage m) throws IOException {
+	public static String toString(@Nonnull final AbstractMessage m) {
 		final StringWriter writer = new StringWriter();
 		if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT && m.messageType != AbstractMessage.MESSAGE_QUERY) {
             // We avoid writing the header until we know for sure we need it. We
@@ -220,80 +218,83 @@ public final class SerializationUtils {
 			case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
 			case AbstractEncodedMessage.MESSAGE_DATA:
 				final ByteArrayOutputStream o = new ByteArrayOutputStream();
-				final OtrOutputStream s = new OtrOutputStream(o);
+                try (final OtrOutputStream s = new OtrOutputStream(o)) {
 
-				switch (m.messageType) {
-					case AbstractEncodedMessage.MESSAGE_DHKEY:
-						final DHKeyMessage dhkey = checkCast(DHKeyMessage.class, m);
-						s.writeShort(dhkey.protocolVersion);
-						s.writeByte(dhkey.messageType);
-						if (dhkey.protocolVersion == OTRv.THREE) {
-							s.writeInt(dhkey.senderInstanceTag);
-							s.writeInt(dhkey.receiverInstanceTag);
-						}
-						s.writeDHPublicKey(dhkey.dhPublicKey);
-						break;
-					case AbstractEncodedMessage.MESSAGE_REVEALSIG:
-						final RevealSignatureMessage revealsig = checkCast(RevealSignatureMessage.class, m);
-						s.writeShort(revealsig.protocolVersion);
-						s.writeByte(revealsig.messageType);
-						if (revealsig.protocolVersion == OTRv.THREE) {
-							s.writeInt(revealsig.senderInstanceTag);
-							s.writeInt(revealsig.receiverInstanceTag);
-						}
-						s.writeData(revealsig.revealedKey);
-						s.writeData(revealsig.xEncrypted);
-						s.writeMac(revealsig.xEncryptedMAC);
-						break;
-					case AbstractEncodedMessage.MESSAGE_SIGNATURE:
-						final SignatureMessage sig = checkCast(SignatureMessage.class, m);
-						s.writeShort(sig.protocolVersion);
-						s.writeByte(sig.messageType);
-						if (sig.protocolVersion == OTRv.THREE) {
-							s.writeInt(sig.senderInstanceTag);
-							s.writeInt(sig.receiverInstanceTag);
-						}
-						s.writeData(sig.xEncrypted);
-						s.writeMac(sig.xEncryptedMAC);
-						break;
-					case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
-						final DHCommitMessage dhcommit = checkCast(DHCommitMessage.class, m);
-						s.writeShort(dhcommit.protocolVersion);
-						s.writeByte(dhcommit.messageType);
-						if (dhcommit.protocolVersion == OTRv.THREE) {
-							s.writeInt(dhcommit.senderInstanceTag);
-							s.writeInt(dhcommit.receiverInstanceTag);
-						}
-						s.writeData(dhcommit.dhPublicKeyEncrypted);
-						s.writeData(dhcommit.dhPublicKeyHash);
-						break;
-					case AbstractEncodedMessage.MESSAGE_DATA:
-						final DataMessage data = checkCast(DataMessage.class, m);
-						s.writeShort(data.protocolVersion);
-						s.writeByte(data.messageType);
-						if (data.protocolVersion == OTRv.THREE) {
-							s.writeInt(data.senderInstanceTag);
-							s.writeInt(data.receiverInstanceTag);
-						}
-						s.writeByte(data.flags);
-						s.writeInt(data.senderKeyID);
-						s.writeInt(data.recipientKeyID);
-						s.writeDHPublicKey(data.nextDH);
-						s.writeCtr(data.ctr);
-						s.writeData(data.encryptedMessage);
-						s.writeMac(data.mac);
-						s.writeData(data.oldMACKeys);
-						break;
-                    default:
-                        break;
-				}
+                    switch (m.messageType) {
+                        case AbstractEncodedMessage.MESSAGE_DHKEY:
+                            final DHKeyMessage dhkey = checkCast(DHKeyMessage.class, m);
+                            s.writeShort(dhkey.protocolVersion);
+                            s.writeByte(dhkey.messageType);
+                            if (dhkey.protocolVersion == OTRv.THREE) {
+                                s.writeInt(dhkey.senderInstanceTag);
+                                s.writeInt(dhkey.receiverInstanceTag);
+                            }
+                            s.writeDHPublicKey(dhkey.dhPublicKey);
+                            break;
+                        case AbstractEncodedMessage.MESSAGE_REVEALSIG:
+                            final RevealSignatureMessage revealsig = checkCast(RevealSignatureMessage.class, m);
+                            s.writeShort(revealsig.protocolVersion);
+                            s.writeByte(revealsig.messageType);
+                            if (revealsig.protocolVersion == OTRv.THREE) {
+                                s.writeInt(revealsig.senderInstanceTag);
+                                s.writeInt(revealsig.receiverInstanceTag);
+                            }
+                            s.writeData(revealsig.revealedKey);
+                            s.writeData(revealsig.xEncrypted);
+                            s.writeMac(revealsig.xEncryptedMAC);
+                            break;
+                        case AbstractEncodedMessage.MESSAGE_SIGNATURE:
+                            final SignatureMessage sig = checkCast(SignatureMessage.class, m);
+                            s.writeShort(sig.protocolVersion);
+                            s.writeByte(sig.messageType);
+                            if (sig.protocolVersion == OTRv.THREE) {
+                                s.writeInt(sig.senderInstanceTag);
+                                s.writeInt(sig.receiverInstanceTag);
+                            }
+                            s.writeData(sig.xEncrypted);
+                            s.writeMac(sig.xEncryptedMAC);
+                            break;
+                        case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
+                            final DHCommitMessage dhcommit = checkCast(DHCommitMessage.class, m);
+                            s.writeShort(dhcommit.protocolVersion);
+                            s.writeByte(dhcommit.messageType);
+                            if (dhcommit.protocolVersion == OTRv.THREE) {
+                                s.writeInt(dhcommit.senderInstanceTag);
+                                s.writeInt(dhcommit.receiverInstanceTag);
+                            }
+                            s.writeData(dhcommit.dhPublicKeyEncrypted);
+                            s.writeData(dhcommit.dhPublicKeyHash);
+                            break;
+                        case AbstractEncodedMessage.MESSAGE_DATA:
+                            final DataMessage data = checkCast(DataMessage.class, m);
+                            s.writeShort(data.protocolVersion);
+                            s.writeByte(data.messageType);
+                            if (data.protocolVersion == OTRv.THREE) {
+                                s.writeInt(data.senderInstanceTag);
+                                s.writeInt(data.receiverInstanceTag);
+                            }
+                            s.writeByte(data.flags);
+                            s.writeInt(data.senderKeyID);
+                            s.writeInt(data.recipientKeyID);
+                            s.writeDHPublicKey(data.nextDH);
+                            s.writeCtr(data.ctr);
+                            s.writeData(data.encryptedMessage);
+                            s.writeMac(data.mac);
+                            s.writeData(data.oldMACKeys);
+                            break;
+                        default:
+                            break;
+                    }
+                } catch (final IOException ex) {
+                    throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
+                }
 
 				writer.write(SerializationConstants.HEAD_ENCODED);
 				writer.write(new String(Base64.encode(o.toByteArray()), ASCII));
 				writer.write(".");
 				break;
 			default:
-				throw new IOException("Illegal message type.");
+				throw new IllegalArgumentException("Unknown message type encountered: " + m.messageType);
 		}
 
 		return writer.toString();

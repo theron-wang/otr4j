@@ -177,17 +177,12 @@ final class StateEncrypted extends AbstractState {
         // Verify received MAC with a locally calculated MAC.
         logger.finest("Transforming T to byte[] to calculate it's HmacSHA1.");
 
-        final byte[] serializedT;
-        try {
-            serializedT = SerializationUtils.toByteArray(data.getT());
-        } catch (IOException e) {
-            throw new OtrException(e);
-        }
-
+        final byte[] serializedT = SerializationUtils.toByteArray(data.getT());
         final byte[] computedMAC = OtrCryptoEngine.sha1Hmac(serializedT,
                 matchingKeys.getReceivingMACKey(),
                 SerializationConstants.TYPE_LEN_MAC);
         if (!Arrays.equals(computedMAC, data.mac)) {
+            // TODO consider replacing this with OtrCryptoEngine.checkEquals such that signaling error happens automatically. Do we want this?
             logger.finest("MAC verification failed, ignoring message");
             OtrEngineHostUtil.unreadableMessageReceived(host, sessionId);
             final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionId, DEFAULT_REPLY_UNREADABLE_MESSAGE);
@@ -372,13 +367,7 @@ final class StateEncrypted extends AbstractState {
         final byte[] sendingMACKey = encryptionKeys.getSendingMACKey();
 
         logger.finest("Transforming T to byte[] to calculate it's HmacSHA1.");
-        final byte[] serializedT;
-        try {
-            serializedT = SerializationUtils.toByteArray(t);
-        } catch (IOException e) {
-            throw new OtrException(e);
-        }
-
+        final byte[] serializedT = SerializationUtils.toByteArray(t);
         final byte[] mac = OtrCryptoEngine.sha1Hmac(serializedT, sendingMACKey,
                 SerializationConstants.TYPE_LEN_MAC);
 

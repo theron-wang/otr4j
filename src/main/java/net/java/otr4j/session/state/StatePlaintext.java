@@ -7,7 +7,6 @@
 
 package net.java.otr4j.session.state;
 
-import java.io.IOException;
 import java.security.PublicKey;
 import java.util.List;
 import java.util.Objects;
@@ -116,13 +115,8 @@ public final class StatePlaintext extends AbstractState {
             // At this point, reaching this state is considered a bug.
             throw new IllegalStateException("The current OTR policy does not allow any supported version of OTR. The software should either enable some protocol version or disable sending whitespace tags.");
         }
-        final String message;
-        try {
-            message = SerializationUtils.toString(
+        final String message = SerializationUtils.toString(
                     new PlainTextMessage(versions, msgText));
-        } catch (final IOException e) {
-            throw new OtrException(e);
-        }
         context.setOfferStatus(OfferStatus.sent);
         return new String[]{message};
     }
