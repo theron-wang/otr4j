@@ -20,7 +20,6 @@ public interface State {
      * @param version Initiate AKE using protocol version.
      * @return Returns DHCommitMessage with which we can initiate an AKE.
      */
-    // FIXME should we always allow initiating a new AKE?
     @Nonnull
     DHCommitMessage initiate(@Nonnull Context context, int version);
 

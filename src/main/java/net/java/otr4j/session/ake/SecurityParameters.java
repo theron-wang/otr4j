@@ -22,7 +22,10 @@ public final class SecurityParameters {
     private final DHPublicKey remoteDHPublicKey;
     private final SharedSecret s;
 
-    SecurityParameters(final int version, @Nonnull final KeyPair localDHKeyPair, @Nonnull final PublicKey remoteLongTermPublicKey, @Nonnull final DHPublicKey remoteDHPublicKey, @Nonnull final SharedSecret s) {
+    SecurityParameters(final int version, @Nonnull final KeyPair localDHKeyPair,
+            @Nonnull final PublicKey remoteLongTermPublicKey,
+            @Nonnull final DHPublicKey remoteDHPublicKey,
+            @Nonnull final SharedSecret s) {
         this.version = version;
         this.localDHKeyPair = Objects.requireNonNull(localDHKeyPair);
         this.remoteLongTermPublicKey = Objects.requireNonNull(remoteLongTermPublicKey);

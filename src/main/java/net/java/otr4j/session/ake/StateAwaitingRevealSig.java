@@ -115,6 +115,7 @@ final class StateAwaitingRevealSig implements State {
             throw new IllegalStateException("Failed to deserialize remote public key bytes.", ex);
         }
         final DHPublicKey remoteDHPublicKey = OtrCryptoEngine.getDHPublicKey(remotePublicKeyMPI);
+        // FIXME verify remoteDHPublicKey before use?
         final SharedSecret s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), remoteDHPublicKey);
         final byte[] remoteXEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
         final byte[] expectedXEncryptedMAC = OtrCryptoEngine.sha256Hmac160(remoteXEncryptedBytes, s.m2());

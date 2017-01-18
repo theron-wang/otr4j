@@ -107,6 +107,7 @@ final class StateAwaitingDHKey implements State {
     @Nonnull
     private AbstractEncodedMessage handleDHKeyMessage(@Nonnull final Context context, @Nonnull final DHKeyMessage message) throws OtrCryptoException {
         final KeyPair longTermKeyPair = context.longTermKeyPair();
+        // FIXME verify message.dhPublicKey before use?
         final SharedSecret s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), message.dhPublicKey);
         final SignatureM sigM = new SignatureM(
                 (DHPublicKey) this.keypair.getPublic(), message.dhPublicKey,
