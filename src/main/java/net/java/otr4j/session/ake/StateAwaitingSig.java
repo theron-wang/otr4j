@@ -64,9 +64,14 @@ final class StateAwaitingSig implements State {
         LOGGER.finest("Generated local D-H key pair.");
         final byte[] r = OtrCryptoEngine.random(context.secureRandom(),
                 new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH]);
-        final DHCommitMessage dhcommit = AKEMessage.createDHCommitMessage(
-                version, r, (DHPublicKey) keypair.getPublic(),
-                context.senderInstance());
+        final DHCommitMessage dhcommit;
+        try {
+            dhcommit = AKEMessage.createDHCommitMessage(
+                    version, r, (DHPublicKey) keypair.getPublic(),
+                    context.senderInstance());
+        } catch (final OtrCryptoException ex) {
+            throw new IllegalStateException("Failed to create DH Commit message.", ex);
+        }
         LOGGER.finest("Sending DH commit message.");
         context.setState(new StateAwaitingDHKey(version, keypair, r));
         return dhcommit;

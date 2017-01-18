@@ -10,22 +10,15 @@ import net.java.otr4j.io.messages.DHCommitMessage;
 // TODO see if we can get rid of this class. It doesn't seem to be that useful.
 final class AKEMessage {
 
-    private static final int LOCAL_DH_PRIVATE_KEY_ID = 1;
-
     private AKEMessage() {
         // No need to instantiate utility class.
     }
 
     static DHCommitMessage createDHCommitMessage(final int version, final byte[] r,
-            final DHPublicKey localPublicKey, final int senderInstance) {
+            final DHPublicKey localPublicKey, final int senderInstance) throws OtrCryptoException {
         final byte[] publicKeyBytes = SerializationUtils.writeMpi(localPublicKey.getY());
         final byte[] publicKeyHash = OtrCryptoEngine.sha256Hash(publicKeyBytes);
-        final byte[] publicKeyEncrypted;
-        try {
-            publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(r, null, publicKeyBytes);
-        } catch (final OtrCryptoException ex) {
-            throw new IllegalStateException("failed to encrypt DH public key", ex);
-        }
+        final byte[] publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(r, null, publicKeyBytes);
         return new DHCommitMessage(version, publicKeyHash, publicKeyEncrypted,
                 senderInstance, 0);
     }

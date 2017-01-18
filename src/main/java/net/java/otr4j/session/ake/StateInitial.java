@@ -7,6 +7,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.crypto.interfaces.DHPublicKey;
 import net.java.otr4j.crypto.OtrCryptoEngine;
+import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.io.messages.DHKeyMessage;
@@ -26,9 +27,14 @@ public final class StateInitial implements State {
         LOGGER.finest("Generated local D-H key pair.");
         final byte[] r = OtrCryptoEngine.random(context.secureRandom(),
                 new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH]);
-        final DHCommitMessage dhcommit = AKEMessage.createDHCommitMessage(
-                version, r, (DHPublicKey) keypair.getPublic(),
-                context.senderInstance());
+        final DHCommitMessage dhcommit;
+        try {
+            dhcommit = AKEMessage.createDHCommitMessage(
+                    version, r, (DHPublicKey) keypair.getPublic(),
+                    context.senderInstance());
+        } catch (final OtrCryptoException ex) {
+            throw new IllegalStateException("Failed to create DH Commit message.", ex);
+        }
         LOGGER.finest("Sending DH commit message.");
         context.setState(new StateAwaitingDHKey(version, keypair, r));
         return dhcommit;
