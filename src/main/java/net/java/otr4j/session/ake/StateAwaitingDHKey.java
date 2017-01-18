@@ -43,8 +43,20 @@ final class StateAwaitingDHKey implements State {
 
     @Override
     public DHCommitMessage initiate(@Nonnull final Context context, final int version) {
-        // FIXME implement
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // TODO duplicate code for creating DH Commit message.
+        if (version < 2 || version > 3) {
+            throw new IllegalArgumentException("unknown or unsupported protocol version");
+        }
+        final KeyPair keypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
+        LOGGER.finest("Generated local D-H key pair.");
+        final byte[] r = OtrCryptoEngine.random(context.secureRandom(),
+                new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH]);
+        final DHCommitMessage dhcommit = AKEMessage.createDHCommitMessage(
+                version, r, (DHPublicKey) keypair.getPublic(),
+                context.senderInstance());
+        LOGGER.finest("Sending DH commit message.");
+        context.setState(new StateAwaitingDHKey(version, keypair, r));
+        return dhcommit;
     }
 
     @Override
@@ -60,6 +72,11 @@ final class StateAwaitingDHKey implements State {
             return null;
         }
         return handleDHKeyMessage(context, (DHKeyMessage) message);
+    }
+
+    @Override
+    public int getVersion() {
+        return this.version;
     }
 
     @Nonnull

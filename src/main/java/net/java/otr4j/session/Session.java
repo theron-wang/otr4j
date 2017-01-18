@@ -244,6 +244,7 @@ public class Session implements Context {
     }
     
     // TODO do we still need getAuthContext()?
+    // FIXME replace with direct access of field.
     @Override
     @Nonnull
     public AuthContext getAuthContext() {
@@ -381,20 +382,10 @@ public class Session implements Context {
                 return null;
             case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
             case AbstractEncodedMessage.MESSAGE_DHKEY:
-                this.getAuthContext().handleReceivingMessage(m);
-                return null;
             case AbstractEncodedMessage.MESSAGE_REVEALSIG:
             case AbstractEncodedMessage.MESSAGE_SIGNATURE:
-                final AuthContext auth = this.getAuthContext();
-                try {
-                    auth.handleReceivingMessage(m);
-                    return null;
-                } finally {
-                    // This ensures that independent of processing result, we
-                    // always reset the AuthContext after receiving these
-                    // messages. (This is according to otr spec.)
-                    auth.reset(null);
-                }
+                this.authContext.handleReceivingMessage(m);
+                return null;
             default:
                 throw new UnsupportedOperationException(
                         "Received an unknown message type.");
@@ -414,7 +405,7 @@ public class Session implements Context {
             if (isMasterSession) {
                 synchronized (slaveSessions) {
                     for (final Session session : slaveSessions.values()) {
-                        session.getAuthContext().reset(this.getAuthContext());
+                        session.getAuthContext().reset(this.authContext);
                     }
                 }
             }
@@ -505,7 +496,7 @@ public class Session implements Context {
                 if (isMasterSession) {
                     synchronized (slaveSessions) {
                         for (final Session session : slaveSessions.values()) {
-                            session.getAuthContext().reset(this.getAuthContext());
+                            session.getAuthContext().reset(this.authContext);
                         }
                     }
                 }
@@ -644,7 +635,9 @@ public class Session implements Context {
     // FIXME do we still need this? Or query at AuthContext? It's a derived value based on the current (or previously completed?) AKE conversation.
     @Override
     public int getProtocolVersion() {
-        return isMasterSession ? this.protocolVersion : 3;
+        // FIXME extend to use ENCRYPTED message state's protocol version too?
+        return this.authContext.getVersion();
+//        return isMasterSession ? this.protocolVersion : 3;
     }
 
     public List<Session> getInstances() {

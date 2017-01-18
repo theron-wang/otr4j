@@ -39,4 +39,11 @@ public interface State {
      */
     @Nullable
     AbstractEncodedMessage handle(@Nonnull Context context, @Nonnull AbstractEncodedMessage message) throws OtrCryptoException, AKEException;
+
+    /**
+     * Get active protocol version in AKE negotiation.
+     *
+     * @return Returns active protocol version in AKE negotiation.
+     */
+    int getVersion();
 }

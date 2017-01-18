@@ -14,7 +14,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
@@ -35,17 +34,18 @@ import net.java.otr4j.session.ake.State;
 import net.java.otr4j.session.ake.StateInitial;
 
 /**
+ * Authentication context.
+ *
  * @author George Politis
  */
 public class AuthContext implements Context {
 
-    public AuthContext(final Session session) {
+    public AuthContext(@Nonnull final Session session) {
         final SessionID sID = session.getSessionID();
         this.logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
         this.session = session;
         this.state = new StateInitial();
         logger.finest("Construct new authentication state.");
-        this.reset(null);
     }
 
     /**
@@ -55,27 +55,19 @@ public class AuthContext implements Context {
      * @param session The session instance.
      * @param other The other AuthContext instance.
      */
-    public AuthContext(final Session session, final AuthContext other) {
+    public AuthContext(@Nonnull final Session session, @Nonnull final AuthContext other) {
         final SessionID sID = session.getSessionID();
         this.logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
         this.session = Objects.requireNonNull(session);
         logger.finest("Copy-construct authentication state.");
-        this.state = new StateInitial();
-        this.reset(other);
+        this.state = other.state;
     }
-
-    private State state;
-
-    // These parameters are initialized when generating D-H Commit Messages.
-    // If the Session that this AuthContext belongs to is the 'master' session
-    // then these parameters must be replicated to all slave session's auth
-    // contexts.
-    // FIXME how do we replicate this in the new State-pattern set-up? (My suspicion is that replication is not necessary at all. Even if you are in the middle of the AKE process, you want a unique DH keypair for each instance.)
-    private KeyPair localDHKeyPair;
 
     private final Session session;
 
     private final Logger logger;
+
+    private State state;
 
     @Override
     public void setState(@Nonnull final State state) {
@@ -90,6 +82,10 @@ public class AuthContext implements Context {
         } catch (final OtrException ex) {
             throw new AKEException(ex);
         }
+        if (this.session.getSessionStatus() != SessionStatus.ENCRYPTED) {
+            throw new IllegalStateException("Session fails to transition to ENCRYPTED.");
+        }
+        logger.info("Session secured. Message state transitioned to ENCRYPTED.");
     }
 
     @Nonnull
@@ -114,6 +110,11 @@ public class AuthContext implements Context {
         return session.getReceiverInstanceTag().getValue();
     }
 
+    // TODO Fix this function to take into account the current message state.
+    public int getVersion() {
+        return this.state.getVersion();
+    }
+
     /**
      * Reset resets the state of the AuthContext.
      *
@@ -125,18 +126,13 @@ public class AuthContext implements Context {
      * will not copy state from other instance.
      */
     // TODO can we clean this method after refactoring to State pattern?
-    public final void reset(@Nullable final AuthContext other) {
+    public final void reset(@Nonnull final AuthContext other) {
         logger.finest("Resetting authentication state.");
-
-        if (other == null) {
-            localDHKeyPair = null;
-        } else {
-            this.localDHKeyPair = other.localDHKeyPair;
-        }
+        this.state = other.state;
     }
 
     public void handleReceivingMessage(@Nonnull final AbstractMessage m) throws OtrException {
-
+        logger.log(Level.INFO, "Received message with type {0}", m.messageType);
         switch (m.messageType) {
             case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
                 handleDHCommitMessage(checkCast(DHCommitMessage.class, m));
@@ -294,7 +290,6 @@ public class AuthContext implements Context {
             throw new OtrException(new Exception("Only allowed versions are: 2, 3"));
         }
         logger.finest("Responding to Query Message with D-H Commit message.");
-        this.reset(null);
         session.setProtocolVersion(version);
         logger.finest("Generating D-H Commit.");
         return this.state.initiate(this, version);

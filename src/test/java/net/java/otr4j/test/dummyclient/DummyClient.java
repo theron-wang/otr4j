@@ -33,8 +33,8 @@ public class DummyClient {
 	private OtrPolicy policy;
 	private Connection connection;
 	private MessageProcessor processor;
-	private Queue<ProcessedTestMessage> processedMsgs = new LinkedList<ProcessedTestMessage>();
-	private HashMap<SessionID, String>smpQuestions = new HashMap<SessionID, String>();
+	private Queue<ProcessedTestMessage> processedMsgs = new LinkedList<>();
+	private HashMap<SessionID, String>smpQuestions = new HashMap<>();
 
     private CountDownLatch lock;
     private int verified = NOTSET;
@@ -115,12 +115,19 @@ public class DummyClient {
 		this.policy = policy;
 	}
 
+    public void init(String recipient, String message) throws OtrException {
+		if (session == null) {
+			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
+			session = new Session(sessionID, new DummyOtrEngineHostImpl());
+		}
+        session.getAuthContext().startAuth();
+    }
+
 	public void send(String recipient, String s) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
 			session = new Session(sessionID, new DummyOtrEngineHostImpl());
 		}
-
 		String[] outgoingMessage = session.transformSending(s, Collections.<TLV>emptyList());
 		for (String part : outgoingMessage) {
 			connection.send(recipient, part);
@@ -180,6 +187,7 @@ public class DummyClient {
 				try {
 					processedMsgs.wait();
 				} catch (InterruptedException e) {
+                    e.printStackTrace();
 				}
 			}
 
@@ -222,9 +230,10 @@ public class DummyClient {
 						try {
                             if (stopBeforeProcessingNextMessage) {
                                 break;
-                            } else {
-							process(m);
                             }
+							process(m);
+                        } catch (RuntimeException e) {
+                            e.printStackTrace();
 						} catch (OtrException e) {
 							e.printStackTrace();
 						}
@@ -262,6 +271,7 @@ public class DummyClient {
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                 } else {
                     return m;

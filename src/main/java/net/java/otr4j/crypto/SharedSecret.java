@@ -2,6 +2,7 @@ package net.java.otr4j.crypto;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import net.java.otr4j.io.SerializationUtils;
@@ -34,10 +35,32 @@ public final class SharedSecret {
     private final byte[] secbytes;
 
     // TODO need to store BigInteger s as well?
-    SharedSecret(@Nonnull final byte[] secret) throws OtrCryptoException {
+    SharedSecret(@Nonnull final byte[] secret) {
         final BigInteger s = new BigInteger(1, secret);
         this.secbytes = SerializationUtils.writeMpi(s);
         LOGGER.finest("Generated shared secret s.");
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 29 * hash + Arrays.hashCode(this.secbytes);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SharedSecret other = (SharedSecret) obj;
+        return Arrays.equals(this.secbytes, other.secbytes);
     }
 
     @Nonnull

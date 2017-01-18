@@ -19,6 +19,7 @@ public final class StateInitial implements State {
     @Nonnull
     @Override
     public DHCommitMessage initiate(@Nonnull final Context context, final int version) {
+        // TODO duplicate code for creating DH Commit message.
         if (version < 2 || version > 3) {
             throw new IllegalArgumentException("unknown or unsupported protocol version");
         }
@@ -49,6 +50,12 @@ public final class StateInitial implements State {
             throw new IllegalArgumentException("unsupported protocol version");
         }
         return handleDHCommitMessage(context, (DHCommitMessage) message);
+    }
+
+    @Override
+    public int getVersion() {
+        // FIXME should we return 0 here ... does that really help?
+        return 0;
     }
 
     @Nonnull

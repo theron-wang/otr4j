@@ -1,5 +1,6 @@
 package net.java.otr4j.session.ake;
 
+import java.lang.reflect.Field;
 import net.java.otr4j.crypto.SharedSecret;
 
 public final class StateInspection {
@@ -10,8 +11,10 @@ public final class StateInspection {
     
     public static SharedSecret extractSharedSecret(final State state) throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         if (state instanceof StateAwaitingSig) {
-            return (SharedSecret) state.getClass().getField("s").get(state);
+            final Field field = state.getClass().getDeclaredField("s");
+            field.setAccessible(true);
+            return (SharedSecret) field.get(state);
         }
-        throw new UnsupportedOperationException("Unsupported state.");
+        throw new UnsupportedOperationException("Unsupported state type.");
     }
 }
