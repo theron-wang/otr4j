@@ -18,7 +18,7 @@ import net.java.otr4j.io.SerializationUtils;
 // FIXME should we have some kind of value check to ensure that BigInteger s is always a valid value? (i.e. to ensure that SharedSecret instances always contain a reliable secret.)
 public final class SharedSecret {
 
-    private static final Logger LOGGER = Logger.getLogger(SharedSecret.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(SharedSecret.class.getName());
 
     private static final byte SSID_START = (byte) 0x00;
     private static final byte C_START = (byte) 0x01;
@@ -34,7 +34,6 @@ public final class SharedSecret {
      */
     private final byte[] secbytes;
 
-    // TODO need to store BigInteger s as well?
     SharedSecret(@Nonnull final byte[] secret) {
         final BigInteger s = new BigInteger(1, secret);
         this.secbytes = SerializationUtils.writeMpi(s);
@@ -63,9 +62,14 @@ public final class SharedSecret {
         return Arrays.equals(this.secbytes, other.secbytes);
     }
 
+    /**
+     * h1 derivate of of secbytes, a 160-bit output of SHA-1.
+     *
+     * @param b Variable byte b.
+     * @return Returns the hash value.
+     */
     @Nonnull
     public byte[] h1(final byte b) {
-        // FIXME is this vararg warning correct?
         return OtrCryptoEngine.sha1Hash(new byte[]{b}, this.secbytes);
     }
 
@@ -174,7 +178,6 @@ public final class SharedSecret {
      */
     @Nonnull
     private byte[] h2(final byte b) {
-        // FIXME is this vararg warning correct?
         return OtrCryptoEngine.sha256Hash(new byte[]{b}, this.secbytes);
     }
 }

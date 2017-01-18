@@ -42,7 +42,7 @@ import net.java.otr4j.session.SessionID;
  */
 public final class OtrEngineHostUtil {
 
-    private static final Logger LOGGER = Logger.getLogger(OtrEngineHostUtil.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(OtrEngineHostUtil.class.getName());
 
     private OtrEngineHostUtil() {
         // static methods only. No need to instantiate this utility class.

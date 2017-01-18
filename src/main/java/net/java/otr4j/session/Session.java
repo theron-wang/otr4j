@@ -221,6 +221,7 @@ public class Session implements Context {
     }
 
     @Override
+    @Nonnull
     public SessionID getSessionID() {
         return this.sessionState.getSessionID();
     }

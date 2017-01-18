@@ -48,7 +48,7 @@ public final class SM {
      */
     private static final int MAX_MPI_ARRAY_SIZE = 100;
 
-    private static final Logger LOGGER = Logger.getLogger(SM.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(SM.class.getName());
 
     private State state;
 

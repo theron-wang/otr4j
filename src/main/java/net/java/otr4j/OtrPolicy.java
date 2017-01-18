@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  */
 public final class OtrPolicy {
 
-    private static final Logger LOGGER = Logger.getLogger(OtrPolicy.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(OtrPolicy.class.getName());
 
     /**
      * Flag for indicating otr V1 is allowed in this policy.

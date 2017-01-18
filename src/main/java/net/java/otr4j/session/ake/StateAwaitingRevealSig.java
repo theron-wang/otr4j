@@ -23,7 +23,7 @@ import net.java.otr4j.io.messages.SignatureX;
 // FIXME currently IOExceptions get wrapped with IllegalStateException --> FIX!
 final class StateAwaitingRevealSig implements State {
 
-    private static final Logger LOGGER = Logger.getLogger(StateAwaitingRevealSig.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(StateAwaitingRevealSig.class.getName());
 
     private static final int LOCAL_DH_PRIVATE_KEY_ID = 1;
 

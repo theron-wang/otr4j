@@ -285,9 +285,8 @@ public class AuthContext implements Context {
     }
 
     public DHCommitMessage respondAuth(final int version) throws OtrException {
-        // FIXME replace with OTRv.ALL.contains(version)?
-        if (version != OTRv.TWO && version != OTRv.THREE) {
-            throw new OtrException(new Exception("Only allowed versions are: 2, 3"));
+        if (!OTRv.ALL.contains(version)) {
+            throw new OtrException("Only allowed versions are: 2, 3");
         }
         logger.finest("Responding to Query Message with D-H Commit message.");
         return this.state.initiate(this, version);

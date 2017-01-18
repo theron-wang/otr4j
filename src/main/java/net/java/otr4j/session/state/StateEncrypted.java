@@ -61,8 +61,12 @@ final class StateEncrypted extends AbstractState {
     @SuppressWarnings("NonConstantLogger")
     private final Logger logger;
     private final SessionID sessionId;
+
+    /**
+     * Active version of the protocol in use in this encrypted session.
+     */
     private final int protocolVersion;
-    
+
     /**
      * The Socialist Millionaire Protocol handler.
      */
@@ -89,12 +93,11 @@ final class StateEncrypted extends AbstractState {
     private final List<byte[]> oldMacKeys = Collections.synchronizedList(new ArrayList<byte[]>(0));
 
     StateEncrypted(@Nonnull final Context context, @Nonnull final SecurityParameters params) throws OtrException {
-        this.sessionId = Objects.requireNonNull(context.getSessionID());
+        this.sessionId = context.getSessionID();
         this.logger = Logger.getLogger(sessionId.getAccountID() + "-->" + sessionId.getUserID());
-        // FIXME do we query for the correct protocol version here?
-        this.protocolVersion = context.getProtocolVersion();
+        this.protocolVersion = params.getVersion();
         this.smpTlvHandler = new SmpTlvHandler(this, context, params.getS());
-        this.s = Objects.requireNonNull(params.getS());
+        this.s = params.getS();
 
         this.remotePublicKey = params.getRemoteLongTermPublicKey();
 

@@ -22,7 +22,7 @@ import net.java.otr4j.io.messages.SignatureX;
 // FIXME currently IOExceptions get wrapped with IllegalStateException --> FIX!
 final class StateAwaitingSig implements State {
 
-    private static final Logger LOGGER = Logger.getLogger(StateAwaitingSig.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(StateAwaitingSig.class.getName());
 
     private final int version;
     // TODO check if this is actually used/needed. Otherwise clean it up. (Not sure if needed in SecurityParameters.)

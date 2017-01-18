@@ -11,10 +11,9 @@ import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.io.messages.DHKeyMessage;
 
-// FIXME currently IOExceptions get wrapped with IllegalStateException --> FIX!
 public final class StateInitial implements State {
 
-    private static final Logger LOGGER = Logger.getLogger(StateInitial.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(StateInitial.class.getName());
 
     @Nonnull
     @Override
@@ -62,7 +61,6 @@ public final class StateInitial implements State {
     private DHKeyMessage handleDHCommitMessage(@Nonnull final Context context, @Nonnull final DHCommitMessage message) {
         final KeyPair keypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
         LOGGER.finest("Generated local D-H key pair.");
-        // FIXME need to set version in session?
         LOGGER.finest("Sending DH key message.");
         context.setState(new StateAwaitingRevealSig(message.protocolVersion,
                 keypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
