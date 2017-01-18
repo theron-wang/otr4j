@@ -379,7 +379,6 @@ public final class SerializationUtils {
 						.decode(content.substring(0, content.length() - 1).getBytes(ASCII)));
 				// We have an encoded message.
 				try (final OtrInputStream otr = new OtrInputStream(bin)) {
-                    // FIXME it seems we do not check message's protocol version with policy of allowed versions. What's that about?
 					final int protocolVersion = otr.readShort();
 					if (!OTRv.ALL.contains(protocolVersion)) {
 						throw new IOException("Unsupported protocol version "

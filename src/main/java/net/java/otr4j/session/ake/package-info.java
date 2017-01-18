@@ -10,7 +10,6 @@
 // TODO modify state implementations in such a way that it is impossible to use keys/random data without it being initialized.
 // TODO verify that various message types do not allow invalid/illegal message contents.
 // FIXME check that all unchecked exceptions are warranted as they are used.
-// FIXME follow state transition path and make sure long-term keypair is only requested once, then passed on.
 // TODO need/required to clear temporary bytearray data containing key information?
 // FIXME check if we do appropriate state transitions (back to NONE) for failed validations.
 // FIXME move similar logging statements into new AKE state implementation.

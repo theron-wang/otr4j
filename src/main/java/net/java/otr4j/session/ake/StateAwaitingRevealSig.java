@@ -130,7 +130,6 @@ final class StateAwaitingRevealSig implements State {
                 remoteMysteriousX.signature);
         LOGGER.finest("Signature verification succeeded.");
         // Start construction of Signature message.
-        // FIXME have this keypair in field ... did we already use it before because then it's probably better to avoid risk of getting a different local keypair from context.
         final KeyPair localLongTermKeyPair = context.longTermKeyPair();
         final SignatureM signatureM = new SignatureM(
                 (DHPublicKey) this.keypair.getPublic(), remoteDHPublicKey,
@@ -148,8 +147,8 @@ final class StateAwaitingRevealSig implements State {
                 this.version, xEncrypted, xEncryptedHash, context.senderInstance(), context.receiverInstance());
         // Transition to ENCRYPTED message state.
         final SecurityParameters params = new SecurityParameters(this.version,
-                localLongTermKeyPair, this.keypair,
-                remoteMysteriousX.longTermPublicKey, remoteDHPublicKey, s);
+                this.keypair, remoteMysteriousX.longTermPublicKey,
+                remoteDHPublicKey, s);
         context.secure(params);
         // TODO consider putting setState in try-finally to ensure that we transition back to NONE once done.
         context.setState(new StateInitial());

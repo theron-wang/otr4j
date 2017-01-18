@@ -101,7 +101,6 @@ final class StateAwaitingDHKey implements State {
 
     @Nonnull
     private AbstractEncodedMessage handleDHKeyMessage(@Nonnull final Context context, @Nonnull final DHKeyMessage message) throws OtrCryptoException {
-        // FIXME replace with checked exception handling to signal issues while processing AKE.
         final KeyPair longTermKeyPair = context.longTermKeyPair();
         final SharedSecret s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), message.dhPublicKey);
         final SignatureM sigM = new SignatureM(
@@ -119,8 +118,8 @@ final class StateAwaitingDHKey implements State {
         final RevealSignatureMessage revealSigMessage = new RevealSignatureMessage(
                 this.version, xEncrypted, xEncryptedHash, this.r,
                 context.senderInstance(), context.receiverInstance());
-        context.setState(new StateAwaitingSig(this.version, longTermKeyPair,
-                this.keypair, message.dhPublicKey, s, revealSigMessage));
+        context.setState(new StateAwaitingSig(this.version, this.keypair,
+                message.dhPublicKey, s, revealSigMessage));
         return revealSigMessage;
     }
 }

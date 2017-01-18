@@ -25,8 +25,6 @@ final class StateAwaitingSig implements State {
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingSig.class.getName());
 
     private final int version;
-    // TODO check if this is actually used/needed. Otherwise clean it up. (Not sure if needed in SecurityParameters.)
-    private final KeyPair localLongTermKeyPair;
     private final KeyPair localDHKeyPair;
     private final DHPublicKey remoteDHPublicKey;
     private final SharedSecret s;
@@ -38,7 +36,6 @@ final class StateAwaitingSig implements State {
     private final RevealSignatureMessage previousRevealSigMessage;
 
     StateAwaitingSig(final int version,
-            @Nonnull final KeyPair localLongTermKeyPair,
             @Nonnull final KeyPair localDHKeyPair,
             @Nonnull final DHPublicKey remoteDHPublicKey,
             @Nonnull final SharedSecret s,
@@ -47,8 +44,6 @@ final class StateAwaitingSig implements State {
             throw new IllegalArgumentException("unsupported version specified");
         }
         this.version = version;
-        // FIXME validate non-null, keypair for local longterm key pair
-        this.localLongTermKeyPair = Objects.requireNonNull(localLongTermKeyPair);
         // FIXME validate non-null, keypair
         this.localDHKeyPair = Objects.requireNonNull(localDHKeyPair);
         // FIXME validate non-null, DH public key
@@ -141,9 +136,9 @@ final class StateAwaitingSig implements State {
         final byte[] expectedSignature = OtrCryptoEngine.sha256Hmac(remoteMBytes, s.m1p());
         OtrCryptoEngine.verify(expectedSignature, remoteX.longTermPublicKey, remoteX.signature);
         // Transition to ENCRYPTED session state.
-        final SecurityParameters params = new SecurityParameters(
-                this.version, this.localLongTermKeyPair, this.localDHKeyPair,
-                remoteX.longTermPublicKey, remoteDHPublicKey, this.s);
+        final SecurityParameters params = new SecurityParameters(this.version,
+                this.localDHKeyPair, remoteX.longTermPublicKey,
+                remoteDHPublicKey, this.s);
         context.secure(params);
         // TODO consider putting setState in try-finally to ensure that we transition back to NONE once done.
         context.setState(new StateInitial());
