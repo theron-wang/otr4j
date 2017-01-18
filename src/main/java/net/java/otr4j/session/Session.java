@@ -243,8 +243,6 @@ public class Session implements Context {
         this.offerStatus = Objects.requireNonNull(status);
     }
     
-    // TODO do we still need getAuthContext()?
-    // FIXME replace with direct access of field.
     @Override
     @Nonnull
     public AuthContext getAuthContext() {
@@ -338,7 +336,7 @@ public class Session implements Context {
                                             newReceiverTag,
                                             this.secureRandom,
                                             encodedM.messageType == AbstractEncodedMessage.MESSAGE_DHKEY
-                                                    ? this.getAuthContext() : null);
+                                                    ? this.authContext : null);
                             
                             session.addOtrEngineListener(new OtrEngineListener() {
 
@@ -401,18 +399,18 @@ public class Session implements Context {
         final OtrPolicy policy = getSessionPolicy();
         if (queryMessage.versions.contains(OTRv.THREE) && policy.getAllowV3()) {
             logger.finest("Query message with V3 support found.");
-            final DHCommitMessage dhCommit = getAuthContext().respondAuth(OTRv.THREE);
+            final DHCommitMessage dhCommit = this.authContext.respondAuth(OTRv.THREE);
             if (isMasterSession) {
                 synchronized (slaveSessions) {
                     for (final Session session : slaveSessions.values()) {
-                        session.getAuthContext().reset(this.authContext);
+                        session.authContext.reset(this.authContext);
                     }
                 }
             }
             injectMessage(dhCommit);
         } else if (queryMessage.versions.contains(OTRv.TWO) && policy.getAllowV2()) {
             logger.finest("Query message with V2 support found.");
-            final DHCommitMessage dhCommit = getAuthContext().respondAuth(OTRv.TWO);
+            final DHCommitMessage dhCommit = this.authContext.respondAuth(OTRv.TWO);
             logger.finest("Sending D-H Commit Message");
             injectMessage(dhCommit);
         } else {
@@ -492,11 +490,11 @@ public class Session implements Context {
                 && policy.getAllowV3()) {
             logger.finest("V3 tag found.");
             try {
-                final DHCommitMessage dhCommit = getAuthContext().respondAuth(Session.OTRv.THREE);
+                final DHCommitMessage dhCommit = this.authContext.respondAuth(Session.OTRv.THREE);
                 if (isMasterSession) {
                     synchronized (slaveSessions) {
                         for (final Session session : slaveSessions.values()) {
-                            session.getAuthContext().reset(this.authContext);
+                            session.authContext.reset(this.authContext);
                         }
                     }
                 }
@@ -509,7 +507,7 @@ public class Session implements Context {
                 && policy.getAllowV2()) {
             logger.finest("V2 tag found.");
             try {
-                final DHCommitMessage dhCommit = getAuthContext().respondAuth(Session.OTRv.TWO);
+                final DHCommitMessage dhCommit = this.authContext.respondAuth(Session.OTRv.TWO);
                 logger.finest("Sending D-H Commit Message");
                 injectMessage(dhCommit);
             } catch (final OtrException e) {
@@ -559,7 +557,7 @@ public class Session implements Context {
             logger.fine("startSession was called, however an encrypted session is already established.");
             return;
         }
-        this.getAuthContext().startAuth();
+        this.authContext.startAuth();
     }
 
     public void endSession() throws OtrException {
