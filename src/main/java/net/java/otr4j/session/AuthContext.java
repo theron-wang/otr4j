@@ -290,8 +290,6 @@ public class AuthContext implements Context {
             throw new OtrException(new Exception("Only allowed versions are: 2, 3"));
         }
         logger.finest("Responding to Query Message with D-H Commit message.");
-        session.setProtocolVersion(version);
-        logger.finest("Generating D-H Commit.");
         return this.state.initiate(this, version);
     }
 

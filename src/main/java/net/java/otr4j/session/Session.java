@@ -111,7 +111,6 @@ public class Session implements Context {
     private OfferStatus offerStatus;
     private final InstanceTag senderTag;
     private InstanceTag receiverTag;
-    private int protocolVersion;
     private final OtrAssembler assembler;
     private final OtrFragmenter fragmenter;
 
@@ -183,7 +182,6 @@ public class Session implements Context {
         slaveSessions = null;
         outgoingSession = this;
         isMasterSession = false;
-        protocolVersion = OTRv.THREE;
 
         assembler = new OtrAssembler(this.senderTag);
         fragmenter = new OtrFragmenter(this, listener);
@@ -619,15 +617,6 @@ public class Session implements Context {
             return;
         }
         this.receiverTag = receiverTag;
-    }
-
-    // FIXME do we still need this, or only allow management through AKE in AuthContext?
-    public void setProtocolVersion(final int protocolVersion) {
-        // Protocol version of a slave session is not supposed to change
-        if (!isMasterSession) {
-            return;
-        }
-        this.protocolVersion = protocolVersion;
     }
 
     // FIXME do we still need this? Or query at AuthContext? It's a derived value based on the current (or previously completed?) AKE conversation.
