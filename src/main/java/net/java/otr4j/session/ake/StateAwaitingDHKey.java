@@ -86,9 +86,6 @@ final class StateAwaitingDHKey implements State {
     private AbstractEncodedMessage handleDHCommitMessage(@Nonnull final Context context, @Nonnull final DHCommitMessage message) throws OtrCryptoException {
         final byte[] publicKeyBytes = SerializationUtils.writeMpi(((DHPublicKey) keypair.getPublic()).getY());
         final byte[] publicKeyHash = OtrCryptoEngine.sha256Hash(publicKeyBytes);
-        // By explicitly specifying the signum in BigInteger we parse all
-        // bytes in the array as values, i.e. including msb, effectively as
-        // unsigned.
         final BigInteger localKeyHashBigInt = new BigInteger(1, publicKeyHash);
         final BigInteger remoteKeyHashBigInt = new BigInteger(1, message.dhPublicKeyHash);
         if (localKeyHashBigInt.compareTo(remoteKeyHashBigInt) > 0) {
@@ -106,8 +103,8 @@ final class StateAwaitingDHKey implements State {
 
     @Nonnull
     private AbstractEncodedMessage handleDHKeyMessage(@Nonnull final Context context, @Nonnull final DHKeyMessage message) throws OtrCryptoException {
+        OtrCryptoEngine.verify(message.dhPublicKey);
         final KeyPair longTermKeyPair = context.longTermKeyPair();
-        // FIXME verify message.dhPublicKey before use?
         final SharedSecret s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), message.dhPublicKey);
         final SignatureM sigM = new SignatureM(
                 (DHPublicKey) this.keypair.getPublic(), message.dhPublicKey,

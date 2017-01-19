@@ -46,8 +46,11 @@ final class StateAwaitingSig implements State {
         this.version = version;
         // FIXME validate non-null, keypair
         this.localDHKeyPair = Objects.requireNonNull(localDHKeyPair);
-        // FIXME validate non-null, DH public key
-        this.remoteDHPublicKey = Objects.requireNonNull(remoteDHPublicKey);
+        try {
+            this.remoteDHPublicKey = OtrCryptoEngine.verify(remoteDHPublicKey);
+        } catch (final OtrCryptoException ex) {
+            throw new IllegalArgumentException("Illegal D-H Public Key provided.", ex);
+        }
         // FIXME verify shared secret s
         this.s = Objects.requireNonNull(s);
         // FIXME verify reveal sig message?

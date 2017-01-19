@@ -253,6 +253,7 @@ public class Session implements Context {
 
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.viable()) {
+            // FIXME consider making this a warning ... or is this already caught before we reach this line?
             logger.finest("Policy does not allow any version of OTR, ignoring message.");
             return msgText;
         }

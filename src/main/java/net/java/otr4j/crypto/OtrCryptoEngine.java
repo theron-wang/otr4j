@@ -23,8 +23,6 @@ import java.security.interfaces.DSAPrivateKey;
 import java.security.interfaces.DSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -138,22 +136,16 @@ public final class OtrCryptoEngine {
         return new KeyPair(pubKey, privKey);
     }
 
-    // TODO tricky method as we need to ensure that we parse as unsigned int. This is probably a bug but maybe only in some cases.
-    @Nonnull
-    public static DHPublicKey getDHPublicKey(@Nonnull final byte[] mpiBytes)
-            throws OtrCryptoException {
-        return getDHPublicKey(new BigInteger(mpiBytes));
-    }
-
     @Nonnull
     public static DHPublicKey getDHPublicKey(@Nonnull final BigInteger mpi) throws OtrCryptoException {
         final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(mpi, MODULUS, GENERATOR);
         try {
             final KeyFactory keyFac = KeyFactory.getInstance(KF_DH);
-            // FIXME verify key before returning
             return (DHPublicKey) keyFac.generatePublic(pubKeySpecs);
-        } catch (final NoSuchAlgorithmException | InvalidKeySpecException ex) {
-            throw new OtrCryptoException(ex);
+        } catch (final NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("Failed to instantiate D-H key factory.", ex);
+        } catch (final InvalidKeySpecException ex) {
+            throw new OtrCryptoException("Invalid D-H public key spec.", ex);
         }
     }
 
@@ -472,23 +464,25 @@ public final class OtrCryptoEngine {
         random.nextBytes(dest);
         return dest;
     }
-    
+
     /**
      * Verify that provided DH public key is a valid key.
      *
      * @param dhPublicKey DH public key
+     * @return Returns DH public key instance if DH public key is valid.
+     * @throws OtrCryptoException Throws exception in case of illegal D-H key
+     * value.
      */
-    // FIXME consider making this an OtrCryptoException.
-    public static void verify(@Nonnull final DHPublicKey dhPublicKey) {
+    @Nonnull
+    public static DHPublicKey verify(@Nonnull final DHPublicKey dhPublicKey) throws OtrCryptoException {
         // Verifies that Alice's gy is a legal value (2 <= gy <= modulus-2)
         if (dhPublicKey.getY().compareTo(OtrCryptoEngine.MODULUS_MINUS_TWO) > 0) {
-            throw new IllegalArgumentException(
-                    "Illegal D-H Public Key value, Ignoring message.");
+            throw new OtrCryptoException("Illegal D-H Public Key value.");
         }
         if (dhPublicKey.getY().compareTo(OtrCryptoEngine.BIGINTEGER_TWO) < 0) {
-            throw new IllegalArgumentException(
-                    "Illegal D-H Public Key value, Ignoring message.");
+            throw new OtrCryptoException("Illegal D-H Public Key value.");
         }
+        return dhPublicKey;
     }
 
     /**

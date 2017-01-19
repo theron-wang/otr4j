@@ -5,6 +5,8 @@ import java.security.PublicKey;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
+import net.java.otr4j.crypto.OtrCryptoEngine;
+import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SharedSecret;
 
 /**
@@ -29,7 +31,11 @@ public final class SecurityParameters {
         this.version = version;
         this.localDHKeyPair = Objects.requireNonNull(localDHKeyPair);
         this.remoteLongTermPublicKey = Objects.requireNonNull(remoteLongTermPublicKey);
-        this.remoteDHPublicKey = Objects.requireNonNull(remoteDHPublicKey);
+        try {
+            this.remoteDHPublicKey = OtrCryptoEngine.verify(remoteDHPublicKey);
+        } catch (final OtrCryptoException ex) {
+            throw new IllegalArgumentException("Illegal D-H Public Key provided.", ex);
+        }
         this.s = Objects.requireNonNull(s);
     }
 

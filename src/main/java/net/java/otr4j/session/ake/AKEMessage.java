@@ -16,6 +16,7 @@ final class AKEMessage {
 
     static DHCommitMessage createDHCommitMessage(final int version, final byte[] r,
             final DHPublicKey localPublicKey, final int senderInstance) throws OtrCryptoException {
+        OtrCryptoEngine.verify(localPublicKey);
         final byte[] publicKeyBytes = SerializationUtils.writeMpi(localPublicKey.getY());
         final byte[] publicKeyHash = OtrCryptoEngine.sha256Hash(publicKeyBytes);
         final byte[] publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(r, null, publicKeyBytes);
