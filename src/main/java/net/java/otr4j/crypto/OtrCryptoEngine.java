@@ -407,28 +407,20 @@ public final class OtrCryptoEngine {
     }
 
     @Nonnull
-    public static String getFingerprint(@Nonnull final PublicKey pubKey) throws OtrCryptoException {
+    public static String getFingerprint(@Nonnull final PublicKey pubKey) {
         final byte[] b = getFingerprintRaw(pubKey);
         return SerializationUtils.byteArrayToHexString(b);
     }
 
     @Nonnull
-    public static byte[] getFingerprintRaw(@Nonnull final PublicKey pubKey)
-            throws OtrCryptoException {
-        try {
-            final byte[] bRemotePubKey = SerializationUtils.writePublicKey(pubKey);
-
-            final byte[] b;
-            if (pubKey.getAlgorithm().equals(ALGORITHM_DSA)) {
-                byte[] trimmed = new byte[bRemotePubKey.length - 2];
-                System.arraycopy(bRemotePubKey, 2, trimmed, 0, trimmed.length);
-                b = OtrCryptoEngine.sha1Hash(trimmed);
-            } else {
-                b = OtrCryptoEngine.sha1Hash(bRemotePubKey);
-            }
-            return b;
-        } catch (final IOException e) {
-            throw new OtrCryptoException(e);
+    public static byte[] getFingerprintRaw(@Nonnull final PublicKey pubKey) {
+        final byte[] bRemotePubKey = SerializationUtils.writePublicKey(pubKey);
+        if (pubKey.getAlgorithm().equals(ALGORITHM_DSA)) {
+            byte[] trimmed = new byte[bRemotePubKey.length - 2];
+            System.arraycopy(bRemotePubKey, 2, trimmed, 0, trimmed.length);
+            return OtrCryptoEngine.sha1Hash(trimmed);
+        } else {
+            return OtrCryptoEngine.sha1Hash(bRemotePubKey);
         }
     }
 

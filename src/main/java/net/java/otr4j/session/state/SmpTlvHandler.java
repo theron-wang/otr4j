@@ -1,13 +1,9 @@
 package net.java.otr4j.session.state;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -15,7 +11,6 @@ import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrEngineHostUtil;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SM;
 import net.java.otr4j.crypto.SM.SMException;
 import net.java.otr4j.crypto.SM.SMAbortedException;
@@ -31,6 +26,8 @@ import net.java.otr4j.session.TLV;
  * @author Danny van Heumen
  */
 public final class SmpTlvHandler {
+
+    private static final byte[] VERSION_BYTE = new byte[]{1};
 
     private final OtrEngineHost engineHost;
 	private final StateEncrypted session;
@@ -82,47 +79,25 @@ public final class SmpTlvHandler {
 		 * Version byte (0x01), Initiator fingerprint (20 bytes),
 		 * responder fingerprint (20 bytes), secure session id, input secret
 		 */
-		final byte[] our_fp = engineHost.getLocalFingerprintRaw(session
+		final byte[] ourFp = engineHost.getLocalFingerprintRaw(session
 				.getSessionID());
-		final byte[] their_fp;
 		final PublicKey remotePublicKey = session.getRemotePublicKey();
-		try {
-			their_fp = OtrCryptoEngine.getFingerprintRaw(remotePublicKey);
-		} catch (OtrCryptoException e) {
-			throw new OtrException(e);
-		}
-
-        // FIXME replaced computeSessionID with variant in SharedSecret, is this okay?
+		final byte[] theirFp = OtrCryptoEngine.getFingerprintRaw(remotePublicKey);
 		final byte[] sessionId = this.s.ssid();
 		final byte[] secretBytes = secret.getBytes(SerializationUtils.UTF8);
-		final int combined_buf_len = 41 + sessionId.length + secretBytes.length;
-		final byte[] combined_buf = new byte[combined_buf_len];
-		combined_buf[0]=1;
-		if (initiating){
-			System.arraycopy(our_fp, 0, combined_buf, 1, 20);
-			System.arraycopy(their_fp, 0, combined_buf, 21, 20);
-		} else {
-			System.arraycopy(their_fp, 0, combined_buf, 1, 20);
-			System.arraycopy(our_fp, 0, combined_buf, 21, 20);
-		}
-		System.arraycopy(sessionId, 0, combined_buf, 41, sessionId.length);
-		System.arraycopy(secretBytes, 0,
-				combined_buf, 41 + sessionId.length, secretBytes.length);
+        final byte[] combinedSecret;
+        if (initiating) {
+            combinedSecret = OtrCryptoEngine.sha256Hash(VERSION_BYTE, ourFp, theirFp, sessionId, secretBytes);
+        } else {
+            combinedSecret = OtrCryptoEngine.sha256Hash(VERSION_BYTE, theirFp, ourFp, sessionId, secretBytes);
+        }
 
-		final MessageDigest sha256;
-		try {
-			sha256 = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException ex) {
-			throw new OtrException(ex);
-		}
-
-		final byte[] combined_secret = sha256.digest(combined_buf);
 		byte[] smpmsg;
         if (initiating) {
             try {
-                smpmsg = sm.step1(combined_secret);
+                smpmsg = sm.step1(combinedSecret);
             }
-            catch (SM.SMAbortedException e) {
+            catch (final SM.SMAbortedException e) {
                 // As prescribed by OTR, we must always be allowed to initiate a
                 // new SMP exchange. In case another SMP exchange is in
                 // progress, an abort is signaled. We honor the abort exception
@@ -131,9 +106,9 @@ public final class SmpTlvHandler {
                 sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
                 OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
                 try {
-                    smpmsg = sm.step1(combined_secret);
+                    smpmsg = sm.step1(combinedSecret);
                 }
-                catch (SMException ex) {
+                catch (final SMException ex) {
                     throw new OtrException(ex);
                 }
             }
@@ -142,14 +117,14 @@ public final class SmpTlvHandler {
             }
         } else {
             try {
-                smpmsg = sm.step2b(combined_secret);
+                smpmsg = sm.step2b(combinedSecret);
             }
-            catch (SMAbortedException ex) {
+            catch (final SMAbortedException ex) {
                 sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
                 OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
                 throw new OtrException(ex);
             }
-            catch (SMException ex) {
+            catch (final SMException ex) {
                 throw new OtrException(ex);
             }
         }
@@ -193,14 +168,7 @@ public final class SmpTlvHandler {
 	}
 
 	public String getFingerprint() {
-		final PublicKey pubKey = session.getRemotePublicKey();
-		try {
-			return OtrCryptoEngine.getFingerprint(pubKey);
-        } catch (OtrCryptoException e) {
-            Logger.getLogger(SmpTlvHandler.class.getCanonicalName()).log(Level.WARNING, "Failed to get fingerprint.", e);
-        }
-        // This should not happen at all, so accept logging the exception as an indication that something is wrong.
-		return null;
+        return OtrCryptoEngine.getFingerprint(session.getRemotePublicKey());
 	}
 
     public void processTlvSMP1Q(@Nonnull final TLV tlv) throws OtrException {
@@ -229,11 +197,11 @@ public final class SmpTlvHandler {
             OtrEngineHostUtil.askForSecret(engineHost, session.getSessionID(),
                     this.receiverInstanceTag, questionUTF);
         }
-        catch (SMAbortedException e) {
+        catch (final SMAbortedException e) {
             sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
             OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
-        catch (SMException e) {
+        catch (final SMException e) {
             OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
                     tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);
@@ -249,11 +217,11 @@ public final class SmpTlvHandler {
             OtrEngineHostUtil.askForSecret(engineHost, session.getSessionID(),
                     this.receiverInstanceTag, null);
         }
-        catch (SMAbortedException e) {
+        catch (final SMAbortedException e) {
             sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
             OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
-        catch (SMException e) {
+        catch (final SMException e) {
             OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
                     tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);

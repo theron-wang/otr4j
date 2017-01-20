@@ -352,15 +352,10 @@ public class DummyClient {
 			return policy;
 		}
 
-		public byte[] getLocalFingerprintRaw(SessionID sessionID) {
-			try {
-				return OtrCryptoEngine.getFingerprintRaw(getLocalKeyPair(sessionID)
-								.getPublic());
-			} catch (OtrCryptoException e) {
-				e.printStackTrace();
-			}
-			return null;
-		}
+        public byte[] getLocalFingerprintRaw(SessionID sessionID) {
+            return OtrCryptoEngine.getFingerprintRaw(getLocalKeyPair(sessionID)
+                    .getPublic());
+        }
 
 		public void askForSecret(SessionID sessionID, InstanceTag receiverTag, String question) {
             logger.finer("Ask for secret from: " + sessionID

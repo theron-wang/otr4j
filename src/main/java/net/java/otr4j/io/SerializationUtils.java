@@ -79,7 +79,7 @@ public final class SerializationUtils {
 	public static SignatureX toMysteriousX(@Nonnull final byte[] b) throws IOException, OtrCryptoException {
 		final ByteArrayInputStream in = new ByteArrayInputStream(b);
 		final SignatureX x;
-        try (OtrInputStream ois = new OtrInputStream(in)) {
+        try (final OtrInputStream ois = new OtrInputStream(in)) {
             x = ois.readMysteriousX();
         }
 		return x;
@@ -142,14 +142,14 @@ public final class SerializationUtils {
 	public static BigInteger readMpi(@Nonnull final byte[] b) throws IOException {
 		final ByteArrayInputStream in = new ByteArrayInputStream(b);
 		final BigInteger bigint;
-        try (OtrInputStream ois = new OtrInputStream(in)) {
+        try (final OtrInputStream ois = new OtrInputStream(in)) {
             bigint = ois.readBigInt();
         }
 		return bigint;
 	}
 
 	// Public Key IO.
-	public static byte[] writePublicKey(@Nonnull final PublicKey pubKey) throws IOException {
+	public static byte[] writePublicKey(@Nonnull final PublicKey pubKey) {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writePublicKey(pubKey);
