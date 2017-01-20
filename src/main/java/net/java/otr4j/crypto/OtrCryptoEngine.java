@@ -148,12 +148,12 @@ public final class OtrCryptoEngine {
         }
     }
 
-    public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key) {
+    public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key) throws OtrCryptoException {
         return sha256Hmac(b, key, 0);
     }
 
     @Nonnull
-    public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key, final int length) {
+    public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key, final int length) throws OtrCryptoException {
 
         final SecretKeySpec keyspec = new SecretKeySpec(key, HMAC_SHA256);
         final javax.crypto.Mac mac;
@@ -163,8 +163,7 @@ public final class OtrCryptoEngine {
         } catch (final NoSuchAlgorithmException e) {
             throw new IllegalStateException("Unable to initialize MAC based on SHA-256.", e);
         } catch (final InvalidKeyException e) {
-            // FIXME Should be OtrCryptoException as the key is provided by the caller.
-            throw new IllegalStateException("Invalid keyspec.", e);
+            throw new OtrCryptoException("Invalid key, results in invalid keyspec.", e);
         }
 
         final byte[] macBytes = mac.doFinal(b);
@@ -187,7 +186,9 @@ public final class OtrCryptoEngine {
             final javax.crypto.Mac mac = javax.crypto.Mac.getInstance(HMAC_SHA1);
             mac.init(new SecretKeySpec(key, HMAC_SHA1));
             macBytes = mac.doFinal(b);
-        } catch (final NoSuchAlgorithmException | InvalidKeyException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("Unsupported HMAC function specified.", ex);
+        } catch (final InvalidKeyException ex) {
             throw new OtrCryptoException(ex);
         }
 
@@ -202,7 +203,7 @@ public final class OtrCryptoEngine {
     }
 
     @Nonnull
-    public static byte[] sha256Hmac160(@Nonnull final byte[] b, @Nonnull final byte[] key) {
+    public static byte[] sha256Hmac160(@Nonnull final byte[] b, @Nonnull final byte[] key) throws OtrCryptoException {
         // FIXME verify length of key here, needed?
         return sha256Hmac(b, key, SerializationConstants.TYPE_LEN_MAC);
     }
