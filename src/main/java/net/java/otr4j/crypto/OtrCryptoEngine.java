@@ -281,7 +281,6 @@ public final class OtrCryptoEngine {
         try {
             bufSicAesEnc.doFinal(aesOutLwEnc, done);
         } catch (final InvalidCipherTextException ex) {
-            // FIXME convert to runtime exception because this would be a program error.
             throw new OtrCryptoException(ex);
         }
         return aesOutLwEnc;

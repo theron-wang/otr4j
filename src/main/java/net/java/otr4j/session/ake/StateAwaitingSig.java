@@ -19,7 +19,6 @@ import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.io.messages.SignatureX;
 
-// FIXME currently IOExceptions get wrapped with IllegalStateException --> FIX!
 final class StateAwaitingSig implements State {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingSig.class.getName());
@@ -78,7 +77,7 @@ final class StateAwaitingSig implements State {
 
     @Override
     public AbstractEncodedMessage handle(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
-            throws OtrCryptoException, Context.InteractionFailedException {
+            throws OtrCryptoException, Context.InteractionFailedException, IOException {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         }
@@ -104,7 +103,6 @@ final class StateAwaitingSig implements State {
     private DHKeyMessage handleDHCommitMessage(@Nonnull final Context context, @Nonnull final DHCommitMessage message) {
         LOGGER.finest("Generating local D-H key pair.");
         final KeyPair newKeypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
-        // FIXME set version in session?
         LOGGER.finest("Ignoring AWAITING_SIG state and sending a new DH key message.");
         context.setState(new StateAwaitingRevealSig(message.protocolVersion, newKeypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
         return new DHKeyMessage(message.protocolVersion, (DHPublicKey) newKeypair.getPublic(), context.senderInstance(), context.receiverInstance());
@@ -124,17 +122,12 @@ final class StateAwaitingSig implements State {
     }
 
     private SignatureMessage handleSignatureMessage(@Nonnull final Context context, @Nonnull final SignatureMessage message)
-            throws OtrCryptoException, Context.InteractionFailedException {
+            throws OtrCryptoException, Context.InteractionFailedException, IOException {
         final byte[] xEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
         final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
         OtrCryptoEngine.checkEquals(xEncryptedMAC, message.xEncryptedMAC, "xEncryptedMAC failed verification.");
         final byte[] remoteXBytes = OtrCryptoEngine.aesDecrypt(s.cp(), null, message.xEncrypted);
-        final SignatureX remoteX;
-        try {
-            remoteX = SerializationUtils.toMysteriousX(remoteXBytes);
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to deserialize MysteriousX.", ex);
-        }
+        final SignatureX remoteX = SerializationUtils.toMysteriousX(remoteXBytes);
         final SignatureM remoteM = new SignatureM(this.remoteDHPublicKey,
                 (DHPublicKey) this.localDHKeyPair.getPublic(),
                 remoteX.longTermPublicKey, remoteX.dhKeyID);

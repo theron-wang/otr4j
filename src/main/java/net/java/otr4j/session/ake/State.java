@@ -1,5 +1,6 @@
 package net.java.otr4j.session.ake;
 
+import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.java.otr4j.crypto.OtrCryptoException;
@@ -37,6 +38,9 @@ public interface State {
      * @return Returns message to be injected into the transport stream to
      * continue the AKE process. In case of 'null' no message needs to be
      * injected after handling this message.
+     * @throws IOException Throws exception in case of bad message content.
+     * (Note that an AbstractEncodedMessage instance is provided, so failures
+     * should only occur based on bad message content.)
      * @throws OtrCryptoException Throws OtrCryptoException in case of
      * unexpected situations during message processing, such as validation
      * exceptions.
@@ -44,7 +48,7 @@ public interface State {
      * while interacting with the provided AKE context.
      */
     @Nullable
-    AbstractEncodedMessage handle(@Nonnull Context context, @Nonnull AbstractEncodedMessage message) throws OtrCryptoException, Context.InteractionFailedException;
+    AbstractEncodedMessage handle(@Nonnull Context context, @Nonnull AbstractEncodedMessage message) throws IOException, OtrCryptoException, Context.InteractionFailedException;
 
     /**
      * Get active protocol version in AKE negotiation.

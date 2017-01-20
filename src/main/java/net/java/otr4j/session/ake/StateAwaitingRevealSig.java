@@ -20,7 +20,6 @@ import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.io.messages.SignatureX;
 
-// FIXME currently IOExceptions get wrapped with IllegalStateException --> FIX!
 final class StateAwaitingRevealSig implements State {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingRevealSig.class.getName());
@@ -75,7 +74,7 @@ final class StateAwaitingRevealSig implements State {
     // FIXME current implementation has risk of mixing up variables from Reveal Signature message validation and Signature message creation.
     @Override
     public AbstractEncodedMessage handle(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
-            throws OtrCryptoException, Context.InteractionFailedException {
+            throws OtrCryptoException, Context.InteractionFailedException, IOException {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         } else if (message instanceof DHKeyMessage) {
@@ -107,17 +106,12 @@ final class StateAwaitingRevealSig implements State {
 
     @Nonnull
     private SignatureMessage handleRevealSignatureMessage(@Nonnull final Context context, @Nonnull final RevealSignatureMessage message)
-            throws OtrCryptoException, Context.InteractionFailedException {
+            throws OtrCryptoException, Context.InteractionFailedException, IOException {
         // Start validation of Reveal Signature message.
         final byte[] remotePublicKeyBytes = OtrCryptoEngine.aesDecrypt(message.revealedKey, null, this.remotePublicKeyEncrypted);
         final byte[] expectedRemotePublicKeyHash = OtrCryptoEngine.sha256Hash(remotePublicKeyBytes);
         OtrCryptoEngine.checkEquals(this.remotePublicKeyHash, expectedRemotePublicKeyHash, "Remote's public key hash failed validation.");
-        final BigInteger remotePublicKeyMPI;
-        try {
-            remotePublicKeyMPI = SerializationUtils.readMpi(remotePublicKeyBytes);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Failed to deserialize remote public key bytes.", ex);
-        }
+        final BigInteger remotePublicKeyMPI = SerializationUtils.readMpi(remotePublicKeyBytes);
         final DHPublicKey remoteDHPublicKey = OtrCryptoEngine.verify(
                 OtrCryptoEngine.getDHPublicKey(remotePublicKeyMPI));
         final SharedSecret s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), remoteDHPublicKey);
@@ -125,12 +119,7 @@ final class StateAwaitingRevealSig implements State {
         final byte[] expectedXEncryptedMAC = OtrCryptoEngine.sha256Hmac160(remoteXEncryptedBytes, s.m2());
         OtrCryptoEngine.checkEquals(message.xEncryptedMAC, expectedXEncryptedMAC, "xEncryptedMAC failed validation.");
         final byte[] remoteMysteriousXBytes = OtrCryptoEngine.aesDecrypt(s.c(), null, message.xEncrypted);
-        final SignatureX remoteMysteriousX;
-        try {
-            remoteMysteriousX = SerializationUtils.toMysteriousX(remoteMysteriousXBytes);
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to deserialize signature message.", ex);
-        }
+        final SignatureX remoteMysteriousX = SerializationUtils.toMysteriousX(remoteMysteriousXBytes);
         final SignatureM expectedM = new SignatureM(remoteDHPublicKey,
                 (DHPublicKey) this.keypair.getPublic(),
                 remoteMysteriousX.longTermPublicKey, remoteMysteriousX.dhKeyID);

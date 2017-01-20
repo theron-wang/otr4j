@@ -7,6 +7,7 @@
 
 package net.java.otr4j.session;
 
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.SecureRandom;
 import java.util.Objects;
@@ -174,7 +175,10 @@ public class AuthContext implements Context {
             reply = this.state.handle(this, m);
         } catch (final InteractionFailedException ex) {
             throw new OtrException("Failed to handle Signature message.", ex);
+        } catch (final IOException ex) {
+            throw new OtrException("Bad message received: failed to process full message.", ex);
         }
+
         if (reply != null) {
             session.injectMessage(reply);
         }
@@ -203,7 +207,10 @@ public class AuthContext implements Context {
             reply = this.state.handle(this, m);
         } catch (final InteractionFailedException ex) {
             throw new OtrException("Failed to handle Reveal Signature message.", ex);
+        } catch (final IOException ex) {
+            throw new OtrException("Bad message received: failed to process full message.", ex);
         }
+
         if (reply != null) {
             session.injectMessage(reply);
         }
@@ -233,8 +240,10 @@ public class AuthContext implements Context {
             reply = this.state.handle(this, m);
         } catch (final InteractionFailedException ex) {
             throw new OtrException("Failed to handle DH Key message.", ex);
+        } catch (final IOException ex) {
+            throw new OtrException("Bad message received: failed to process full message.", ex);
         }
-        // FIXME evaluate if we should handle case where reply is null.
+
         if (reply != null) {
             session.injectMessage(reply);
         }
@@ -267,8 +276,10 @@ public class AuthContext implements Context {
             reply = this.state.handle(this, m);
         } catch (final InteractionFailedException ex) {
             throw new OtrException("Failed to handle DH Commit message.", ex);
+        } catch (final IOException ex) {
+            throw new OtrException("Bad message received: failed to process full message.", ex);
         }
-        // FIXME evaluate if we should handle case where reply is null.
+
         if (reply != null) {
             session.injectMessage(reply);
         }
