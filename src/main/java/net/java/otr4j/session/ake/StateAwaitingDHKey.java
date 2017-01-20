@@ -33,10 +33,11 @@ final class StateAwaitingDHKey implements State {
             throw new IllegalArgumentException("unsupported version specified");
         }
         this.version = version;
-        // FIXME validate non-null, valid value
         this.keypair = Objects.requireNonNull(keypair);
-        // FIXME validate non-null, random value (non-zero), expected length
-        this.r = Objects.requireNonNull(r);
+        if (r.length != OtrCryptoEngine.AES_KEY_BYTE_LENGTH) {
+            throw new IllegalArgumentException("Invalid random value: expected 128-bit random value.");
+        }
+        this.r = r;
     }
 
     @Override

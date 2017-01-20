@@ -44,16 +44,13 @@ final class StateAwaitingSig implements State {
             throw new IllegalArgumentException("unsupported version specified");
         }
         this.version = version;
-        // FIXME validate non-null, keypair
         this.localDHKeyPair = Objects.requireNonNull(localDHKeyPair);
         try {
             this.remoteDHPublicKey = OtrCryptoEngine.verify(remoteDHPublicKey);
         } catch (final OtrCryptoException ex) {
             throw new IllegalArgumentException("Illegal D-H Public Key provided.", ex);
         }
-        // FIXME verify shared secret s
         this.s = Objects.requireNonNull(s);
-        // FIXME verify reveal sig message?
         this.previousRevealSigMessage = Objects.requireNonNull(previousRevealSigMessage);
     }
 
@@ -149,7 +146,7 @@ final class StateAwaitingSig implements State {
                 this.localDHKeyPair, remoteX.longTermPublicKey,
                 remoteDHPublicKey, this.s);
         context.secure(params);
-        context.setState(new StateInitial());
+        context.setState(StateInitial.instance());
         return null;
     }
 }

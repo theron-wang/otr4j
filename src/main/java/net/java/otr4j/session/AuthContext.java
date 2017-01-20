@@ -43,7 +43,7 @@ public class AuthContext implements Context {
         final SessionID sID = session.getSessionID();
         this.logger = Logger.getLogger(sID.getAccountID() + "-->" + sID.getUserID());
         this.session = session;
-        this.state = new StateInitial();
+        this.state = StateInitial.instance();
         logger.finest("Construct new authentication state.");
     }
 

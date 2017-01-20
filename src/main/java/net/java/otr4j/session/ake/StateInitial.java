@@ -12,9 +12,27 @@ import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.io.messages.DHKeyMessage;
 
+/**
+ * Initial AKE state, a.k.a. NONE. (Singleton)
+ *
+ * @author Danny van Heumen
+ */
 public final class StateInitial implements State {
 
     private static final Logger LOGGER = Logger.getLogger(StateInitial.class.getName());
+
+    private static final StateInitial INSTANCE = new StateInitial();
+
+    private StateInitial() {
+        // Singleton, we only need to instantiate a single instance that can
+        // then be reused in all sessions. Given that this is the initial state
+        // we have no state on an AKE negotiation yet.
+    }
+
+    @Nonnull
+    public static StateInitial instance() {
+        return INSTANCE;
+    }
 
     @Nonnull
     @Override

@@ -31,7 +31,7 @@ final class StateAwaitingRevealSig implements State {
     private final KeyPair keypair;
     private final byte[] remotePublicKeyHash;
     private final byte[] remotePublicKeyEncrypted;
-    
+
     StateAwaitingRevealSig(final int version, @Nonnull final KeyPair keypair,
             @Nonnull final byte[] remotePublicKeyHash,
             @Nonnull final byte[] remotePublicKeyEncrypted) {
@@ -39,11 +39,14 @@ final class StateAwaitingRevealSig implements State {
             throw new IllegalArgumentException("unsupported version specified");
         }
         this.version = version;
-        // FIXME validate non-null, keypair
         this.keypair = Objects.requireNonNull(keypair);
-        // FIXME validate non-null, non-zero?, correct length
-        this.remotePublicKeyHash = Objects.requireNonNull(remotePublicKeyHash);
-        // FIXME validate non-null, non-zero?, correct length?
+        if (remotePublicKeyHash.length != 32) {
+            throw new IllegalArgumentException("Expected public key hash with length of 32 bytes.");
+        }
+        this.remotePublicKeyHash = remotePublicKeyHash;
+        if (remotePublicKeyEncrypted.length <= 0) {
+            throw new IllegalArgumentException("Expected public key ciphertext having actual contents.");
+        }
         this.remotePublicKeyEncrypted = Objects.requireNonNull(remotePublicKeyEncrypted);
     }
 
@@ -157,7 +160,7 @@ final class StateAwaitingRevealSig implements State {
                 this.keypair, remoteMysteriousX.longTermPublicKey,
                 remoteDHPublicKey, s);
         context.secure(params);
-        context.setState(new StateInitial());
+        context.setState(StateInitial.instance());
         return signatureMessage;
     }
 }
