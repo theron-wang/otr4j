@@ -1,62 +1,16 @@
 
 package net.java.otr4j.io.messages;
 
+import java.util.Arrays;
+import java.util.Random;
+import net.java.otr4j.io.SerializationConstants;
+import net.java.otr4j.session.Session.OTRv;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Random;
-
-import net.java.otr4j.OtrException;
-import net.java.otr4j.crypto.SharedSecret;
-import net.java.otr4j.io.SerializationConstants;
-import net.java.otr4j.io.SerializationUtils;
-import net.java.otr4j.session.AuthContextInspection;
-import net.java.otr4j.session.Session;
-import net.java.otr4j.session.Session.OTRv;
-import net.java.otr4j.session.ake.State;
-import net.java.otr4j.session.ake.StateInspection;
-import net.java.otr4j.test.dummyclient.DummyClient;
-import net.java.otr4j.test.dummyclient.TestMessage;
-
 import org.junit.Test;
 
 public class SignatureMessageTest {
-
-    @Test
-    public void testVerify() throws OtrException, IOException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-        DummyClient[] convo = DummyClient.getConversation();
-        DummyClient alice = convo[0];
-        DummyClient bob = convo[1];
-
-        bob.secureSession(alice.getAccount());
-
-        alice.pollReceivedMessage(); // Query
-        bob.pollReceivedMessage(); // DH-Commit
-        alice.pollReceivedMessage(); // DH-Key
-        // stop alice from processing bob's next
-        alice.stopBeforeProcessingNextMessage();
-        bob.pollReceivedMessage(); // Reveal signature
-
-        Session session = alice.getSession();
-        TestMessage tm = alice.getNextTestMessage(); // Signature
-        AbstractMessage am = SerializationUtils.toMessage(tm.getContent());
-        assertTrue("This should be a SignatureMessage",
-                am.getClass() == SignatureMessage.class);
-        SignatureMessage sm = (SignatureMessage) am;
-        final State state = AuthContextInspection.extractState(session.getAuthContext());
-        final SharedSecret sharedSecret = StateInspection.extractSharedSecret(state);
-        byte[] M2 = sharedSecret.m2();
-        assertFalse("This should NOT verify", sm.verify(M2));
-        byte[] M2p = sharedSecret.m2p();
-        assertTrue("This should verify", sm.verify(M2p));
-        byte[] corruptKey = Arrays.copyOf(M2p, M2p.length);
-        int byteToCorrupt = M2p.length - 10;
-        corruptKey[byteToCorrupt] = (byte) (M2p[byteToCorrupt] - 10);
-        assertFalse("This should NOT verify", sm.verify(corruptKey));
-    }
 
     @Test
     /** since this test is based on randomly generated data,

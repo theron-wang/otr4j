@@ -7,7 +7,6 @@
 
 package net.java.otr4j.crypto;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
@@ -164,6 +163,7 @@ public final class OtrCryptoEngine {
         } catch (final NoSuchAlgorithmException e) {
             throw new IllegalStateException("Unable to initialize MAC based on SHA-256.", e);
         } catch (final InvalidKeyException e) {
+            // FIXME Should be OtrCryptoException as the key is provided by the caller.
             throw new IllegalStateException("Invalid keyspec.", e);
         }
 

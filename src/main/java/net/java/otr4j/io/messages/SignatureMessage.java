@@ -4,14 +4,10 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
+
 package net.java.otr4j.io.messages;
 
 import java.util.Arrays;
-import javax.annotation.CheckReturnValue;
-
-import net.java.otr4j.OtrException;
-import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.io.SerializationUtils;
 
 /**
  *
@@ -47,22 +43,6 @@ public class SignatureMessage extends AbstractEncodedMessage {
         this.xEncrypted = xEncrypted;
         this.xEncryptedMAC = xEncryptedMAC;
     }
-
-    // TODO does it make sense to keep this method here? Isn't this message type more of a container for keeping the data?
-	// Memthods.
-	public byte[] decrypt(final byte[] key) throws OtrException {
-		return OtrCryptoEngine.aesDecrypt(key, null, xEncrypted);
-	}
-
-    // TODO does it make sense to keep this method here? Isn't this message type more of a container for keeping the data?
-    @CheckReturnValue
-	public boolean verify(final byte[] key) throws OtrException {
-		// Hash the key.
-		final byte[] xbEncryptedBytes = SerializationUtils.writeData(xEncrypted);
-		final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(xbEncryptedBytes, key);
-		// Verify signature.
-		return Arrays.equals(this.xEncryptedMAC, xEncryptedMAC);
-	}
 
 	@Override
 	public int hashCode() {
