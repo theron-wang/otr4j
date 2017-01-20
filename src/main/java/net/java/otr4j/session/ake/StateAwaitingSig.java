@@ -81,7 +81,8 @@ final class StateAwaitingSig implements State {
     }
 
     @Override
-    public AbstractEncodedMessage handle(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) throws OtrCryptoException, AKEException {
+    public AbstractEncodedMessage handle(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
+            throws OtrCryptoException, Context.InteractionFailedException {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         }
@@ -126,7 +127,8 @@ final class StateAwaitingSig implements State {
         return this.previousRevealSigMessage;
     }
 
-    private SignatureMessage handleSignatureMessage(@Nonnull final Context context, @Nonnull final SignatureMessage message) throws AKEException, OtrCryptoException {
+    private SignatureMessage handleSignatureMessage(@Nonnull final Context context, @Nonnull final SignatureMessage message)
+            throws OtrCryptoException, Context.InteractionFailedException {
         final byte[] xEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
         final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
         OtrCryptoEngine.checkEquals(xEncryptedMAC, message.xEncryptedMAC, "xEncryptedMAC failed verification.");

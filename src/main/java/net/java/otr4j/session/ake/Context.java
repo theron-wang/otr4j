@@ -19,10 +19,10 @@ public interface Context {
      * @param params Instance containing all parameters that are negotiated
      * during the AKE that are relevant to setting up and maintaining the
      * encrypted message state.
-     * @throws AKEException Thrown in case transition into ENCRYPTED message
-     * state fails.
+     * @throws InteractionFailedException Thrown in case transition into
+     * ENCRYPTED message state fails.
      */
-    void secure(SecurityParameters params) throws AKEException;
+    void secure(SecurityParameters params) throws InteractionFailedException;
 
     /**
      * Access to SecureRandom instance.
@@ -53,4 +53,17 @@ public interface Context {
      * @return Returns recipient instance tag value.
      */
     int receiverInstance();
+
+    /**
+     * InteractionFailedException indicates an error happened while interacting
+     * with AKE's context.
+     */
+    static final class InteractionFailedException extends Exception {
+
+        private static final long serialVersionUID = -8731442427746963923L;
+
+        public InteractionFailedException(@Nonnull final Throwable cause) {
+            super(cause);
+        }
+    }
 }

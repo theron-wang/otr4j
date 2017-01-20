@@ -72,7 +72,8 @@ final class StateAwaitingRevealSig implements State {
 
     // FIXME current implementation has risk of mixing up variables from Reveal Signature message validation and Signature message creation.
     @Override
-    public AbstractEncodedMessage handle(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) throws OtrCryptoException, AKEException {
+    public AbstractEncodedMessage handle(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
+            throws OtrCryptoException, Context.InteractionFailedException {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         } else if (message instanceof DHKeyMessage) {
@@ -103,7 +104,8 @@ final class StateAwaitingRevealSig implements State {
     }
 
     @Nonnull
-    private SignatureMessage handleRevealSignatureMessage(@Nonnull final Context context, @Nonnull final RevealSignatureMessage message) throws OtrCryptoException, AKEException {
+    private SignatureMessage handleRevealSignatureMessage(@Nonnull final Context context, @Nonnull final RevealSignatureMessage message)
+            throws OtrCryptoException, Context.InteractionFailedException {
         // Start validation of Reveal Signature message.
         final byte[] remotePublicKeyBytes = OtrCryptoEngine.aesDecrypt(message.revealedKey, null, this.remotePublicKeyEncrypted);
         final byte[] expectedRemotePublicKeyHash = OtrCryptoEngine.sha256Hash(remotePublicKeyBytes);

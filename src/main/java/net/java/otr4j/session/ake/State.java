@@ -34,10 +34,11 @@ public interface State {
      * @throws OtrCryptoException Throws OtrCryptoException in case of
      * unexpected situations during message processing, such as validation
      * exceptions.
-     * @throws AKEException Thrown in case of problems during AKE negotiation.
+     * @throws Context.InteractionFailedException Thrown in case of failure
+     * while interacting with the provided AKE context.
      */
     @Nullable
-    AbstractEncodedMessage handle(@Nonnull Context context, @Nonnull AbstractEncodedMessage message) throws OtrCryptoException, AKEException;
+    AbstractEncodedMessage handle(@Nonnull Context context, @Nonnull AbstractEncodedMessage message) throws OtrCryptoException, Context.InteractionFailedException;
 
     /**
      * Get active protocol version in AKE negotiation.

@@ -27,7 +27,6 @@ import net.java.otr4j.io.messages.QueryMessage;
 import net.java.otr4j.io.messages.RevealSignatureMessage;
 import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.session.Session.OTRv;
-import net.java.otr4j.session.ake.AKEException;
 import net.java.otr4j.session.ake.Context;
 import net.java.otr4j.session.ake.SecurityParameters;
 import net.java.otr4j.session.ake.State;
@@ -76,11 +75,11 @@ public class AuthContext implements Context {
     }
 
     @Override
-    public void secure(@Nonnull final SecurityParameters params) throws AKEException {
+    public void secure(@Nonnull final SecurityParameters params) throws InteractionFailedException {
         try {
             this.session.secure(params);
         } catch (final OtrException ex) {
-            throw new AKEException(ex);
+            throw new InteractionFailedException(ex);
         }
         if (this.session.getSessionStatus() != SessionStatus.ENCRYPTED) {
             throw new IllegalStateException("Session fails to transition to ENCRYPTED.");
@@ -172,7 +171,7 @@ public class AuthContext implements Context {
         final AbstractEncodedMessage reply;
         try {
             reply = this.state.handle(this, m);
-        } catch (final AKEException ex) {
+        } catch (final InteractionFailedException ex) {
             throw new OtrException("Failed to handle Signature message.", ex);
         }
         if (reply != null) {
@@ -201,7 +200,7 @@ public class AuthContext implements Context {
         final AbstractEncodedMessage reply;
         try {
             reply = this.state.handle(this, m);
-        } catch (final AKEException ex) {
+        } catch (final InteractionFailedException ex) {
             throw new OtrException("Failed to handle Reveal Signature message.", ex);
         }
         if (reply != null) {
@@ -231,7 +230,7 @@ public class AuthContext implements Context {
         final AbstractEncodedMessage reply;
         try {
             reply = this.state.handle(this, m);
-        } catch (final AKEException ex) {
+        } catch (final InteractionFailedException ex) {
             throw new OtrException("Failed to handle DH Key message.", ex);
         }
         // FIXME evaluate if we should handle case where reply is null.
@@ -265,7 +264,7 @@ public class AuthContext implements Context {
         final AbstractEncodedMessage reply;
         try {
             reply = this.state.handle(this, m);
-        } catch (final AKEException ex) {
+        } catch (final InteractionFailedException ex) {
             throw new OtrException("Failed to handle DH Commit message.", ex);
         }
         // FIXME evaluate if we should handle case where reply is null.
