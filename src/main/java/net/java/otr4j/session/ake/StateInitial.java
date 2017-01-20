@@ -19,7 +19,6 @@ public final class StateInitial implements State {
     @Nonnull
     @Override
     public DHCommitMessage initiate(@Nonnull final Context context, final int version) {
-        // TODO duplicate code for creating DH Commit message.
         if (version < 2 || version > 3) {
             throw new IllegalArgumentException("unknown or unsupported protocol version");
         }

@@ -59,7 +59,6 @@ final class StateAwaitingSig implements State {
 
     @Override
     public DHCommitMessage initiate(Context context, int version) {
-        // TODO duplicate code for creating DH Commit message.
         if (version < 2 || version > 3) {
             throw new IllegalArgumentException("unknown or unsupported protocol version");
         }
@@ -150,7 +149,6 @@ final class StateAwaitingSig implements State {
                 this.localDHKeyPair, remoteX.longTermPublicKey,
                 remoteDHPublicKey, this.s);
         context.secure(params);
-        // TODO consider putting setState in try-finally to ensure that we transition back to NONE once done.
         context.setState(new StateInitial());
         return null;
     }

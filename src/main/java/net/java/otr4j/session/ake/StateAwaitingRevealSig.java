@@ -49,7 +49,6 @@ final class StateAwaitingRevealSig implements State {
 
     @Override
     public DHCommitMessage initiate(Context context, int version) {
-        // TODO duplicate code for creating DH Commit message.
         if (version < 2 || version > 3) {
             throw new IllegalArgumentException("unknown or unsupported protocol version");
         }
@@ -158,9 +157,7 @@ final class StateAwaitingRevealSig implements State {
                 this.keypair, remoteMysteriousX.longTermPublicKey,
                 remoteDHPublicKey, s);
         context.secure(params);
-        // TODO consider putting setState in try-finally to ensure that we transition back to NONE once done.
         context.setState(new StateInitial());
-        // FIXME Clear any temporary AKE data that is remaining.
         return signatureMessage;
     }
 }
