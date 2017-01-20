@@ -9,6 +9,12 @@ import net.java.otr4j.io.messages.DHCommitMessage;
 /**
  * Interface for the AKE states.
  *
+ * This interface defines the methods that need to be implemented. Implementors
+ * are expected to be immutable. That is, they may receive some support data at
+ * construction time, but they are not supposed to mutate data inside. Instead,
+ * for each receiving message, which should entail a state transition, we should
+ * instantiate a new state with the appropriate set of initial data.
+ *
  * @author Danny van Heumen
  */
 public interface State {
@@ -45,5 +51,6 @@ public interface State {
      *
      * @return Returns active protocol version in AKE negotiation.
      */
+    // FIXME what do we return in the initial state, as a version is yet to be declared at that point?
     int getVersion();
 }
