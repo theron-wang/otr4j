@@ -21,6 +21,9 @@ public final class StateInitial implements State {
 
     private static final Logger LOGGER = Logger.getLogger(StateInitial.class.getName());
 
+    /**
+     * Singleton instance.
+     */
     private static final StateInitial INSTANCE = new StateInitial();
 
     private StateInitial() {
@@ -29,6 +32,11 @@ public final class StateInitial implements State {
         // we have no state on an AKE negotiation yet.
     }
 
+    /**
+     * Acquire the Singleton instance for StateInitial.
+     *
+     * @return Returns the singleton instance.
+     */
     @Nonnull
     public static StateInitial instance() {
         return INSTANCE;

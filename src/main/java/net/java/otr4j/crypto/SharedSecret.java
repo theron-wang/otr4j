@@ -15,7 +15,6 @@ import net.java.otr4j.io.SerializationUtils;
  *
  * @author Danny van Heumen
  */
-// FIXME should we have some kind of value check to ensure that BigInteger s is always a valid value? (i.e. to ensure that SharedSecret instances always contain a reliable secret.)
 public final class SharedSecret {
 
     private static final Logger LOGGER = Logger.getLogger(SharedSecret.class.getName());

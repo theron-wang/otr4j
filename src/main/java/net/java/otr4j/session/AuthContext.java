@@ -37,6 +37,7 @@ import net.java.otr4j.session.ake.StateInitial;
  *
  * @author George Politis
  */
+// TODO Consider removing AuthContext and merging contents into Session. There seems to be little value left in this class now that we have split off all the actual AKE negotiation and state management logic into the various State implementations.
 public class AuthContext implements Context {
 
     public AuthContext(@Nonnull final Session session) {

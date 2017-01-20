@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import javax.crypto.KeyAgreement;
+import javax.crypto.Mac;
 import javax.crypto.interfaces.DHPrivateKey;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHPrivateKeySpec;
@@ -183,7 +184,7 @@ public final class OtrCryptoEngine {
             throws OtrCryptoException {
         final byte[] macBytes;
         try {
-            final javax.crypto.Mac mac = javax.crypto.Mac.getInstance(HMAC_SHA1);
+            final Mac mac = Mac.getInstance(HMAC_SHA1);
             mac.init(new SecretKeySpec(key, HMAC_SHA1));
             macBytes = mac.doFinal(b);
         } catch (final NoSuchAlgorithmException ex) {
@@ -194,8 +195,7 @@ public final class OtrCryptoEngine {
 
         if (length > 0) {
             final byte[] bytes = new byte[length];
-            final ByteBuffer buff = ByteBuffer.wrap(macBytes);
-            buff.get(bytes);
+            ByteBuffer.wrap(macBytes).get(bytes);
             return bytes;
         } else {
             return macBytes;
@@ -204,7 +204,6 @@ public final class OtrCryptoEngine {
 
     @Nonnull
     public static byte[] sha256Hmac160(@Nonnull final byte[] b, @Nonnull final byte[] key) throws OtrCryptoException {
-        // FIXME verify length of key here, needed?
         return sha256Hmac(b, key, SerializationConstants.TYPE_LEN_MAC);
     }
 
@@ -291,10 +290,10 @@ public final class OtrCryptoEngine {
     @Nonnull
     public static SharedSecret generateSecret(@Nonnull final PrivateKey privKey,
             @Nonnull final PublicKey pubKey) throws OtrCryptoException {
+        verify((DHPublicKey) pubKey);
         try {
             final KeyAgreement ka = KeyAgreement.getInstance(KA_DH);
             ka.init(privKey);
-            // FIXME verify key before calculating shared secret.
             ka.doPhase(pubKey, true);
             return new SharedSecret(ka.generateSecret());
         } catch (final NoSuchAlgorithmException ex) {
@@ -309,7 +308,7 @@ public final class OtrCryptoEngine {
             throws OtrCryptoException {
 
         if (!(privatekey instanceof DSAPrivateKey)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Private key instance must be of type DSAPrivateKey.");
         }
 
         final DSAParams dsaParams = ((DSAPrivateKey) privatekey).getParams();
@@ -358,7 +357,7 @@ public final class OtrCryptoEngine {
             throws OtrCryptoException {
 
         if (!(pubKey instanceof DSAPublicKey)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Public key instance must be of type DSAPublicKey.");
         }
 
         final DSAParams dsaParams = ((DSAPublicKey) pubKey).getParams();
@@ -380,7 +379,7 @@ public final class OtrCryptoEngine {
             @Nonnull final BigInteger s) throws OtrCryptoException {
 
         if (!(pubKey instanceof DSAPublicKey)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Public key instance must be of type DSAPublicKey.");
         }
 
         final DSAParams dsaParams = ((DSAPublicKey) pubKey).getParams();

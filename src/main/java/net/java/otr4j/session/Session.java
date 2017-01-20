@@ -77,7 +77,9 @@ public class Session implements Context {
     @Nonnull
     private volatile State sessionState;
 
-    // TODO in time it might make more sense to get rid of AuthContext as an intermediate context to AKE and use this Session context for this purpose.
+    /**
+     * State management for the AKE negotiation.
+     */
     @Nonnull
     private final AuthContext authContext;
 
