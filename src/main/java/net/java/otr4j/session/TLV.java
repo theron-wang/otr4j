@@ -6,7 +6,6 @@ import javax.annotation.Nonnull;
 /**
  * Class representing OTR Type-Length-Value tuples.
  */
-// TODO implement TLV 8 support (in addition to recently added getExtraSymmetricKey)
 public class TLV {
     /* This is just padding for the encrypted message, and should be ignored. */
     public static final int PADDING=0;
@@ -14,7 +13,6 @@ public class TLV {
     public static final int DISCONNECTED=0x0001;
 
     /* The message contains a step in the Socialist Millionaires' Protocol. */
-    // TODO Replace TLV type constants with enum. (Touches public API so might not be good to do right now.)
     public static final int SMP1=0x0002;
     public static final int SMP2=0x0003;
     public static final int SMP3=0x0004;
@@ -24,6 +22,21 @@ public class TLV {
      * Like SMP1, but there's a question for the buddy at the beginning.
      */
     public static final int SMP1Q=0x0007;
+    /**
+     * TLV 8 notifies the recipient to use the extra symmetric key to set up an
+     * out-of-band encrypted connection.
+     *
+     * Payload:
+     *  - 4-byte indication of what to use it for, e.g. file transfer, voice
+     *    encryption, ...
+     *  - undefined, free for use. Subsequent data might be the file name of
+     *    your confidential file transfer.
+     *
+     * WARNING! You should NEVER send the extra symmetric key as payload inside
+     * the TLV record. The recipient can already generate the extra symmetric
+     * key.
+     */
+    public static final int USE_EXTRA_SYMMETRIC_KEY = 0x0008;
 
 	private final int type;
 	private final byte[] value;
