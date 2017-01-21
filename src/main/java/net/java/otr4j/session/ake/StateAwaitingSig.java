@@ -81,7 +81,7 @@ final class StateAwaitingSig implements AuthState {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         }
-        if (version != this.version) {
+        if (message.protocolVersion != this.version) {
             // FIXME go with unchecked exception here?
             throw new IllegalArgumentException("unexpected version");
         }

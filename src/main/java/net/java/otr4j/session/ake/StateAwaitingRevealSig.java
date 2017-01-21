@@ -81,7 +81,7 @@ final class StateAwaitingRevealSig implements AuthState {
             LOGGER.log(Level.INFO, "Ignoring DHKey message.");
             return null;
         }
-        if (version != this.version) {
+        if (message.protocolVersion != this.version) {
             // FIXME need to move version-check up?
             throw new IllegalArgumentException("unexpected version");
         }

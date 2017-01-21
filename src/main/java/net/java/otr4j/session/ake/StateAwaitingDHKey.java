@@ -67,7 +67,7 @@ final class StateAwaitingDHKey implements AuthState {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         }
-        if (version != this.version) {
+        if (message.protocolVersion != this.version) {
             throw new IllegalArgumentException("unexpected version");
         }
         if (!(message instanceof DHKeyMessage)) {
