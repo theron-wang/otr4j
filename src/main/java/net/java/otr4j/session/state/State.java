@@ -43,6 +43,18 @@ public interface State {
     PublicKey getRemotePublicKey() throws IncorrectStateException;
 
     /**
+     * Acquire the extra symmetric key for this session.
+     *
+     * @return Returns the extra symmetric key that is derived from the
+     * session's shared secret.
+     * @throws net.java.otr4j.session.state.State.IncorrectStateException Throws
+     * exception in case of incorrect state, i.e. a different state than
+     * ENCRYPTED.
+     */
+    @Nonnull
+    byte[] getExtraSymmetricKey() throws IncorrectStateException;
+
+    /**
      * Transforms a message ready to be sent given the current session state of
      * OTR.
      *

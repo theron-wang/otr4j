@@ -145,7 +145,12 @@ final class StateEncrypted extends AbstractState {
     public PublicKey getRemotePublicKey() {
         return remotePublicKey;
     }
-    
+
+    @Override
+    public byte[] getExtraSymmetricKey() {
+        return this.s.extraSymmetricKey();
+    }
+
     @Nonnull
     @Override
     public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage plainTextMessage) throws OtrException {

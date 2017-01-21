@@ -69,6 +69,11 @@ public final class StatePlaintext extends AbstractState {
     }
 
     @Override
+    public byte[] getExtraSymmetricKey() throws IncorrectStateException {
+        throw new IncorrectStateException("Extra symmetric key is not available in plaintext state.");
+    }
+
+    @Override
     @Nullable
     public String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage message) throws OtrException {
         final OtrEngineHost host = context.getHost();

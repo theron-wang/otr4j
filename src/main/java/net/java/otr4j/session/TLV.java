@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 /**
  * Class representing OTR Type-Length-Value tuples.
  */
+// TODO implement TLV 8 support (in addition to recently added getExtraSymmetricKey)
 public class TLV {
     /* This is just padding for the encrypted message, and should be ignored. */
     public static final int PADDING=0;

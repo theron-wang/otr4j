@@ -60,7 +60,6 @@ import net.java.otr4j.session.state.StatePlaintext;
  * @author Danny van Heumen
  */
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
-// TODO implement access to symmetric key (TLV 8) that is provided by otr (see spec)
 public class Session implements Context, AuthContext {
 
     public interface OTRv {
@@ -932,5 +931,24 @@ public class Session implements Context, AuthContext {
         } catch (final State.IncorrectStateException ex) {
             return false;
         }
+    }
+
+    /**
+     * Acquire the extra symmetric key that can be derived from the session's
+     * shared secret.
+     *
+     * This extra key can also be derived by your chat counterpart. This key
+     * never needs to be communicated. TLV 8, that is described in otr v3 spec,
+     * is used to inform your counterpart that he needs to start using the key.
+     * He can derive the actual key for himself, so TLV 8 should NEVER contain
+     * this symmetric key data.
+     *
+     * @return Returns the extra symmetric key.
+     * @throws OtrException In case the message state is not ENCRYPTED, there
+     * exists no extra symmetric key to return.
+     */
+    @Nonnull
+    public byte[] getExtraSymmetricKey() throws OtrException {
+        return this.sessionState.getExtraSymmetricKey();
     }
 }
