@@ -17,7 +17,7 @@ import net.java.otr4j.io.messages.DHKeyMessage;
  *
  * @author Danny van Heumen
  */
-public final class StateInitial implements State {
+public final class StateInitial implements AuthState {
 
     private static final Logger LOGGER = Logger.getLogger(StateInitial.class.getName());
 
@@ -44,7 +44,7 @@ public final class StateInitial implements State {
 
     @Nonnull
     @Override
-    public DHCommitMessage initiate(@Nonnull final Context context, final int version) {
+    public DHCommitMessage initiate(@Nonnull final AuthContext context, final int version) {
         if (version < 2 || version > 3) {
             throw new IllegalArgumentException("unknown or unsupported protocol version");
         }
@@ -67,7 +67,7 @@ public final class StateInitial implements State {
 
     @Nullable
     @Override
-    public DHKeyMessage handle(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) {
+    public DHKeyMessage handle(@Nonnull final AuthContext context, @Nonnull final AbstractEncodedMessage message) {
         if (!(message instanceof DHCommitMessage)) {
             LOGGER.log(Level.INFO, "We only expect to receive a DH Commit message. Ignoring message with messagetype: {0}", message.messageType);
             return null;
@@ -89,7 +89,7 @@ public final class StateInitial implements State {
     }
 
     @Nonnull
-    private DHKeyMessage handleDHCommitMessage(@Nonnull final Context context, @Nonnull final DHCommitMessage message) {
+    private DHKeyMessage handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) {
         final KeyPair keypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
         LOGGER.finest("Generated local D-H key pair.");
         LOGGER.finest("Sending DH key message.");

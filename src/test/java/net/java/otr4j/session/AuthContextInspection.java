@@ -1,6 +1,6 @@
 package net.java.otr4j.session;
 
-import net.java.otr4j.session.ake.State;
+import net.java.otr4j.session.ake.AuthState;
 
 public final class AuthContextInspection {
 
@@ -8,7 +8,7 @@ public final class AuthContextInspection {
         // Utility class.
     }
 
-    public static State extractState(final AuthContext context) {
+    public static AuthState extractState(final AuthContext context) {
         return context.getState();
     }
 }

@@ -18,7 +18,7 @@ import net.java.otr4j.io.messages.RevealSignatureMessage;
 import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureX;
 
-final class StateAwaitingDHKey implements State {
+final class StateAwaitingDHKey implements AuthState {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingDHKey.class.getName());
 
@@ -41,7 +41,7 @@ final class StateAwaitingDHKey implements State {
     }
 
     @Override
-    public DHCommitMessage initiate(@Nonnull final Context context, final int version) {
+    public DHCommitMessage initiate(@Nonnull final AuthContext context, final int version) {
         if (version < 2 || version > 3) {
             throw new IllegalArgumentException("unknown or unsupported protocol version");
         }
@@ -63,7 +63,7 @@ final class StateAwaitingDHKey implements State {
     }
 
     @Override
-    public AbstractEncodedMessage handle(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) throws OtrCryptoException {
+    public AbstractEncodedMessage handle(@Nonnull final AuthContext context, @Nonnull final AbstractEncodedMessage message) throws OtrCryptoException {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         }
@@ -83,7 +83,7 @@ final class StateAwaitingDHKey implements State {
     }
 
     @Nonnull
-    private AbstractEncodedMessage handleDHCommitMessage(@Nonnull final Context context, @Nonnull final DHCommitMessage message) throws OtrCryptoException {
+    private AbstractEncodedMessage handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) throws OtrCryptoException {
         final byte[] publicKeyBytes = SerializationUtils.writeMpi(((DHPublicKey) keypair.getPublic()).getY());
         final byte[] publicKeyHash = OtrCryptoEngine.sha256Hash(publicKeyBytes);
         final BigInteger localKeyHashBigInt = new BigInteger(1, publicKeyHash);
@@ -102,7 +102,7 @@ final class StateAwaitingDHKey implements State {
     }
 
     @Nonnull
-    private AbstractEncodedMessage handleDHKeyMessage(@Nonnull final Context context, @Nonnull final DHKeyMessage message) throws OtrCryptoException {
+    private AbstractEncodedMessage handleDHKeyMessage(@Nonnull final AuthContext context, @Nonnull final DHKeyMessage message) throws OtrCryptoException {
         OtrCryptoEngine.verify(message.dhPublicKey);
         final KeyPair longTermKeyPair = context.longTermKeyPair();
         final SharedSecret s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), message.dhPublicKey);

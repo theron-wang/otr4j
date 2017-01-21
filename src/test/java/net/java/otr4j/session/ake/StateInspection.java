@@ -9,7 +9,7 @@ public final class StateInspection {
         // Utility class.
     }
     
-    public static SharedSecret extractSharedSecret(final State state) throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+    public static SharedSecret extractSharedSecret(final AuthState state) throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         if (state instanceof StateAwaitingSig) {
             final Field field = state.getClass().getDeclaredField("s");
             field.setAccessible(true);

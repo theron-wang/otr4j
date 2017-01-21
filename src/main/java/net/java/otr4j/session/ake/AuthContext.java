@@ -4,14 +4,14 @@ import java.security.KeyPair;
 import java.security.SecureRandom;
 import javax.annotation.Nonnull;
 
-public interface Context {
+public interface AuthContext {
 
     /**
      * Update AKE state in context.
      *
      * @param state The new AKE state.
      */
-    void setState(@Nonnull State state);
+    void setState(@Nonnull AuthState state);
 
     /**
      * Transition to a message state ENCRYPTED based on the provided parameters.
@@ -33,9 +33,9 @@ public interface Context {
     SecureRandom secureRandom();
 
     /**
-     * Access to long-term keypair.
+     * Access to long-term key pair.
      *
-     * @return Returns long-term keypair.
+     * @return Returns long-term key pair.
      */
     @Nonnull
     KeyPair longTermKeyPair();

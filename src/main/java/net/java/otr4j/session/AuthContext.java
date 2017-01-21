@@ -28,10 +28,9 @@ import net.java.otr4j.io.messages.QueryMessage;
 import net.java.otr4j.io.messages.RevealSignatureMessage;
 import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.session.Session.OTRv;
-import net.java.otr4j.session.ake.Context;
 import net.java.otr4j.session.ake.SecurityParameters;
-import net.java.otr4j.session.ake.State;
 import net.java.otr4j.session.ake.StateInitial;
+import net.java.otr4j.session.ake.AuthState;
 
 /**
  * Authentication context.
@@ -39,7 +38,7 @@ import net.java.otr4j.session.ake.StateInitial;
  * @author George Politis
  */
 // TODO Consider removing AuthContext and merging contents into Session. There seems to be little value left in this class now that we have split off all the actual AKE negotiation and state management logic into the various State implementations.
-public class AuthContext implements Context {
+public class AuthContext implements net.java.otr4j.session.ake.AuthContext {
 
     public AuthContext(@Nonnull final Session session) {
         final SessionID sID = session.getSessionID();
@@ -68,10 +67,10 @@ public class AuthContext implements Context {
 
     private final Logger logger;
 
-    private State state;
+    private AuthState state;
 
     @Override
-    public void setState(@Nonnull final State state) {
+    public void setState(@Nonnull final AuthState state) {
         logger.log(Level.FINEST, "Updating state from {0} to {1}", new Object[]{this.state, state});
         this.state = Objects.requireNonNull(state);
     }
@@ -304,7 +303,7 @@ public class AuthContext implements Context {
     }
 
     // TODO consider if this is really the way we want to enable thorough testing/inspection.
-    State getState() {
+    AuthState getState() {
         return this.state;
     }
 }

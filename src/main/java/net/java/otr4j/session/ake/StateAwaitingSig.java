@@ -19,7 +19,7 @@ import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.io.messages.SignatureX;
 
-final class StateAwaitingSig implements State {
+final class StateAwaitingSig implements AuthState {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingSig.class.getName());
 
@@ -54,7 +54,7 @@ final class StateAwaitingSig implements State {
     }
 
     @Override
-    public DHCommitMessage initiate(Context context, int version) {
+    public DHCommitMessage initiate(AuthContext context, int version) {
         if (version < 2 || version > 3) {
             throw new IllegalArgumentException("unknown or unsupported protocol version");
         }
@@ -76,8 +76,8 @@ final class StateAwaitingSig implements State {
     }
 
     @Override
-    public AbstractEncodedMessage handle(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
-            throws OtrCryptoException, Context.InteractionFailedException, IOException {
+    public AbstractEncodedMessage handle(@Nonnull final AuthContext context, @Nonnull final AbstractEncodedMessage message)
+            throws OtrCryptoException, AuthContext.InteractionFailedException, IOException {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         }
@@ -100,7 +100,7 @@ final class StateAwaitingSig implements State {
     }
 
     @Nonnull
-    private DHKeyMessage handleDHCommitMessage(@Nonnull final Context context, @Nonnull final DHCommitMessage message) {
+    private DHKeyMessage handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) {
         LOGGER.finest("Generating local D-H key pair.");
         final KeyPair newKeypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
         LOGGER.finest("Ignoring AWAITING_SIG state and sending a new DH key message.");
@@ -121,8 +121,8 @@ final class StateAwaitingSig implements State {
         return this.previousRevealSigMessage;
     }
 
-    private SignatureMessage handleSignatureMessage(@Nonnull final Context context, @Nonnull final SignatureMessage message)
-            throws OtrCryptoException, Context.InteractionFailedException, IOException {
+    private SignatureMessage handleSignatureMessage(@Nonnull final AuthContext context, @Nonnull final SignatureMessage message)
+            throws OtrCryptoException, AuthContext.InteractionFailedException, IOException {
         final byte[] xEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
         final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
         OtrCryptoEngine.checkEquals(xEncryptedMAC, message.xEncryptedMAC, "xEncryptedMAC failed verification.");

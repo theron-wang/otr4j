@@ -20,7 +20,7 @@ import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.io.messages.SignatureX;
 
-final class StateAwaitingRevealSig implements State {
+final class StateAwaitingRevealSig implements AuthState {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingRevealSig.class.getName());
 
@@ -50,7 +50,7 @@ final class StateAwaitingRevealSig implements State {
     }
 
     @Override
-    public DHCommitMessage initiate(Context context, int version) {
+    public DHCommitMessage initiate(AuthContext context, int version) {
         if (version < 2 || version > 3) {
             throw new IllegalArgumentException("unknown or unsupported protocol version");
         }
@@ -73,8 +73,8 @@ final class StateAwaitingRevealSig implements State {
 
     // FIXME current implementation has risk of mixing up variables from Reveal Signature message validation and Signature message creation.
     @Override
-    public AbstractEncodedMessage handle(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
-            throws OtrCryptoException, Context.InteractionFailedException, IOException {
+    public AbstractEncodedMessage handle(@Nonnull final AuthContext context, @Nonnull final AbstractEncodedMessage message)
+            throws OtrCryptoException, AuthContext.InteractionFailedException, IOException {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         } else if (message instanceof DHKeyMessage) {
@@ -99,14 +99,14 @@ final class StateAwaitingRevealSig implements State {
     }
 
     @Nonnull
-    private DHKeyMessage handleDHCommitMessage(@Nonnull final Context context, @Nonnull final DHCommitMessage message) {
+    private DHKeyMessage handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) {
         context.setState(new StateAwaitingRevealSig(message.protocolVersion, this.keypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
         return new DHKeyMessage(message.protocolVersion, (DHPublicKey) this.keypair.getPublic(), context.senderInstance(), context.receiverInstance());
     }
 
     @Nonnull
-    private SignatureMessage handleRevealSignatureMessage(@Nonnull final Context context, @Nonnull final RevealSignatureMessage message)
-            throws OtrCryptoException, Context.InteractionFailedException, IOException {
+    private SignatureMessage handleRevealSignatureMessage(@Nonnull final AuthContext context, @Nonnull final RevealSignatureMessage message)
+            throws OtrCryptoException, AuthContext.InteractionFailedException, IOException {
         // Start validation of Reveal Signature message.
         final byte[] remotePublicKeyBytes = OtrCryptoEngine.aesDecrypt(message.revealedKey, null, this.remotePublicKeyEncrypted);
         final byte[] expectedRemotePublicKeyHash = OtrCryptoEngine.sha256Hash(remotePublicKeyBytes);

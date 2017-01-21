@@ -18,7 +18,7 @@ import net.java.otr4j.io.messages.DHCommitMessage;
  *
  * @author Danny van Heumen
  */
-public interface State {
+public interface AuthState {
 
     /**
      * Initiate a new AKE. Caller needs to send
@@ -28,7 +28,7 @@ public interface State {
      * @return Returns DHCommitMessage with which we can initiate an AKE.
      */
     @Nonnull
-    DHCommitMessage initiate(@Nonnull Context context, int version);
+    DHCommitMessage initiate(@Nonnull AuthContext context, int version);
 
     /**
      * Handle AKE message.
@@ -48,7 +48,7 @@ public interface State {
      * while interacting with the provided AKE context.
      */
     @Nullable
-    AbstractEncodedMessage handle(@Nonnull Context context, @Nonnull AbstractEncodedMessage message) throws IOException, OtrCryptoException, Context.InteractionFailedException;
+    AbstractEncodedMessage handle(@Nonnull AuthContext context, @Nonnull AbstractEncodedMessage message) throws IOException, OtrCryptoException, AuthContext.InteractionFailedException;
 
     /**
      * Get active protocol version in AKE negotiation.
