@@ -31,7 +31,6 @@ public final class SmpTlvHandler {
 
     private final OtrEngineHost engineHost;
 	private final StateEncrypted session;
-    // FIXME consider if we really want to keep a reference to s here ...
     private final SharedSecret s;
     private final Context sessionContext;
     private final SM sm;
