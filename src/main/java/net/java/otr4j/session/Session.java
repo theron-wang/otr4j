@@ -32,16 +32,24 @@ import net.java.otr4j.OtrEngineListener;
 import net.java.otr4j.OtrEngineListenerUtil;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.OtrPolicyUtil;
 import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.AbstractMessage;
+import static net.java.otr4j.io.messages.AbstractMessage.checkCast;
 import net.java.otr4j.io.messages.DHCommitMessage;
+import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.io.messages.QueryMessage;
+import net.java.otr4j.io.messages.RevealSignatureMessage;
+import net.java.otr4j.io.messages.SignatureMessage;
+import net.java.otr4j.session.ake.AuthContext;
+import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.ake.SecurityParameters;
+import net.java.otr4j.session.ake.StateInitial;
 import net.java.otr4j.session.state.Context;
 import net.java.otr4j.session.state.SmpTlvHandler;
 import net.java.otr4j.session.state.State;
@@ -53,7 +61,7 @@ import net.java.otr4j.session.state.StatePlaintext;
  */
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
 // TODO implement access to symmetric key (TLV 8) that is provided by otr (see spec)
-public class Session implements Context {
+public class Session implements Context, AuthContext {
 
     public interface OTRv {
         int TWO = 2;
@@ -81,13 +89,14 @@ public class Session implements Context {
      * State management for the AKE negotiation.
      */
     @Nonnull
-    private final AuthContext authContext;
+    private volatile AuthState authState;
 
     /**
      * Slave sessions contain the mappings of instance tags to outgoing sessions.
      * In case of the master session, it is initialized with an empty instance.
      * In case of slaves the slaveSessions instance is initialized to 'null'.
      */
+    @Nonnull
     private final Map<InstanceTag, Session> slaveSessions;
 
     /**
@@ -101,19 +110,36 @@ public class Session implements Context {
      * Flag indicating whether this instance is a master session or a slave
      * session.
      */
+    // TODO rename variable to masterSession to match convention
     private final boolean isMasterSession;
 
     private final OtrEngineHost host;
-    
+
     private final Logger logger;
 
     /**
      * Offer status for whitespace-tagged message indicating OTR supported.
      */
     private OfferStatus offerStatus;
+
+    /**
+     * Sender instance tag.
+     */
     private final InstanceTag senderTag;
+
+    /**
+     * Receiver instance tag.
+     */
     private InstanceTag receiverTag;
+
+    /**
+     * Message assembler.
+     */
     private final OtrAssembler assembler;
+
+    /**
+     * Message fragmenter.
+     */
     private final OtrFragmenter fragmenter;
 
     /**
@@ -137,56 +163,34 @@ public class Session implements Context {
     private final ArrayList<OtrEngineListener> listeners = new ArrayList<>();
 
     public Session(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost listener) {
-        this.secureRandom = new SecureRandom();
-        this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
-        this.sessionState = new StatePlaintext(sessionID);
-        this.authContext = new AuthContext(this);
-        this.host = Objects.requireNonNull(listener);
-
-        // client application calls OtrSessionManager.getSessionStatus()
-        // -> create new session if it does not exist, end up here
-        // -> setSessionStatus() fires statusChangedEvent
-        // -> client application calls OtrSessionManager.getSessionStatus()
-        this.offerStatus = OfferStatus.idle;
-
-        this.senderTag = InstanceTag.random(this.secureRandom);
-        this.receiverTag = InstanceTag.ZERO_TAG;
-
-        // Start with initial capacity of 0. Will start to use more memory once
-        // the map is in actual use.
-        slaveSessions = Collections.synchronizedMap(new HashMap<InstanceTag, Session>(0));
-        outgoingSession = this;
-        isMasterSession = true;
-
-        assembler = new OtrAssembler(this.senderTag);
-        fragmenter = new OtrFragmenter(this, listener);
+        this(true, sessionID, listener, InstanceTag.ZERO_TAG, InstanceTag.ZERO_TAG,
+                new SecureRandom(), StateInitial.instance());
     }
 
-    // A private constructor for instantiating 'slave' sessions.
-    private Session(@Nonnull final SessionID sessionID,
-            @Nonnull final OtrEngineHost listener,
+    private Session(final boolean masterSession,
+            @Nonnull final SessionID sessionID,
+            @Nonnull final OtrEngineHost host,
             @Nonnull final InstanceTag senderTag,
             @Nonnull final InstanceTag receiverTag,
             @Nonnull final SecureRandom secureRandom,
-            @Nullable final AuthContext authContext) {
+            @Nonnull final AuthState authState) {
+        this.isMasterSession = masterSession;
         this.secureRandom = Objects.requireNonNull(secureRandom);
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.sessionState = new StatePlaintext(sessionID);
-        this.authContext = authContext == null ? new AuthContext(this) : new AuthContext(this, authContext);
-        this.host = Objects.requireNonNull(listener);
-
+        this.authState = Objects.requireNonNull(authState);
+        this.host = Objects.requireNonNull(host);
+        this.senderTag = senderTag == InstanceTag.ZERO_TAG ? InstanceTag.random(secureRandom) : senderTag;
+        this.receiverTag = Objects.requireNonNull(receiverTag);
         this.offerStatus = OfferStatus.idle;
-
-        this.senderTag = senderTag;
-        this.receiverTag = receiverTag;
-
-        // Slave sessions do not use this map. Initialize to null.
-        slaveSessions = null;
+        // Master sessions use the map to manage slave sessions. Slave sessions do not use the map.
+        slaveSessions = isMasterSession
+                ? Collections.synchronizedMap(new HashMap<InstanceTag, Session>(0))
+                : Collections.<InstanceTag, Session>emptyMap();
         outgoingSession = this;
-        isMasterSession = false;
 
         assembler = new OtrAssembler(this.senderTag);
-        fragmenter = new OtrFragmenter(this, listener);
+        fragmenter = new OtrFragmenter(this, host);
     }
 
     /**
@@ -207,8 +211,17 @@ public class Session implements Context {
         return this.fragmenter;
     }
 
-    void secure(@Nonnull final SecurityParameters s) throws OtrException {
-        this.sessionState.secure(this, s);
+    @Override
+    public void secure(@Nonnull final SecurityParameters s) throws InteractionFailedException {
+        try {
+            this.sessionState.secure(this, s);
+        } catch (final OtrException ex) {
+            throw new InteractionFailedException(ex);
+        }
+        if (this.sessionState.getStatus() != SessionStatus.ENCRYPTED) {
+            throw new IllegalStateException("Session fails to transition to ENCRYPTED.");
+        }
+        logger.info("Session secured. Message state transitioned to ENCRYPTED.");
     }
 
     @Override
@@ -216,6 +229,28 @@ public class Session implements Context {
         this.sessionState = Objects.requireNonNull(state);
         OtrEngineListenerUtil.sessionStatusChanged(
                 OtrEngineListenerUtil.duplicate(listeners), state.getSessionID());
+    }
+
+    @Override
+    public void setState(@Nonnull final AuthState state) {
+        logger.log(Level.FINEST, "Updating state from {0} to {1}.", new Object[]{this.authState, state});
+        this.authState = Objects.requireNonNull(state);
+    }
+
+    @Nonnull
+    @Override
+    public KeyPair longTermKeyPair() {
+        return this.host.getLocalKeyPair(this.sessionState.getSessionID());
+    }
+
+    @Override
+    public int senderInstance() {
+        return this.senderTag.getValue();
+    }
+
+    @Override
+    public int receiverInstance() {
+        return this.receiverTag.getValue();
     }
 
     public SessionStatus getSessionStatus() {
@@ -242,12 +277,6 @@ public class Session implements Context {
     @Override
     public void setOfferStatus(@Nonnull final OfferStatus status) {
         this.offerStatus = Objects.requireNonNull(status);
-    }
-    
-    @Override
-    @Nonnull
-    public AuthContext getAuthContext() {
-        return authContext;
     }
 
     @Nullable
@@ -332,13 +361,14 @@ public class Session implements Context {
                             // construct a new slave session based on an
                             // existing AuthContext, if it exists.
                             final Session session
-                                    = new Session(this.sessionState.getSessionID(),
+                                    = new Session(false,
+                                            this.sessionState.getSessionID(),
                                             this.host,
                                             getSenderInstanceTag(),
                                             newReceiverTag,
                                             this.secureRandom,
                                             encodedM.messageType == AbstractEncodedMessage.MESSAGE_DHKEY
-                                                    ? this.authContext : null);
+                                                    ? this.authState : StateInitial.instance());
                             
                             session.addOtrEngineListener(new OtrEngineListener() {
 
@@ -369,6 +399,7 @@ public class Session implements Context {
             }
         }
 
+        logger.log(Level.INFO, "Received message with type {0}", m.messageType);
         switch (m.messageType) {
             case AbstractEncodedMessage.MESSAGE_DATA:
                 return handleDataMessage((DataMessage) m);
@@ -380,12 +411,20 @@ public class Session implements Context {
             case AbstractMessage.MESSAGE_QUERY:
                 handleQueryMessage((QueryMessage) m);
                 return null;
+            // Handle AKE messages:
             case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
-            case AbstractEncodedMessage.MESSAGE_DHKEY:
-            case AbstractEncodedMessage.MESSAGE_REVEALSIG:
-            case AbstractEncodedMessage.MESSAGE_SIGNATURE:
-                this.authContext.handleReceivingMessage(m);
+                handleDHCommitMessage(checkCast(DHCommitMessage.class, m));
                 return null;
+            case AbstractEncodedMessage.MESSAGE_DHKEY:
+                handleDHKeyMessage(checkCast(DHKeyMessage.class, m));
+                return null;
+            case AbstractEncodedMessage.MESSAGE_REVEALSIG:
+                handleRevealSignatureMessage(checkCast(RevealSignatureMessage.class, m));
+                return null;
+            case AbstractEncodedMessage.MESSAGE_SIGNATURE:
+                handleSignatureMessage(checkCast(SignatureMessage.class, m));
+                return null;
+            // Unknown message type:
             default:
                 throw new UnsupportedOperationException(
                         "Received an unknown message type.");
@@ -401,18 +440,18 @@ public class Session implements Context {
         final OtrPolicy policy = getSessionPolicy();
         if (queryMessage.versions.contains(OTRv.THREE) && policy.getAllowV3()) {
             logger.finest("Query message with V3 support found.");
-            final DHCommitMessage dhCommit = this.authContext.respondAuth(OTRv.THREE);
+            final DHCommitMessage dhCommit = respondAuth(OTRv.THREE);
             if (isMasterSession) {
                 synchronized (slaveSessions) {
                     for (final Session session : slaveSessions.values()) {
-                        session.authContext.reset(this.authContext);
+                        session.authState = this.authState;
                     }
                 }
             }
             injectMessage(dhCommit);
         } else if (queryMessage.versions.contains(OTRv.TWO) && policy.getAllowV2()) {
             logger.finest("Query message with V2 support found.");
-            final DHCommitMessage dhCommit = this.authContext.respondAuth(OTRv.TWO);
+            final DHCommitMessage dhCommit = respondAuth(OTRv.TWO);
             logger.finest("Sending D-H Commit Message");
             injectMessage(dhCommit);
         } else {
@@ -492,11 +531,11 @@ public class Session implements Context {
                 && policy.getAllowV3()) {
             logger.finest("V3 tag found.");
             try {
-                final DHCommitMessage dhCommit = this.authContext.respondAuth(Session.OTRv.THREE);
+                final DHCommitMessage dhCommit = respondAuth(Session.OTRv.THREE);
                 if (isMasterSession) {
                     synchronized (slaveSessions) {
                         for (final Session session : slaveSessions.values()) {
-                            session.authContext.reset(this.authContext);
+                            session.authState = this.authState;
                         }
                     }
                 }
@@ -509,7 +548,7 @@ public class Session implements Context {
                 && policy.getAllowV2()) {
             logger.finest("V2 tag found.");
             try {
-                final DHCommitMessage dhCommit = this.authContext.respondAuth(Session.OTRv.TWO);
+                final DHCommitMessage dhCommit = respondAuth(Session.OTRv.TWO);
                 logger.finest("Sending D-H Commit Message");
                 injectMessage(dhCommit);
             } catch (final OtrException e) {
@@ -517,6 +556,143 @@ public class Session implements Context {
             }
         } else {
             logger.info("Message with whitespace tags received, but none of the tags are useful. They are either excluded by policy or by lack of support.");
+        }
+    }
+
+    private void handleSignatureMessage(@Nonnull final SignatureMessage m) throws OtrException {
+        final SessionID sessionID = this.sessionState.getSessionID();
+        logger.log(Level.FINEST, "{0} received a signature message from {1} through {2}.",
+                new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
+
+        final OtrPolicy policy = getSessionPolicy();
+        if (m.protocolVersion == OTRv.TWO && !policy.getAllowV2()) {
+            logger.finest("If ALLOW_V2 is not set, ignore this message.");
+            return;
+        } else if (m.protocolVersion == OTRv.THREE && !policy.getAllowV3()) {
+            logger.finest("If ALLOW_V3 is not set, ignore this message.");
+            return;
+        } else if (m.protocolVersion == OTRv.THREE &&
+                this.senderTag.getValue() != m.receiverInstanceTag) {
+            logger.finest("Received a Signature Message with receiver instance tag"
+                    + " that is different from ours, ignore this message");
+            return;
+        }
+
+        final AbstractEncodedMessage reply;
+        try {
+            reply = this.authState.handle(this, m);
+        } catch (final InteractionFailedException ex) {
+            throw new OtrException("Failed to handle Signature message.", ex);
+        } catch (final IOException ex) {
+            throw new OtrException("Bad message received: failed to process full message.", ex);
+        }
+
+        if (reply != null) {
+            injectMessage(reply);
+        }
+    }
+
+    private void handleRevealSignatureMessage(@Nonnull final RevealSignatureMessage m)
+            throws OtrException {
+        final SessionID sessionID = getSessionID();
+        logger.log(Level.FINEST, "{0} received a reveal signature message from {1} through {2}.",
+                new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
+        final OtrPolicy policy = getSessionPolicy();
+        if (m.protocolVersion == OTRv.TWO && !policy.getAllowV2()) {
+            logger.finest("If ALLOW_V2 is not set, ignore this message.");
+            return;
+        } else if (m.protocolVersion == OTRv.THREE && !policy.getAllowV3()) {
+            logger.finest("If ALLOW_V3 is not set, ignore this message.");
+            return;
+        } else if (m.protocolVersion == OTRv.THREE &&
+                this.senderTag.getValue() != m.receiverInstanceTag) {
+            logger.finest("Received a Reveal Signature Message with receiver instance tag"
+                    + " that is different from ours, ignore this message");
+            return;
+        }
+
+        final AbstractEncodedMessage reply;
+        try {
+            reply = this.authState.handle(this, m);
+        } catch (final InteractionFailedException ex) {
+            throw new OtrException("Failed to handle Reveal Signature message.", ex);
+        } catch (final IOException ex) {
+            throw new OtrException("Bad message received: failed to process full message.", ex);
+        }
+
+        if (reply != null) {
+            injectMessage(reply);
+        }
+    }
+
+    private void handleDHKeyMessage(@Nonnull final DHKeyMessage m) throws OtrException {
+        final SessionID sessionID = getSessionID();
+        logger.log(Level.FINEST, "{0} received a D-H key message from {1} through {2}.",
+                new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
+
+        final OtrPolicy policy = getSessionPolicy();
+        if (m.protocolVersion == OTRv.TWO && !policy.getAllowV2()) {
+            logger.finest("If ALLOW_V2 is not set, ignore this message.");
+            return;
+        } else if (m.protocolVersion == OTRv.THREE && !policy.getAllowV3()) {
+            logger.finest("If ALLOW_V3 is not set, ignore this message.");
+            return;
+        } else if (m.protocolVersion == OTRv.THREE
+                && this.senderTag.getValue() != m.receiverInstanceTag) {
+            logger.finest("Received a D-H Key Message with receiver instance tag"
+                    + " that is different from ours, ignore this message");
+            return;
+        }
+
+        this.receiverTag = new InstanceTag(m.senderInstanceTag);
+        final AbstractEncodedMessage reply;
+        try {
+            reply = this.authState.handle(this, m);
+        } catch (final InteractionFailedException ex) {
+            throw new OtrException("Failed to handle DH Key message.", ex);
+        } catch (final IOException ex) {
+            throw new OtrException("Bad message received: failed to process full message.", ex);
+        }
+
+        if (reply != null) {
+            injectMessage(reply);
+        }
+    }
+
+    private void handleDHCommitMessage(@Nonnull final DHCommitMessage m) throws OtrException {
+        final SessionID sessionID = getSessionID();
+        logger.log(Level.FINEST, "{0} received a D-H commit message from {1} through {2}.",
+                new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
+
+        final OtrPolicy policy = getSessionPolicy();
+        // TODO move these checks to earlier in the handling process such that we can ignore uninteresting messages even before we get into concrete handling.
+        if (m.protocolVersion == OTRv.TWO && !policy.getAllowV2()) {
+            logger.finest("ALLOW_V2 is not set, ignore this message.");
+            return;
+        } else if (m.protocolVersion == OTRv.THREE && !policy.getAllowV3()) {
+            logger.finest("ALLOW_V3 is not set, ignore this message.");
+            return;
+        } else if (m.protocolVersion == OTRv.THREE &&
+                this.senderTag.getValue() != m.receiverInstanceTag &&
+                m.receiverInstanceTag != 0) {
+
+            logger.finest("Received a D-H commit message with receiver instance tag "
+                    + "that is different from ours, ignore this message.");
+            return;
+        }
+
+        this.receiverTag = new InstanceTag(m.senderInstanceTag);
+        final AbstractEncodedMessage reply;
+        try {
+            reply = this.authState.handle(this, m);
+        } catch (final InteractionFailedException ex) {
+            throw new OtrException("Failed to handle DH Commit message.", ex);
+        } catch (final IOException ex) {
+            throw new OtrException("Bad message received: failed to process full message.", ex);
+        }
+
+        if (reply != null) {
+            injectMessage(reply);
         }
     }
 
@@ -559,7 +735,7 @@ public class Session implements Context {
             logger.fine("startSession was called, however an encrypted session is already established.");
             return;
         }
-        this.authContext.startAuth();
+        startAuth();
     }
 
     public void endSession() throws OtrException {
@@ -615,20 +791,11 @@ public class Session implements Context {
         return receiverTag;
     }
 
-    public void setReceiverInstanceTag(@Nonnull final InstanceTag receiverTag) {
-        // ReceiverInstanceTag of a slave session is not supposed to change
-        if (!isMasterSession) {
-            return;
-        }
-        this.receiverTag = receiverTag;
-    }
-
     // FIXME do we still need this? Or query at AuthContext? It's a derived value based on the current (or previously completed?) AKE conversation.
     @Override
     public int getProtocolVersion() {
         // FIXME extend to use ENCRYPTED message state's protocol version too?
-        return this.authContext.getVersion();
-//        return isMasterSession ? this.protocolVersion : 3;
+        return this.authState.getVersion();
     }
 
     public List<Session> getInstances() {
@@ -687,7 +854,26 @@ public class Session implements Context {
     public Session getOutgoingInstance() {
         return outgoingSession;
     }
-    
+
+    @Override
+    public void startAuth() throws OtrException {
+        logger.finest("Starting Authenticated Key Exchange, sending query message");
+        final OtrPolicy policy = this.getSessionPolicy();
+        final Set<Integer> allowedVersions = OtrPolicyUtil.allowedVersions(policy);
+        if (allowedVersions.isEmpty()) {
+            throw new IllegalStateException("Current OTR policy declines all supported versions of OTR. There is no way to start an OTR session that complies with the policy.");
+        }
+        injectMessage(new QueryMessage(allowedVersions));
+    }
+
+    public DHCommitMessage respondAuth(final int version) throws OtrException {
+        if (!OTRv.ALL.contains(version)) {
+            throw new OtrException("Only allowed versions are: 2, 3");
+        }
+        logger.finest("Responding to Query Message with D-H Commit message.");
+        return this.authState.initiate(this, version);
+    }
+
     public void initSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
         if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
             outgoingSession.initSmp(question, secret);
