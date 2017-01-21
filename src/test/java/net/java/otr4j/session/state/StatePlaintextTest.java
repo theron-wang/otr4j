@@ -8,7 +8,6 @@ import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.TLV;
 import static org.junit.Assert.assertArrayEquals;
 import org.junit.Test;
-import org.mockito.Mockito;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -31,7 +30,7 @@ public class StatePlaintextTest {
         when(context.getOfferStatus()).thenReturn(OfferStatus.idle);
         final String[] msgs = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertArrayEquals(expected, msgs);
-        verify(context, atLeastOnce()).setOfferStatus(OfferStatus.sent);
+        verify(context, atLeastOnce()).setOfferStatusSent();
     }
 
     @Test
@@ -46,7 +45,7 @@ public class StatePlaintextTest {
         when(context.getOfferStatus()).thenReturn(OfferStatus.idle);
         final String[] msgs = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertArrayEquals(expected, msgs);
-        verify(context, atLeastOnce()).setOfferStatus(OfferStatus.sent);
+        verify(context, atLeastOnce()).setOfferStatusSent();
     }
 
     @Test
@@ -61,7 +60,7 @@ public class StatePlaintextTest {
         when(context.getOfferStatus()).thenReturn(OfferStatus.idle);
         final String[] msgs = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertArrayEquals(expected, msgs);
-        verify(context, atLeastOnce()).setOfferStatus(OfferStatus.sent);
+        verify(context, atLeastOnce()).setOfferStatusSent();
     }
 
     @Test
@@ -76,7 +75,7 @@ public class StatePlaintextTest {
         when(context.getOfferStatus()).thenReturn(OfferStatus.idle);
         final String[] msgs = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertArrayEquals(expected, msgs);
-        verify(context, never()).setOfferStatus(OfferStatus.sent);
+        verify(context, never()).setOfferStatusSent();
     }
 
     @Test
@@ -91,7 +90,7 @@ public class StatePlaintextTest {
         when(context.getOfferStatus()).thenReturn(OfferStatus.idle);
         final String[] msgs = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertArrayEquals(expected, msgs);
-        verify(context, never()).setOfferStatus(Mockito.any(OfferStatus.class));
+        verify(context, never()).setOfferStatusSent();
     }
 
     @Test
@@ -106,6 +105,6 @@ public class StatePlaintextTest {
         when(context.getOfferStatus()).thenReturn(OfferStatus.rejected);
         final String[] msgs = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertArrayEquals(expected, msgs);
-        verify(context, never()).setOfferStatus(Mockito.any(OfferStatus.class));
+        verify(context, never()).setOfferStatusSent();
     }
 }

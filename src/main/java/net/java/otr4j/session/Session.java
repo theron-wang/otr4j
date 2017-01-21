@@ -274,8 +274,8 @@ public class Session implements Context, AuthContext {
     }
 
     @Override
-    public void setOfferStatus(@Nonnull final OfferStatus status) {
-        this.offerStatus = Objects.requireNonNull(status);
+    public void setOfferStatusSent() {
+        this.offerStatus = OfferStatus.sent;
     }
 
     @Nullable

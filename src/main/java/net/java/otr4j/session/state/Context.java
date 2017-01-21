@@ -40,7 +40,7 @@ public interface Context {
     @Nonnull
     OfferStatus getOfferStatus();
 
-    void setOfferStatus(@Nonnull OfferStatus status);
+    void setOfferStatusSent();
 
     @Nonnull
     OtrFragmenter fragmenter();

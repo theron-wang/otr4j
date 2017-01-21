@@ -119,7 +119,7 @@ public final class StatePlaintext extends AbstractState {
         }
         final String message = SerializationUtils.toString(
                     new PlainTextMessage(versions, msgText));
-        context.setOfferStatus(OfferStatus.sent);
+        context.setOfferStatusSent();
         return new String[]{message};
     }
 
