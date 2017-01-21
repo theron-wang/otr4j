@@ -44,7 +44,7 @@ public interface AuthState {
      * @throws OtrCryptoException Throws OtrCryptoException in case of
      * unexpected situations during message processing, such as validation
      * exceptions.
-     * @throws Context.InteractionFailedException Thrown in case of failure
+     * @throws AuthContext.InteractionFailedException Thrown in case of failure
      * while interacting with the provided AKE context.
      */
     @Nullable

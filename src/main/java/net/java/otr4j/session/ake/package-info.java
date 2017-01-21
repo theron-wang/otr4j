@@ -9,10 +9,8 @@
 // TODO structurally handle verification/validation errors.
 // TODO modify state implementations in such a way that it is impossible to use keys/random data without it being initialized.
 // TODO verify that various message types do not allow invalid/illegal message contents.
-// FIXME check that all unchecked exceptions are warranted as they are used.
 // TODO need/required to clear temporary bytearray data containing key information? (AKE states)
 // FIXME check if we do appropriate state transitions (back to NONE) for failed validations.
-// FIXME move similar logging statements into new AKE state implementation.
 // FIXME verify that all message-state combinations are now handled
 // TODO verify behavior of state implementation in case message is not expected. (Throw ISE or ignore?)
 // TODO what to do with version mismatch, do we throw runtime exception or silently ignore?

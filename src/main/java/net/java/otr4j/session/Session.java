@@ -110,8 +110,7 @@ public class Session implements Context, AuthContext {
      * Flag indicating whether this instance is a master session or a slave
      * session.
      */
-    // TODO rename variable to masterSession to match convention
-    private final boolean isMasterSession;
+    private final boolean masterSession;
 
     private final OtrEngineHost host;
 
@@ -174,7 +173,7 @@ public class Session implements Context, AuthContext {
             @Nonnull final InstanceTag receiverTag,
             @Nonnull final SecureRandom secureRandom,
             @Nonnull final AuthState authState) {
-        this.isMasterSession = masterSession;
+        this.masterSession = masterSession;
         this.secureRandom = Objects.requireNonNull(secureRandom);
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.sessionState = new StatePlaintext(sessionID);
@@ -184,7 +183,7 @@ public class Session implements Context, AuthContext {
         this.receiverTag = Objects.requireNonNull(receiverTag);
         this.offerStatus = OfferStatus.idle;
         // Master sessions use the map to manage slave sessions. Slave sessions do not use the map.
-        slaveSessions = isMasterSession
+        slaveSessions = masterSession
                 ? Collections.synchronizedMap(new HashMap<InstanceTag, Session>(0))
                 : Collections.<InstanceTag, Session>emptyMap();
         outgoingSession = this;
@@ -284,8 +283,7 @@ public class Session implements Context, AuthContext {
 
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.viable()) {
-            // FIXME consider making this a warning ... or is this already caught before we reach this line?
-            logger.finest("Policy does not allow any version of OTR, ignoring message.");
+            logger.warning("Policy does not allow any version of OTR, ignoring message.");
             return msgText;
         }
 
@@ -296,7 +294,7 @@ public class Session implements Context, AuthContext {
             logger.finest(e.getMessage());
             OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionID());
             return null;
-        } catch (ProtocolException e) {
+        } catch (final ProtocolException e) {
             logger.log(Level.WARNING, "An invalid message fragment was discarded.", e);
             return null;
         }
@@ -321,14 +319,13 @@ public class Session implements Context, AuthContext {
             offerStatus = OfferStatus.rejected;
         }
 
-        if (m instanceof AbstractEncodedMessage && isMasterSession) {
-            // FIXME consider how AuthContext should be copied to slave sessions, in order to preserve any AKE sessions in progress.
+        if (m instanceof AbstractEncodedMessage && masterSession) {
 
             final AbstractEncodedMessage encodedM = (AbstractEncodedMessage) m;
 
             if (encodedM.protocolVersion == OTRv.THREE) {
 
-                if (encodedM.receiverInstanceTag != this.getSenderInstanceTag().getValue()) {
+                if (encodedM.receiverInstanceTag != this.senderTag.getValue()) {
                     if (!(encodedM.messageType == AbstractEncodedMessage.MESSAGE_DH_COMMIT
                     && encodedM.receiverInstanceTag == 0)) {
 
@@ -340,8 +337,8 @@ public class Session implements Context, AuthContext {
                     }
                 }
 
-                if (encodedM.senderInstanceTag != this.getReceiverInstanceTag().getValue()
-                        && this.getReceiverInstanceTag().getValue() != 0) {
+                if (encodedM.senderInstanceTag != this.receiverTag.getValue()
+                        && this.receiverTag.getValue() != 0) {
 
                     /*
                      * Message is intended for us but is coming from a different
@@ -364,7 +361,7 @@ public class Session implements Context, AuthContext {
                                     = new Session(false,
                                             this.sessionState.getSessionID(),
                                             this.host,
-                                            getSenderInstanceTag(),
+                                            this.senderTag,
                                             newReceiverTag,
                                             this.secureRandom,
                                             encodedM.messageType == AbstractEncodedMessage.MESSAGE_DHKEY
@@ -441,7 +438,7 @@ public class Session implements Context, AuthContext {
         if (queryMessage.versions.contains(OTRv.THREE) && policy.getAllowV3()) {
             logger.finest("Query message with V3 support found.");
             final DHCommitMessage dhCommit = respondAuth(OTRv.THREE);
-            if (isMasterSession) {
+            if (masterSession) {
                 synchronized (slaveSessions) {
                     for (final Session session : slaveSessions.values()) {
                         session.authState = this.authState;
@@ -532,7 +529,7 @@ public class Session implements Context, AuthContext {
             logger.finest("V3 tag found.");
             try {
                 final DHCommitMessage dhCommit = respondAuth(Session.OTRv.THREE);
-                if (isMasterSession) {
+                if (masterSession) {
                     synchronized (slaveSessions) {
                         for (final Session session : slaveSessions.values()) {
                             session.authState = this.authState;
@@ -714,7 +711,7 @@ public class Session implements Context, AuthContext {
     @Nonnull
     public String[] transformSending(@Nullable String msgText, @Nullable List<TLV> tlvs)
             throws OtrException {
-        if (isMasterSession && outgoingSession != this && getProtocolVersion() == OTRv.THREE) {
+        if (masterSession && outgoingSession != this && getProtocolVersion() == OTRv.THREE) {
             return outgoingSession.transformSending(msgText, tlvs);
         }
         if (msgText == null) {
@@ -786,15 +783,15 @@ public class Session implements Context, AuthContext {
         return senderTag;
     }
 
+    // FIXME verify unnecessary use of method for internal access to tag.
     @Override
     public InstanceTag getReceiverInstanceTag() {
         return receiverTag;
     }
 
-    // FIXME do we still need this? Or query at AuthContext? It's a derived value based on the current (or previously completed?) AKE conversation.
     @Override
     public int getProtocolVersion() {
-        // FIXME extend to use ENCRYPTED message state's protocol version too?
+        // FIXME extend to use ENCRYPTED message state's protocol version too? Do we still need this? Or query at AuthContext? It's a derived value based on the current (or previously completed?) AKE conversation.
         return this.authState.getVersion();
     }
 
@@ -806,12 +803,12 @@ public class Session implements Context, AuthContext {
     }
 
     public boolean setOutgoingInstance(@Nonnull final InstanceTag tag) {
-        if (!isMasterSession) {
+        if (!masterSession) {
             // Only master session can set the outgoing session.
             return false;
         }
         final SessionID sessionId = this.sessionState.getSessionID();
-        if (tag.equals(getReceiverInstanceTag())) {
+        if (tag.equals(this.receiverTag)) {
             outgoingSession = this;
             OtrEngineListenerUtil.outgoingSessionChanged(
                     OtrEngineListenerUtil.duplicate(listeners), sessionId);
@@ -831,7 +828,7 @@ public class Session implements Context, AuthContext {
 
     @Nonnull
     public SessionStatus getSessionStatus(@Nonnull final InstanceTag tag) {
-        if (tag.equals(getReceiverInstanceTag())) {
+        if (tag.equals(this.receiverTag)) {
             return this.sessionState.getStatus();
         } else {
             final Session slave = slaveSessions.get(tag);
@@ -842,7 +839,7 @@ public class Session implements Context, AuthContext {
 
     @Nonnull
     public PublicKey getRemotePublicKey(@Nonnull final InstanceTag tag) throws State.IncorrectStateException {
-        if (tag.equals(getReceiverInstanceTag())) {
+        if (tag.equals(this.receiverTag)) {
             return this.sessionState.getRemotePublicKey();
         } else {
             final Session slave = slaveSessions.get(tag);
@@ -890,7 +887,7 @@ public class Session implements Context, AuthContext {
     public void respondSmp(@Nonnull final InstanceTag receiverTag, @Nullable final String question, @Nonnull final String secret)
             throws OtrException
     {
-        if (receiverTag.equals(getReceiverInstanceTag())) {
+        if (receiverTag.equals(this.receiverTag)) {
             respondSmp(question, secret);
             return;
         }
