@@ -19,6 +19,11 @@ import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.io.messages.SignatureX;
 
+/**
+ * AKE state Awaiting Signature message, a.k.a. AUTHSTATE_AWAITING_SIG.
+ *
+ * @author Danny van Heumen
+ */
 final class StateAwaitingSig implements AuthState {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingSig.class.getName());

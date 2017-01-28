@@ -20,6 +20,12 @@ import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.io.messages.SignatureX;
 
+/**
+ * AKE state Awaiting Reveal Signature message, a.k.a.
+ * AUTHSTATE_AWAITING_REVEALSIG.
+ *
+ * @author Danny van Heumen
+ */
 final class StateAwaitingRevealSig implements AuthState {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingRevealSig.class.getName());
@@ -71,19 +77,18 @@ final class StateAwaitingRevealSig implements AuthState {
         return dhcommit;
     }
 
-    // FIXME current implementation has risk of mixing up variables from Reveal Signature message validation and Signature message creation.
     @Override
     public AbstractEncodedMessage handle(@Nonnull final AuthContext context, @Nonnull final AbstractEncodedMessage message)
             throws OtrCryptoException, AuthContext.InteractionFailedException, IOException {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
-        } else if (message instanceof DHKeyMessage) {
-            LOGGER.log(Level.INFO, "Ignoring DHKey message.");
-            return null;
         }
         if (message.protocolVersion != this.version) {
-            // FIXME need to move version-check up?
             throw new IllegalArgumentException("unexpected version");
+        }
+        if (message instanceof DHKeyMessage) {
+            LOGGER.log(Level.INFO, "Ignoring DHKey message.");
+            return null;
         }
         if (!(message instanceof RevealSignatureMessage)) {
             // TODO is this correct, didn't check all possible cases, so far just implemented handling Reveal Signature Message.
@@ -104,46 +109,71 @@ final class StateAwaitingRevealSig implements AuthState {
         return new DHKeyMessage(message.protocolVersion, (DHPublicKey) this.keypair.getPublic(), context.senderInstance(), context.receiverInstance());
     }
 
+    /**
+     * Validate the received Reveal Signature message and construct the
+     * Signature message to respond with.
+     *
+     * This method contains embedded blocks to isolate the validation from the
+     * signature creation part such that we do not accidentally mix up
+     * variables.
+     *
+     * @param context Authentication context.
+     * @param message Received Reveal Signature message.
+     * @return Returns Signature message.
+     * @throws OtrCryptoException Thrown in case of exceptions during validation
+     * or signature message creation.
+     * @throws net.java.otr4j.session.ake.AuthContext.InteractionFailedException
+     * Thrown in case of interaction failure with the provided context.
+     * @throws IOException Thrown in case of message content errors.
+     */
     @Nonnull
     private SignatureMessage handleRevealSignatureMessage(@Nonnull final AuthContext context, @Nonnull final RevealSignatureMessage message)
             throws OtrCryptoException, AuthContext.InteractionFailedException, IOException {
-        // Start validation of Reveal Signature message.
-        final byte[] remotePublicKeyBytes = OtrCryptoEngine.aesDecrypt(message.revealedKey, null, this.remotePublicKeyEncrypted);
-        final byte[] expectedRemotePublicKeyHash = OtrCryptoEngine.sha256Hash(remotePublicKeyBytes);
-        OtrCryptoEngine.checkEquals(this.remotePublicKeyHash, expectedRemotePublicKeyHash, "Remote's public key hash failed validation.");
-        final BigInteger remotePublicKeyMPI = SerializationUtils.readMpi(remotePublicKeyBytes);
-        final DHPublicKey remoteDHPublicKey = OtrCryptoEngine.verify(
-                OtrCryptoEngine.getDHPublicKey(remotePublicKeyMPI));
-        final SharedSecret s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), remoteDHPublicKey);
-        final byte[] remoteXEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
-        final byte[] expectedXEncryptedMAC = OtrCryptoEngine.sha256Hmac160(remoteXEncryptedBytes, s.m2());
-        OtrCryptoEngine.checkEquals(message.xEncryptedMAC, expectedXEncryptedMAC, "xEncryptedMAC failed validation.");
-        final byte[] remoteMysteriousXBytes = OtrCryptoEngine.aesDecrypt(s.c(), null, message.xEncrypted);
-        final SignatureX remoteMysteriousX = SerializationUtils.toMysteriousX(remoteMysteriousXBytes);
-        final SignatureM expectedM = new SignatureM(remoteDHPublicKey,
-                (DHPublicKey) this.keypair.getPublic(),
-                remoteMysteriousX.longTermPublicKey, remoteMysteriousX.dhKeyID);
-        final byte[] expectedMBytes = SerializationUtils.toByteArray(expectedM);
-        final byte[] expectedSignature = OtrCryptoEngine.sha256Hmac(expectedMBytes, s.m1());
-        OtrCryptoEngine.verify(expectedSignature, remoteMysteriousX.longTermPublicKey,
-                remoteMysteriousX.signature);
-        LOGGER.finest("Signature verification succeeded.");
-        // Start construction of Signature message.
-        final KeyPair localLongTermKeyPair = context.longTermKeyPair();
-        final SignatureM signatureM = new SignatureM(
-                (DHPublicKey) this.keypair.getPublic(), remoteDHPublicKey,
-                localLongTermKeyPair.getPublic(), LOCAL_DH_PRIVATE_KEY_ID);
-        final byte[] signatureMBytes = SerializationUtils.toByteArray(signatureM);
-        final byte[] mhash = OtrCryptoEngine.sha256Hmac(signatureMBytes, s.m1p());
-        final byte[] signature = OtrCryptoEngine.sign(mhash, localLongTermKeyPair.getPrivate());
-        final SignatureX mysteriousX = new SignatureX(localLongTermKeyPair.getPublic(),
-                LOCAL_DH_PRIVATE_KEY_ID, signature);
-        final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(s.cp(), null,
+        final DHPublicKey remoteDHPublicKey;
+        final SharedSecret s;
+        final SignatureX remoteMysteriousX;
+        {
+            // Start validation of Reveal Signature message.
+            final byte[] remotePublicKeyBytes = OtrCryptoEngine.aesDecrypt(message.revealedKey, null, this.remotePublicKeyEncrypted);
+            final byte[] expectedRemotePublicKeyHash = OtrCryptoEngine.sha256Hash(remotePublicKeyBytes);
+            OtrCryptoEngine.checkEquals(this.remotePublicKeyHash, expectedRemotePublicKeyHash, "Remote's public key hash failed validation.");
+            final BigInteger remotePublicKeyMPI = SerializationUtils.readMpi(remotePublicKeyBytes);
+            remoteDHPublicKey = OtrCryptoEngine.verify(
+                    OtrCryptoEngine.getDHPublicKey(remotePublicKeyMPI));
+            s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), remoteDHPublicKey);
+            final byte[] remoteXEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
+            final byte[] expectedXEncryptedMAC = OtrCryptoEngine.sha256Hmac160(remoteXEncryptedBytes, s.m2());
+            OtrCryptoEngine.checkEquals(message.xEncryptedMAC, expectedXEncryptedMAC, "xEncryptedMAC failed validation.");
+            final byte[] remoteMysteriousXBytes = OtrCryptoEngine.aesDecrypt(s.c(), null, message.xEncrypted);
+            remoteMysteriousX = SerializationUtils.toMysteriousX(remoteMysteriousXBytes);
+            final SignatureM expectedM = new SignatureM(remoteDHPublicKey,
+                    (DHPublicKey) this.keypair.getPublic(),
+                    remoteMysteriousX.longTermPublicKey, remoteMysteriousX.dhKeyID);
+            final byte[] expectedMBytes = SerializationUtils.toByteArray(expectedM);
+            final byte[] expectedSignature = OtrCryptoEngine.sha256Hmac(expectedMBytes, s.m1());
+            OtrCryptoEngine.verify(expectedSignature, remoteMysteriousX.longTermPublicKey,
+                    remoteMysteriousX.signature);
+            LOGGER.finest("Signature verification succeeded.");
+        }
+        final SignatureMessage signatureMessage;
+        {
+            // Start construction of Signature message.
+            final KeyPair localLongTermKeyPair = context.longTermKeyPair();
+            final SignatureM signatureM = new SignatureM(
+                    (DHPublicKey) this.keypair.getPublic(), remoteDHPublicKey,
+                    localLongTermKeyPair.getPublic(), LOCAL_DH_PRIVATE_KEY_ID);
+            final byte[] signatureMBytes = SerializationUtils.toByteArray(signatureM);
+            final byte[] mhash = OtrCryptoEngine.sha256Hmac(signatureMBytes, s.m1p());
+            final byte[] signature = OtrCryptoEngine.sign(mhash, localLongTermKeyPair.getPrivate());
+            final SignatureX mysteriousX = new SignatureX(localLongTermKeyPair.getPublic(),
+                    LOCAL_DH_PRIVATE_KEY_ID, signature);
+            final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(s.cp(), null,
                     SerializationUtils.toByteArray(mysteriousX));
-        final byte[] xEncryptedBytes = SerializationUtils.writeData(xEncrypted);
-        final byte[] xEncryptedHash = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
-        final SignatureMessage signatureMessage = new SignatureMessage(
-                this.version, xEncrypted, xEncryptedHash, context.senderInstance(), context.receiverInstance());
+            final byte[] xEncryptedBytes = SerializationUtils.writeData(xEncrypted);
+            final byte[] xEncryptedHash = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
+            signatureMessage = new SignatureMessage(
+                    this.version, xEncrypted, xEncryptedHash, context.senderInstance(), context.receiverInstance());
+        }
         // Transition to ENCRYPTED message state.
         final SecurityParameters params = new SecurityParameters(this.version,
                 this.keypair, remoteMysteriousX.longTermPublicKey,

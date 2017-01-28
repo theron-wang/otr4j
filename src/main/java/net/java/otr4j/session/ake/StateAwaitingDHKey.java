@@ -18,6 +18,11 @@ import net.java.otr4j.io.messages.RevealSignatureMessage;
 import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureX;
 
+/**
+ * AKE state Awaiting D-H Key message, a.k.a. AUTHSTATE_AWAITING_DHKEY.
+ *
+ * @author Danny van Heumen
+ */
 final class StateAwaitingDHKey implements AuthState {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingDHKey.class.getName());
@@ -101,7 +106,7 @@ final class StateAwaitingDHKey implements AuthState {
     }
 
     @Nonnull
-    private AbstractEncodedMessage handleDHKeyMessage(@Nonnull final AuthContext context, @Nonnull final DHKeyMessage message) throws OtrCryptoException {
+    private RevealSignatureMessage handleDHKeyMessage(@Nonnull final AuthContext context, @Nonnull final DHKeyMessage message) throws OtrCryptoException {
         OtrCryptoEngine.verify(message.dhPublicKey);
         final KeyPair longTermKeyPair = context.longTermKeyPair();
         final SharedSecret s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), message.dhPublicKey);
