@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
+import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.DHCommitMessage;
 
 /**
@@ -24,21 +25,28 @@ abstract class AbstractAuthState implements AuthState {
         if (version < 2 || version > 3) {
             throw new IllegalArgumentException("unknown or unsupported protocol version");
         }
-        final KeyPair newKeypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
+        final KeyPair keypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
         LOGGER.finest("Generated local D-H key pair.");
-        final byte[] newR = OtrCryptoEngine.random(context.secureRandom(),
+        final byte[] r = OtrCryptoEngine.random(context.secureRandom(),
                 new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH]);
-        final DHCommitMessage dhcommit;
+        final DHPublicKey localDHPublicKey = (DHPublicKey) keypair.getPublic();
         try {
-            dhcommit = AKEMessage.createDHCommitMessage(
-                    version, newR, (DHPublicKey) newKeypair.getPublic(),
-                    context.senderInstance());
+            OtrCryptoEngine.verify(localDHPublicKey);
         } catch (final OtrCryptoException ex) {
-            throw new IllegalStateException("Failed to create DH Commit message.", ex);
+            throw new IllegalStateException("Failed to generate valid local DH keypair.", ex);
         }
+        final byte[] publicKeyBytes = SerializationUtils.writeMpi(localDHPublicKey.getY());
+        final byte[] publicKeyHash = OtrCryptoEngine.sha256Hash(publicKeyBytes);
+        final byte[] publicKeyEncrypted;
+        try {
+            publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(r, null, publicKeyBytes);
+        } catch (final OtrCryptoException ex) {
+            throw new IllegalStateException("Failed to encrypt public key bytes.", ex);
+        }
+        final DHCommitMessage dhcommit = new DHCommitMessage(version,
+                publicKeyHash, publicKeyEncrypted, context.senderInstance(), 0);
         LOGGER.finest("Sending DH commit message.");
-        context.setState(new StateAwaitingDHKey(version, newKeypair, newR));
+        context.setState(new StateAwaitingDHKey(version, keypair, r));
         return dhcommit;
     }
-
 }
