@@ -90,14 +90,13 @@ final class StateAwaitingDHKey implements AuthState {
         final BigInteger remoteKeyHashBigInt = new BigInteger(1, message.dhPublicKeyHash);
         if (localKeyHashBigInt.compareTo(remoteKeyHashBigInt) > 0) {
             LOGGER.finest("Ignored the incoming D-H Commit message, but resent our D-H Commit message.");
-            // TODO spec seems to suggest that we need to resend the exact same DH commit message. So we do not generate a new random AES key, but instead reause the existing one.
             final byte[] publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(this.r, null, publicKeyBytes);
             return new DHCommitMessage(this.version, publicKeyHash, publicKeyEncrypted, context.senderInstance(), 0);
         } else {
             LOGGER.finest("Forgetting old gx value that we sent (encrypted) earlier, and pretended we're in AUTHSTATE_NONE -> Sending DH key.");
-            // TODO consider generating a new DH keypair, as we do not rely on activity up to now anymore. (as per spec we imagine we're back in NONE auth state.
-            context.setState(new StateAwaitingRevealSig(message.protocolVersion, this.keypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
-            return new DHKeyMessage(message.protocolVersion, (DHPublicKey) this.keypair.getPublic(), context.senderInstance(), context.receiverInstance());
+            final KeyPair newKeypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
+            context.setState(new StateAwaitingRevealSig(message.protocolVersion, newKeypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
+            return new DHKeyMessage(message.protocolVersion, (DHPublicKey) newKeypair.getPublic(), context.senderInstance(), context.receiverInstance());
         }
     }
 
