@@ -57,8 +57,13 @@ public interface AuthContext {
     /**
      * InteractionFailedException indicates an error happened while interacting
      * with AKE's context.
+     *
+     * This exception is defined for users of the ake package, i.e. AuthContext
+     * implementors, such that they can throw an exception in case of failure.
+     * InteractionFailedException is the only recognized checked exception which
+     * the ake package takes into account inside the implementation logic.
      */
-    static final class InteractionFailedException extends Exception {
+    final class InteractionFailedException extends Exception {
 
         private static final long serialVersionUID = -8731442427746963923L;
 

@@ -49,10 +49,6 @@ public final class StateInitial extends AbstractAuthState {
             return null;
         }
         if (message.protocolVersion < 2 || message.protocolVersion > 3) {
-            // TODO consider verifying this at an earlier part of the handling
-            // process. On the other hand, we cannot fully verify as we also
-            // want to catch message in a valid conversation but which switches
-            // versions in between.
             throw new IllegalArgumentException("unsupported protocol version");
         }
         return handleDHCommitMessage(context, (DHCommitMessage) message);

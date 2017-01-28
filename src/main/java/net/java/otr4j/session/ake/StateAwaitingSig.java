@@ -65,7 +65,6 @@ final class StateAwaitingSig extends AbstractAuthState {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         }
         if (message.protocolVersion != this.version) {
-            // FIXME go with unchecked exception here?
             throw new IllegalArgumentException("unexpected version");
         }
         if (message instanceof DHKeyMessage) {
@@ -73,6 +72,7 @@ final class StateAwaitingSig extends AbstractAuthState {
         } else if (message instanceof SignatureMessage) {
             return handleSignatureMessage(context, (SignatureMessage) message);
         } else {
+            // FIXME should we error out or ignore?
             throw new IllegalStateException("Unexpected message type received.");
         }
     }

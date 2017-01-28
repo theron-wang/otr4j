@@ -139,7 +139,7 @@ public interface State {
      */
     // TODO consider moving this to own class such that we can have package-private constructor.
     // TODO consider not deriving from OtrException, but instead just Exception.
-    public final class IncorrectStateException extends OtrException {
+    final class IncorrectStateException extends OtrException {
 
         private static final long serialVersionUID = -5335635776510194254L;
 

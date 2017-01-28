@@ -60,7 +60,8 @@ import net.java.otr4j.session.state.StatePlaintext;
  * @author Danny van Heumen
  */
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
-public final class Session implements Context, AuthContext {
+// TODO Make Session final, can only be done after having extracted an interface as we rely on mocking the Session implementation.
+public class Session implements Context, AuthContext {
 
     public interface OTRv {
         int TWO = 2;
@@ -325,16 +326,15 @@ public final class Session implements Context, AuthContext {
 
             if (encodedM.protocolVersion == OTRv.THREE) {
 
-                if (encodedM.receiverInstanceTag != this.senderTag.getValue()) {
-                    if (!(encodedM.messageType == AbstractEncodedMessage.MESSAGE_DH_COMMIT
-                    && encodedM.receiverInstanceTag == 0)) {
+                if (encodedM.receiverInstanceTag != this.senderTag.getValue()
+                        && !(encodedM.messageType == AbstractEncodedMessage.MESSAGE_DH_COMMIT
+                        && encodedM.receiverInstanceTag == 0)) {
 
-                        // The message is not intended for us. Discarding...
-                        logger.finest("Received an encoded message with receiver instance tag" +
-                                " that is different from ours, ignore this message");
-                        OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionID());
-                        return null;
-                    }
+                    // The message is not intended for us. Discarding...
+                    logger.finest("Received an encoded message with receiver instance tag"
+                            + " that is different from ours, ignore this message");
+                    OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionID());
+                    return null;
                 }
 
                 if (encodedM.senderInstanceTag != this.receiverTag.getValue()

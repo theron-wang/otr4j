@@ -53,11 +53,12 @@ final class StateAwaitingDHKey extends AbstractAuthState {
         if (message.protocolVersion != this.version) {
             throw new IllegalArgumentException("unexpected version");
         }
-        if (!(message instanceof DHKeyMessage)) {
+        if (message instanceof DHKeyMessage) {
+            return handleDHKeyMessage(context, (DHKeyMessage) message);
+        } else {
             LOGGER.log(Level.FINEST, "Only expected message is DHKeyMessage. Ignoring message with type: {0}", message.messageType);
             return null;
         }
-        return handleDHKeyMessage(context, (DHKeyMessage) message);
     }
 
     @Override

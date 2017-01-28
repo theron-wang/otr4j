@@ -762,24 +762,6 @@ public class SMTest {
         return MessageDigest.getInstance("SHA-256").digest(combinedSecret);
     }
 
-	/* Compute secret session ID as hash of agreed secret */
-	private static byte[] computeSessionId(final BigInteger s) throws Exception {
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final byte[] sdata;
-        try (OtrOutputStream oos = new OtrOutputStream(out)) {
-            oos.write(0x00);
-            oos.writeBigInt(s);
-            sdata = out.toByteArray();
-        }
-
-		/* Calculate the session id */
-		final MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-		final byte[] res = sha256.digest(sdata);
-		final byte[] secure_session_id = new byte[8];
-		System.arraycopy(res, 0, secure_session_id, 0, 8);
-		return secure_session_id;
-	}
-
     private static KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
         final KeyPairGenerator kg = KeyPairGenerator.getInstance("DSA", "BC");
         return kg.genKeyPair();
