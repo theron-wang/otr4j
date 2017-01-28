@@ -60,7 +60,7 @@ import net.java.otr4j.session.state.StatePlaintext;
  * @author Danny van Heumen
  */
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
-public class Session implements Context, AuthContext {
+public final class Session implements Context, AuthContext {
 
     public interface OTRv {
         int TWO = 2;
@@ -91,9 +91,10 @@ public class Session implements Context, AuthContext {
     private volatile AuthState authState;
 
     /**
-     * Slave sessions contain the mappings of instance tags to outgoing sessions.
-     * In case of the master session, it is initialized with an empty instance.
-     * In case of slaves the slaveSessions instance is initialized to 'null'.
+     * Slave sessions contain the mappings of instance tags to outgoing
+     * sessions. In case of the master session, it is initialized with an empty
+     * instance. In case of slaves the slaveSessions instance is initialized to
+     * an (immutable) empty map.
      */
     @Nonnull
     private final Map<InstanceTag, Session> slaveSessions;
