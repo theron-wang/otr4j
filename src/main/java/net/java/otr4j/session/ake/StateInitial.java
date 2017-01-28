@@ -7,7 +7,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.crypto.interfaces.DHPublicKey;
 import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.io.messages.DHKeyMessage;
@@ -17,7 +16,7 @@ import net.java.otr4j.io.messages.DHKeyMessage;
  *
  * @author Danny van Heumen
  */
-public final class StateInitial implements AuthState {
+public final class StateInitial extends AbstractAuthState {
 
     private static final Logger LOGGER = Logger.getLogger(StateInitial.class.getName());
 
@@ -40,29 +39,6 @@ public final class StateInitial implements AuthState {
     @Nonnull
     public static StateInitial instance() {
         return INSTANCE;
-    }
-
-    @Nonnull
-    @Override
-    public DHCommitMessage initiate(@Nonnull final AuthContext context, final int version) {
-        if (version < 2 || version > 3) {
-            throw new IllegalArgumentException("unknown or unsupported protocol version");
-        }
-        final KeyPair newKeypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
-        LOGGER.finest("Generated local D-H key pair.");
-        final byte[] newR = OtrCryptoEngine.random(context.secureRandom(),
-                new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH]);
-        final DHCommitMessage dhcommit;
-        try {
-            dhcommit = AKEMessage.createDHCommitMessage(
-                    version, newR, (DHPublicKey) newKeypair.getPublic(),
-                    context.senderInstance());
-        } catch (final OtrCryptoException ex) {
-            throw new IllegalStateException("Failed to create DH Commit message.", ex);
-        }
-        LOGGER.finest("Sending DH commit message.");
-        context.setState(new StateAwaitingDHKey(version, newKeypair, newR));
-        return dhcommit;
     }
 
     @Nullable

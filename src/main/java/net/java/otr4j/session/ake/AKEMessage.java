@@ -6,7 +6,6 @@ import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.DHCommitMessage;
 
-// FIXME review try-catch clauses to see if we really accurately handle all possible exception cases.
 // TODO see if we can get rid of this class. It doesn't seem to be that useful.
 final class AKEMessage {
 

@@ -26,7 +26,7 @@ import net.java.otr4j.io.messages.SignatureX;
  *
  * @author Danny van Heumen
  */
-final class StateAwaitingRevealSig implements AuthState {
+final class StateAwaitingRevealSig extends AbstractAuthState {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingRevealSig.class.getName());
 
@@ -53,28 +53,6 @@ final class StateAwaitingRevealSig implements AuthState {
             throw new IllegalArgumentException("Expected public key ciphertext having actual contents.");
         }
         this.remotePublicKeyEncrypted = Objects.requireNonNull(remotePublicKeyEncrypted);
-    }
-
-    @Override
-    public DHCommitMessage initiate(AuthContext context, int version) {
-        if (version < 2 || version > 3) {
-            throw new IllegalArgumentException("unknown or unsupported protocol version");
-        }
-        final KeyPair newKeypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
-        LOGGER.finest("Generated local D-H key pair.");
-        final byte[] newR = OtrCryptoEngine.random(context.secureRandom(),
-                new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH]);
-        final DHCommitMessage dhcommit;
-        try {
-            dhcommit = AKEMessage.createDHCommitMessage(
-                    version, newR, (DHPublicKey) newKeypair.getPublic(),
-                    context.senderInstance());
-        } catch (final OtrCryptoException ex) {
-            throw new IllegalStateException("Failed to create DH Commit message.", ex);
-        }
-        LOGGER.finest("Sending DH commit message.");
-        context.setState(new StateAwaitingDHKey(version, newKeypair, newR));
-        return dhcommit;
     }
 
     @Override
