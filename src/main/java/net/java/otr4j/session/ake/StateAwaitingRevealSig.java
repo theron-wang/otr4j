@@ -113,10 +113,6 @@ final class StateAwaitingRevealSig implements AuthState {
      * Validate the received Reveal Signature message and construct the
      * Signature message to respond with.
      *
-     * This method contains embedded blocks to isolate the validation from the
-     * signature creation part such that we do not accidentally mix up
-     * variables.
-     *
      * @param context Authentication context.
      * @param message Received Reveal Signature message.
      * @return Returns Signature message.
@@ -132,7 +128,7 @@ final class StateAwaitingRevealSig implements AuthState {
         final DHPublicKey remoteDHPublicKey;
         final SharedSecret s;
         final SignatureX remoteMysteriousX;
-        {
+        try {
             // Start validation of Reveal Signature message.
             final byte[] remotePublicKeyBytes = OtrCryptoEngine.aesDecrypt(message.revealedKey, null, this.remotePublicKeyEncrypted);
             final byte[] expectedRemotePublicKeyHash = OtrCryptoEngine.sha256Hash(remotePublicKeyBytes);
@@ -154,32 +150,31 @@ final class StateAwaitingRevealSig implements AuthState {
             OtrCryptoEngine.verify(expectedSignature, remoteMysteriousX.longTermPublicKey,
                     remoteMysteriousX.signature);
             LOGGER.finest("Signature verification succeeded.");
-        }
-        final SignatureMessage signatureMessage;
-        {
-            // Start construction of Signature message.
-            final KeyPair localLongTermKeyPair = context.longTermKeyPair();
-            final SignatureM signatureM = new SignatureM(
-                    (DHPublicKey) this.keypair.getPublic(), remoteDHPublicKey,
-                    localLongTermKeyPair.getPublic(), LOCAL_DH_PRIVATE_KEY_ID);
-            final byte[] signatureMBytes = SerializationUtils.toByteArray(signatureM);
-            final byte[] mhash = OtrCryptoEngine.sha256Hmac(signatureMBytes, s.m1p());
-            final byte[] signature = OtrCryptoEngine.sign(mhash, localLongTermKeyPair.getPrivate());
-            final SignatureX mysteriousX = new SignatureX(localLongTermKeyPair.getPublic(),
-                    LOCAL_DH_PRIVATE_KEY_ID, signature);
-            final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(s.cp(), null,
-                    SerializationUtils.toByteArray(mysteriousX));
-            final byte[] xEncryptedBytes = SerializationUtils.writeData(xEncrypted);
-            final byte[] xEncryptedHash = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
-            signatureMessage = new SignatureMessage(
-                    this.version, xEncrypted, xEncryptedHash, context.senderInstance(), context.receiverInstance());
+        } finally {
+            // Ensure transition to AUTHSTATE_NONE.
+            context.setState(StateInitial.instance());
         }
         // Transition to ENCRYPTED message state.
         final SecurityParameters params = new SecurityParameters(this.version,
                 this.keypair, remoteMysteriousX.longTermPublicKey,
                 remoteDHPublicKey, s);
         context.secure(params);
-        context.setState(StateInitial.instance());
-        return signatureMessage;
+        // Start construction of Signature message.
+        final KeyPair localLongTermKeyPair = context.longTermKeyPair();
+        final SignatureM signatureM = new SignatureM(
+                (DHPublicKey) this.keypair.getPublic(), remoteDHPublicKey,
+                localLongTermKeyPair.getPublic(), LOCAL_DH_PRIVATE_KEY_ID);
+        final byte[] signatureMBytes = SerializationUtils.toByteArray(signatureM);
+        final byte[] mhash = OtrCryptoEngine.sha256Hmac(signatureMBytes, s.m1p());
+        final byte[] signature = OtrCryptoEngine.sign(mhash, localLongTermKeyPair.getPrivate());
+        final SignatureX mysteriousX = new SignatureX(localLongTermKeyPair.getPublic(),
+                LOCAL_DH_PRIVATE_KEY_ID, signature);
+        final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(s.cp(), null,
+                SerializationUtils.toByteArray(mysteriousX));
+        final byte[] xEncryptedBytes = SerializationUtils.writeData(xEncrypted);
+        final byte[] xEncryptedHash = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
+        LOGGER.finest("Creating signature message for response.");
+        return new SignatureMessage(this.version, xEncrypted, xEncryptedHash,
+                context.senderInstance(), context.receiverInstance());
     }
 }

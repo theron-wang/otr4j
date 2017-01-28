@@ -128,23 +128,27 @@ final class StateAwaitingSig implements AuthState {
 
     private SignatureMessage handleSignatureMessage(@Nonnull final AuthContext context, @Nonnull final SignatureMessage message)
             throws OtrCryptoException, AuthContext.InteractionFailedException, IOException {
-        final byte[] xEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
-        final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
-        OtrCryptoEngine.checkEquals(xEncryptedMAC, message.xEncryptedMAC, "xEncryptedMAC failed verification.");
-        final byte[] remoteXBytes = OtrCryptoEngine.aesDecrypt(s.cp(), null, message.xEncrypted);
-        final SignatureX remoteX = SerializationUtils.toMysteriousX(remoteXBytes);
-        final SignatureM remoteM = new SignatureM(this.remoteDHPublicKey,
-                (DHPublicKey) this.localDHKeyPair.getPublic(),
-                remoteX.longTermPublicKey, remoteX.dhKeyID);
-        final byte[] remoteMBytes = SerializationUtils.toByteArray(remoteM);
-        final byte[] expectedSignature = OtrCryptoEngine.sha256Hmac(remoteMBytes, s.m1p());
-        OtrCryptoEngine.verify(expectedSignature, remoteX.longTermPublicKey, remoteX.signature);
-        // Transition to ENCRYPTED session state.
-        final SecurityParameters params = new SecurityParameters(this.version,
-                this.localDHKeyPair, remoteX.longTermPublicKey,
-                remoteDHPublicKey, this.s);
-        context.secure(params);
-        context.setState(StateInitial.instance());
-        return null;
+        try {
+            final byte[] xEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
+            final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
+            OtrCryptoEngine.checkEquals(xEncryptedMAC, message.xEncryptedMAC, "xEncryptedMAC failed verification.");
+            final byte[] remoteXBytes = OtrCryptoEngine.aesDecrypt(s.cp(), null, message.xEncrypted);
+            final SignatureX remoteX = SerializationUtils.toMysteriousX(remoteXBytes);
+            final SignatureM remoteM = new SignatureM(this.remoteDHPublicKey,
+                    (DHPublicKey) this.localDHKeyPair.getPublic(),
+                    remoteX.longTermPublicKey, remoteX.dhKeyID);
+            final byte[] remoteMBytes = SerializationUtils.toByteArray(remoteM);
+            final byte[] expectedSignature = OtrCryptoEngine.sha256Hmac(remoteMBytes, s.m1p());
+            OtrCryptoEngine.verify(expectedSignature, remoteX.longTermPublicKey, remoteX.signature);
+            // Transition to ENCRYPTED session state.
+            final SecurityParameters params = new SecurityParameters(this.version,
+                    this.localDHKeyPair, remoteX.longTermPublicKey,
+                    remoteDHPublicKey, this.s);
+            context.secure(params);
+            return null;
+        } finally {
+            // Ensure transition to AUTHSTATE_NONE.
+            context.setState(StateInitial.instance());
+        }
     }
 }

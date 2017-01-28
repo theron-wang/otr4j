@@ -92,9 +92,9 @@ public final class StateInitial implements AuthState {
     private DHKeyMessage handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) {
         final KeyPair keypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
         LOGGER.finest("Generated local D-H key pair.");
-        LOGGER.finest("Sending DH key message.");
         context.setState(new StateAwaitingRevealSig(message.protocolVersion,
                 keypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
+        LOGGER.finest("Sending DH key message.");
         return new DHKeyMessage(message.protocolVersion, (DHPublicKey) keypair.getPublic(),
                 context.senderInstance(), context.receiverInstance());
     }
