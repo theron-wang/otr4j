@@ -58,7 +58,6 @@ import org.bouncycastle.util.BigIntegers;
 /**
  * @author George Politis
  */
-// FIXME re-evaluate use of (un)checked exceptions for initialization and calculation logic.
 public final class OtrCryptoEngine {
 
     private static final String ALGORITHM_DSA = "DSA";
@@ -190,7 +189,7 @@ public final class OtrCryptoEngine {
         } catch (final NoSuchAlgorithmException ex) {
             throw new IllegalStateException("Unsupported HMAC function specified.", ex);
         } catch (final InvalidKeyException ex) {
-            throw new OtrCryptoException(ex);
+            throw new OtrCryptoException("Invalid key, results in invalid keyspec.", ex);
         }
 
         if (length > 0) {
@@ -345,12 +344,14 @@ public final class OtrCryptoEngine {
     }
 
     /**
-     * Verify ...
-     * 
-     * @param b
-     * @param pubKey Public key. Provided public key must be an instance of DSAPublicKey.
+     * Verify DSA signature against expectation using provided DSA public key
+     * instance..
+     *
+     * @param b data expected to be signed.
+     * @param pubKey Public key. Provided public key must be an instance of
+     * DSAPublicKey.
      * @param rs
-     * @throws OtrCryptoException 
+     * @throws OtrCryptoException Thrown in case of failed verification.
      */
     public static void verify(@Nonnull final byte[] b, @Nonnull final PublicKey pubKey, @Nonnull final byte[] rs)
             throws OtrCryptoException {
