@@ -70,8 +70,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
         } else if (message instanceof RevealSignatureMessage) {
             return handleRevealSignatureMessage(context, (RevealSignatureMessage) message);
         } else {
-            // TODO is this correct, didn't check all possible cases, so far just implemented handling Reveal Signature Message.
-            LOGGER.log(Level.INFO, "Ignoring message.");
+            LOGGER.log(Level.FINEST, "Only expected message types are DHKeyMessage and RevealSignatureMessage. Ignoring message with type: {0}", message.messageType);
             return null;
         }
     }

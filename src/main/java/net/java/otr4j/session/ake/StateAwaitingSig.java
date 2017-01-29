@@ -3,6 +3,7 @@ package net.java.otr4j.session.ake;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -72,8 +73,8 @@ final class StateAwaitingSig extends AbstractAuthState {
         } else if (message instanceof SignatureMessage) {
             return handleSignatureMessage(context, (SignatureMessage) message);
         } else {
-            // FIXME should we error out or ignore?
-            throw new IllegalStateException("Unexpected message type received.");
+            LOGGER.log(Level.FINEST, "Only expected message types are DHKeyMessage and SignatureMessage. Ignoring message with type: {0}", message.messageType);
+            return null;
         }
     }
 
@@ -104,6 +105,7 @@ final class StateAwaitingSig extends AbstractAuthState {
         return this.previousRevealSigMessage;
     }
 
+    @Nullable
     private SignatureMessage handleSignatureMessage(@Nonnull final AuthContext context, @Nonnull final SignatureMessage message)
             throws OtrCryptoException, AuthContext.InteractionFailedException, IOException {
         try {
