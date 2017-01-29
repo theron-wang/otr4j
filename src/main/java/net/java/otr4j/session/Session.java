@@ -33,19 +33,16 @@ import net.java.otr4j.OtrEngineListenerUtil;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.OtrPolicyUtil;
+import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.AbstractMessage;
-import static net.java.otr4j.io.messages.AbstractMessage.checkCast;
 import net.java.otr4j.io.messages.DHCommitMessage;
-import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.io.messages.QueryMessage;
-import net.java.otr4j.io.messages.RevealSignatureMessage;
-import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.session.ake.AuthContext;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.ake.SecurityParameters;
@@ -408,21 +405,18 @@ public class Session implements Context, AuthContext {
             case AbstractMessage.MESSAGE_QUERY:
                 handleQueryMessage((QueryMessage) m);
                 return null;
-            // Handle AKE messages:
             case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
-                handleDHCommitMessage(checkCast(DHCommitMessage.class, m));
-                return null;
             case AbstractEncodedMessage.MESSAGE_DHKEY:
-                handleDHKeyMessage(checkCast(DHKeyMessage.class, m));
-                return null;
             case AbstractEncodedMessage.MESSAGE_REVEALSIG:
-                handleRevealSignatureMessage(checkCast(RevealSignatureMessage.class, m));
-                return null;
             case AbstractEncodedMessage.MESSAGE_SIGNATURE:
-                handleSignatureMessage(checkCast(SignatureMessage.class, m));
+                final AbstractEncodedMessage reply = handleAKEMessage((AbstractEncodedMessage) m);
+                if (reply != null) {
+                    injectMessage(reply);
+                }
                 return null;
             // Unknown message type:
             default:
+                // TODO consider if we want this or a checked exception. This will have issues when an unknown type is used that this client simply doesn't support, but doesn't really hurt the existing converstaion.
                 throw new UnsupportedOperationException(
                         "Received an unknown message type.");
         }
@@ -556,7 +550,8 @@ public class Session implements Context, AuthContext {
         }
     }
 
-    private void handleSignatureMessage(@Nonnull final SignatureMessage m) throws OtrException {
+    @Nullable
+    private AbstractEncodedMessage handleAKEMessage(@Nonnull final AbstractEncodedMessage m) {
         final SessionID sessionID = this.sessionState.getSessionID();
         logger.log(Level.FINEST, "{0} received a signature message from {1} through {2}.",
                 new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
@@ -564,132 +559,38 @@ public class Session implements Context, AuthContext {
         final OtrPolicy policy = getSessionPolicy();
         if (m.protocolVersion == OTRv.TWO && !policy.getAllowV2()) {
             logger.finest("If ALLOW_V2 is not set, ignore this message.");
-            return;
+            return null;
         } else if (m.protocolVersion == OTRv.THREE && !policy.getAllowV3()) {
             logger.finest("If ALLOW_V3 is not set, ignore this message.");
-            return;
-        } else if (m.protocolVersion == OTRv.THREE &&
-                this.senderTag.getValue() != m.receiverInstanceTag) {
-            logger.finest("Received a Signature Message with receiver instance tag"
-                    + " that is different from ours, ignore this message");
-            return;
-        }
-
-        final AbstractEncodedMessage reply;
-        try {
-            reply = this.authState.handle(this, m);
-        } catch (final InteractionFailedException ex) {
-            throw new OtrException("Failed to handle Signature message.", ex);
-        } catch (final IOException ex) {
-            throw new OtrException("Bad message received: failed to process full message.", ex);
-        }
-
-        if (reply != null) {
-            injectMessage(reply);
-        }
-    }
-
-    private void handleRevealSignatureMessage(@Nonnull final RevealSignatureMessage m)
-            throws OtrException {
-        final SessionID sessionID = getSessionID();
-        logger.log(Level.FINEST, "{0} received a reveal signature message from {1} through {2}.",
-                new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
-        final OtrPolicy policy = getSessionPolicy();
-        if (m.protocolVersion == OTRv.TWO && !policy.getAllowV2()) {
-            logger.finest("If ALLOW_V2 is not set, ignore this message.");
-            return;
-        } else if (m.protocolVersion == OTRv.THREE && !policy.getAllowV3()) {
-            logger.finest("If ALLOW_V3 is not set, ignore this message.");
-            return;
-        } else if (m.protocolVersion == OTRv.THREE &&
-                this.senderTag.getValue() != m.receiverInstanceTag) {
-            logger.finest("Received a Reveal Signature Message with receiver instance tag"
-                    + " that is different from ours, ignore this message");
-            return;
-        }
-
-        final AbstractEncodedMessage reply;
-        try {
-            reply = this.authState.handle(this, m);
-        } catch (final InteractionFailedException ex) {
-            throw new OtrException("Failed to handle Reveal Signature message.", ex);
-        } catch (final IOException ex) {
-            throw new OtrException("Bad message received: failed to process full message.", ex);
-        }
-
-        if (reply != null) {
-            injectMessage(reply);
-        }
-    }
-
-    private void handleDHKeyMessage(@Nonnull final DHKeyMessage m) throws OtrException {
-        final SessionID sessionID = getSessionID();
-        logger.log(Level.FINEST, "{0} received a D-H key message from {1} through {2}.",
-                new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
-
-        final OtrPolicy policy = getSessionPolicy();
-        if (m.protocolVersion == OTRv.TWO && !policy.getAllowV2()) {
-            logger.finest("If ALLOW_V2 is not set, ignore this message.");
-            return;
-        } else if (m.protocolVersion == OTRv.THREE && !policy.getAllowV3()) {
-            logger.finest("If ALLOW_V3 is not set, ignore this message.");
-            return;
-        } else if (m.protocolVersion == OTRv.THREE
+            return null;
+        } else if (m.protocolVersion == OTRv.THREE && m.receiverInstanceTag != 0
                 && this.senderTag.getValue() != m.receiverInstanceTag) {
-            logger.finest("Received a D-H Key Message with receiver instance tag"
+            logger.finest("Received a AKE message with receiver instance tag"
                     + " that is different from ours, ignore this message");
-            return;
+            return null;
+        } else if (m.protocolVersion == OTRv.THREE && m.receiverInstanceTag == 0
+                && !(m instanceof DHCommitMessage)) {
+            logger.finest("Received a AKE message other than DH Commit with "
+                    + "receiver instance tag of 0.");
+            return null;
         }
 
+        // FIXME verify message's protocol version before handling message in AKE. (Verify with current authState instance, and build-in that 0 indicates no specific requirement.)
+
+        // FIXME temporary solution, we should solve this in more structurally correct way. (I.e. always updating receiverTag when AKE message received.)
+        // FIXME do we have all cases covered where receiverTag must be set? (and make this more elegant)
         this.receiverTag = new InstanceTag(m.senderInstanceTag);
-        final AbstractEncodedMessage reply;
         try {
-            reply = this.authState.handle(this, m);
-        } catch (final InteractionFailedException ex) {
-            throw new OtrException("Failed to handle DH Key message.", ex);
+            return this.authState.handle(this, m);
         } catch (final IOException ex) {
-            throw new OtrException("Bad message received: failed to process full message.", ex);
-        }
-
-        if (reply != null) {
-            injectMessage(reply);
-        }
-    }
-
-    private void handleDHCommitMessage(@Nonnull final DHCommitMessage m) throws OtrException {
-        final SessionID sessionID = getSessionID();
-        logger.log(Level.FINEST, "{0} received a D-H commit message from {1} through {2}.",
-                new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
-
-        final OtrPolicy policy = getSessionPolicy();
-        // TODO move these checks to earlier in the handling process such that we can ignore uninteresting messages even before we get into concrete handling.
-        if (m.protocolVersion == OTRv.TWO && !policy.getAllowV2()) {
-            logger.finest("ALLOW_V2 is not set, ignore this message.");
-            return;
-        } else if (m.protocolVersion == OTRv.THREE && !policy.getAllowV3()) {
-            logger.finest("ALLOW_V3 is not set, ignore this message.");
-            return;
-        } else if (m.protocolVersion == OTRv.THREE &&
-                this.senderTag.getValue() != m.receiverInstanceTag &&
-                m.receiverInstanceTag != 0) {
-
-            logger.finest("Received a D-H commit message with receiver instance tag "
-                    + "that is different from ours, ignore this message.");
-            return;
-        }
-
-        this.receiverTag = new InstanceTag(m.senderInstanceTag);
-        final AbstractEncodedMessage reply;
-        try {
-            reply = this.authState.handle(this, m);
+            logger.log(Level.FINEST, "Ignoring message. Bad message content / incomplete message received.", ex);
+            return null;
+        } catch (final OtrCryptoException ex) {
+            logger.log(Level.FINEST, "Ignoring message. Exception while processing message, likely due to verification failure.", ex);
+            return null;
         } catch (final InteractionFailedException ex) {
-            throw new OtrException("Failed to handle DH Commit message.", ex);
-        } catch (final IOException ex) {
-            throw new OtrException("Bad message received: failed to process full message.", ex);
-        }
-
-        if (reply != null) {
-            injectMessage(reply);
+            logger.log(Level.WARNING, "Failed to transition to ENCRYPTED message state.", ex);
+            return null;
         }
     }
 

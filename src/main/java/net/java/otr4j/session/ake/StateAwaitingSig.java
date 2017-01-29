@@ -59,6 +59,7 @@ final class StateAwaitingSig extends AbstractAuthState {
         this.previousRevealSigMessage = Objects.requireNonNull(previousRevealSigMessage);
     }
 
+    @Nullable
     @Override
     public AbstractEncodedMessage handle(@Nonnull final AuthContext context, @Nonnull final AbstractEncodedMessage message)
             throws OtrCryptoException, AuthContext.InteractionFailedException, IOException {
