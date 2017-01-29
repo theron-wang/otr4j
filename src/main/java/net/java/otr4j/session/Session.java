@@ -126,6 +126,9 @@ public class Session implements Context, AuthContext {
 
     /**
      * Receiver instance tag.
+     *
+     * The receiver tag is only used in OTRv3. In case of OTRv2 the instance tag
+     * will be empty.
      */
     private InstanceTag receiverTag;
 
@@ -560,25 +563,29 @@ public class Session implements Context, AuthContext {
         if (m.protocolVersion == OTRv.TWO && !policy.getAllowV2()) {
             logger.finest("If ALLOW_V2 is not set, ignore this message.");
             return null;
-        } else if (m.protocolVersion == OTRv.THREE && !policy.getAllowV3()) {
-            logger.finest("If ALLOW_V3 is not set, ignore this message.");
-            return null;
-        } else if (m.protocolVersion == OTRv.THREE && m.receiverInstanceTag != 0
-                && this.senderTag.getValue() != m.receiverInstanceTag) {
-            logger.finest("Received a AKE message with receiver instance tag"
-                    + " that is different from ours, ignore this message");
-            return null;
-        } else if (m.protocolVersion == OTRv.THREE && m.receiverInstanceTag == 0
-                && !(m instanceof DHCommitMessage)) {
-            logger.finest("Received a AKE message other than DH Commit with "
-                    + "receiver instance tag of 0.");
-            return null;
+        }
+        if (m.protocolVersion == OTRv.THREE) {
+            if (!policy.getAllowV3()) {
+                logger.finest("ALLOW_V3 is not set, ignore this message.");
+                return null;
+            }
+            if (m.receiverInstanceTag == 0 && !(m instanceof DHCommitMessage)) {
+                logger.finest("Received a AKE message other than DH Commit with "
+                        + "receiver instance tag of 0.");
+                return null;
+            }
+            if (m.receiverInstanceTag != 0 && this.senderTag.getValue() != m.receiverInstanceTag) {
+                logger.finest("Received a AKE message with receiver instance tag"
+                        + " that is different from ours, ignore this message");
+                return null;
+            }
         }
 
         // FIXME verify message's protocol version before handling message in AKE. (Verify with current authState instance, and build-in that 0 indicates no specific requirement.)
 
         // FIXME temporary solution, we should solve this in more structurally correct way. (I.e. always updating receiverTag when AKE message received.)
         // FIXME do we have all cases covered where receiverTag must be set? (and make this more elegant)
+        // FIXME m.senderInstanceTag == 0 for OTRv2, should we treat this in a nicer, more explicit way?
         this.receiverTag = new InstanceTag(m.senderInstanceTag);
         try {
             return this.authState.handle(this, m);
