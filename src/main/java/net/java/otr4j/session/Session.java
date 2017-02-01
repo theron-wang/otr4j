@@ -58,6 +58,7 @@ import net.java.otr4j.session.state.StatePlaintext;
  */
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
 // TODO Make Session final, can only be done after having extracted an interface as we rely on mocking the Session implementation.
+// TODO There's now a mix of checking by messageType and checking by instanceof to discover type of AKE message. This is probably not a good thing ...
 public class Session implements Context, AuthContext {
 
     public interface OTRv {
@@ -570,6 +571,12 @@ public class Session implements Context, AuthContext {
                 return null;
             }
             if (m.receiverInstanceTag == 0 && !(m instanceof DHCommitMessage)) {
+                // only allow receiverInstanceTag == 0 for D-H Commit messages.
+                // These messages are the only messages that can be sent without
+                // a receiver tag as these messages initiate communication. Any
+                // other (encoded) message already contains the receiver
+                // instance tag to indicate for which exact client the message
+                // is intended.
                 logger.finest("Received a AKE message other than DH Commit with "
                         + "receiver instance tag of 0.");
                 return null;
@@ -581,12 +588,20 @@ public class Session implements Context, AuthContext {
             }
         }
 
-        // FIXME verify message's protocol version before handling message in AKE. (Verify with current authState instance, and build-in that 0 indicates no specific requirement.)
+        // Verify that we received an AKE message using the previously agreed
+        // upon protocol version. Exception to this rule for DH Commit message,
+        // as this message initiates a new AKE negotiation and thus proposes a
+        // new protocol version corresponding to the message's intention.
+        if (m.messageType != AbstractEncodedMessage.MESSAGE_DH_COMMIT
+                && m.protocolVersion != this.authState.getVersion()) {
+            logger.log(Level.INFO, "AKE message containing unexpected protocol version encountered. ({0} instead of {1}.) Ignoring.",
+                    new Object[]{m.protocolVersion, this.authState.getVersion()});
+            return null;
+        }
 
         // FIXME temporary solution, we should solve this in more structurally correct way. (I.e. always updating receiverTag when AKE message received.)
         // FIXME do we have all cases covered where receiverTag must be set? (and make this more elegant)
-        // FIXME m.senderInstanceTag == 0 for OTRv2, should we treat this in a nicer, more explicit way?
-        this.receiverTag = new InstanceTag(m.senderInstanceTag);
+        this.receiverTag = m.protocolVersion == OTRv.TWO ? InstanceTag.ZERO_TAG : new InstanceTag(m.senderInstanceTag);
         try {
             return this.authState.handle(this, m);
         } catch (final IOException ex) {
