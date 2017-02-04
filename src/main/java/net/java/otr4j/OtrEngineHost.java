@@ -29,9 +29,9 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID The session ID
      * @param msg The message to inject
-     * @throws OtrException
      */
-	void injectMessage(@Nonnull SessionID sessionID, @Nonnull String msg) throws OtrException;
+    // TODO do we correctly handle potential runtime exceptions. Even if we don't expect it to go wrong, we might need to act on it if it does go wrong.
+	void injectMessage(@Nonnull SessionID sessionID, @Nonnull String msg);
 
     /**
      * Warn the user that an encrypted message was received that could not be
@@ -39,11 +39,8 @@ public abstract interface OtrEngineHost {
      * or an old session.
      *
      * @param sessionID The session ID
-     * @throws OtrException DEPRECATED This throws clause only exists to avoid
-     * breaking the public API. Any OtrExceptions that are thrown will be caught
-     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void unreadableMessageReceived(@Nonnull SessionID sessionID) throws OtrException;
+	void unreadableMessageReceived(@Nonnull SessionID sessionID);
 
     /**
      * Display the message to the user, but warn him that the message was
@@ -51,12 +48,8 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID The session ID
      * @param msg the body of the received message that was not encrypted
-     * @throws OtrException DEPRECATED This throws clause only exists to avoid
-     * breaking the public API. Any OtrExceptions that are thrown will be caught
-     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-    void unencryptedMessageReceived(@Nonnull SessionID sessionID, @Nonnull String msg)
-            throws OtrException;
+    void unencryptedMessageReceived(@Nonnull SessionID sessionID, @Nonnull String msg);
 
     /**
      * Ask Engine Host to show provided error message that was received over
@@ -64,11 +57,8 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID the session ID
      * @param error the error message
-     * @throws OtrException DEPRECATED This throws clause only exists to avoid
-     * breaking the public API. Any OtrExceptions that are thrown will be caught
-     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void showError(@Nonnull SessionID sessionID, @Nonnull String error) throws OtrException;
+	void showError(@Nonnull SessionID sessionID, @Nonnull String error);
 
     /**
      * Call Engine Host to inform of SMP error during authentication.
@@ -77,34 +67,23 @@ public abstract interface OtrEngineHost {
      * @param tlvType the TLV type
      * @param cheated status indicator for cheating (interruption before SMP
      * verification step was able to complete)
-     * @throws OtrException DEPRECATED This throws clause only exists to avoid
-     * breaking the public API. Any OtrExceptions that are thrown will be caught
-     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void smpError(@Nonnull SessionID sessionID, int tlvType, boolean cheated)
-            throws OtrException;
+	void smpError(@Nonnull SessionID sessionID, int tlvType, boolean cheated);
 
     /**
      * Call Engine Host to inform of SMP abort.
      *
      * @param sessionID the session ID
-     * @throws OtrException DEPRECATED This throws clause only exists to avoid
-     * breaking the public API. Any OtrExceptions that are thrown will be caught
-     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void smpAborted(@Nonnull SessionID sessionID) throws OtrException;
+	void smpAborted(@Nonnull SessionID sessionID);
 
     /**
      * Signal Engine Host that OTR secure session is finished.
      *
      * @param sessionID the session ID
      * @param msgText message text
-     * @throws OtrException DEPRECATED This throws clause only exists to avoid
-     * breaking the public API. Any OtrExceptions that are thrown will be caught
-     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void finishedSessionMessage(@Nonnull SessionID sessionID, @Nonnull String msgText)
-            throws OtrException;
+	void finishedSessionMessage(@Nonnull SessionID sessionID, @Nonnull String msgText);
 
     /**
      * Signal Engine Host that current policy dictates that a secure session is
@@ -112,12 +91,8 @@ public abstract interface OtrEngineHost {
      *
      * @param sessionID the session ID
      * @param msgText the encryption required message
-     * @throws OtrException DEPRECATED This throws clause only exists to avoid
-     * breaking the public API. Any OtrExceptions that are thrown will be caught
-     * and logged as thrown by a faulty OtrEngineHost implementation.
      */
-	void requireEncryptedMessage(@Nonnull SessionID sessionID, @Nonnull String msgText)
-            throws OtrException;
+	void requireEncryptedMessage(@Nonnull SessionID sessionID, @Nonnull String msgText);
 
     /**
      * Request the current session policy for provided session ID.

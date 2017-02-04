@@ -101,8 +101,6 @@ public final class OtrEngineHostUtil {
             host.unencryptedMessageReceived(sessionID, message);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'unencryptedMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        } catch (OtrException e) {
-            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'unencryptedMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -124,8 +122,6 @@ public final class OtrEngineHostUtil {
             host.unreadableMessageReceived(sessionID);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'unreadableMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        } catch (OtrException e) {
-            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'unreadableMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -212,8 +208,6 @@ public final class OtrEngineHostUtil {
             host.showError(sessionID, error);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'showError' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        } catch (OtrException e) {
-            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'showError' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -240,8 +234,6 @@ public final class OtrEngineHostUtil {
             host.smpError(sessionID, tlvType, cheated);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'smpError' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        } catch (OtrException e) {
-            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'smpError' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -264,8 +256,6 @@ public final class OtrEngineHostUtil {
             host.smpAborted(sessionID);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'smpAborted' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        } catch (OtrException e) {
-            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'smpAborted' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -287,8 +277,6 @@ public final class OtrEngineHostUtil {
             host.finishedSessionMessage(sessionID, msgText);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'finishedSessionMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        } catch (OtrException e) {
-            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'finishedSessionMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 
@@ -310,8 +298,6 @@ public final class OtrEngineHostUtil {
             host.requireEncryptedMessage(sessionID, msgText);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'requireEncryptedMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        } catch (OtrException e) {
-            LOGGER.log(Level.WARNING, "OtrException thrown while calling 'requireEncryptedMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
 

@@ -6,7 +6,7 @@ import net.java.otr4j.OtrException;
  * Created by gp on 2/6/14.
  */
 public interface Server {
-	void send(Connection sender, String recipient, String msg) throws OtrException;
+	void send(Connection sender, String recipient, String msg);
 
 	Connection connect(DummyClient client);
 }

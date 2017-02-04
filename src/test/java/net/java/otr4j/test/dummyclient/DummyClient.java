@@ -15,7 +15,6 @@ import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.Session;
 import net.java.otr4j.session.SessionID;
@@ -287,7 +286,7 @@ public class DummyClient {
 
 	    private HashMap<SessionID, KeyPair> keypairs = new HashMap<SessionID, KeyPair>();
 
-		public void injectMessage(SessionID sessionID, String msg) throws OtrException {
+		public void injectMessage(SessionID sessionID, String msg) {
 			connection.send(sessionID.getUserID(), msg);
 
 			String msgDisplay = (msg.length() > 10) ? msg.substring(0, 10)
@@ -295,42 +294,37 @@ public class DummyClient {
 			logger.finest("IM injects message: " + msgDisplay);
 		}
 
-		public void smpError(SessionID sessionID, int tlvType, boolean cheated)
-				throws OtrException {
+		public void smpError(SessionID sessionID, int tlvType, boolean cheated) {
 			logger.severe("SM verification error with user: " + sessionID);
 			smpQuestions.remove(sessionID);
 		}
 
-		public void smpAborted(SessionID sessionID) throws OtrException {
+		public void smpAborted(SessionID sessionID) {
 			logger.severe("SM verification has been aborted by user: "
 					+ sessionID);
 			smpQuestions.remove(sessionID);
 		}
 
-		public void finishedSessionMessage(SessionID sessionID, String msgText) throws OtrException {
+		public void finishedSessionMessage(SessionID sessionID, String msgText) {
 			logger.severe("SM session was finished. You shouldn't send messages to: "
 					+ sessionID);
 		}
 
-		public void requireEncryptedMessage(SessionID sessionID, String msgText)
-				throws OtrException {
+		public void requireEncryptedMessage(SessionID sessionID, String msgText) {
 			logger.severe("Message can't be sent while encrypted session is not established: "
 					+ sessionID);
 		}
 
-		public void unreadableMessageReceived(SessionID sessionID)
-				throws OtrException {
+		public void unreadableMessageReceived(SessionID sessionID) {
 			logger.warning("Unreadable message received from: " + sessionID);
 		}
 
-		public void unencryptedMessageReceived(SessionID sessionID, String msg)
-				throws OtrException {
+		public void unencryptedMessageReceived(SessionID sessionID, String msg) {
 			logger.warning("Unencrypted message received: " + msg + " from "
 					+ sessionID);
 		}
 
-		public void showError(SessionID sessionID, String error)
-				throws OtrException {
+		public void showError(SessionID sessionID, String error) {
 			logger.severe("IM shows error to user: " + error);
 		}
 

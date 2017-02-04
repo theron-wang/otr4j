@@ -10,17 +10,21 @@ import java.util.Map;
  */
 public class PriorityServer implements Server {
 
-	private final Map<String, Connection> clients = new HashMap<String, Connection>();
+	private final Map<String, Connection> clients = new HashMap<>();
 	private int conCount;
 
-	public void send(Connection sender, String recipient, String msg) throws OtrException {
+	public void send(Connection sender, String recipient, String msg) {
 
 		// Update the active sender connection.
 		clients.put(sender.getClient().getAccount(), sender);
 
 		// Dispatch the message.
 		Connection recipientConnection = clients.get(recipient);
-		recipientConnection.receive(sender.getClient().getAccount(), msg);
+        try {
+            recipientConnection.receive(sender.getClient().getAccount(), msg);
+        } catch (OtrException ex) {
+            throw new IllegalStateException(ex);
+        }
 	}
 
 	public synchronized Connection connect(DummyClient client) {

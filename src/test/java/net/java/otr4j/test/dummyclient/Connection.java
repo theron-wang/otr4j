@@ -34,7 +34,7 @@ public class Connection {
 				'}';
 	}
 
-	public void send(String recipient, String msg) throws OtrException {
+	public void send(String recipient, String msg) {
 		this.sentMessage = msg;
 		server.send(this, recipient, msg);
 	}
