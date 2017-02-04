@@ -15,11 +15,11 @@ import javax.annotation.Nonnull;
  * @author Felix Eckhofer
  *
  */
-public final class OtrAssembler {
+final class OtrAssembler {
 
     private static final int MAX_FRAGMENTS = 65535;
 
-	public OtrAssembler(@Nonnull final InstanceTag ownInstance) {
+	OtrAssembler(@Nonnull final InstanceTag ownInstance) {
 		this.ownInstance = ownInstance;
 		discard();
 	}
@@ -68,7 +68,7 @@ public final class OtrAssembler {
      * @throws ProtocolException MVN_PASS_JAVADOC_INSPECTION
      * @throws UnknownInstanceException MVN_PASS_JAVADOC_INSPECTION
 	 */
-	public String accumulate(@Nonnull String msgText)
+	String accumulate(@Nonnull String msgText)
 		throws ProtocolException, UnknownInstanceException {
 		// if it's a fragment, remove everything before "k,n,piece-k"
 		if (msgText.startsWith(HEAD_FRAGMENT_V2)) {
@@ -179,7 +179,7 @@ public final class OtrAssembler {
 	/**
 	 * Discard current fragment buffer and reset the counters.
 	 */
-	public void discard() {
+	void discard() {
 		fragment = new StringBuffer();
 		fragmentCur = 0;
 		fragmentMax = 0;

@@ -19,7 +19,8 @@ import net.java.otr4j.OtrPolicy;
  * 
  * @author Danny van Heumen
  */
-public class OtrFragmenter {
+// TODO rename constants to match java conventions.
+public final class OtrFragmenter {
 	/**
 	 * Exception message in cases where only OTRv1 is allowed.
 	 */
@@ -56,7 +57,7 @@ public class OtrFragmenter {
 	 * @param session session instance (cannot be null)
 	 * @param host OTR engine host calling upon OTR session
 	 */
-	public OtrFragmenter(@Nonnull final Session session, @Nonnull final OtrEngineHost host) {
+	OtrFragmenter(@Nonnull final Session session, @Nonnull final OtrEngineHost host) {
 		this.session = Objects.requireNonNull(session, "session cannot be null");
 		this.host = Objects.requireNonNull(host, "host cannot be null");
 	}
@@ -66,7 +67,7 @@ public class OtrFragmenter {
 	 *
 	 * @return returns instructions
 	 */
-	public OtrEngineHost getHost() {
+	OtrEngineHost getHost() {
 		return this.host;
 	}
 
@@ -156,7 +157,7 @@ public class OtrFragmenter {
 		}
 		final int payloadSize = fragmentSize - computeHeaderSize();
 		int previous = 0;
-		final LinkedList<String> fragments = new LinkedList<String>();
+		final LinkedList<String> fragments = new LinkedList<>();
 		while (previous < message.length()) {
 			// Either get new position or position of exact message end
 			final int end = Math.min(previous + payloadSize, message.length());
