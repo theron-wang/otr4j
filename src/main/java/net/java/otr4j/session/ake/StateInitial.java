@@ -56,7 +56,6 @@ public final class StateInitial extends AbstractAuthState {
 
     @Override
     public int getVersion() {
-        // FIXME should we return 0 here ... does that really help?
         return 0;
     }
 
