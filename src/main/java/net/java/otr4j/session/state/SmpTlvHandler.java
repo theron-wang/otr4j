@@ -235,7 +235,7 @@ public final class SmpTlvHandler {
             final TLV sendtlv = new TLV(TLV.SMP3, nextmsg);
             final String[] msg = session.transformSending(this.sessionContext,
                     "", Collections.singletonList(sendtlv));
-            for (String part : msg) {
+            for (final String part : msg) {
                 engineHost.injectMessage(session.getSessionID(), part);
             }
         }

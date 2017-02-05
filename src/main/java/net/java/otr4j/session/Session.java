@@ -707,7 +707,6 @@ public class Session implements Context, AuthContext {
         return senderTag;
     }
 
-    // FIXME verify unnecessary use of method for internal access to tag.
     @Override
     public InstanceTag getReceiverInstanceTag() {
         return receiverTag;

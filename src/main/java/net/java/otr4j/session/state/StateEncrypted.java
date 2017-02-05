@@ -94,6 +94,9 @@ final class StateEncrypted extends AbstractState {
     StateEncrypted(@Nonnull final Context context, @Nonnull final SecurityParameters params) throws OtrException {
         this.sessionId = context.getSessionID();
         this.logger = Logger.getLogger(sessionId.getAccountID() + "-->" + sessionId.getUserID());
+        if (params.getVersion() > 3) {
+            throw new UnsupportedOperationException("Unsupported protocol version specified.");
+        }
         this.protocolVersion = params.getVersion();
         this.smpTlvHandler = new SmpTlvHandler(this, context, params.getS());
         this.s = params.getS();
@@ -340,7 +343,7 @@ final class StateEncrypted extends AbstractState {
                     eoos.writeShort(tlv.getType());
                     eoos.writeTlvData(tlv.getValue());
                 }
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 throw new OtrException(ex);
             } finally {
                 try {
@@ -386,8 +389,9 @@ final class StateEncrypted extends AbstractState {
 
         try {
             final String completeMessage = SerializationUtils.toString(m);
+            // TODO consider moving fragmentation outside of StateEncrypted implementation. (After bit of further investigation it seems that a lot if not all of this comes back in Session, so we should be able to tackle it there.)
             return context.fragmenter().fragment(completeMessage);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new OtrException(e);
         }
     }

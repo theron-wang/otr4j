@@ -15,7 +15,6 @@ import net.java.otr4j.crypto.SharedSecret;
  *
  * @author Danny van Heumen
  */
-// FIXME needs a few tests just-in-case.
 public final class SecurityParameters {
 
     private final int version;
@@ -28,6 +27,9 @@ public final class SecurityParameters {
             @Nonnull final PublicKey remoteLongTermPublicKey,
             @Nonnull final DHPublicKey remoteDHPublicKey,
             @Nonnull final SharedSecret s) {
+        if (version < 2) {
+            throw new IllegalArgumentException("Illegal version value specified.");
+        }
         this.version = version;
         this.localDHKeyPair = Objects.requireNonNull(localDHKeyPair);
         this.remoteLongTermPublicKey = Objects.requireNonNull(remoteLongTermPublicKey);
