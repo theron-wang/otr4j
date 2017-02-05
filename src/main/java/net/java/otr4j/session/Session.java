@@ -599,8 +599,9 @@ public class Session implements Context, AuthContext {
             return null;
         }
 
-        // FIXME temporary solution, we should solve this in more structurally correct way. (I.e. always updating receiverTag when AKE message received.)
-        // FIXME do we have all cases covered where receiverTag must be set? (and make this more elegant)
+        // Right now, we assume that once we get to this point, the protocol
+        // version in the received message is accurate. Therefore we can decide
+        // based on this value what instance tag to set/update.
         this.receiverTag = m.protocolVersion == OTRv.TWO ? InstanceTag.ZERO_TAG : new InstanceTag(m.senderInstanceTag);
         try {
             return this.authState.handle(this, m);
