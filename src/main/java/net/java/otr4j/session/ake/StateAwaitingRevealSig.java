@@ -53,7 +53,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
         if (remotePublicKeyEncrypted.length <= 0) {
             throw new IllegalArgumentException("Expected public key ciphertext having actual contents.");
         }
-        this.remotePublicKeyEncrypted = Objects.requireNonNull(remotePublicKeyEncrypted);
+        this.remotePublicKeyEncrypted = remotePublicKeyEncrypted;
     }
 
     @Nullable
