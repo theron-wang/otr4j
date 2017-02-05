@@ -7,6 +7,8 @@ import javax.crypto.interfaces.DHPublicKey;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.crypto.SharedSecretTestUtil;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import org.junit.Test;
 import static org.mockito.Mockito.mock;
 
@@ -23,7 +25,12 @@ public class SecurityParametersTest {
         final KeyPair localDHKeyPair = OtrCryptoEngine.generateDHKeyPair(RANDOM);
         final KeyPair remoteDHKeyPair = OtrCryptoEngine.generateDHKeyPair(RANDOM);
         final DSAPublicKey remoteLongTermPublicKey = mock(DSAPublicKey.class);
-        new SecurityParameters(3, localDHKeyPair, remoteLongTermPublicKey, (DHPublicKey) remoteDHKeyPair.getPublic(), s);
+        final SecurityParameters params = new SecurityParameters(3, localDHKeyPair, remoteLongTermPublicKey, (DHPublicKey) remoteDHKeyPair.getPublic(), s);
+        assertSame(s, params.getS());
+        assertSame(localDHKeyPair, params.getLocalDHKeyPair());
+        assertSame(remoteDHKeyPair.getPublic(), params.getRemoteDHPublicKey());
+        assertSame(remoteLongTermPublicKey, params.getRemoteLongTermPublicKey());
+        assertEquals(3, params.getVersion());
     }
 
     @Test(expected = IllegalArgumentException.class)
