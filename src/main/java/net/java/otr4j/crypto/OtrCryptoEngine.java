@@ -157,9 +157,9 @@ public final class OtrCryptoEngine {
     public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key, final int length) throws OtrCryptoException {
 
         final SecretKeySpec keyspec = new SecretKeySpec(key, HMAC_SHA256);
-        final javax.crypto.Mac mac;
+        final Mac mac;
         try {
-            mac = javax.crypto.Mac.getInstance(HMAC_SHA256);
+            mac = Mac.getInstance(HMAC_SHA256);
             mac.init(keyspec);
         } catch (final NoSuchAlgorithmException e) {
             throw new IllegalStateException("Unable to initialize MAC based on SHA-256.", e);

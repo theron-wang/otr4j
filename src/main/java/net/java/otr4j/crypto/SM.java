@@ -48,6 +48,8 @@ public final class SM {
      */
     private static final int MAX_MPI_ARRAY_SIZE = 100;
 
+    private static final String MD_SHA256 = "SHA-256";
+
     private static final Logger LOGGER = Logger.getLogger(SM.class.getName());
 
     private State state;
@@ -170,7 +172,7 @@ public final class SM {
             @Nullable final BigInteger b) throws SMException
 	{
 		try {
-			final MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+			final MessageDigest sha256 = MessageDigest.getInstance(MD_SHA256);
 			sha256.update((byte)version);
 			sha256.update(SerializationUtils.writeMpi(a));
 			if (b != null) {
@@ -241,7 +243,7 @@ public final class SM {
     @Nonnull
     public Status status() {
         final Status status = this.state.status();
-        LOGGER.fine("Retrieving status for SMP exchange: " + status.name());
+        LOGGER.log(Level.FINE, "Retrieving status for SMP exchange: {0}", status.name());
         return status;
     }
 
@@ -424,7 +426,7 @@ public final class SM {
             throw new SMException(e);
         }
         finally {
-            LOGGER.fine("Final SMP exchange state: " + this.state.status().name());
+            LOGGER.log(Level.FINE, "Final SMP exchange state: {0}", this.state.status().name());
         }
 	}
 
@@ -457,7 +459,7 @@ public final class SM {
             throw new SMException(e);
         }
         finally {
-            LOGGER.fine("Final SMP exchange state: " + this.state.status().name());
+            LOGGER.log(Level.FINE, "Final SMP exchange state: {0}", this.state.status().name());
         }
 	}
 
