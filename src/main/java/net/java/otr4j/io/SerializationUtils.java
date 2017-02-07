@@ -15,6 +15,7 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -201,7 +202,7 @@ public final class SerializationUtils {
                     writer.write(SerializationConstants.HEAD);
                     writer.write(SerializationConstants.HEAD_QUERY_V);
                     final ArrayList<Integer> versions = new ArrayList(query.versions);
-                    versions.sort(null);
+                    Collections.sort(versions);
                     for (final int version : versions) {
                         if (version <= 1 || version > 9) {
                             LOGGER.log(Level.WARNING, "Encountered illegal OTR version: {0}. Versions 1 and lower and over 9 are not supported. This version will be skipped. If you see this message, there is likely a bug in otr4j.", version);
