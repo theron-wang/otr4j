@@ -197,13 +197,17 @@ public final class SerializationUtils {
                 if (query.versions.size() == 1 && query.versions.contains(1)) {
                     throw new UnsupportedOperationException("OTR v1 is no longer supported. Support in the library has been removed, so the query message should not contain a version 1 entry.");
                 }
-                // TODO technically, there still a bug here, as we can end up with 0 versions after dropping invalid versions. How do we respond in that case?
                 if (query.versions.size() > 0) {
                     writer.write(SerializationConstants.HEAD);
                     writer.write(SerializationConstants.HEAD_QUERY_V);
                     final ArrayList<Integer> versions = new ArrayList(query.versions);
                     Collections.sort(versions);
                     for (final int version : versions) {
+                        // As all versions still present in the versions list
+                        // could potentially be filtered out, we may end up with
+                        // a query string "?OTRv?". Although this is strange it
+                        // is documented by OTR and is considered a strange but
+                        // valid use case.
                         if (version <= 1 || version > 9) {
                             LOGGER.log(Level.WARNING, "Encountered illegal OTR version: {0}. Versions 1 and lower and over 9 are not supported. This version will be skipped. If you see this message, there is likely a bug in otr4j.", version);
                             continue;

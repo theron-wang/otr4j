@@ -19,7 +19,13 @@ import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.SignatureX;
 
-// TODO consider rewriting OtrInputStream to use ByteBuffer as to avoid IOExceptions which are kind of senseless.
+/**
+ * OTR input stream.
+ *
+ * The input is based on the InputStream type as we take into account any and
+ * all possibilities of incomplete or bad data. Many methods throw IOException
+ * to indicate for such an illegal situation.
+ */
 public final class OtrInputStream extends FilterInputStream implements
 		SerializationConstants {
 

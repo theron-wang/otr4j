@@ -111,6 +111,11 @@ public class Session implements Context, AuthContext {
      */
     private final boolean masterSession;
 
+    /**
+     * The Engine Host instance. This is a reference to the host logic that uses
+     * OTR. The reference is used to call back into the program logic in order
+     * to query for parameters that are determined by the program logic.
+     */
     private final OtrEngineHost host;
 
     private final Logger logger;
@@ -147,7 +152,7 @@ public class Session implements Context, AuthContext {
      * Secure random instance to be used for this Session. This single
      * SecureRandom instance is there to be shared among classes the classes in
      * this package in order to support this specific Session instance.
-     * 
+     *
      * The SecureRandom instance should not be shared between sessions.
      *
      * Note: Please ensure that an instance always exists, as it is also used by
@@ -168,6 +173,22 @@ public class Session implements Context, AuthContext {
                 new SecureRandom(), StateInitial.instance());
     }
 
+    /**
+     * Constructor.
+     *
+     * @param masterSession True to construct master session, false for slave
+     * session.
+     * @param sessionID The session ID.
+     * @param host OTR engine host instance.
+     * @param senderTag The sender instance tag. The sender instance tag must be
+     * provided. In case the ZERO tag is provided, we generate a random instance
+     * tag for the sender.
+     * @param receiverTag The receiver instance tag. The receiver instance tag
+     * is allowed to be ZERO.
+     * @param secureRandom The secure random instance.
+     * @param authState The initial authentication state of this session
+     * instance.
+     */
     private Session(final boolean masterSession,
             @Nonnull final SessionID sessionID,
             @Nonnull final OtrEngineHost host,
