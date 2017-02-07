@@ -11,6 +11,7 @@
 // TODO what's the status on reproducible builds of Java programs?
 // TODO investigate usefulness of Java 9 module, maybe just as an experiment ...
 // TODO check license header for all files
+// TODO consider extracting "domain" classes from 'session' package into separate package. This may solve significant part in cyclic dependencies between packages.
 /**
  * otr4j.
  */
