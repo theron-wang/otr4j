@@ -164,16 +164,18 @@ public final class OtrInputStream extends FilterInputStream implements
     /**
      * Read DH Public Key from the input stream.
      *
-     * @return Returns DH Public Key instance.
+     * Apart from reading the DH public key from the byte stream, it also
+     * verifies that the public key satisfies all requirements.
+     *
+     * @return Returns (verified) DH Public Key instance.
      * @throws IOException Throws exception in case of problems while reading DH
      * Public Key instance from input stream.
      * @throws OtrCryptoException Throws exception in case of illegal DH public
      * key.
      */
-    // FIXME make readDHPublicKey safe by verifying before returning DH Public Key instance.
     public DHPublicKey readDHPublicKey() throws IOException, OtrCryptoException {
         final BigInteger gyMpi = readBigInt();
-        return OtrCryptoEngine.getDHPublicKey(gyMpi);
+        return OtrCryptoEngine.verify(OtrCryptoEngine.getDHPublicKey(gyMpi));
     }
 
 	public byte[] readTlvData() throws IOException {
