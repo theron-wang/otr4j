@@ -9,10 +9,10 @@ package net.java.otr4j.session.state;
 
 import org.junit.Test;
 
-public class StateTest {
+public class IncorrectStateExceptionTest {
 
     @Test
     public void testInstantiateIncorrectStateException() {
-        new State.IncorrectStateException("We're in a wrong state!");
-    }
+        new IncorrectStateException("We're in a wrong state!");
+    }    
 }

@@ -1,3 +1,10 @@
+/*
+ * otr4j, the open source java otr library.
+ *
+ * Distributable under LGPL license.
+ * See terms of license at gnu.org.
+ */
+
 package net.java.otr4j.session.state;
 
 import java.security.PublicKey;
@@ -35,9 +42,8 @@ public interface State {
      * Get remote public key.
      *
      * @return Returns the remote public key.
-     * @throws net.java.otr4j.session.state.State.IncorrectStateException Throws
-     * IncorrectStateException in any non-encrypted state, since no public key
-     * is available there.
+     * @throws IncorrectStateException Throws IncorrectStateException in any
+     * non-encrypted state, since no public key is available there.
      */
     @Nonnull
     PublicKey getRemotePublicKey() throws IncorrectStateException;
@@ -47,9 +53,8 @@ public interface State {
      *
      * @return Returns the extra symmetric key that is derived from the
      * session's shared secret.
-     * @throws net.java.otr4j.session.state.State.IncorrectStateException Throws
-     * exception in case of incorrect state, i.e. a different state than
-     * ENCRYPTED.
+     * @throws IncorrectStateException Throws exception in case of incorrect
+     * state, i.e. a different state than ENCRYPTED.
      */
     @Nonnull
     byte[] getExtraSymmetricKey() throws IncorrectStateException;
@@ -125,26 +130,9 @@ public interface State {
      * is active at time of calling, {@link IncorrectStateException} is thrown.
      *
      * @return Returns SMP TLV handler instance for this encrypted session.
-     * @throws net.java.otr4j.session.state.State.IncorrectStateException Throws
-     * IncorrectStateException for any non-encrypted states.
+     * @throws IncorrectStateException Throws IncorrectStateException for any
+     * non-encrypted states.
      */
     @Nonnull
     SmpTlvHandler getSmpTlvHandler() throws IncorrectStateException;
-
-    /**
-     * Checked exception that is thrown for cases where the method call is not
-     * appropriate. Given the nature of the protocol, state changes may happen
-     * at any time. The nature of the checked exception can be used to handle
-     * unexpected state transitions appropriately.
-     */
-    // TODO consider moving this to own class such that we can have package-private constructor.
-    // TODO consider not deriving from OtrException, but instead just Exception.
-    final class IncorrectStateException extends OtrException {
-
-        private static final long serialVersionUID = -5335635776510194254L;
-
-        public IncorrectStateException(final String message) {
-            super(message);
-        }
-    }
 }

@@ -48,6 +48,7 @@ import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.ake.SecurityParameters;
 import net.java.otr4j.session.ake.StateInitial;
 import net.java.otr4j.session.state.Context;
+import net.java.otr4j.session.state.IncorrectStateException;
 import net.java.otr4j.session.state.SmpTlvHandler;
 import net.java.otr4j.session.state.State;
 import net.java.otr4j.session.state.StatePlaintext;
@@ -695,7 +696,7 @@ public class Session implements Context, AuthContext {
         this.startSession();
     }
 
-    public PublicKey getRemotePublicKey() throws State.IncorrectStateException {
+    public PublicKey getRemotePublicKey() throws IncorrectStateException {
         if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
             return outgoingSession.getRemotePublicKey();
         }
@@ -784,7 +785,7 @@ public class Session implements Context, AuthContext {
     }
 
     @Nonnull
-    public PublicKey getRemotePublicKey(@Nonnull final InstanceTag tag) throws State.IncorrectStateException {
+    public PublicKey getRemotePublicKey(@Nonnull final InstanceTag tag) throws IncorrectStateException {
         if (tag.equals(this.receiverTag)) {
             return this.sessionState.getRemotePublicKey();
         } else {
@@ -823,7 +824,12 @@ public class Session implements Context, AuthContext {
             outgoingSession.initSmp(question, secret);
             return;
         }
-        final SmpTlvHandler handler = this.sessionState.getSmpTlvHandler();
+        final SmpTlvHandler handler;
+        try {
+            handler = this.sessionState.getSmpTlvHandler();
+        } catch (IncorrectStateException ex) {
+            throw new OtrException(ex);
+        }
         final List<TLV> tlvs = handler.initRespondSmp(question, secret, true);
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
@@ -851,7 +857,12 @@ public class Session implements Context, AuthContext {
             outgoingSession.respondSmp(question, secret);
             return;
         }
-        final List<TLV> tlvs = this.sessionState.getSmpTlvHandler().initRespondSmp(question, secret, false);
+        final List<TLV> tlvs;
+        try {
+            tlvs = this.sessionState.getSmpTlvHandler().initRespondSmp(question, secret, false);
+        } catch (IncorrectStateException ex) {
+            throw new OtrException(ex);
+        }
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
             this.host.injectMessage(this.sessionState.getSessionID(), part);
@@ -863,7 +874,12 @@ public class Session implements Context, AuthContext {
             outgoingSession.abortSmp();
             return;
         }
-        final List<TLV> tlvs = this.sessionState.getSmpTlvHandler().abortSmp();
+        final List<TLV> tlvs;
+        try {
+            tlvs = this.sessionState.getSmpTlvHandler().abortSmp();
+        } catch (final IncorrectStateException ex) {
+            throw new OtrException(ex);
+        }
         final String[] msg = transformSending("", tlvs);
         for (final String part : msg) {
             this.host.injectMessage(this.sessionState.getSessionID(), part);
@@ -876,7 +892,7 @@ public class Session implements Context, AuthContext {
         }
         try {
             return this.sessionState.getSmpTlvHandler().isSmpInProgress();
-        } catch (final State.IncorrectStateException ex) {
+        } catch (final IncorrectStateException ex) {
             return false;
         }
     }
@@ -897,6 +913,10 @@ public class Session implements Context, AuthContext {
      */
     @Nonnull
     public byte[] getExtraSymmetricKey() throws OtrException {
-        return this.sessionState.getExtraSymmetricKey();
+        try {
+            return this.sessionState.getExtraSymmetricKey();
+        } catch (final IncorrectStateException ex) {
+            throw new OtrException(ex);
+        }
     }
 }
