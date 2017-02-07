@@ -297,6 +297,7 @@ final class StateEncrypted extends AbstractState {
 
     @Override
     public void handleErrorMessage(@Nonnull final Context context, @Nonnull final ErrorMessage errorMessage) throws OtrException {
+        // TODO investigate something fishy here: do we even show the error message if we receive one to handle? It seems that we bail out because we do not have policy to start AKE upon error even before we show the error message.
         final OtrPolicy policy = context.getSessionPolicy();
         if (!policy.getErrorStartAKE()) {
             return;

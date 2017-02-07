@@ -460,6 +460,8 @@ public class Session implements Context, AuthContext {
             if (masterSession) {
                 synchronized (slaveSessions) {
                     for (final Session session : slaveSessions.values()) {
+                        // We assign this authState instance directly, as the
+                        // AuthState instances are immutable.
                         session.authState = this.authState;
                     }
                 }
@@ -796,6 +798,7 @@ public class Session implements Context, AuthContext {
         return outgoingSession;
     }
 
+    // TODO potential confusion for implementor: startAuth should be used only in context of AKE. Now we expose this as public method to user because user uses Session instance directly instead of interface.
     @Override
     public void startAuth() throws OtrException {
         logger.finest("Starting Authenticated Key Exchange, sending query message");
