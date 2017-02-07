@@ -304,6 +304,7 @@ public class Session implements Context, AuthContext {
     @Nullable
     public String transformReceiving(@Nonnull String msgText) throws OtrException {
 
+        // TODO consider if we should move this down after assembler processing. It is true that we do not allow any version of OTR, but at the same time, OTR is active and it may not make sense to NOT reconstruct a fragmented message even if we do not intend to process it. Would this result in weird messages that show up in the chat?
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.viable()) {
             logger.warning("Policy does not allow any version of OTR, ignoring message.");
@@ -312,6 +313,9 @@ public class Session implements Context, AuthContext {
 
         try {
             msgText = assembler.accumulate(msgText);
+            if (msgText == null) {
+                return null; // Not a complete message (yet).
+            }
         } catch (final UnknownInstanceException e) {
             // The fragment is not intended for us
             logger.finest(e.getMessage());
@@ -322,18 +326,14 @@ public class Session implements Context, AuthContext {
             return null;
         }
 
-        if (msgText == null) {
-            return null; // Not a complete message (yet).
-        }
-
         final AbstractMessage m;
         try {
             m = SerializationUtils.toMessage(msgText);
+            if (m == null) {
+                return msgText;
+            }
         } catch (final IOException e) {
-            throw new OtrException(e);
-        }
-        if (m == null) {
-            return msgText; // Probably null or empty.
+            throw new OtrException("Invalid message.", e);
         }
 
         if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT) {

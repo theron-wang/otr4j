@@ -26,6 +26,7 @@ import net.java.otr4j.io.messages.SignatureX;
  * all possibilities of incomplete or bad data. Many methods throw IOException
  * to indicate for such an illegal situation.
  */
+// TODO consider replacing IOException with ProtocolException to be more specific.
 public final class OtrInputStream extends FilterInputStream implements
 		SerializationConstants {
 

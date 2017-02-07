@@ -322,9 +322,8 @@ public final class SerializationUtils {
 	 *             or real IO error
      * @throws net.java.otr4j.crypto.OtrCryptoException error of cryptographic nature
 	 */
-    // TODO this method can be interrupted by IOException and OtrCryptoException: Is it okay to interrupt or does this eliminate ability to parse next messages because we interrupted in the middle of an OTR message?
-	public static AbstractMessage toMessage(@Nullable final String s) throws IOException, OtrCryptoException {
-		if (s == null || s.length() == 0) {
+	public static AbstractMessage toMessage(@Nonnull final String s) throws IOException, OtrCryptoException {
+		if (s.length() == 0) {
             return null;
         }
 
