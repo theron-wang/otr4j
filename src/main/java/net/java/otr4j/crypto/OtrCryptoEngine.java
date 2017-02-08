@@ -68,6 +68,22 @@ public final class OtrCryptoEngine {
     private static final String HMAC_SHA1 = "HmacSHA1";
     private static final String HMAC_SHA256 = "HmacSHA256";
 
+    static {
+        // Test initialization of all required cryptographic types. This test
+        // can function as an early indicator in case support for required
+        // primitives is missing.
+        try {
+            KeyAgreement.getInstance(KA_DH);
+            KeyFactory.getInstance(KF_DH);
+            Mac.getInstance(HMAC_SHA256);
+            Mac.getInstance(HMAC_SHA1);
+            MessageDigest.getInstance(MD_SHA256);
+            MessageDigest.getInstance(MD_SHA1);
+        } catch (final NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("Failed initialization test of required cryptographic types. otr4j will not function correctly.", ex);
+        }
+    }
+
     public static final String MODULUS_TEXT = "00FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF";
     public static final BigInteger MODULUS = new BigInteger(MODULUS_TEXT, 16);
     public static final BigInteger BIGINTEGER_TWO = BigInteger.valueOf(2);
