@@ -22,7 +22,6 @@ import net.java.otr4j.io.SerializationUtils;
  *
  * @author Danny van Heumen
  */
-// TODO test SharedSecret implementation
 public final class SharedSecret {
 
     private static final Logger LOGGER = Logger.getLogger(SharedSecret.class.getName());
