@@ -19,7 +19,6 @@ import net.java.otr4j.OtrPolicy;
  * 
  * @author Danny van Heumen
  */
-// TODO rename constants to match java conventions.
 public final class OtrFragmenter {
 	/**
 	 * Exception message in cases where only OTRv1 is allowed.

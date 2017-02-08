@@ -56,6 +56,8 @@ import org.bouncycastle.crypto.signers.DSASigner;
 import org.bouncycastle.util.BigIntegers;
 
 /**
+ * Utility for cryptographic functions.
+ *
  * @author George Politis
  */
 public final class OtrCryptoEngine {
@@ -69,9 +71,9 @@ public final class OtrCryptoEngine {
     private static final String HMAC_SHA256 = "HmacSHA256";
 
     static {
-        // Test initialization of all required cryptographic types. This test
-        // can function as an early indicator in case support for required
-        // primitives is missing.
+        // Test initialization of all required cryptographic types that need to
+        // be created through their respective factories. This test can function
+        // as an early indicator in case support for required types is missing.
         try {
             KeyAgreement.getInstance(KA_DH);
             KeyFactory.getInstance(KF_DH);
