@@ -124,6 +124,7 @@ public final class OtrPolicy {
      * communication, or false if message are allowed to be sent unencrypted in
      * case an OTR session is not established.
      */
+    // TODO consider returning result depending on whether policy is viable ... no sense in requiring encryption if no version is allowed. On the other hand, this is a base setting and even though no OTR connection is viable, at least we prevent sending unencrypted message.
     public boolean getRequireEncryption() {
         return (policy & OtrPolicy.REQUIRE_ENCRYPTION) != 0;
     }

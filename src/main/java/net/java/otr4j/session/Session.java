@@ -119,6 +119,7 @@ public class Session implements Context, AuthContext {
      */
     private final OtrEngineHost host;
 
+    @SuppressWarnings("NonConstantLogger")
     private final Logger logger;
 
     /**
@@ -305,7 +306,7 @@ public class Session implements Context, AuthContext {
     @Nullable
     public String transformReceiving(@Nonnull String msgText) throws OtrException {
 
-        // TODO consider if we should move this down after assembler processing. It is true that we do not allow any version of OTR, but at the same time, OTR is active and it may not make sense to NOT reconstruct a fragmented message even if we do not intend to process it. Would this result in weird messages that show up in the chat?
+        // TODO consider if we should move this down after assembler processing. It is true that we do not allow any version of OTR, but at the same time, OTR is active and it may not make sense to NOT reconstruct a fragmented message even if we do not intend to process it. Would this result in weird messages that show up in the chat? This allows receiving OTR encoded messages which will be displayed as plain text(?)
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.viable()) {
             logger.warning("Policy does not allow any version of OTR, ignoring message.");
@@ -461,7 +462,7 @@ public class Session implements Context, AuthContext {
             if (masterSession) {
                 synchronized (slaveSessions) {
                     for (final Session session : slaveSessions.values()) {
-                        // We assign this authState instance directly, as the
+                        // We assign this authState instance directly, as
                         // AuthState instances are immutable.
                         session.authState = this.authState;
                     }
