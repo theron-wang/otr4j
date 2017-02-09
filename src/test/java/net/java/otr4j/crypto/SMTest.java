@@ -7,7 +7,6 @@
 
 package net.java.otr4j.crypto;
 
-import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -17,7 +16,6 @@ import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.Security;
 import net.java.otr4j.crypto.SM.SMException;
-import net.java.otr4j.io.OtrOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;

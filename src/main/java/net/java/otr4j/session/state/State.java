@@ -23,6 +23,14 @@ import net.java.otr4j.session.ake.SecurityParameters;
 public interface State {
 
     /**
+     * Get active protocol version.
+     *
+     * @return Returns protocol version that is active in this session state.
+     * (0 for plaintext/finished, OTR version for ENCRYPTED message state.)
+     */
+    int getVersion();
+
+    /**
      * Get session ID.
      *
      * @return Returns session ID.

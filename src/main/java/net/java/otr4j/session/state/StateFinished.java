@@ -40,6 +40,11 @@ final class StateFinished extends AbstractState {
     }
 
     @Override
+    public int getVersion() {
+        return 0;
+    }
+
+    @Override
     @Nonnull
     public SessionID getSessionID() {
         return this.sessionId;

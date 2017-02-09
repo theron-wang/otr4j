@@ -40,7 +40,7 @@ public class SMPTest {
     public static Collection<Object[]> data() {
         // this crazy format is needed by JUnit:
         // https://github.com/junit-team/junit/wiki/Parameterized-tests
-        ArrayList<Object[]> list = new ArrayList<Object[]>(TestStrings.unicodes.length);
+        ArrayList<Object[]> list = new ArrayList<>(TestStrings.unicodes.length);
         for (String string : TestStrings.unicodes) {
             list.add(new Object[] {
                 string

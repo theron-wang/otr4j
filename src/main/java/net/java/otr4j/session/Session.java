@@ -60,6 +60,9 @@ import net.java.otr4j.session.state.StatePlaintext;
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
 // TODO Make Session final, can only be done after having extracted an interface as we rely on mocking the Session implementation.
 // TODO There's now a mix of checking by messageType and checking by instanceof to discover type of AKE message. This is probably not a good thing ...
+// FIXME how does mix of OTRv3 (slave) sessions and OTRv2 session work with outgoing session? Will this lead to trouble in mix of ENCRYPTED and PLAINTEXT sessions?
+// TODO can we define some sort of sanity check that ensures that ENCRYPTED message state is always correctly reflected, i.e. we always send messages ENCRYPTED if this appears so.
+// TODO verify logic to ensure that we only attempt to start a new session if we are not ENCRYPTED (otherwise multiple clients might continue starting up new sessions to infinity)
 public class Session implements Context, AuthContext {
 
     public interface OTRv {
@@ -369,10 +372,7 @@ public class Session implements Context, AuthContext {
                      * instance. We relay this message to the appropriate
                      * session for transforming.
                      */
-
-                    logger.finest("Received an encoded message from a different instance. Our buddy"
-                            +
-                            "may be logged from multiple locations.");
+                    logger.finest("Received an encoded message from a different instance. Our buddy may be logged from multiple locations.");
 
                     final InstanceTag newReceiverTag = new InstanceTag(encodedM.senderInstanceTag);
                     synchronized (slaveSessions) {
@@ -657,6 +657,7 @@ public class Session implements Context, AuthContext {
      * @return Returns the array of messages to be sent over IM network.
      * @throws OtrException OtrException in case of exceptions.
      */
+    // TODO consider changing public API to not allow null list of TLVs and null msgText.
     @Nonnull
     public String[] transformSending(@Nullable String msgText, @Nullable List<TLV> tlvs)
             throws OtrException {
@@ -673,6 +674,7 @@ public class Session implements Context, AuthContext {
     }
 
     public void startSession() throws OtrException {
+        // TODO this does not make sense. We do not need a protocol version for sending the initial query message, as we haven't established yet what OTR version we will be speaking nor is QueryMessage an encoded message.
         if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
             outgoingSession.startSession();
             return;
@@ -681,10 +683,13 @@ public class Session implements Context, AuthContext {
             logger.fine("startSession was called, however an encrypted session is already established.");
             return;
         }
+        // TODO can we get rid of startSession in favor of plain startAuth()? We could always allow initiating a new session, then startSession and startAuth would effectively be the same method.
         startAuth();
     }
 
     public void endSession() throws OtrException {
+        // TODO will this still work correctly? Can we determine OTRv3 session in case session is supported by slave session??!?!?!?!
+        // TODO in any case, checking protocol version does not make sense here. In case of slave sessions, the master session may not have encrypted state (right?) outgoingSession is a good indicator though!
         if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
             outgoingSession.endSession();
             return;
@@ -737,10 +742,19 @@ public class Session implements Context, AuthContext {
         return receiverTag;
     }
 
+    /**
+     * Get the current session's protocol version. That is, in case no OTR
+     * session is established (yet) it will return 0. This protocol version is
+     * different from the protocol version in the current AKE conversation which
+     * may be ongoing simultaneously. (See {@link #getAKEProtocolVersion() }.)
+     *
+     * @return Returns 0 for no session, or protocol version in case of
+     * established OTR session.
+     */
+    // FIXME investigate use of getProtocolVersion() It does not make sense to check protocol version on master session before switching to outgoingSession, as master session may not be encrypted, i.e. ENCRYPTED is also delegated to slave sessions.
     @Override
     public int getProtocolVersion() {
-        // FIXME extend to use ENCRYPTED message state's protocol version too? Do we still need this? Or query at AuthContext? It's a derived value based on the current (or previously completed?) AKE conversation.
-        return this.authState.getVersion();
+        return this.sessionState.getVersion();
     }
 
     public List<Session> getInstances() {
@@ -750,6 +764,7 @@ public class Session implements Context, AuthContext {
         return result;
     }
 
+    // FIXME can we be sure that outgoing session is only available in case an OTRv3 conversation was 
     public boolean setOutgoingInstance(@Nonnull final InstanceTag tag) {
         if (!masterSession) {
             // Only master session can set the outgoing session.
@@ -757,6 +772,7 @@ public class Session implements Context, AuthContext {
         }
         final SessionID sessionId = this.sessionState.getSessionID();
         if (tag.equals(this.receiverTag)) {
+            // FIXME not really changing outgoing session, do we really need to inform listeners?
             outgoingSession = this;
             OtrEngineListenerUtil.outgoingSessionChanged(
                     OtrEngineListenerUtil.duplicate(listeners), sessionId);
@@ -764,6 +780,7 @@ public class Session implements Context, AuthContext {
         }
         final Session newActiveSession = slaveSessions.get(tag);
         if (newActiveSession == null) {
+            // FIXME strange that we assign outgoingSession to this then return false without signaling outgoingSessionChanged(...) event.
             outgoingSession = this;
             return false;
         } else {
@@ -800,6 +817,11 @@ public class Session implements Context, AuthContext {
         return outgoingSession;
     }
 
+    /**
+     * Start AKE negotiation.
+     *
+     * @throws OtrException In case of failure to inject message.
+     */
     // TODO potential confusion for implementor: startAuth should be used only in context of AKE. Now we expose this as public method to user because user uses Session instance directly instead of interface.
     @Override
     public void startAuth() throws OtrException {
@@ -812,6 +834,13 @@ public class Session implements Context, AuthContext {
         injectMessage(new QueryMessage(allowedVersions));
     }
 
+    /**
+     * Respond to AKE query message.
+     *
+     * @param version OTR protocol version to use.
+     * @return Returns DH commit message as response to AKE query.
+     * @throws OtrException In case of invalid/unsupported OTR protocol version.
+     */
     public DHCommitMessage respondAuth(final int version) throws OtrException {
         if (!OTRv.ALL.contains(version)) {
             throw new OtrException("Only allowed versions are: 2, 3");
@@ -820,6 +849,14 @@ public class Session implements Context, AuthContext {
         return this.authState.initiate(this, version);
     }
 
+    /**
+     * Initialize SMP negotiation.
+     *
+     * @param question The question, optional.
+     * @param secret The secret to be verified using ZK-proof.
+     * @throws OtrException In case of failure to init SMP or transform to
+     * encoded message.
+     */
     public void initSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
         if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
             outgoingSession.initSmp(question, secret);
@@ -828,7 +865,7 @@ public class Session implements Context, AuthContext {
         final SmpTlvHandler handler;
         try {
             handler = this.sessionState.getSmpTlvHandler();
-        } catch (IncorrectStateException ex) {
+        } catch (final IncorrectStateException ex) {
             throw new OtrException(ex);
         }
         final List<TLV> tlvs = handler.initRespondSmp(question, secret, true);
@@ -838,6 +875,14 @@ public class Session implements Context, AuthContext {
         }
     }
 
+    /**
+     * Respond with SMP message for specified receiver tag.
+     *
+     * @param receiverTag The receiver instance tag.
+     * @param question The question, optional.
+     * @param secret The secret to be verified using ZK-proof.
+     * @throws OtrException In case of failure.
+     */
     public void respondSmp(@Nonnull final InstanceTag receiverTag, @Nullable final String question, @Nonnull final String secret)
             throws OtrException
     {
@@ -849,10 +894,19 @@ public class Session implements Context, AuthContext {
         if (slave != null) {
             slave.respondSmp(question, secret);
         } else {
+            // FIXME is this really the appropriate response. If we are already in an ENCRYPTED message state, we should already have established OTRv2 or OTRv3. That means that we should never NOT find an instance tag. If we do find one, should we respond with OtrException?
             respondSmp(question, secret);
         }
     }
 
+    /**
+     * Respond to SMP request.
+     *
+     * @param question The question to be sent with SMP response, may be null.
+     * @param secret The SMP secret that should be verified through ZK-proof.
+     * @throws OtrException In case of failure to send, message state different
+     * from ENCRYPTED, issues with SMP processing.
+     */
     public void respondSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
         if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
             outgoingSession.respondSmp(question, secret);
@@ -861,7 +915,7 @@ public class Session implements Context, AuthContext {
         final List<TLV> tlvs;
         try {
             tlvs = this.sessionState.getSmpTlvHandler().initRespondSmp(question, secret, false);
-        } catch (IncorrectStateException ex) {
+        } catch (final IncorrectStateException ex) {
             throw new OtrException(ex);
         }
         final String[] msg = transformSending("", tlvs);
@@ -870,6 +924,11 @@ public class Session implements Context, AuthContext {
         }
     }
 
+    /**
+     * Abort running SMP negotiation.
+     *
+     * @throws OtrException In case session is not in ENCRYPTED message state.
+     */
     public void abortSmp() throws OtrException {
         if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
             outgoingSession.abortSmp();
@@ -887,6 +946,13 @@ public class Session implements Context, AuthContext {
         }
     }
 
+    /**
+     * Check if SMP is in progress.
+     *
+     * @return Returns true if SMP is in progress, or false if not in progress.
+     * Note that false will also be returned in case message state is not
+     * ENCRYPTED.
+     */
     public boolean isSmpInProgress() {
         if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
             return outgoingSession.isSmpInProgress();

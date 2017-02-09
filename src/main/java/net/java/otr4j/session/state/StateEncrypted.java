@@ -126,6 +126,11 @@ final class StateEncrypted extends AbstractState {
     }
 
     @Override
+    public int getVersion() {
+        return this.protocolVersion;
+    }
+
+    @Override
     @Nonnull
     public SessionID getSessionID() {
         return this.sessionId;
