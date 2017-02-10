@@ -469,7 +469,6 @@ public final class OtrCryptoEngine {
      * data.
      * @return Returns 'dest' filled with random data.
      */
-    // TODO add unit tests.
     @Nonnull
     public static byte[] random(@Nonnull final SecureRandom random, @Nonnull final byte[] dest) {
         random.nextBytes(dest);
