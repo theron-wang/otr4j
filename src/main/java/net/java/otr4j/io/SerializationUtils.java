@@ -49,7 +49,6 @@ import net.java.otr4j.session.Session.OTRv;
 /**
  * @author George Politis
  */
-// TODO consider converting the logic to use ByteBuffer.
 public final class SerializationUtils {
 
     private static final Logger LOGGER = Logger.getLogger(SerializationUtils.class.getName());
