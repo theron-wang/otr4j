@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 
 import net.java.otr4j.session.Session;
@@ -21,14 +22,6 @@ import net.java.otr4j.session.SessionID;
  * @author Danny van Heumen
  */
 public class OtrSessionManager {
-
-    public OtrSessionManager(@Nonnull final OtrEngineHost host) {
-        if (host == null) {
-            throw new IllegalArgumentException("OtrEngineHost is required.");
-        }
-
-        this.host = host;
-    }
 
     /**
      * The OTR Engine Host instance.
@@ -46,7 +39,17 @@ public class OtrSessionManager {
     /**
      * List for keeping track of listeners.
      */
-    private final ArrayList<OtrEngineListener> listeners = new ArrayList<OtrEngineListener>(0);
+    private final ArrayList<OtrEngineListener> listeners = new ArrayList<>(0);
+
+    /**
+     * Constructor for OTR session manager.
+     *
+     * @param host OTR engine host that provides callback interface to host
+     * logic.
+     */
+    public OtrSessionManager(@Nonnull final OtrEngineHost host) {
+        this.host = Objects.requireNonNull(host, "OtrEngineHost is required");
+    }
 
     /**
      * Singleton instance of OtrEngineListener for listeners registered with
@@ -111,9 +114,7 @@ public class OtrSessionManager {
      * @param l the listener
      */
     public void addOtrEngineListener(@Nonnull final OtrEngineListener l) {
-        if (l == null) {
-            throw new NullPointerException("null is not a valid listener");
-        }
+        Objects.requireNonNull(l, "null is not a valid listener");
         synchronized (listeners) {
             if (!listeners.contains(l)) {
                 listeners.add(l);
@@ -127,9 +128,7 @@ public class OtrSessionManager {
      * @param l the listener
      */
     public void removeOtrEngineListener(@Nonnull final OtrEngineListener l) {
-        if (l == null) {
-            throw new NullPointerException("null is not a valid listener");
-        }
+        Objects.requireNonNull(l, "null is not a valid listener");
         synchronized (listeners) {
             listeners.remove(l);
         }

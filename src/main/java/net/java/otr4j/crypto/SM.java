@@ -510,10 +510,7 @@ abstract class State {
     private final SecureRandom sr;
 
     State(@Nonnull final SecureRandom sr) {
-        if (sr == null) {
-            throw new NullPointerException("sr");
-        }
-        this.sr = sr;
+        this.sr = Objects.requireNonNull(sr);
     }
 
     /**
