@@ -441,11 +441,12 @@ public class Session implements Context, AuthContext {
                     injectMessage(reply);
                 }
                 return null;
-            // Unknown message type:
             default:
-                // TODO consider if we want this or a checked exception. This will have issues when an unknown type is used that this client simply doesn't support, but doesn't really hurt the existing converstaion.
-                throw new UnsupportedOperationException(
-                        "Received an unknown message type.");
+                // At this point, the message m has a known type, but support
+                // was not implemented at this point in the code. This should be
+                // considered a programming error. We should handle any known
+                // message type gracefully. Unknown messages are caught earlier.
+                throw new UnsupportedOperationException("Received an unknown message type.");
         }
     }
 
