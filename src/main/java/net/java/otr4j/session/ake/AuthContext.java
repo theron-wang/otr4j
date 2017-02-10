@@ -38,6 +38,7 @@ public interface AuthContext {
      * @return Returns long-term key pair.
      */
     @Nonnull
+    // FIXME rename to match methods from session.State.
     KeyPair longTermKeyPair();
 
     /**
@@ -45,6 +46,7 @@ public interface AuthContext {
      *
      * @return Returns sender instance tag value.
      */
+    // FIXME rename to match methods from session.State.
     int senderInstance();
 
     /**
@@ -52,6 +54,7 @@ public interface AuthContext {
      *
      * @return Returns recipient instance tag value.
      */
+    // FIXME rename to match methods from session.State.
     int receiverInstance();
 
     /**

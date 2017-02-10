@@ -239,11 +239,13 @@ public final class SmpTlvHandler {
                 engineHost.injectMessage(session.getSessionID(), part);
             }
         }
-        catch (SMAbortedException e) {
+        catch (final SMAbortedException e) {
+            // TODO consider logging a finest-level exception here.
             sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
             OtrEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
-        catch (SMException e) {
+        catch (final SMException e) {
+            // TODO consider logging a finest-level exception here.
             OtrEngineHostUtil.smpError(engineHost, session.getSessionID(),
                     tlv.getType(), this.sm.status() == SM.Status.CHEATED);
             throw new OtrException(e);

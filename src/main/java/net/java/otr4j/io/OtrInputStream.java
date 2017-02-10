@@ -146,7 +146,7 @@ public final class OtrInputStream extends FilterInputStream implements
 	public PublicKey readPublicKey() throws IOException, OtrCryptoException {
 		final int type = readShort();
 		switch (type) {
-		case 0:
+		case PUBLIC_KEY_TYPE_DSA:
 			final BigInteger p = readBigInt();
 			final BigInteger q = readBigInt();
 			final BigInteger g = readBigInt();

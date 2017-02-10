@@ -94,7 +94,7 @@ public final class OtrOutputStream extends FilterOutputStream implements
 
 		final DSAPublicKey dsaKey = (DSAPublicKey) pubKey;
 
-		writeShort(0);
+		writeShort(PUBLIC_KEY_TYPE_DSA);
 
 		final DSAParams dsaParams = dsaKey.getParams();
 		writeBigInt(dsaParams.getP());

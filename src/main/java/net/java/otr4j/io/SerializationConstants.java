@@ -28,5 +28,10 @@ public interface SerializationConstants {
 	int DATA_LEN = TYPE_LEN_INT;
 	int TLV_LEN = TYPE_LEN_SHORT;
 
+    /**
+     * Public Key type DSA type value for serialization.
+     */
+    int PUBLIC_KEY_TYPE_DSA = 0;
+
     String DEFAULT_FALLBACK_MESSAGE = "Your contact is requesting to start an encrypted chat. Please install an app that supports OTR: https://github.com/otr4j/otr4j/wiki/Apps";
 }

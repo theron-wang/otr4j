@@ -33,6 +33,8 @@ abstract class AbstractAuthState implements AuthState {
         try {
             OtrCryptoEngine.verify(localDHPublicKey);
         } catch (final OtrCryptoException ex) {
+            // Caught and handled here as all components are constructed here
+            // and failure should thus be considered a programming error.
             throw new IllegalStateException("Failed to generate valid local DH keypair.", ex);
         }
         final byte[] publicKeyBytes = SerializationUtils.writeMpi(localDHPublicKey.getY());

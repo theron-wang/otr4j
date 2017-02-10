@@ -101,9 +101,6 @@ public final class OtrCryptoEngine {
             0x00
     };
 
-    // TODO constant is unused?
-    public static final int DSA_PUB_TYPE = 0;
-
     private OtrCryptoEngine() {
         // this class is never instantiated, it only has static methods
     }
