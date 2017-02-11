@@ -4,15 +4,15 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
+
 package net.java.otr4j;
 
 import java.security.KeyPair;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import net.java.otr4j.io.SerializationConstants;
-import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.SessionID;
+import net.java.otr4j.session.state.SmpEngineHost;
 
 /**
  * This interface should be implemented by the host application. It is required
@@ -21,8 +21,7 @@ import net.java.otr4j.session.SessionID;
  *
  * @author George Politis
  */
-// TODO interface segregation: split up OtrEngineHost in SMP-related facilities and other facilities.
-public abstract interface OtrEngineHost {
+public abstract interface OtrEngineHost extends SmpEngineHost {
 
     /**
      * Request host to inject a new message into the IM communication stream
@@ -60,23 +59,6 @@ public abstract interface OtrEngineHost {
      * @param error the error message
      */
 	void showError(@Nonnull SessionID sessionID, @Nonnull String error);
-
-    /**
-     * Call Engine Host to inform of SMP error during authentication.
-     *
-     * @param sessionID the session ID
-     * @param tlvType the TLV type
-     * @param cheated status indicator for cheating (interruption before SMP
-     * verification step was able to complete)
-     */
-	void smpError(@Nonnull SessionID sessionID, int tlvType, boolean cheated);
-
-    /**
-     * Call Engine Host to inform of SMP abort.
-     *
-     * @param sessionID the session ID
-     */
-	void smpAborted(@Nonnull SessionID sessionID);
 
     /**
      * Signal Engine Host that OTR secure session is finished.
@@ -137,37 +119,8 @@ public abstract interface OtrEngineHost {
      * @param sessionID the session ID
      * @return Returns the raw fingerprint bytes.
      */
+    @Nonnull
 	byte[] getLocalFingerprintRaw(@Nonnull SessionID sessionID);
-
-    /**
-     * Signal Engine Host to ask user for answer to the question provided by the
-     * other party in the authentication session.
-     *
-     * @param sessionID the session ID
-     * @param receiverTag the receiver instance tag
-     * @param question the question to be asked to the user by the Engine Host
-     */
-	void askForSecret(@Nonnull SessionID sessionID, @Nonnull InstanceTag receiverTag, @Nullable String question);
-
-    /**
-     * When a remote user's key is verified via the Socialist Millionaire's
-     * Protocol (SMP) shared passphrase or question/answer, this method will be
-     * called upon successful completion of that process.
-     *
-     * @param sessionID of the session where the SMP happened.
-     * @param fingerprint of the key to verify
-     */
-	void verify(@Nonnull SessionID sessionID, @Nonnull String fingerprint);
-
-    /**
-     * If the Socialist Millionaire's Protocol (SMP) process fails, then this
-     * method will be called to make sure that the session is marked as
-     * untrustworthy.
-     *
-     * @param sessionID of the session where the SMP happened.
-     * @param fingerprint of the key to unverify
-     */
-	void unverify(@Nonnull SessionID sessionID, @Nonnull String fingerprint);
 
     /**
      * When a message is received that is unreadable for some reason, for

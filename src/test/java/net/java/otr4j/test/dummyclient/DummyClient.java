@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrException;
@@ -346,6 +347,7 @@ public class DummyClient {
 			return policy;
 		}
 
+        @Nonnull
         public byte[] getLocalFingerprintRaw(SessionID sessionID) {
             return OtrCryptoEngine.getFingerprintRaw(getLocalKeyPair(sessionID)
                     .getPublic());

@@ -7,10 +7,8 @@
 
 package net.java.otr4j;
 
-import java.security.SecureRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.SessionID;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
@@ -28,8 +26,6 @@ import static org.mockito.Mockito.when;
  * @author Danny van Heumen
  */
 public class OtrEngineHostUtilTest {
-
-    private static final SecureRandom RANDOM = new SecureRandom();
 
     private Level originalLoggingLevel;
 
@@ -136,44 +132,6 @@ public class OtrEngineHostUtilTest {
     }
 
     @Test
-    public void testVerifyOnGoodHost() {
-        final String fingerprint = "myfingerprint";
-        final SessionID sessionID = new SessionID(null, null, null);
-        final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHostUtil.verify(host, sessionID, fingerprint);
-        verify(host).verify(sessionID, fingerprint);
-    }
-
-    @Test
-    public void testVerifyOnBadHost() {
-        final String fingerprint = "myfingerprint";
-        final SessionID sessionID = new SessionID(null, null, null);
-        final OtrEngineHost host = mock(OtrEngineHost.class);
-        doThrow(new IllegalStateException("some bad stuff happened")).when(host).verify(sessionID, fingerprint);
-        OtrEngineHostUtil.verify(host, sessionID, fingerprint);
-        verify(host).verify(sessionID, fingerprint);
-    }
-
-    @Test
-    public void testUnverifyOnGoodHost() {
-        final String fingerprint = "myfingerprint";
-        final SessionID sessionID = new SessionID(null, null, null);
-        final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHostUtil.unverify(host, sessionID, fingerprint);
-        verify(host).unverify(sessionID, fingerprint);
-    }
-
-    @Test
-    public void testUnverifyOnBadHost() {
-        final String fingerprint = "myfingerprint";
-        final SessionID sessionID = new SessionID(null, null, null);
-        final OtrEngineHost host = mock(OtrEngineHost.class);
-        doThrow(new IllegalStateException("some bad stuff happened")).when(host).unverify(sessionID, fingerprint);
-        OtrEngineHostUtil.unverify(host, sessionID, fingerprint);
-        verify(host).unverify(sessionID, fingerprint);
-    }
-
-    @Test
     public void testShowErrorOnGoodHost() throws OtrException {
         final String error = "My error message.";
         final SessionID sessionID = new SessionID(null, null, null);
@@ -190,44 +148,6 @@ public class OtrEngineHostUtilTest {
         doThrow(new IllegalArgumentException("programming error occurred")).when(host).showError(sessionID, error);
         OtrEngineHostUtil.showError(host, sessionID, error);
         verify(host).showError(sessionID, error);
-    }
-
-    @Test
-    public void testSmpErrorOnGoodHost() throws OtrException {
-        final boolean cheated = true;
-        final int type = 1;
-        final SessionID sessionID = new SessionID(null, null, null);
-        final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHostUtil.smpError(host, sessionID, type, cheated);
-        verify(host).smpError(sessionID, type, cheated);
-    }
-
-    @Test
-    public void testSmpErrorOnFaultyHost() throws OtrException {
-        final boolean cheated = true;
-        final int type = 1;
-        final SessionID sessionID = new SessionID(null, null, null);
-        final OtrEngineHost host = mock(OtrEngineHost.class);
-        doThrow(new IllegalArgumentException("programming error occurred")).when(host).smpError(sessionID, type, cheated);
-        OtrEngineHostUtil.smpError(host, sessionID, type, cheated);
-        verify(host).smpError(sessionID, type, cheated);
-    }
-
-    @Test
-    public void testSmpAbortedOnGoodHost() throws OtrException {
-        final SessionID sessionID = new SessionID(null, null, null);
-        final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHostUtil.smpAborted(host, sessionID);
-        verify(host).smpAborted(sessionID);
-    }
-
-    @Test
-    public void testSmpAbortedOnFaultyHost() throws OtrException {
-        final SessionID sessionID = new SessionID(null, null, null);
-        final OtrEngineHost host = mock(OtrEngineHost.class);
-        doThrow(new IllegalArgumentException("programming error occurred")).when(host).smpAborted(sessionID);
-        OtrEngineHostUtil.smpAborted(host, sessionID);
-        verify(host).smpAborted(sessionID);
     }
 
     @Test
@@ -266,27 +186,6 @@ public class OtrEngineHostUtilTest {
         doThrow(new IllegalArgumentException("programming error occurred")).when(host).requireEncryptedMessage(sessionID, msg);
         OtrEngineHostUtil.requireEncryptedMessage(host, sessionID, msg);
         verify(host).requireEncryptedMessage(sessionID, msg);
-    }
-
-    @Test
-    public void testAskForSecretOnGoodHost() throws OtrException {
-        final String question = "What's my secret?";
-        final InstanceTag sender = InstanceTag.random(RANDOM);
-        final SessionID sessionID = new SessionID(null, null, null);
-        final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHostUtil.askForSecret(host, sessionID, sender, question);
-        verify(host).askForSecret(sessionID, sender, question);
-    }
-
-    @Test
-    public void testAskForSecretOnFaultyHost() throws OtrException {
-        final String question = "What's my secret?";
-        final InstanceTag sender = InstanceTag.random(RANDOM);
-        final SessionID sessionID = new SessionID(null, null, null);
-        final OtrEngineHost host = mock(OtrEngineHost.class);
-        doThrow(new IllegalArgumentException("programming error occurred")).when(host).askForSecret(sessionID, sender, question);
-        OtrEngineHostUtil.askForSecret(host, sessionID, sender, question);
-        verify(host).askForSecret(sessionID, sender, question);
     }
 
     @Test
