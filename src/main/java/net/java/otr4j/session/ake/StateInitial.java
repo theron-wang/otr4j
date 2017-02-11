@@ -45,6 +45,7 @@ public final class StateInitial extends AbstractAuthState {
     @Override
     public DHKeyMessage handle(@Nonnull final AuthContext context, @Nonnull final AbstractEncodedMessage message) {
         if (!(message instanceof DHCommitMessage)) {
+            // OTR: "Ignore the message."
             LOGGER.log(Level.INFO, "We only expect to receive a DH Commit message. Ignoring message with messagetype: {0}", message.messageType);
             return null;
         }
@@ -61,11 +62,14 @@ public final class StateInitial extends AbstractAuthState {
 
     @Nonnull
     private DHKeyMessage handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) {
+        // OTR: "Reply with a D-H Key Message, and transition authstate to AUTHSTATE_AWAITING_REVEALSIG."
+        // OTR: "Choose a random value y (at least 320 bits), and calculate gy."
         final KeyPair keypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
         LOGGER.finest("Generated local D-H key pair.");
         context.setState(new StateAwaitingRevealSig(message.protocolVersion,
                 keypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
-        LOGGER.finest("Sending DH key message.");
+        LOGGER.finest("Sending D-H key message.");
+        // OTR: "Sends Bob gy"
         return new DHKeyMessage(message.protocolVersion, (DHPublicKey) keypair.getPublic(),
                 context.senderInstance(), context.receiverInstance());
     }

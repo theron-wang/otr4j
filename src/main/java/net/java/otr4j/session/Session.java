@@ -842,6 +842,7 @@ public class Session implements Context, AuthContext {
      * @return Returns DH commit message as response to AKE query.
      * @throws OtrException In case of invalid/unsupported OTR protocol version.
      */
+    // TODO we might know the instance ID already (in case of "forced" new AKE) so we should be able to specify instance ID (in case of session refresh for example)
     public DHCommitMessage respondAuth(final int version) throws OtrException {
         if (!OTRv.ALL.contains(version)) {
             throw new OtrException("Only allowed versions are: 2, 3");

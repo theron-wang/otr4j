@@ -86,7 +86,9 @@ final class StateAwaitingSig extends AbstractAuthState {
 
     @Nonnull
     private DHKeyMessage handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) {
+        // OTR: "Reply with a new D-H Key message, and transition authstate to AUTHSTATE_AWAITING_REVEALSIG."
         LOGGER.finest("Generating local D-H key pair.");
+        // OTR: "Choose a random value y (at least 320 bits), and calculate gy."
         final KeyPair newKeypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
         LOGGER.finest("Ignoring AWAITING_SIG state and sending a new DH key message.");
         context.setState(new StateAwaitingRevealSig(message.protocolVersion, newKeypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
@@ -95,6 +97,8 @@ final class StateAwaitingSig extends AbstractAuthState {
 
     @Nullable
     private RevealSignatureMessage handleDHKeyMessage(@Nonnull final DHKeyMessage message) {
+        // OTR: "If this D-H Key message is the same the one you received earlier (when you entered AUTHSTATE_AWAITING_SIG):
+        // Retransmit your Reveal Signature Message. Otherwise: Ignore the message."
         if (!((DHPublicKey) this.localDHKeyPair.getPublic()).getY().equals(message.dhPublicKey.getY())) {
             // DH keypair is not the same as local pair, this message is either
             // fake or not intended for this session.
@@ -109,26 +113,34 @@ final class StateAwaitingSig extends AbstractAuthState {
     @Nullable
     private SignatureMessage handleSignatureMessage(@Nonnull final AuthContext context, @Nonnull final SignatureMessage message)
             throws OtrCryptoException, AuthContext.InteractionFailedException, IOException {
+        // OTR: "Decrypt the encrypted signature, and verify the signature and the MACs."
         try {
+            // OTR: "Uses m2' to verify MACm2'(AESc'(XA))"
             final byte[] xEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
             final byte[] xEncryptedMAC = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
             OtrCryptoEngine.checkEquals(xEncryptedMAC, message.xEncryptedMAC, "xEncryptedMAC failed verification.");
+            // OTR: "Uses c' to decrypt AESc'(XA) to obtain XA = pubA, keyidA, sigA(MA)"
             final byte[] remoteXBytes = OtrCryptoEngine.aesDecrypt(s.cp(), null, message.xEncrypted);
             final SignatureX remoteX = SerializationUtils.toMysteriousX(remoteXBytes);
+            // OTR: "Computes MA = MACm1'(gy, gx, pubA, keyidA)"
             final SignatureM remoteM = new SignatureM(this.remoteDHPublicKey,
                     (DHPublicKey) this.localDHKeyPair.getPublic(),
                     remoteX.longTermPublicKey, remoteX.dhKeyID);
             final byte[] remoteMBytes = SerializationUtils.toByteArray(remoteM);
             final byte[] expectedSignature = OtrCryptoEngine.sha256Hmac(remoteMBytes, s.m1p());
+            // OTR: "Uses pubA to verify sigA(MA)"
             OtrCryptoEngine.verify(expectedSignature, remoteX.longTermPublicKey, remoteX.signature);
             // Transition to ENCRYPTED session state.
+            // OTR: "Transition msgstate to MSGSTATE_ENCRYPTED."
             final SecurityParameters params = new SecurityParameters(this.version,
                     this.localDHKeyPair, remoteX.longTermPublicKey,
                     remoteDHPublicKey, this.s);
             context.secure(params);
             return null;
         } finally {
+            // FIXME is "forced" transition to NONE vulnerable to DoS? Should we only transition to NONE after all verifications check out?
             // Ensure transition to AUTHSTATE_NONE.
+            // OTR: "Transition authstate to AUTHSTATE_NONE."
             context.setState(StateInitial.instance());
         }
     }

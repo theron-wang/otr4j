@@ -67,6 +67,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
             throw new IllegalArgumentException("unexpected version");
         }
         if (message instanceof DHKeyMessage) {
+            // OTR: "Ignore the message."
             LOGGER.log(Level.INFO, "Ignoring DHKey message.");
             return null;
         } else if (message instanceof RevealSignatureMessage) {
@@ -84,6 +85,8 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
 
     @Nonnull
     private DHKeyMessage handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) {
+        // OTR: "Retransmit your D-H Key Message (the same one as you sent when you entered AUTHSTATE_AWAITING_REVEALSIG).
+        // Forget the old D-H Commit message, and use this new one instead."
         context.setState(new StateAwaitingRevealSig(message.protocolVersion, this.keypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
         return new DHKeyMessage(message.protocolVersion, (DHPublicKey) this.keypair.getPublic(), context.senderInstance(), context.receiverInstance());
     }
@@ -104,26 +107,38 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
     @Nonnull
     private SignatureMessage handleRevealSignatureMessage(@Nonnull final AuthContext context, @Nonnull final RevealSignatureMessage message)
             throws OtrCryptoException, AuthContext.InteractionFailedException, IOException {
+        // OTR: "Use the received value of r to decrypt the value of gx received in the D-H Commit Message, and verify
+        // the hash therein. Decrypt the encrypted signature, and verify the signature and the MACs."
         final DHPublicKey remoteDHPublicKey;
         final SharedSecret s;
         final SignatureX remoteMysteriousX;
+        // TODO OTR says "If everything checks out ... otherwise, ignore the message." Should we ignore even if 
         try {
             // Start validation of Reveal Signature message.
+            // OTR: "Uses r to decrypt the value of gx sent earlier"
             final byte[] remotePublicKeyBytes = OtrCryptoEngine.aesDecrypt(message.revealedKey, null, this.remotePublicKeyEncrypted);
+            // OTR: "Verifies that HASH(gx) matches the value sent earlier"
             final byte[] expectedRemotePublicKeyHash = OtrCryptoEngine.sha256Hash(remotePublicKeyBytes);
             OtrCryptoEngine.checkEquals(this.remotePublicKeyHash, expectedRemotePublicKeyHash, "Remote's public key hash failed validation.");
+            // OTR: "Verifies that Bob's gx is a legal value (2 <= gx <= modulus-2)"
             final BigInteger remotePublicKeyMPI = SerializationUtils.readMpi(remotePublicKeyBytes);
             remoteDHPublicKey = OtrCryptoEngine.verify(
                     OtrCryptoEngine.getDHPublicKey(remotePublicKeyMPI));
+            // OTR: "Compute the Diffie-Hellman shared secret s."
+            // OTR: "Use s to compute an AES key c' and two MAC keys m1' and m2', as specified below."
             s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), remoteDHPublicKey);
+            // OTR: "Uses m2 to verify MACm2(AESc(XB))"
             final byte[] remoteXEncryptedBytes = SerializationUtils.writeData(message.xEncrypted);
             final byte[] expectedXEncryptedMAC = OtrCryptoEngine.sha256Hmac160(remoteXEncryptedBytes, s.m2());
             OtrCryptoEngine.checkEquals(message.xEncryptedMAC, expectedXEncryptedMAC, "xEncryptedMAC failed validation.");
+            // OTR: "Uses c to decrypt AESc(XB) to obtain XB = pubB, keyidB, sigB(MB)"
             final byte[] remoteMysteriousXBytes = OtrCryptoEngine.aesDecrypt(s.c(), null, message.xEncrypted);
             remoteMysteriousX = SerializationUtils.toMysteriousX(remoteMysteriousXBytes);
+            // OTR: "Computes MB = MACm1(gx, gy, pubB, keyidB)"
             final SignatureM expectedM = new SignatureM(remoteDHPublicKey,
                     (DHPublicKey) this.keypair.getPublic(),
                     remoteMysteriousX.longTermPublicKey, remoteMysteriousX.dhKeyID);
+            // OTR: "Uses pubB to verify sigB(MB)"
             final byte[] expectedMBytes = SerializationUtils.toByteArray(expectedM);
             final byte[] expectedSignature = OtrCryptoEngine.sha256Hmac(expectedMBytes, s.m1());
             OtrCryptoEngine.verify(expectedSignature, remoteMysteriousX.longTermPublicKey,
@@ -131,28 +146,40 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
             LOGGER.finest("Signature verification succeeded.");
         } finally {
             // Ensure transition to AUTHSTATE_NONE.
+            // FIXME is "forced" transition to NONE vulnerable to DoS? Should we only transition to NONE after all verifications check out?
+            // OTR: "Transition authstate to AUTHSTATE_NONE."
             context.setState(StateInitial.instance());
         }
+        // OTR: "Transition msgstate to MSGSTATE_ENCRYPTED."
         // Transition to ENCRYPTED message state.
         final SecurityParameters params = new SecurityParameters(this.version,
                 this.keypair, remoteMysteriousX.longTermPublicKey,
                 remoteDHPublicKey, s);
         context.secure(params);
+        // OTR: "Reply with a Signature Message."
         // Start construction of Signature message.
         final KeyPair localLongTermKeyPair = context.longTermKeyPair();
+        // OTR: "Select keyidA, a serial number for the D-H key computed earlier. It is an INT, and must be greater than 0."
+        // OTR: "Compute the 32-byte value MA to be the SHA256-HMAC of the following data, using the key m1':
+        // gy (MPI), gx (MPI), pubA (PUBKEY), keyidA (INT)"
         final SignatureM signatureM = new SignatureM(
                 (DHPublicKey) this.keypair.getPublic(), remoteDHPublicKey,
                 localLongTermKeyPair.getPublic(), LOCAL_DH_PRIVATE_KEY_ID);
         final byte[] signatureMBytes = SerializationUtils.toByteArray(signatureM);
         final byte[] mhash = OtrCryptoEngine.sha256Hmac(signatureMBytes, s.m1p());
+        // OTR: "Let XA be the following structure: pubA (PUBKEY), keyidA (INT), sigA(MA) (SIG)"
         final byte[] signature = OtrCryptoEngine.sign(mhash, localLongTermKeyPair.getPrivate());
         final SignatureX mysteriousX = new SignatureX(localLongTermKeyPair.getPublic(),
                 LOCAL_DH_PRIVATE_KEY_ID, signature);
+        // OTR: "Encrypt XA using AES128-CTR with key c' and initial counter value 0."
         final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(s.cp(), null,
                 SerializationUtils.toByteArray(mysteriousX));
+        // OTR: "Encode this encrypted value as the DATA field."
         final byte[] xEncryptedBytes = SerializationUtils.writeData(xEncrypted);
+        // OTR: "This is the SHA256-HMAC-160 (that is, the first 160 bits of the SHA256-HMAC) of the encrypted signature field (including the four-byte length), using the key m2'."
         final byte[] xEncryptedHash = OtrCryptoEngine.sha256Hmac160(xEncryptedBytes, s.m2p());
         LOGGER.finest("Creating signature message for response.");
+        // OTR: "Sends Bob AESc'(XA), MACm2'(AESc'(XA))"
         return new SignatureMessage(this.version, xEncrypted, xEncryptedHash,
                 context.senderInstance(), context.receiverInstance());
     }

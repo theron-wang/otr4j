@@ -58,6 +58,7 @@ final class StateAwaitingDHKey extends AbstractAuthState {
         if (message instanceof DHKeyMessage) {
             return handleDHKeyMessage(context, (DHKeyMessage) message);
         } else {
+            // OTR: "Ignore the message."
             LOGGER.log(Level.FINEST, "Only expected message is DHKeyMessage. Ignoring message with type: {0}", message.messageType);
             return null;
         }
@@ -70,16 +71,24 @@ final class StateAwaitingDHKey extends AbstractAuthState {
 
     @Nonnull
     private AbstractEncodedMessage handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) throws OtrCryptoException {
+        // OTR: "This is the trickiest transition in the whole protocol. It indicates that you have already sent a D-H Commit message
+        // to your correspondent, but that he either didn't receive it, or just didn't receive it yet, and has sent you one as well.
+        // The symmetry will be broken by comparing the hashed gx you sent in your D-H Commit Message with the one you received,
+        // considered as 32-byte unsigned big-endian values."
         final byte[] publicKeyBytes = SerializationUtils.writeMpi(((DHPublicKey) keypair.getPublic()).getY());
         final byte[] publicKeyHash = OtrCryptoEngine.sha256Hash(publicKeyBytes);
         final BigInteger localKeyHashBigInt = new BigInteger(1, publicKeyHash);
         final BigInteger remoteKeyHashBigInt = new BigInteger(1, message.dhPublicKeyHash);
         if (localKeyHashBigInt.compareTo(remoteKeyHashBigInt) > 0) {
+            // OTR: "If yours is the higher hash value: Ignore the incoming D-H Commit message, but resend your D-H Commit message."
             LOGGER.finest("Ignored the incoming D-H Commit message, but resent our D-H Commit message.");
             final byte[] publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(this.r, null, publicKeyBytes);
             return new DHCommitMessage(this.version, publicKeyHash, publicKeyEncrypted, context.senderInstance(), 0);
         } else {
+            // OTR: "Otherwise: Forget your old gx value that you sent (encrypted) earlier, and pretend you're in AUTHSTATE_NONE;
+            // i.e. reply with a D-H Key Message, and transition authstate to AUTHSTATE_AWAITING_REVEALSIG."
             LOGGER.finest("Forgetting old gx value that we sent (encrypted) earlier, and pretended we're in AUTHSTATE_NONE -> Sending DH key.");
+            // OTR: "Choose a random value y (at least 320 bits), and calculate gy."
             final KeyPair newKeypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
             context.setState(new StateAwaitingRevealSig(message.protocolVersion, newKeypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
             return new DHKeyMessage(message.protocolVersion, (DHPublicKey) newKeypair.getPublic(), context.senderInstance(), context.receiverInstance());
@@ -88,21 +97,31 @@ final class StateAwaitingDHKey extends AbstractAuthState {
 
     @Nonnull
     private RevealSignatureMessage handleDHKeyMessage(@Nonnull final AuthContext context, @Nonnull final DHKeyMessage message) throws OtrCryptoException {
+        // OTR: "Reply with a Reveal Signature Message and transition authstate to AUTHSTATE_AWAITING_SIG."
+        // OTR: "Verifies that Alice's gy is a legal value (2 <= gy <= modulus-2)"
         OtrCryptoEngine.verify(message.dhPublicKey);
         final KeyPair longTermKeyPair = context.longTermKeyPair();
+        // OTR: "Compute the Diffie-Hellman shared secret s"
+        // OTR: "Use s to compute an AES key c and two MAC keys m1 and m2, as specified below."
         final SharedSecret s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), message.dhPublicKey);
+        // OTR: "Select keyidB, a serial number for the D-H key computed earlier. It is an INT, and must be greater than 0."
+        // OTR: "Compute the 32-byte value MB to be the SHA256-HMAC of the following data, using the key m1: gx (MPI), gy (MPI), pubB (PUBKEY), keyidB (INT)"
         final SignatureM sigM = new SignatureM(
                 (DHPublicKey) this.keypair.getPublic(), message.dhPublicKey,
                 longTermKeyPair.getPublic(), LOCAL_DH_PRIVATE_KEY_ID);
         final byte[] mhash = OtrCryptoEngine.sha256Hmac(SerializationUtils
                     .toByteArray(sigM), s.m1());
+        // OTR: "Let XB be the following structure: pubB (PUBKEY), keyidB (INT), sigB(MB) (SIG)"
         final byte[] signature = OtrCryptoEngine.sign(mhash, longTermKeyPair.getPrivate());
         final SignatureX mysteriousX = new SignatureX(longTermKeyPair.getPublic(),
                 LOCAL_DH_PRIVATE_KEY_ID, signature);
+        // OTR: "Encrypt XB using AES128-CTR with key c and initial counter value 0."
         final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(s.c(), null,
                     SerializationUtils.toByteArray(mysteriousX));
+        // OTR: "This is the SHA256-HMAC-160 (that is, the first 160 bits of the SHA256-HMAC) of the encrypted signature field (including the four-byte length), using the key m2."
         final byte[] tmpEncrypted = SerializationUtils.writeData(xEncrypted);
         final byte[] xEncryptedHash = OtrCryptoEngine.sha256Hmac160(tmpEncrypted, s.m2());
+        // OTR: "Sends Alice r, AESc(XB), MACm2(AESc(XB))"
         final RevealSignatureMessage revealSigMessage = new RevealSignatureMessage(
                 this.version, xEncrypted, xEncryptedHash, this.r,
                 context.senderInstance(), context.receiverInstance());

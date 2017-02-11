@@ -25,8 +25,10 @@ abstract class AbstractAuthState implements AuthState {
         if (version < 2 || version > 3) {
             throw new IllegalArgumentException("unknown or unsupported protocol version");
         }
+        // OTR: "Choose a random value x (at least 320 bits)"
         final KeyPair keypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
         LOGGER.finest("Generated local D-H key pair.");
+        // OTR: "Choose a random value r (128 bits)"
         final byte[] r = OtrCryptoEngine.random(context.secureRandom(),
                 new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH]);
         final DHPublicKey localDHPublicKey = (DHPublicKey) keypair.getPublic();
@@ -37,14 +39,18 @@ abstract class AbstractAuthState implements AuthState {
             // and failure should thus be considered a programming error.
             throw new IllegalStateException("Failed to generate valid local DH keypair.", ex);
         }
+        // OTR: "Serialize gx as an MPI, gxmpi. [gxmpi will probably be 196 bytes long, starting with "\x00\x00\x00\xc0".]"
         final byte[] publicKeyBytes = SerializationUtils.writeMpi(localDHPublicKey.getY());
+        // OTR: "This is the SHA256 hash of gxmpi."
         final byte[] publicKeyHash = OtrCryptoEngine.sha256Hash(publicKeyBytes);
+        // OTR: "Encrypt gxmpi using AES128-CTR, with key r and initial counter value 0. The result will be the same length as gxmpi."
         final byte[] publicKeyEncrypted;
         try {
             publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(r, null, publicKeyBytes);
         } catch (final OtrCryptoException ex) {
             throw new IllegalStateException("Failed to encrypt public key bytes.", ex);
         }
+        // OTR: "Sends Alice AESr(gx), HASH(gx)"
         final DHCommitMessage dhcommit = new DHCommitMessage(version,
                 publicKeyHash, publicKeyEncrypted, context.senderInstance(), 0);
         LOGGER.finest("Sending DH commit message.");
