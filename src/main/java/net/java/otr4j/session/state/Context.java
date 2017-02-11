@@ -45,5 +45,5 @@ public interface Context {
     @Nonnull
     OtrFragmenter fragmenter();
 
-    void startAuth() throws OtrException;
+    void startSession() throws OtrException;
 }

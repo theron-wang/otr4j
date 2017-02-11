@@ -109,7 +109,7 @@ public final class StatePlaintext extends AbstractState {
             if (!otrPolicy.viable()) {
                 throw new OtrException("OTR policy disallows all versions of the OTR protocol. We cannot initiate a new OTR session.");
             }
-            context.startAuth();
+            context.startSession();
             OtrEngineHostUtil.requireEncryptedMessage(context.getHost(), sessionId, msgText);
             return new String[0];
         }

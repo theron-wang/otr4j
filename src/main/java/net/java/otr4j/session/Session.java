@@ -232,6 +232,7 @@ public class Session implements Context, AuthContext {
         return this.secureRandom;
     }
 
+    // FIXME aim to make fragmenter private, should be possible given that any message should be either return or injected. In both cases we end up back in Session.
     @Override
     @Nonnull
     public OtrFragmenter fragmenter() {
@@ -293,7 +294,7 @@ public class Session implements Context, AuthContext {
     @Nullable
     public String transformReceiving(@Nonnull String msgText) throws OtrException {
 
-        // TODO consider if we should move this down after assembler processing. It is true that we do not allow any version of OTR, but at the same time, OTR is active and it may not make sense to NOT reconstruct a fragmented message even if we do not intend to process it. Would this result in weird messages that show up in the chat? This allows receiving OTR encoded messages which will be displayed as plain text(?)
+        // TODO consider if we should move this down after assembler processing. It is true that we do not allow any version of OTR, but at the same time, OTR is active and it may not make sense to NOT reconstruct a fragmented message even if we do not intend to process it. Would this result in weird messages that show up in the chat? This allows receiving OTR encoded messages which will be displayed as plain text(?) Non-viable policy shouldn't be used to disable plugin support. This logic seems out of place.
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.viable()) {
             logger.warning("Policy does not allow any version of OTR, ignoring message.");
@@ -480,6 +481,7 @@ public class Session implements Context, AuthContext {
         return this.sessionState.handleDataMessage(this, data);
     }
 
+    // FIXME consider doing all fragmentation here and removing from other parts of the logic, especially auth state and session state. (Allows fragmenter to be private.)
     @Override
     public void injectMessage(@Nonnull final AbstractMessage m) throws OtrException {
         String msg = SerializationUtils.toString(m);
@@ -658,18 +660,19 @@ public class Session implements Context, AuthContext {
         return this.sessionState.transformSending(this, msgText, tlvs);
     }
 
+    @Override
     public void startSession() throws OtrException {
-        // TODO this does not make sense. We do not need a protocol version for sending the initial query message, as we haven't established yet what OTR version we will be speaking nor is QueryMessage an encoded message.
-        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
-            outgoingSession.startSession();
-            return;
-        }
         if (this.getSessionStatus() == SessionStatus.ENCRYPTED) {
-            logger.fine("startSession was called, however an encrypted session is already established.");
+            logger.info("startSession was called, however an encrypted session is already established.");
             return;
         }
-        // TODO can we get rid of startSession in favor of plain startAuth()? We could always allow initiating a new session, then startSession and startAuth would effectively be the same method.
-        startAuth();
+        logger.finest("Enquiring to start Authenticated Key Exchange, sending query message");
+        final OtrPolicy policy = this.getSessionPolicy();
+        final Set<Integer> allowedVersions = OtrPolicyUtil.allowedVersions(policy);
+        if (allowedVersions.isEmpty()) {
+            throw new IllegalStateException("Current OTR policy declines all supported versions of OTR. There is no way to start an OTR session that complies with the policy.");
+        }
+        injectMessage(new QueryMessage(allowedVersions));
     }
 
     public void endSession() throws OtrException {
@@ -682,6 +685,7 @@ public class Session implements Context, AuthContext {
         this.sessionState.end(this);
     }
 
+    // FIXME can we specialize refreshSession to acquire instance tag, end state, then start new AKE already with instancetag added?
     public void refreshSession() throws OtrException {
         this.endSession();
         this.startSession();
@@ -804,24 +808,6 @@ public class Session implements Context, AuthContext {
     }
 
     /**
-     * Start AKE negotiation.
-     *
-     * @throws OtrException In case of failure to inject message.
-     */
-    // TODO potential confusion for implementor: startAuth should be used only in context of AKE. Now we expose this as public method to user because user uses Session instance directly instead of interface.
-    // TODO consider redefining startAuth as creating the DHCommit message instead of QueryMessage. Move QueryMessage to startSession. Modify refreshSession accordingly, as we already know an instance tag at that point.
-    @Override
-    public void startAuth() throws OtrException {
-        logger.finest("Starting Authenticated Key Exchange, sending query message");
-        final OtrPolicy policy = this.getSessionPolicy();
-        final Set<Integer> allowedVersions = OtrPolicyUtil.allowedVersions(policy);
-        if (allowedVersions.isEmpty()) {
-            throw new IllegalStateException("Current OTR policy declines all supported versions of OTR. There is no way to start an OTR session that complies with the policy.");
-        }
-        injectMessage(new QueryMessage(allowedVersions));
-    }
-
-    /**
      * Respond to AKE query message.
      *
      * @param version OTR protocol version to use.
@@ -829,7 +815,7 @@ public class Session implements Context, AuthContext {
      * @throws OtrException In case of invalid/unsupported OTR protocol version.
      */
     // TODO we might know the instance ID already (in case of "forced" new AKE) so we should be able to specify instance ID (in case of session refresh for example)
-    public DHCommitMessage respondAuth(final int version) throws OtrException {
+    private DHCommitMessage respondAuth(final int version) throws OtrException {
         if (!OTRv.ALL.contains(version)) {
             throw new OtrException("Only allowed versions are: 2, 3");
         }

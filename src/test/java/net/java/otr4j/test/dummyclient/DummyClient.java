@@ -119,7 +119,7 @@ public class DummyClient {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
 			session = new Session(sessionID, new DummyOtrEngineHostImpl());
 		}
-        session.startAuth();
+        session.startSession();
     }
 
 	public void send(String recipient, String s) throws OtrException {
