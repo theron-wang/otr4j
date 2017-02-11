@@ -16,6 +16,7 @@ import net.java.otr4j.crypto.SM.SMException;
 import net.java.otr4j.crypto.SM.SMAbortedException;
 import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.io.SerializationUtils;
+import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.TLV;
 
@@ -25,6 +26,7 @@ import net.java.otr4j.session.TLV;
  *
  * @author Danny van Heumen
  */
+// TODO define and require SMPEngineHost instead of OtrEngineHost to avoid use of OtrEngineHost for injecting messages directly. (Only SMP-related facilities are allowed.)
 public final class SmpTlvHandler {
 
     private static final byte[] VERSION_BYTE = new byte[]{1};
@@ -233,11 +235,9 @@ public final class SmpTlvHandler {
             final byte[] nextmsg = sm.step3(tlv.getValue());
             /* Send msg with next smp msg content */
             final TLV sendtlv = new TLV(TLV.SMP3, nextmsg);
-            final String[] msg = session.transformSending(this.sessionContext,
+            final DataMessage m = session.transformSending(this.sessionContext,
                     "", Collections.singletonList(sendtlv));
-            for (final String part : msg) {
-                engineHost.injectMessage(session.getSessionID(), part);
-            }
+            this.sessionContext.injectMessage(m);
         }
         catch (final SMAbortedException e) {
             sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
@@ -304,10 +304,8 @@ public final class SmpTlvHandler {
     }
 
     private void sendTLV(@Nonnull final TLV tlv) throws OtrException {
-        final String[] msg = session.transformSending(this.sessionContext,
+        final DataMessage m = session.transformSending(this.sessionContext,
                 "", Collections.singletonList(tlv));
-        for (final String part : msg) {
-            engineHost.injectMessage(session.getSessionID(), part);
-        }
+        this.sessionContext.injectMessage(m);
     }
 }

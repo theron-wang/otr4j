@@ -316,7 +316,7 @@ final class StateEncrypted extends AbstractState {
 
     @Override
     @Nonnull
-    public String[] transformSending(@Nonnull final Context context, @Nonnull final String msgText, @Nonnull final List<TLV> tlvs) throws OtrException {
+    public DataMessage transformSending(@Nonnull final Context context, @Nonnull final String msgText, @Nonnull final List<TLV> tlvs) throws OtrException {
         logger.log(Level.FINEST, "{0} sends an encrypted message to {1} through {2}.",
                 new Object[]{sessionId.getAccountID(), sessionId.getUserID(), sessionId.getProtocolName()});
 
@@ -391,14 +391,7 @@ final class StateEncrypted extends AbstractState {
         final DataMessage m = new DataMessage(t, mac, oldKeys);
         m.senderInstanceTag = context.getSenderInstanceTag().getValue();
         m.receiverInstanceTag = context.getReceiverInstanceTag().getValue();
-
-        try {
-            final String completeMessage = SerializationUtils.toString(m);
-            // TODO consider moving fragmentation outside of StateEncrypted implementation. (After bit of further investigation it seems that a lot if not all of this comes back in Session, so we should be able to tackle it there.)
-            return context.fragmenter().fragment(completeMessage);
-        } catch (final IOException e) {
-            throw new OtrException(e);
-        }
+        return m;
     }
 
     @Override
@@ -409,10 +402,9 @@ final class StateEncrypted extends AbstractState {
     @Override
     public void end(@Nonnull final Context context) throws OtrException {
         final TLV disconnectTlv = new TLV(TLV.DISCONNECTED, new byte[0]);
-        final String[] msg = transformSending(context, "", Collections.singletonList(disconnectTlv));
-        for (final String part : msg) {
-            context.getHost().injectMessage(this.sessionId, part);
-        }
+        final DataMessage m = transformSending(context, "", Collections.singletonList(disconnectTlv));
+        // TODO consider wrapping in try-finally to ensure state transition to plaintext
+        context.injectMessage(m);
         context.setState(new StatePlaintext(this.sessionId));
     }
 

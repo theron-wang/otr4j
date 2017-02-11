@@ -8,6 +8,7 @@
 package net.java.otr4j.session.state;
 
 import java.security.PublicKey;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -18,7 +19,6 @@ import net.java.otr4j.OtrEngineHostUtil;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.OtrPolicyUtil;
-import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.AbstractMessage;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
@@ -101,8 +101,8 @@ public final class StatePlaintext extends AbstractState {
     }
 
     @Override
-    @Nonnull
-    public String[] transformSending(@Nonnull final Context context, @Nonnull final String msgText, @Nonnull final List<TLV> tlvs) throws OtrException {
+    @Nullable
+    public AbstractMessage transformSending(@Nonnull final Context context, @Nonnull final String msgText, @Nonnull final List<TLV> tlvs) throws OtrException {
         final OtrPolicy otrPolicy = context.getSessionPolicy();
         if (otrPolicy.getRequireEncryption()) {
             // Prevent original message from being sent. Start AKE.
@@ -111,13 +111,13 @@ public final class StatePlaintext extends AbstractState {
             }
             context.startSession();
             OtrEngineHostUtil.requireEncryptedMessage(context.getHost(), sessionId, msgText);
-            return new String[0];
+            return null;
         }
         if (!otrPolicy.getSendWhitespaceTag()
                 || context.getOfferStatus() == OfferStatus.rejected) {
             // As we do not want to send a specially crafted whitespace tag
             // message, just return the original message text to be sent.
-            return new String[]{msgText};
+            return new PlainTextMessage(Collections.<Integer>emptySet(), msgText);
         }
         // Continue with crafting a special whitespace message tag and embedding
         // it into the original message.
@@ -127,10 +127,9 @@ public final class StatePlaintext extends AbstractState {
             // At this point, reaching this state is considered a bug.
             throw new IllegalStateException("The current OTR policy does not allow any supported version of OTR. The software should either enable some protocol version or disable sending whitespace tags.");
         }
-        final String message = SerializationUtils.toString(
-                    new PlainTextMessage(versions, msgText));
+        final PlainTextMessage m = new PlainTextMessage(versions, msgText);
         context.setOfferStatusSent();
-        return new String[]{message};
+        return m;
     }
 
     @Override

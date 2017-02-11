@@ -68,14 +68,6 @@ public class OtrFragmenterTest {
 		Session session = createSessionMock(null, 0, 0);
 		new OtrFragmenter(session, host(100));
 	}
-	
-	@Test
-	public void testGetHost() {
-		Session session = createSessionMock(null, 0, 0);
-		OtrEngineHost host = host(100);
-		OtrFragmenter fragmenter = new OtrFragmenter(session, host);
-		assertSame(host, fragmenter.getHost());
-	}
 
 	@Test
 	public void testFragmentNullInstructionsCompute() throws IOException {

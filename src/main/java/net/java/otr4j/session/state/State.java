@@ -12,6 +12,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.java.otr4j.OtrException;
+import net.java.otr4j.io.messages.AbstractMessage;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.PlainTextMessage;
@@ -74,12 +75,11 @@ public interface State {
      * @param context The session context.
      * @param msgText The message ready to be sent.
      * @param tlvs List of TLVs.
-     * @return Returns array of message fragments ready to be sent over IM
-     * transport.
+     * @return Returns message to be sent over IM transport.
      * @throws OtrException In case an exception occurs.
      */
-    @Nonnull
-    String[] transformSending(@Nonnull Context context, @Nonnull String msgText, @Nonnull List<TLV> tlvs) throws OtrException;
+    @Nullable
+    AbstractMessage transformSending(@Nonnull Context context, @Nonnull String msgText, @Nonnull List<TLV> tlvs) throws OtrException;
 
     /**
      * Handle the received plaintext message.

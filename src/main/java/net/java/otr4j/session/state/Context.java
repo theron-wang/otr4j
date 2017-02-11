@@ -8,7 +8,6 @@ import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.io.messages.AbstractMessage;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.OfferStatus;
-import net.java.otr4j.session.OtrFragmenter;
 import net.java.otr4j.session.SessionID;
 
 public interface Context {
@@ -41,9 +40,6 @@ public interface Context {
     OfferStatus getOfferStatus();
 
     void setOfferStatusSent();
-
-    @Nonnull
-    OtrFragmenter fragmenter();
 
     void startSession() throws OtrException;
 }

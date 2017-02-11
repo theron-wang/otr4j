@@ -21,6 +21,7 @@ import net.java.otr4j.session.SessionID;
  *
  * @author George Politis
  */
+// TODO interface segregation: split up OtrEngineHost in SMP-related facilities and other facilities.
 public abstract interface OtrEngineHost {
 
     /**

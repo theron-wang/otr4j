@@ -19,8 +19,9 @@ import net.java.otr4j.OtrPolicy;
  * 
  * @author Danny van Heumen
  */
-public final class OtrFragmenter {
-	/**
+final class OtrFragmenter {
+
+    /**
 	 * Exception message in cases where only OTRv1 is allowed.
 	 */
 	private static final String OTRV1_NOT_SUPPORTED = "Fragmentation is not supported in OTRv1.";
@@ -62,15 +63,6 @@ public final class OtrFragmenter {
 	}
 
 	/**
-	 * Get instructions for fragmentation behaviour.
-	 *
-	 * @return returns instructions
-	 */
-	OtrEngineHost getHost() {
-		return this.host;
-	}
-
-	/**
 	 * Calculate the number of fragments that are required for the message to be
 	 * sent fragmented completely.
 	 *
@@ -82,7 +74,7 @@ public final class OtrFragmenter {
 	 *             store any content or when the provided policy does not
 	 *             support fragmentation, for example if only OTRv1 is allowed.
 	 */
-	public int numberOfFragments(@Nonnull final String message) throws IOException {
+	int numberOfFragments(@Nonnull final String message) throws IOException {
 		final SessionID sessionId = this.session.getSessionID();
 		final int fragmentSize = this.host.getMaxFragmentSize(sessionId);
 		if (fragmentSize >= message.length()) {
@@ -125,7 +117,7 @@ public final class OtrFragmenter {
 	 *             throws an IOException if the fragment size is too small or if
 	 *             the maximum number of fragments is exceeded.
 	 */
-	public String[] fragment(@Nonnull final String message) throws IOException {
+	String[] fragment(@Nonnull final String message) throws IOException {
 		final SessionID sessionId = this.session.getSessionID();
 		final int fragmentSize = this.host.getMaxFragmentSize(sessionId);
 		return fragment(message, fragmentSize);

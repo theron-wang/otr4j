@@ -141,6 +141,7 @@ public class Session implements Context, AuthContext {
      * The receiver tag is only used in OTRv3. In case of OTRv2 the instance tag
      * will be empty.
      */
+    // TODO investigate how 'receiverTag' will function given mixed OTRv2 and OTRv3 sessions and multiple sessions in slaveSessions map. This might need to move to either slave sessions or session state.
     private InstanceTag receiverTag;
 
     /**
@@ -230,13 +231,6 @@ public class Session implements Context, AuthContext {
     @Nonnull
     public SecureRandom secureRandom() {
         return this.secureRandom;
-    }
-
-    // FIXME aim to make fragmenter private, should be possible given that any message should be either return or injected. In both cases we end up back in Session.
-    @Override
-    @Nonnull
-    public OtrFragmenter fragmenter() {
-        return this.fragmenter;
     }
 
     @Override
@@ -481,12 +475,12 @@ public class Session implements Context, AuthContext {
         return this.sessionState.handleDataMessage(this, data);
     }
 
-    // FIXME consider doing all fragmentation here and removing from other parts of the logic, especially auth state and session state. (Allows fragmenter to be private.)
     @Override
     public void injectMessage(@Nonnull final AbstractMessage m) throws OtrException {
         String msg = SerializationUtils.toString(m);
         final SessionID sessionId = this.sessionState.getSessionID();
         if (m instanceof QueryMessage) {
+            // TODO consider moving this somewhere else. It's a bit weird that we modify parts of a Query Message here.
             String fallback = OtrEngineHostUtil.getFallbackMessage(this.host,
                     sessionId);
             if (fallback == null || fallback.isEmpty()) {
@@ -657,7 +651,16 @@ public class Session implements Context, AuthContext {
         if (tlvs == null) {
             tlvs = Collections.<TLV>emptyList();
         }
-        return this.sessionState.transformSending(this, msgText, tlvs);
+        final AbstractMessage m = this.sessionState.transformSending(this, msgText, tlvs);
+        if (m == null) {
+            return new String[0];
+        }
+        final String msgtext = SerializationUtils.toString(m);
+        try {
+            return this.fragmenter.fragment(msgtext);
+        } catch (final IOException ex) {
+            throw new OtrException("Failed to fragment message.", ex);
+        }
     }
 
     @Override

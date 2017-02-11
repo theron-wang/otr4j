@@ -159,6 +159,7 @@ public final class SerializationUtils {
         return out.toByteArray();
 	}
 
+    // TODO add unit tests to test serialization of plaintext messages with whitespace tags.
 	// Message IO.
 	public static String toString(@Nonnull final AbstractMessage m) {
 		final StringWriter writer = new StringWriter();

@@ -93,10 +93,10 @@ final class StateFinished extends AbstractState {
     }
 
     @Override
-    @Nonnull
-    public String[] transformSending(@Nonnull final Context context, @Nonnull final String msgText, @Nonnull final List<TLV> tlvs) throws OtrException {
+    @Nullable
+    public AbstractMessage transformSending(@Nonnull final Context context, @Nonnull final String msgText, @Nonnull final List<TLV> tlvs) throws OtrException {
         OtrEngineHostUtil.finishedSessionMessage(context.getHost(), sessionId, msgText);
-        return new String[0];
+        return null;
     }
 
     @Override
