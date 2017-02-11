@@ -264,22 +264,6 @@ public class Session implements Context, AuthContext {
         this.authState = Objects.requireNonNull(state);
     }
 
-    @Nonnull
-    @Override
-    public KeyPair longTermKeyPair() {
-        return this.host.getLocalKeyPair(this.sessionState.getSessionID());
-    }
-
-    @Override
-    public int senderInstance() {
-        return this.senderTag.getValue();
-    }
-
-    @Override
-    public int receiverInstance() {
-        return this.receiverTag.getValue();
-    }
-
     public SessionStatus getSessionStatus() {
         return this.sessionState.getStatus();
     }
@@ -729,6 +713,7 @@ public class Session implements Context, AuthContext {
         return this.host.getSessionPolicy(this.sessionState.getSessionID());
     }
 
+    @Override
     public KeyPair getLocalKeyPair() {
         return this.host.getLocalKeyPair(this.sessionState.getSessionID());
     }
@@ -824,6 +809,7 @@ public class Session implements Context, AuthContext {
      * @throws OtrException In case of failure to inject message.
      */
     // TODO potential confusion for implementor: startAuth should be used only in context of AKE. Now we expose this as public method to user because user uses Session instance directly instead of interface.
+    // TODO consider redefining startAuth as creating the DHCommit message instead of QueryMessage. Move QueryMessage to startSession. Modify refreshSession accordingly, as we already know an instance tag at that point.
     @Override
     public void startAuth() throws OtrException {
         logger.finest("Starting Authenticated Key Exchange, sending query message");

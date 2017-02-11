@@ -3,6 +3,7 @@ package net.java.otr4j.session.ake;
 import java.security.KeyPair;
 import java.security.SecureRandom;
 import javax.annotation.Nonnull;
+import net.java.otr4j.session.InstanceTag;
 
 public interface AuthContext {
 
@@ -38,24 +39,23 @@ public interface AuthContext {
      * @return Returns long-term key pair.
      */
     @Nonnull
-    // FIXME rename to match methods from session.State.
-    KeyPair longTermKeyPair();
+    KeyPair getLocalKeyPair();
 
     /**
      * Sender instance tag value.
      *
      * @return Returns sender instance tag value.
      */
-    // FIXME rename to match methods from session.State.
-    int senderInstance();
+    @Nonnull
+    InstanceTag getSenderInstanceTag();
 
     /**
      * Receiver instance tag value.
      *
      * @return Returns recipient instance tag value.
      */
-    // FIXME rename to match methods from session.State.
-    int receiverInstance();
+    @Nonnull
+    InstanceTag getReceiverInstanceTag();
 
     /**
      * InteractionFailedException indicates an error happened while interacting

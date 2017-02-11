@@ -88,7 +88,8 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
         // OTR: "Retransmit your D-H Key Message (the same one as you sent when you entered AUTHSTATE_AWAITING_REVEALSIG).
         // Forget the old D-H Commit message, and use this new one instead."
         context.setState(new StateAwaitingRevealSig(message.protocolVersion, this.keypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
-        return new DHKeyMessage(message.protocolVersion, (DHPublicKey) this.keypair.getPublic(), context.senderInstance(), context.receiverInstance());
+        return new DHKeyMessage(message.protocolVersion, (DHPublicKey) this.keypair.getPublic(),
+                context.getSenderInstanceTag().getValue(), context.getReceiverInstanceTag().getValue());
     }
 
     /**
@@ -158,7 +159,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
         context.secure(params);
         // OTR: "Reply with a Signature Message."
         // Start construction of Signature message.
-        final KeyPair localLongTermKeyPair = context.longTermKeyPair();
+        final KeyPair localLongTermKeyPair = context.getLocalKeyPair();
         // OTR: "Select keyidA, a serial number for the D-H key computed earlier. It is an INT, and must be greater than 0."
         // OTR: "Compute the 32-byte value MA to be the SHA256-HMAC of the following data, using the key m1':
         // gy (MPI), gx (MPI), pubA (PUBKEY), keyidA (INT)"
@@ -181,6 +182,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
         LOGGER.finest("Creating signature message for response.");
         // OTR: "Sends Bob AESc'(XA), MACm2'(AESc'(XA))"
         return new SignatureMessage(this.version, xEncrypted, xEncryptedHash,
-                context.senderInstance(), context.receiverInstance());
+                context.getSenderInstanceTag().getValue(),
+                context.getReceiverInstanceTag().getValue());
     }
 }

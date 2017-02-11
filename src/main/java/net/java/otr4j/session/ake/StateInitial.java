@@ -71,6 +71,6 @@ public final class StateInitial extends AbstractAuthState {
         LOGGER.finest("Sending D-H key message.");
         // OTR: "Sends Bob gy"
         return new DHKeyMessage(message.protocolVersion, (DHPublicKey) keypair.getPublic(),
-                context.senderInstance(), context.receiverInstance());
+                context.getSenderInstanceTag().getValue(), context.getReceiverInstanceTag().getValue());
     }
 }

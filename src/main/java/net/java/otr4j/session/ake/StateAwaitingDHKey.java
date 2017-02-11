@@ -18,6 +18,7 @@ import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.RevealSignatureMessage;
 import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureX;
+import net.java.otr4j.session.InstanceTag;
 
 /**
  * AKE state Awaiting D-H Key message, a.k.a. AUTHSTATE_AWAITING_DHKEY.
@@ -83,7 +84,8 @@ final class StateAwaitingDHKey extends AbstractAuthState {
             // OTR: "If yours is the higher hash value: Ignore the incoming D-H Commit message, but resend your D-H Commit message."
             LOGGER.finest("Ignored the incoming D-H Commit message, but resent our D-H Commit message.");
             final byte[] publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(this.r, null, publicKeyBytes);
-            return new DHCommitMessage(this.version, publicKeyHash, publicKeyEncrypted, context.senderInstance(), 0);
+            return new DHCommitMessage(this.version, publicKeyHash, publicKeyEncrypted,
+                    context.getSenderInstanceTag().getValue(), InstanceTag.ZERO_VALUE);
         } else {
             // OTR: "Otherwise: Forget your old gx value that you sent (encrypted) earlier, and pretend you're in AUTHSTATE_NONE;
             // i.e. reply with a D-H Key Message, and transition authstate to AUTHSTATE_AWAITING_REVEALSIG."
@@ -91,7 +93,8 @@ final class StateAwaitingDHKey extends AbstractAuthState {
             // OTR: "Choose a random value y (at least 320 bits), and calculate gy."
             final KeyPair newKeypair = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
             context.setState(new StateAwaitingRevealSig(message.protocolVersion, newKeypair, message.dhPublicKeyHash, message.dhPublicKeyEncrypted));
-            return new DHKeyMessage(message.protocolVersion, (DHPublicKey) newKeypair.getPublic(), context.senderInstance(), context.receiverInstance());
+            return new DHKeyMessage(message.protocolVersion, (DHPublicKey) newKeypair.getPublic(),
+                    context.getSenderInstanceTag().getValue(), context.getReceiverInstanceTag().getValue());
         }
     }
 
@@ -100,7 +103,7 @@ final class StateAwaitingDHKey extends AbstractAuthState {
         // OTR: "Reply with a Reveal Signature Message and transition authstate to AUTHSTATE_AWAITING_SIG."
         // OTR: "Verifies that Alice's gy is a legal value (2 <= gy <= modulus-2)"
         OtrCryptoEngine.verify(message.dhPublicKey);
-        final KeyPair longTermKeyPair = context.longTermKeyPair();
+        final KeyPair longTermKeyPair = context.getLocalKeyPair();
         // OTR: "Compute the Diffie-Hellman shared secret s"
         // OTR: "Use s to compute an AES key c and two MAC keys m1 and m2, as specified below."
         final SharedSecret s = OtrCryptoEngine.generateSecret(this.keypair.getPrivate(), message.dhPublicKey);
@@ -124,7 +127,8 @@ final class StateAwaitingDHKey extends AbstractAuthState {
         // OTR: "Sends Alice r, AESc(XB), MACm2(AESc(XB))"
         final RevealSignatureMessage revealSigMessage = new RevealSignatureMessage(
                 this.version, xEncrypted, xEncryptedHash, this.r,
-                context.senderInstance(), context.receiverInstance());
+                context.getSenderInstanceTag().getValue(),
+                context.getReceiverInstanceTag().getValue());
         context.setState(new StateAwaitingSig(this.version, this.keypair,
                 message.dhPublicKey, s, revealSigMessage));
         return revealSigMessage;

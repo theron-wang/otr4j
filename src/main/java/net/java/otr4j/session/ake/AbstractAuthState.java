@@ -8,6 +8,7 @@ import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.DHCommitMessage;
+import net.java.otr4j.session.InstanceTag;
 
 /**
  * Abstract AuthState implementation that provides authentication initiation
@@ -52,7 +53,8 @@ abstract class AbstractAuthState implements AuthState {
         }
         // OTR: "Sends Alice AESr(gx), HASH(gx)"
         final DHCommitMessage dhcommit = new DHCommitMessage(version,
-                publicKeyHash, publicKeyEncrypted, context.senderInstance(), 0);
+                publicKeyHash, publicKeyEncrypted, context.getSenderInstanceTag().getValue(),
+                InstanceTag.ZERO_VALUE);
         LOGGER.finest("Sending DH commit message.");
         context.setState(new StateAwaitingDHKey(version, keypair, r));
         return dhcommit;
