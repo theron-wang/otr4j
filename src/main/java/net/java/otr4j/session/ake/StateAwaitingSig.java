@@ -139,9 +139,9 @@ final class StateAwaitingSig extends AbstractAuthState {
             context.secure(params);
             return null;
         } finally {
-            // FIXME is "forced" transition to NONE vulnerable to DoS? Should we only transition to NONE after all verifications check out?
             // Ensure transition to AUTHSTATE_NONE.
             // OTR: "Transition authstate to AUTHSTATE_NONE."
+            // OTR: "Regardless of whether the signature verifications succeed, the authstate variable is transitioned to AUTHSTATE_NONE."
             context.setState(StateInitial.instance());
         }
     }
