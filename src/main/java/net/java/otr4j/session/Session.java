@@ -823,7 +823,7 @@ public class Session implements Context, AuthContext {
             throw new OtrException("Only allowed versions are: 2, 3");
         }
         logger.finest("Responding to Query Message with D-H Commit message.");
-        return this.authState.initiate(this, version);
+        return this.authState.initiate(this, version, InstanceTag.ZERO_TAG);
     }
 
     /**

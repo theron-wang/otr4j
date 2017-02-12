@@ -22,7 +22,8 @@ abstract class AbstractAuthState implements AuthState {
 
     @Nonnull
     @Override
-    public DHCommitMessage initiate(@Nonnull final AuthContext context, final int version) {
+    public DHCommitMessage initiate(@Nonnull final AuthContext context, final int version,
+            @Nonnull final InstanceTag receiverTag) {
         if (version < 2 || version > 3) {
             throw new IllegalArgumentException("unknown or unsupported protocol version");
         }
@@ -54,7 +55,7 @@ abstract class AbstractAuthState implements AuthState {
         // OTR: "Sends Alice AESr(gx), HASH(gx)"
         final DHCommitMessage dhcommit = new DHCommitMessage(version,
                 publicKeyHash, publicKeyEncrypted, context.getSenderInstanceTag().getValue(),
-                InstanceTag.ZERO_VALUE);
+                receiverTag.getValue());
         LOGGER.finest("Sending DH commit message.");
         context.setState(new StateAwaitingDHKey(version, keypair, r));
         return dhcommit;

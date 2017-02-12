@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
+import net.java.otr4j.session.InstanceTag;
 
 /**
  * Interface for the AKE states.
@@ -25,10 +26,12 @@ public interface AuthState {
      *
      * @param context Context.
      * @param version Initiate AKE using protocol version.
+     * @param receiverTag The receiver's instance tag. This tag may not always
+     * be known at this time, therefore providing ZERO TAG is also valid.
      * @return Returns DHCommitMessage with which we can initiate an AKE.
      */
     @Nonnull
-    DHCommitMessage initiate(@Nonnull AuthContext context, int version);
+    DHCommitMessage initiate(@Nonnull AuthContext context, int version, @Nonnull InstanceTag receiverTag);
 
     /**
      * Handle AKE message.
