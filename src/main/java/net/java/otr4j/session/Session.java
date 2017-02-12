@@ -527,7 +527,7 @@ public class Session implements Context, AuthContext {
             // no policy w.r.t. starting AKE on whitespace tag
             return;
         }
-        logger.finest("WHITESPACE_START_AKE is set");
+        logger.finest("WHITESPACE_START_AKE is set, processing whitespace-tagged message.");
         if (plainTextMessage.versions.contains(Session.OTRv.THREE)
                 && policy.getAllowV3()) {
             logger.finest("V3 tag found.");
@@ -536,6 +536,8 @@ public class Session implements Context, AuthContext {
                 if (masterSession) {
                     synchronized (slaveSessions) {
                         for (final Session session : slaveSessions.values()) {
+                            // We assign this authState instance directly, as
+                            // AuthState instances are immutable.
                             session.authState = this.authState;
                         }
                     }
@@ -789,6 +791,7 @@ public class Session implements Context, AuthContext {
         if (tag.equals(this.receiverTag)) {
             return this.sessionState.getStatus();
         } else {
+            // TODO does it really make sense to return this session's status if instance tag does not exist? I would expect it to be a plaintext session at best in that case.
             final Session slave = slaveSessions.get(tag);
             return slave == null ? this.sessionState.getStatus()
                     : slave.getSessionStatus();
@@ -806,6 +809,13 @@ public class Session implements Context, AuthContext {
         }
     }
 
+    /**
+     * Get the currently set outgoing instance. This instance is used for
+     * outgoing traffic.
+     *
+     * @return Returns session instance, possibly a slave session.
+     */
+    @Nonnull
     public Session getOutgoingInstance() {
         return outgoingSession;
     }

@@ -1,0 +1,90 @@
+h1. OTRDATA Specifications
+
+The OTRDATA implements an HTTP-like request/response protocol on top of OTR. There are two higher level protocols layered on top of the lower level HTTP-like protocol:
+
+* A simple file oriented chunked transfer
+* A RESTful API protocol
+
+Note that this is a client-client protocol, modifying the client-server orientation of the normal HTTP use case.
+
+h2. Low level protocol
+
+OTR data packets are embeded in the TLV area of the OTR packet.  The following TLV types are used:
+
+* OTR data Request: 0x100 (256)
+* OTR data Response: 0x101 (257)
+
+Each OTR data packet is composed of
+
+* An HTTP request or response header
+* HTTP headers
+* a body
+
+Since the packet size is known, the Content-Length header is not required and binary data in the body is allowed without escaping.
+
+The maximum packet size is 65535.
+
+h2. Simple file transfer
+
+Alice -> Bob:
+<pre>
+OFFER otr-in-band:/storage/<path>
+Request-Id: <randomUUID>
+File-Hash-SHA1: <hex-sha1>
+File-Length: <length>
+</pre>
+
+B -> A
+<pre>
+200 OK
+Request-Id: ...
+</pre>
+
+<pre>
+GET otr-in-band:/storage/<path>
+Request-Id: ...
+Range: bytes=<start>-<end>
+</pre>
+
+A -> B
+<pre>
+200 OK
+Request-Id: ...
+
+<binary-data>
+</pre>
+
+The recipient is responsible for throttling requests so as not to saturate the connection (althought the sender may throttle too).
+
+h2. RESTful API
+
+The RESTful API layer follows the REST pattern with GET/PUT/POST/DELETE verbs and URIs under the *chatsecure:* scheme.  An additional OFFER verb is used to notify the peer of data availability.
+
+Because of the client-client use case, there are some additional degrees of freedom.  For example, a piece of data could be pushed through "POST" from Alice to Bob or retrieved through "GET" initiated by Bob.  It is up to the specific application to decide if the sender exposes an endpoint to be read or if the receiver exposes an endpoint to be written.
+
+Each application "mounts" a URI and all URIs prefixed with the endpoint are dispatched to the application.  This allows the creation of a plugin system where each plugin gets a separate section of the URI space.
+
+The usual REST operations include:
+
+* GET chatsecure:/application/path - empty request and returning binary content or structured data in JSON format
+* POST ... - JSON or binary request and returning JSON response
+* PUT ... - JSON or binary request and returning JSON response
+* DELETE ... - empty request and response
+* OFFER ... - JSON request and empty response
+
+As in the simple file transfer case, a Range header can be used with GET to retrieve larger files.
+
+h2. Android API
+
+An Android API exists, where apps can plug into the URI space.  Sample code can be seen here:
+
+https://github.com/devrandom/Gibberbot/tree/dataplug/samples/dataplug/src/info/guardianproject/otr/sample/securegallery
+
+and an API Service class that makes plugins easier to write is here:
+
+https://github.com/devrandom/Gibberbot/blob/dataplug/libraries/Dataplug/src/info/guardianproject/otr/dataplug/DataplugService.java
+
+h2. References
+
+* The OTR protocol specifications: https://otr.cypherpunks.ca/Protocol-v3-4.0.0.html
+
