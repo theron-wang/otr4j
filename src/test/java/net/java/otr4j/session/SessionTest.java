@@ -148,9 +148,9 @@ public class SessionTest {
         alice.pollReceivedMessage(); // Signature
 
         assertEquals("The session is not encrypted.", SessionStatus.ENCRYPTED,
-                bob.getSession().getSessionStatus());
+                bob.getSession().getSessionStatus(alice.getSession().getSenderInstanceTag()));
         assertEquals("The session is not encrypted.", SessionStatus.ENCRYPTED,
-                alice.getSession().getSessionStatus());
+                alice.getSession().getSessionStatus(bob.getSession().getSenderInstanceTag()));
 
         String msg;
 
@@ -207,9 +207,9 @@ public class SessionTest {
 
         DummyClient.forceStartOtr(alice, bob);
         assertEquals("The session is not encrypted.", SessionStatus.ENCRYPTED,
-                bob.getSession().getSessionStatus());
+                bob.getSession().getSessionStatus(alice.getSession().getSenderInstanceTag()));
         assertEquals("The session is not encrypted.", SessionStatus.ENCRYPTED,
-                alice.getSession().getSessionStatus());
+                alice.getSession().getSessionStatus(bob.getSession().getSenderInstanceTag()));
 
         String msg;
 

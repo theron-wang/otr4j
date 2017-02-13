@@ -39,6 +39,7 @@ import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.AbstractMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
+import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.PlainTextMessage;
@@ -54,6 +55,21 @@ import net.java.otr4j.session.state.State;
 import net.java.otr4j.session.state.StatePlaintext;
 
 /**
+ * Implementation of the OTR session.
+ *
+ * <p>
+ * OTR Session supports OTRv2's single session as well as OTRv3's multiple
+ * sessions, even simultaneously. Support is managed through the concept of
+ * slave sessions. As OTRv2 does not recognize instance tags, there can be only
+ * a single session. The master (non-slave) session will represent the OTRv2
+ * status. (As well as have an instance tag value of 0.)
+ *
+ * <p>
+ * OTRv3 will establish all of its sessions in the {@link #slaveSessions} map.
+ * The master session only functions as the inbound rendezvous point, but any
+ * outbound activity as well as the session status itself is managed within a
+ * (dedicated) slave session.
+ *
  * @author George Politis
  * @author Danny van Heumen
  */
@@ -142,7 +158,7 @@ public class Session implements Context, AuthContext {
      * will be empty.
      */
     // TODO investigate how 'receiverTag' will function given mixed OTRv2 and OTRv3 sessions and multiple sessions in slaveSessions map. This might need to move to either slave sessions or session state.
-    private InstanceTag receiverTag;
+    private final InstanceTag receiverTag;
 
     /**
      * Message assembler.
@@ -174,6 +190,35 @@ public class Session implements Context, AuthContext {
      */
     private final ArrayList<OtrEngineListener> listeners = new ArrayList<>();
 
+    /**
+     * Listener for propagating events from slave sessions to the listeners of
+     * the master session. The same instance is reused for all slave sessions.
+     */
+    private final OtrEngineListener slaveSessionsListener = new OtrEngineListener() {
+
+        @Override
+        public void sessionStatusChanged(final SessionID sessionID) {
+            OtrEngineListenerUtil.sessionStatusChanged(
+                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
+        }
+
+        @Override
+        public void multipleInstancesDetected(final SessionID sessionID) {
+            throw new IllegalStateException("Multiple instances should be detected in the master session. This event should never have happened.");
+        }
+
+        @Override
+        public void outgoingSessionChanged(final SessionID sessionID) {
+            throw new IllegalStateException("Outgoing session changes should be performed in the master session only. This event should never have happened.");
+        }
+    };
+
+    /**
+     * Constructor.
+     *
+     * @param sessionID The session ID
+     * @param listener The OTR engine host listener.
+     */
     public Session(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost listener) {
         this(true, sessionID, listener, InstanceTag.ZERO_TAG, InstanceTag.ZERO_TAG,
                 new SecureRandom(), StateInitial.instance());
@@ -219,6 +264,9 @@ public class Session implements Context, AuthContext {
 
         assembler = new OtrAssembler(this.senderTag);
         fragmenter = new OtrFragmenter(this, host);
+
+        // FIXME debugging code ...
+        System.err.println("Created session for '" + sessionID + "' with receiver tag " + this.receiverTag.getValue());
     }
 
     /**
@@ -326,77 +374,94 @@ public class Session implements Context, AuthContext {
             offerStatus = OfferStatus.rejected;
         }
 
-        if (m instanceof AbstractEncodedMessage && masterSession) {
-
+        if (masterSession && m instanceof AbstractEncodedMessage
+                && ((AbstractEncodedMessage) m).protocolVersion == OTRv.THREE) {
+            // In case of OTRv3 delegate message processing to dedicated slave
+            // session.
             final AbstractEncodedMessage encodedM = (AbstractEncodedMessage) m;
 
-            if (encodedM.protocolVersion == OTRv.THREE) {
+            if (encodedM.senderInstanceTag == 0) {
+                // An encoded message without a sender instance tag is always bad.
+                logger.warning("Encoded message is missing sender instance tag. Ignoring message.");
+                return null;
+            }
 
-                if (encodedM.receiverInstanceTag != this.senderTag.getValue()
-                        && !(encodedM.messageType == AbstractEncodedMessage.MESSAGE_DH_COMMIT
-                        && encodedM.receiverInstanceTag == 0)) {
+            if (encodedM.receiverInstanceTag != this.senderTag.getValue()
+                    && !(encodedM instanceof DHCommitMessage && encodedM.receiverInstanceTag == 0)) {
+                // The message is not intended for us. Discarding...
+                logger.finest("Received an encoded message with receiver instance tag"
+                        + " that is different from ours. Ignore this message.");
+                OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionID());
+                return null;
+            }
 
-                    // The message is not intended for us. Discarding...
-                    logger.finest("Received an encoded message with receiver instance tag"
-                            + " that is different from ours, ignore this message");
-                    OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionID());
-                    return null;
-                }
-
-                if (encodedM.senderInstanceTag != this.receiverTag.getValue()
-                        && this.receiverTag.getValue() != 0) {
-
-                    /*
-                     * Message is intended for us but is coming from a different
-                     * instance. We relay this message to the appropriate
-                     * session for transforming.
-                     */
-                    logger.finest("Received an encoded message from a different instance. Our buddy may be logged from multiple locations.");
-
-                    final InstanceTag newReceiverTag = new InstanceTag(encodedM.senderInstanceTag);
-                    synchronized (slaveSessions) {
-
-                        if (!slaveSessions.containsKey(newReceiverTag)) {
-
-                            // construct a new slave session based on an
-                            // existing AuthContext, if it exists.
-                            final Session session
-                                    = new Session(false,
-                                            this.sessionState.getSessionID(),
-                                            this.host,
-                                            this.senderTag,
-                                            newReceiverTag,
-                                            this.secureRandom,
-                                            encodedM.messageType == AbstractEncodedMessage.MESSAGE_DHKEY
-                                                    ? this.authState : StateInitial.instance());
-                            
-                            session.addOtrEngineListener(new OtrEngineListener() {
-
-                                @Override
-                                public void sessionStatusChanged(final SessionID sessionID) {
-                                    OtrEngineListenerUtil.sessionStatusChanged(
-                                            OtrEngineListenerUtil.duplicate(listeners), sessionID);
-                                }
-
-                                @Override
-                                public void multipleInstancesDetected(final SessionID sessionID) {
-                                }
-
-                                @Override
-                                public void outgoingSessionChanged(final SessionID sessionID) {
-                                }
-                            });
-
-                            slaveSessions.put(newReceiverTag, session);
-
-                            OtrEngineHostUtil.multipleInstancesDetected(this.host, this.sessionState.getSessionID());
-                            OtrEngineListenerUtil.multipleInstancesDetected(
-                                    OtrEngineListenerUtil.duplicate(listeners), this.sessionState.getSessionID());
-                        }
+            final InstanceTag messageSenderInstance = new InstanceTag(encodedM.senderInstanceTag);
+            final Session session;
+            if (encodedM instanceof DHCommitMessage) {
+                // We are more flexible with processing the DH Commit
+                // message as the message's receiver tag may be zero. It is
+                // zero as we may not have announced our sender tag yet,
+                // therefore they cannot include it in the DH commit
+                // message.
+                synchronized (slaveSessions) {
+                    if (!slaveSessions.containsKey(messageSenderInstance)) {
+                        final Session newSlaveSession = new Session(
+                                false, this.sessionState.getSessionID(),
+                                this.host, this.senderTag,
+                                messageSenderInstance, this.secureRandom,
+                                StateInitial.instance());
+                        newSlaveSession.addOtrEngineListener(slaveSessionsListener);
+                        slaveSessions.put(messageSenderInstance, newSlaveSession);
                     }
-                    return slaveSessions.get(newReceiverTag).transformReceiving(msgText);
+                    session = slaveSessions.get(messageSenderInstance);
+                }
+            } else if (encodedM instanceof DHKeyMessage) {
+                // DH Key messages should be complete, however we may
+                // receive multiple of these messages.
+                synchronized (slaveSessions) {
+                    if (!slaveSessions.containsKey(messageSenderInstance)) {
+                        final Session newSlaveSession = new Session(
+                                false, this.sessionState.getSessionID(),
+                                this.host, this.senderTag,
+                                messageSenderInstance, this.secureRandom,
+                                this.authState);
+                        newSlaveSession.addOtrEngineListener(slaveSessionsListener);
+                        slaveSessions.put(messageSenderInstance, newSlaveSession);
+                    }
+                    session = slaveSessions.get(messageSenderInstance);
+                }
+                // Replicate AKE state to slave session for continuation of
+                // AKE negotiation. We may receive multiple DH Key replies
+                // as we may have sent a DH Commit message without
+                // specifying a receiver tag, hence multiple clients may be
+                // inclined to respond.
+                session.authState = this.authState;
+            } else {
+                // Handle other encoded messages. By now we expect the
+                // message sender's (receiver) tag to be known. If not we
+                // consider this a bad message and ignore it.
+                synchronized (slaveSessions) {
+                    if (!slaveSessions.containsKey(messageSenderInstance)) {
+                        logger.log(Level.INFO,
+                                "Slave session instance missing for receiver tag: {0}. Our buddy may be logged in at multiple locations.",
+                                messageSenderInstance.getValue());
+                        OtrEngineHostUtil.multipleInstancesDetected(this.host, this.sessionState.getSessionID());
+                        OtrEngineListenerUtil.multipleInstancesDetected(
+                                OtrEngineListenerUtil.duplicate(listeners), this.sessionState.getSessionID());
+                        final Session newSlaveSession = new Session(
+                                false, this.sessionState.getSessionID(),
+                                this.host, this.senderTag,
+                                messageSenderInstance, this.secureRandom,
+                                StateInitial.instance());
+                        newSlaveSession.addOtrEngineListener(slaveSessionsListener);
+                        slaveSessions.put(messageSenderInstance, newSlaveSession);
+                    }
+                    session = slaveSessions.get(messageSenderInstance);
                 }
             }
+            // FIXME work-around as we haven't found out yet when to switch outgoing instance.
+            setOutgoingInstance(messageSenderInstance);
+            return session.transformReceiving(msgText);
         }
 
         logger.log(Level.INFO, "Received message with type {0}", m.messageType);
@@ -429,6 +494,7 @@ public class Session implements Context, AuthContext {
         }
     }
 
+    // FIXME revisit this implementation as we now work with fixed receiver tags per session. Resetting all authStates should not be necessary anymore!
     private void handleQueryMessage(@Nonnull final QueryMessage queryMessage)
             throws OtrException {
         final SessionID sessionId = this.sessionState.getSessionID();
@@ -441,6 +507,7 @@ public class Session implements Context, AuthContext {
             final DHCommitMessage dhCommit = respondAuth(OTRv.THREE);
             if (masterSession) {
                 synchronized (slaveSessions) {
+                    // FIXME is it really necessary to reset *all* auth states?
                     for (final Session session : slaveSessions.values()) {
                         // We assign this authState instance directly, as
                         // AuthState instances are immutable.
@@ -521,6 +588,7 @@ public class Session implements Context, AuthContext {
         return messagetext;
     }
 
+    // FIXME revisit this implementation as we now work with fixed receiver tags per session. Resetting all authStates should not be necessary anymore!
     private void handleWhitespaceTag(@Nonnull final PlainTextMessage plainTextMessage) {
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.getWhitespaceStartAKE()) {
@@ -535,6 +603,7 @@ public class Session implements Context, AuthContext {
                 final DHCommitMessage dhCommit = respondAuth(Session.OTRv.THREE);
                 if (masterSession) {
                     synchronized (slaveSessions) {
+                        // FIXME is it really necessary to reset *all* auth states?
                         for (final Session session : slaveSessions.values()) {
                             // We assign this authState instance directly, as
                             // AuthState instances are immutable.
@@ -607,10 +676,6 @@ public class Session implements Context, AuthContext {
             return null;
         }
 
-        // Right now, we assume that once we get to this point, the protocol
-        // version in the received message is accurate. Therefore we can decide
-        // based on this value what instance tag to set/update.
-        this.receiverTag = m.protocolVersion == OTRv.TWO ? InstanceTag.ZERO_TAG : new InstanceTag(m.senderInstanceTag);
         try {
             return this.authState.handle(this, m);
         } catch (final IOException ex) {
@@ -644,7 +709,7 @@ public class Session implements Context, AuthContext {
     @Nonnull
     public String[] transformSending(@Nullable String msgText, @Nullable List<TLV> tlvs)
             throws OtrException {
-        if (masterSession && outgoingSession != this && getProtocolVersion() == OTRv.THREE) {
+        if (masterSession && outgoingSession != this) {
             return outgoingSession.transformSending(msgText, tlvs);
         }
         if (msgText == null) {
@@ -683,21 +748,23 @@ public class Session implements Context, AuthContext {
     public void endSession() throws OtrException {
         // TODO will this still work correctly? Can we determine OTRv3 session in case session is supported by slave session??!?!?!?!
         // TODO in any case, checking protocol version does not make sense here. In case of slave sessions, the master session may not have encrypted state (right?) outgoingSession is a good indicator though!
-        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
+        if (this != outgoingSession) {
             outgoingSession.endSession();
             return;
         }
         this.sessionState.end(this);
     }
 
-    // FIXME can we specialize refreshSession to acquire instance tag, end state, then start new AKE already with instancetag added?
     public void refreshSession() throws OtrException {
+        // FIXME shouldn't we delegate to outgoing instance?
         this.endSession();
+        // FIXME can we specialize refreshSession to acquire instance tag, end state, then start new AKE already with instancetag added?
+        // FIXME startSession is overkill as that would mean querying for OTR version, but we already know it from the existing and established OTR session.
         this.startSession();
     }
 
     public PublicKey getRemotePublicKey() throws IncorrectStateException {
-        if (this != outgoingSession && getProtocolVersion() == OTRv.THREE) {
+        if (this != outgoingSession) {
             return outgoingSession.getRemotePublicKey();
         }
         return this.sessionState.getRemotePublicKey();
@@ -845,7 +912,7 @@ public class Session implements Context, AuthContext {
      * encoded message.
      */
     public void initSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
-        if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
+        if (this != outgoingSession) {
             outgoingSession.initSmp(question, secret);
             return;
         }
@@ -895,7 +962,7 @@ public class Session implements Context, AuthContext {
      * from ENCRYPTED, issues with SMP processing.
      */
     public void respondSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
-        if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
+        if (this != outgoingSession) {
             outgoingSession.respondSmp(question, secret);
             return;
         }
@@ -917,7 +984,7 @@ public class Session implements Context, AuthContext {
      * @throws OtrException In case session is not in ENCRYPTED message state.
      */
     public void abortSmp() throws OtrException {
-        if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
+        if (this != outgoingSession) {
             outgoingSession.abortSmp();
             return;
         }
@@ -941,7 +1008,7 @@ public class Session implements Context, AuthContext {
      * ENCRYPTED.
      */
     public boolean isSmpInProgress() {
-        if (this != outgoingSession && getProtocolVersion() == Session.OTRv.THREE) {
+        if (this != outgoingSession) {
             return outgoingSession.isSmpInProgress();
         }
         try {

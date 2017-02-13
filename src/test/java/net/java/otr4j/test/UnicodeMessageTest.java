@@ -29,9 +29,9 @@ public class UnicodeMessageTest {
         String msg;
         for (String test : TestStrings.unicodes) {
             assertEquals("The session is not encrypted.", SessionStatus.ENCRYPTED,
-                    bob.getSession().getSessionStatus());
+                    bob.getSession().getSessionStatus(alice.getSession().getSenderInstanceTag()));
             assertEquals("The session is not encrypted.", SessionStatus.ENCRYPTED,
-                    alice.getSession().getSessionStatus());
+                    alice.getSession().getSessionStatus(bob.getSession().getSenderInstanceTag()));
 
             alice.send(bob.getAccount(), msg = "A->B: " + test);
             assertThat("Message has been transferred unencrypted.", alice
