@@ -82,9 +82,9 @@ public class DummyClient {
 		bob.pollReceivedMessage(); // Reveal signature
 		alice.pollReceivedMessage(); // Signature
 
-		if (bob.getSession().getSessionStatus(alice.getSession().getSenderInstanceTag()) != SessionStatus.ENCRYPTED)
+		if (bob.getSession().getSessionStatus() != SessionStatus.ENCRYPTED)
 			return false;
-		if (alice.getSession().getSessionStatus(bob.getSession().getSenderInstanceTag()) != SessionStatus.ENCRYPTED)
+		if (alice.getSession().getSessionStatus() != SessionStatus.ENCRYPTED)
 			return false;
 		return true;
 	}

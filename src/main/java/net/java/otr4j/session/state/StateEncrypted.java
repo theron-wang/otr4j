@@ -59,6 +59,10 @@ final class StateEncrypted extends AbstractState {
 
     @SuppressWarnings("NonConstantLogger")
     private final Logger logger;
+
+    /**
+     * Session ID.
+     */
     private final SessionID sessionId;
 
     /**

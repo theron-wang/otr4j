@@ -58,17 +58,30 @@ import net.java.otr4j.session.state.StatePlaintext;
  * Implementation of the OTR session.
  *
  * <p>
- * OTR Session supports OTRv2's single session as well as OTRv3's multiple
- * sessions, even simultaneously. Support is managed through the concept of
- * slave sessions. As OTRv2 does not recognize instance tags, there can be only
- * a single session. The master (non-slave) session will represent the OTRv2
- * status. (As well as have an instance tag value of 0.)
+ * otr4j Session supports OTRv2's single session as well as OTRv3's multiple
+ * sessions, even simultaneously (at least in theory). Support is managed
+ * through the concept of slave sessions. As OTRv2 does not recognize instance
+ * tags, there can be only a single session. The master (non-slave) session will
+ * represent the OTRv2 status. (As well as have an instance tag value of 0.)
  *
  * <p>
  * OTRv3 will establish all of its sessions in the {@link #slaveSessions} map.
  * The master session only functions as the inbound rendezvous point, but any
  * outbound activity as well as the session status itself is managed within a
  * (dedicated) slave session.
+ *
+ * <p>
+ * There is an added complication in the fact that DH Commit message may be sent
+ * with a receiver tag. At first instance, we have not yet communicated our
+ * sender instance tag to our buddy. Therefore we (need to) allow DH Commit
+ * messages to be sent without a receiver tag. As a consequence, we may receive
+ * multiple DH Key messages in return, in case multiple client (instances) feel
+ * inclined to respond. In the case where we send a DH Commit message without
+ * receiver tag, we keep AKE state progression on the master session. This means
+ * that the master session AKE state is set to AWAITING_DHKEY with appropriate
+ * OTR protocol version. When receiving DH Key message(s) - for this particular
+ * case - we copy AKE state to the (possibly newly created) slave sessions and
+ * continue AKE message handling there.
  *
  * @author George Politis
  * @author Danny van Heumen
@@ -79,6 +92,7 @@ import net.java.otr4j.session.state.StatePlaintext;
 // FIXME how does mix of OTRv3 (slave) sessions and OTRv2 session work with outgoing session? Will this lead to trouble in mix of ENCRYPTED and PLAINTEXT sessions?
 // TODO can we define some sort of sanity check that ensures that ENCRYPTED message state is always correctly reflected, i.e. we always send messages ENCRYPTED if this appears so.
 // TODO verify logic to ensure that we only attempt to start a new session if we are not ENCRYPTED (otherwise multiple clients might continue starting up new sessions to infinity)
+// TODO should we attempt to verify/time-out AKE sessions? In case of DH Commit message w/o receiver tag, we keep AWAITING_DHKEY state in master and replicate to slave upon receiving DH Key message which includes their sender tag.
 public class Session implements Context, AuthContext {
 
     public interface OTRv {
@@ -155,7 +169,7 @@ public class Session implements Context, AuthContext {
      * Receiver instance tag.
      *
      * The receiver tag is only used in OTRv3. In case of OTRv2 the instance tag
-     * will be empty.
+     * will be zero-tag ({@link InstanceTag#ZERO_TAG}).
      */
     // TODO investigate how 'receiverTag' will function given mixed OTRv2 and OTRv3 sessions and multiple sessions in slaveSessions map. This might need to move to either slave sessions or session state.
     private final InstanceTag receiverTag;
@@ -256,17 +270,14 @@ public class Session implements Context, AuthContext {
         this.senderTag = senderTag == InstanceTag.ZERO_TAG ? InstanceTag.random(secureRandom) : senderTag;
         this.receiverTag = Objects.requireNonNull(receiverTag);
         this.offerStatus = OfferStatus.idle;
-        // Master sessions use the map to manage slave sessions. Slave sessions do not use the map.
+        // Master session uses the map to manage slave sessions. Slave sessions do not use the map.
         slaveSessions = masterSession
                 ? Collections.synchronizedMap(new HashMap<InstanceTag, Session>(0))
                 : Collections.<InstanceTag, Session>emptyMap();
         outgoingSession = this;
-
+        // Initialize fragmented message support.
         assembler = new OtrAssembler(this.senderTag);
         fragmenter = new OtrFragmenter(this, host);
-
-        // FIXME debugging code ...
-        System.err.println("Created session for '" + sessionID + "' with receiver tag " + this.receiverTag.getValue());
     }
 
     /**
@@ -308,7 +319,7 @@ public class Session implements Context, AuthContext {
     }
 
     public SessionStatus getSessionStatus() {
-        return this.sessionState.getStatus();
+        return this.getSessionStatus(this.outgoingSession.receiverTag);
     }
 
     @Override
@@ -333,6 +344,7 @@ public class Session implements Context, AuthContext {
         this.offerStatus = OfferStatus.sent;
     }
 
+    // TODO potential "problem": In case we send DH-Commit and progress master session's AKE state, how long do we keep? OTR spec says that we should resend same DH-Commit message if receiving DH-Commit message from our buddy. This in itself is okay, but we might be "reusing" the same DH keypair for a long time if new client instances keep appearing. This is pretty much a non-issue ... just a weird edge case in the protocol in combination with this particular implementation.
     @Nullable
     public String transformReceiving(@Nonnull String msgText) throws OtrException {
 
@@ -631,6 +643,7 @@ public class Session implements Context, AuthContext {
         }
     }
 
+    // FIXME duplicate AKE message checking: we already check and handle DH-Commit messages w/ receiver tag 0 in transformReceiving. Is this obsolete?
     @Nullable
     private AbstractEncodedMessage handleAKEMessage(@Nonnull final AbstractEncodedMessage m) {
         final SessionID sessionID = this.sessionState.getSessionID();
@@ -690,6 +703,14 @@ public class Session implements Context, AuthContext {
         }
     }
 
+    /**
+     * Transform message to be sent to content that is sendable over the IM
+     * network. Do not include any TLVs in the message.
+     *
+     * @param msgText the (normal) message content
+     * @return Returns the (array of) messages to be sent over IM network.
+     * @throws OtrException OtrException in case of exceptions.
+     */
     @Nonnull
     public String[] transformSending(@Nonnull final String msgText)
             throws OtrException {
@@ -702,7 +723,7 @@ public class Session implements Context, AuthContext {
      *
      * @param msgText the (normal) message content
      * @param tlvs TLV items (must not be null, may be an empty list)
-     * @return Returns the array of messages to be sent over IM network.
+     * @return Returns the (array of) messages to be sent over IM network.
      * @throws OtrException OtrException in case of exceptions.
      */
     // TODO consider changing public API to not allow null list of TLVs and null msgText.
@@ -813,7 +834,6 @@ public class Session implements Context, AuthContext {
      * @return Returns 0 for no session, or protocol version in case of
      * established OTR session.
      */
-    // FIXME investigate use of getProtocolVersion() It does not make sense to check protocol version on master session before switching to outgoingSession, as master session may not be encrypted, i.e. ENCRYPTED is also delegated to slave sessions.
     @Override
     public int getProtocolVersion() {
         return this.sessionState.getVersion();
@@ -853,6 +873,13 @@ public class Session implements Context, AuthContext {
         }
     }
 
+    /**
+     * Get session status for specified session.
+     *
+     * @param tag Instance tag identifying session. In case of
+     * {@link InstanceTag#ZERO_TAG} queries session status for OTRv2 session.
+     * @return Returns current session status.
+     */
     @Nonnull
     public SessionStatus getSessionStatus(@Nonnull final InstanceTag tag) {
         if (tag.equals(this.receiverTag)) {
@@ -865,6 +892,15 @@ public class Session implements Context, AuthContext {
         }
     }
 
+    /**
+     * Get remote public key for specified session.
+     *
+     * @param tag Instance tag identifying session. In case of
+     * {@link InstanceTag#ZERO_TAG} queries session status for OTRv2 session.
+     * @return Returns remote (long-term) public key.
+     * @throws IncorrectStateException Thrown in case session's message state is
+     * not ENCRYPTED.
+     */
     @Nonnull
     public PublicKey getRemotePublicKey(@Nonnull final InstanceTag tag) throws IncorrectStateException {
         if (tag.equals(this.receiverTag)) {
@@ -920,6 +956,7 @@ public class Session implements Context, AuthContext {
         try {
             handler = this.sessionState.getSmpTlvHandler();
         } catch (final IncorrectStateException ex) {
+            // TODO consider if we want to throw an exception. In case this is not state ENCRYPTED, we know for sure SMP is not active.
             throw new OtrException(ex);
         }
         final List<TLV> tlvs = handler.initRespondSmp(question, secret, true);
