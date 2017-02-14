@@ -506,7 +506,6 @@ public class Session implements Context, AuthContext {
         }
     }
 
-    // FIXME revisit this implementation as we now work with fixed receiver tags per session. Resetting all authStates should not be necessary anymore!
     private void handleQueryMessage(@Nonnull final QueryMessage queryMessage)
             throws OtrException {
         final SessionID sessionId = this.sessionState.getSessionID();
@@ -515,24 +514,11 @@ public class Session implements Context, AuthContext {
 
         final OtrPolicy policy = getSessionPolicy();
         if (queryMessage.versions.contains(OTRv.THREE) && policy.getAllowV3()) {
-            logger.finest("Query message with V3 support found.");
-            final DHCommitMessage dhCommit = respondAuth(OTRv.THREE, InstanceTag.ZERO_TAG);
-            if (masterSession) {
-                synchronized (slaveSessions) {
-                    // FIXME is it really necessary to reset *all* auth states?
-                    for (final Session session : slaveSessions.values()) {
-                        // We assign this authState instance directly, as
-                        // AuthState instances are immutable.
-                        session.authState = this.authState;
-                    }
-                }
-            }
-            injectMessage(dhCommit);
+            logger.finest("Query message with V3 support found. Sending D-H Commit Message.");
+            injectMessage(respondAuth(OTRv.THREE, InstanceTag.ZERO_TAG));
         } else if (queryMessage.versions.contains(OTRv.TWO) && policy.getAllowV2()) {
-            logger.finest("Query message with V2 support found.");
-            final DHCommitMessage dhCommit = respondAuth(OTRv.TWO, InstanceTag.ZERO_TAG);
-            logger.finest("Sending D-H Commit Message");
-            injectMessage(dhCommit);
+            logger.finest("Query message with V2 support found. Sending D-H Commit Message.");
+            injectMessage(respondAuth(OTRv.TWO, InstanceTag.ZERO_TAG));
         } else {
             logger.info("Query message received, but none of the versions are useful. They are either excluded by policy or by lack of support.");
         }
@@ -600,7 +586,6 @@ public class Session implements Context, AuthContext {
         return messagetext;
     }
 
-    // FIXME revisit this implementation as we now work with fixed receiver tags per session. Resetting all authStates should not be necessary anymore!
     private void handleWhitespaceTag(@Nonnull final PlainTextMessage plainTextMessage) {
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.getWhitespaceStartAKE()) {
@@ -610,31 +595,17 @@ public class Session implements Context, AuthContext {
         logger.finest("WHITESPACE_START_AKE is set, processing whitespace-tagged message.");
         if (plainTextMessage.versions.contains(Session.OTRv.THREE)
                 && policy.getAllowV3()) {
-            logger.finest("V3 tag found.");
+            logger.finest("V3 tag found. Sending D-H Commit Message.");
             try {
-                final DHCommitMessage dhCommit = respondAuth(Session.OTRv.THREE, InstanceTag.ZERO_TAG);
-                if (masterSession) {
-                    synchronized (slaveSessions) {
-                        // FIXME is it really necessary to reset *all* auth states?
-                        for (final Session session : slaveSessions.values()) {
-                            // We assign this authState instance directly, as
-                            // AuthState instances are immutable.
-                            session.authState = this.authState;
-                        }
-                    }
-                }
-                logger.finest("Sending D-H Commit Message");
-                injectMessage(dhCommit);
+                injectMessage(respondAuth(Session.OTRv.THREE, InstanceTag.ZERO_TAG));
             } catch (final OtrException e) {
                 logger.log(Level.WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv3)", e);
             }
         } else if (plainTextMessage.versions.contains(Session.OTRv.TWO)
                 && policy.getAllowV2()) {
-            logger.finest("V2 tag found.");
+            logger.finest("V2 tag found. Sending D-H Commit Message.");
             try {
-                final DHCommitMessage dhCommit = respondAuth(Session.OTRv.TWO, InstanceTag.ZERO_TAG);
-                logger.finest("Sending D-H Commit Message");
-                injectMessage(dhCommit);
+                injectMessage(respondAuth(Session.OTRv.TWO, InstanceTag.ZERO_TAG));
             } catch (final OtrException e) {
                 logger.log(Level.WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv2)", e);
             }
