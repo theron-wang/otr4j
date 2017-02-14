@@ -952,10 +952,7 @@ public class Session implements Context, AuthContext {
             throw new OtrException(ex);
         }
         final List<TLV> tlvs = handler.initRespondSmp(question, secret, true);
-        final String[] msg = transformSending("", tlvs);
-        for (final String part : msg) {
-            this.host.injectMessage(this.sessionState.getSessionID(), part);
-        }
+        injectMessage(this.sessionState.transformSending(this, "", tlvs));
     }
 
     /**
@@ -966,9 +963,8 @@ public class Session implements Context, AuthContext {
      * @param secret The secret to be verified using ZK-proof.
      * @throws OtrException In case of failure.
      */
-    public void respondSmp(@Nonnull final InstanceTag receiverTag, @Nullable final String question, @Nonnull final String secret)
-            throws OtrException
-    {
+    public void respondSmp(@Nonnull final InstanceTag receiverTag, @Nullable final String question,
+            @Nonnull final String secret) throws OtrException {
         if (receiverTag.equals(this.receiverTag)) {
             respondSmp(question, secret);
             return;
@@ -1001,10 +997,7 @@ public class Session implements Context, AuthContext {
         } catch (final IncorrectStateException ex) {
             throw new OtrException(ex);
         }
-        final String[] msg = transformSending("", tlvs);
-        for (final String part : msg) {
-            this.host.injectMessage(this.sessionState.getSessionID(), part);
-        }
+        injectMessage(this.sessionState.transformSending(this, "", tlvs));
     }
 
     /**
@@ -1023,10 +1016,7 @@ public class Session implements Context, AuthContext {
         } catch (final IncorrectStateException ex) {
             throw new OtrException(ex);
         }
-        final String[] msg = transformSending("", tlvs);
-        for (final String part : msg) {
-            this.host.injectMessage(this.sessionState.getSessionID(), part);
-        }
+        injectMessage(this.sessionState.transformSending(this, "", tlvs));
     }
 
     /**
