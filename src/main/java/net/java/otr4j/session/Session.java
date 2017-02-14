@@ -516,7 +516,7 @@ public class Session implements Context, AuthContext {
         final OtrPolicy policy = getSessionPolicy();
         if (queryMessage.versions.contains(OTRv.THREE) && policy.getAllowV3()) {
             logger.finest("Query message with V3 support found.");
-            final DHCommitMessage dhCommit = respondAuth(OTRv.THREE);
+            final DHCommitMessage dhCommit = respondAuth(OTRv.THREE, InstanceTag.ZERO_TAG);
             if (masterSession) {
                 synchronized (slaveSessions) {
                     // FIXME is it really necessary to reset *all* auth states?
@@ -530,7 +530,7 @@ public class Session implements Context, AuthContext {
             injectMessage(dhCommit);
         } else if (queryMessage.versions.contains(OTRv.TWO) && policy.getAllowV2()) {
             logger.finest("Query message with V2 support found.");
-            final DHCommitMessage dhCommit = respondAuth(OTRv.TWO);
+            final DHCommitMessage dhCommit = respondAuth(OTRv.TWO, InstanceTag.ZERO_TAG);
             logger.finest("Sending D-H Commit Message");
             injectMessage(dhCommit);
         } else {
@@ -612,7 +612,7 @@ public class Session implements Context, AuthContext {
                 && policy.getAllowV3()) {
             logger.finest("V3 tag found.");
             try {
-                final DHCommitMessage dhCommit = respondAuth(Session.OTRv.THREE);
+                final DHCommitMessage dhCommit = respondAuth(Session.OTRv.THREE, InstanceTag.ZERO_TAG);
                 if (masterSession) {
                     synchronized (slaveSessions) {
                         // FIXME is it really necessary to reset *all* auth states?
@@ -632,7 +632,7 @@ public class Session implements Context, AuthContext {
                 && policy.getAllowV2()) {
             logger.finest("V2 tag found.");
             try {
-                final DHCommitMessage dhCommit = respondAuth(Session.OTRv.TWO);
+                final DHCommitMessage dhCommit = respondAuth(Session.OTRv.TWO, InstanceTag.ZERO_TAG);
                 logger.finest("Sending D-H Commit Message");
                 injectMessage(dhCommit);
             } catch (final OtrException e) {
@@ -776,12 +776,30 @@ public class Session implements Context, AuthContext {
         this.sessionState.end(this);
     }
 
+    /**
+     * Refresh an existing ENCRYPTED session by ending and restarting it. Before
+     * ending the session we record the current protocol version of the active
+     * session. Afterwards, in case we received a valid version, we restart by
+     * immediately sending a DH-Commit messages, as we already negotiated a
+     * protocol version before and then we ended up with acquired version. In
+     * case we weren't able to acquire a valid protocol version, we start by
+     * sending a Query message.
+     *
+     * @throws OtrException Throws exception in case of failed session ending,
+     * failed full session start, or failed creation or injection of DH-Commit
+     * message.
+     */
     public void refreshSession() throws OtrException {
-        // FIXME shouldn't we delegate to outgoing instance?
-        this.endSession();
-        // FIXME can we specialize refreshSession to acquire instance tag, end state, then start new AKE already with instancetag added?
-        // FIXME startSession is overkill as that would mean querying for OTR version, but we already know it from the existing and established OTR session.
-        this.startSession();
+        if (this.outgoingSession != this) {
+            this.outgoingSession.refreshSession();
+        }
+        final int version = this.sessionState.getVersion();
+        this.sessionState.end(this);
+        if (version == 0) {
+            startSession();
+        } else {
+            injectMessage(respondAuth(version, this.receiverTag));
+        }
     }
 
     public PublicKey getRemotePublicKey() throws IncorrectStateException {
@@ -927,16 +945,19 @@ public class Session implements Context, AuthContext {
      * Respond to AKE query message.
      *
      * @param version OTR protocol version to use.
+     * @param receiverTag The receiver tag to which to address the DH Commit
+     * message. In case the receiver is not yet known (this is a valid use
+     * case), specify {@link InstanceTag#ZERO_TAG}.
      * @return Returns DH commit message as response to AKE query.
      * @throws OtrException In case of invalid/unsupported OTR protocol version.
      */
-    // TODO we might know the instance ID already (in case of "forced" new AKE) so we should be able to specify instance ID (in case of session refresh for example)
-    private DHCommitMessage respondAuth(final int version) throws OtrException {
+    private DHCommitMessage respondAuth(final int version,
+            @Nonnull final InstanceTag receiverTag) throws OtrException {
         if (!OTRv.ALL.contains(version)) {
             throw new OtrException("Only allowed versions are: 2, 3");
         }
         logger.finest("Responding to Query Message with D-H Commit message.");
-        return this.authState.initiate(this, version, InstanceTag.ZERO_TAG);
+        return this.authState.initiate(this, version, receiverTag);
     }
 
     /**
