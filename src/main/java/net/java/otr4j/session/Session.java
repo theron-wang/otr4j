@@ -614,39 +614,21 @@ public class Session implements Context, AuthContext {
         }
     }
 
-    // FIXME duplicate AKE message checking: we already check and handle DH-Commit messages w/ receiver tag 0 in transformReceiving. Is this obsolete?
     @Nullable
     private AbstractEncodedMessage handleAKEMessage(@Nonnull final AbstractEncodedMessage m) {
         final SessionID sessionID = this.sessionState.getSessionID();
         logger.log(Level.FINEST, "{0} received a signature message from {1} through {2}.",
                 new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
 
+        // Verify that policy allows handling message according to protocol version.
         final OtrPolicy policy = getSessionPolicy();
         if (m.protocolVersion == OTRv.TWO && !policy.getAllowV2()) {
-            logger.finest("If ALLOW_V2 is not set, ignore this message.");
+            logger.finest("ALLOW_V2 is not set, ignore this message.");
             return null;
         }
-        if (m.protocolVersion == OTRv.THREE) {
-            if (!policy.getAllowV3()) {
-                logger.finest("ALLOW_V3 is not set, ignore this message.");
-                return null;
-            }
-            if (m.receiverInstanceTag == 0 && !(m instanceof DHCommitMessage)) {
-                // only allow receiverInstanceTag == 0 for D-H Commit messages.
-                // These messages are the only messages that can be sent without
-                // a receiver tag as these messages initiate communication. Any
-                // other (encoded) message already contains the receiver
-                // instance tag to indicate for which exact client the message
-                // is intended.
-                logger.finest("Received a AKE message other than DH Commit with "
-                        + "receiver instance tag of 0.");
-                return null;
-            }
-            if (m.receiverInstanceTag != 0 && this.senderTag.getValue() != m.receiverInstanceTag) {
-                logger.finest("Received a AKE message with receiver instance tag"
-                        + " that is different from ours, ignore this message");
-                return null;
-            }
+        if (m.protocolVersion == OTRv.THREE && !policy.getAllowV3()) {
+            logger.finest("ALLOW_V3 is not set, ignore this message.");
+            return null;
         }
 
         // Verify that we received an AKE message using the previously agreed
