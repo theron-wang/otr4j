@@ -24,8 +24,6 @@ final class SessionKey {
 
     private static final Logger LOGGER = Logger.getLogger(SessionKey.class.getName());
 
-    private static final int CTR_TOPHALF_LENGTH = 8;
-
     private static final byte HIGH_RECEIVE_BYTE = (byte) 0x02;
     private static final byte LOW_RECEIVE_BYTE = (byte) 0x01;
     private static final byte HIGH_SEND_BYTE = LOW_RECEIVE_BYTE;
@@ -199,7 +197,7 @@ final class SessionKey {
         LOGGER.log(Level.FINEST,
                 "Incrementing counter for (localkeyID, remoteKeyID) = ({0},{1})",
                 new Object[]{this.localKeyID, remoteKeyID});
-        for (int i = CTR_TOPHALF_LENGTH - 1; i >= 0; i--) {
+        for (int i = this.sendingCtr.length - 1; i >= 0; i--) {
             if (++sendingCtr[i] != 0) {
                 break;
             }
