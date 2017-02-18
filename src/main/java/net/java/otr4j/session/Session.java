@@ -347,6 +347,7 @@ public class Session implements Context, AuthContext {
     // TODO potential "problem": In case we send DH-Commit and progress master session's AKE state, how long do we keep? OTR spec says that we should resend same DH-Commit message if receiving DH-Commit message from our buddy. This in itself is okay, but we might be "reusing" the same DH keypair for a long time if new client instances keep appearing. This is pretty much a non-issue ... just a weird edge case in the protocol in combination with this particular implementation.
     @Nullable
     public String transformReceiving(@Nonnull String msgText) throws OtrException {
+        logger.log(Level.FINEST, "Entering {0} session.", masterSession ? "master" : "slave");
 
         // TODO consider if we should move this down after assembler processing. It is true that we do not allow any version of OTR, but at the same time, OTR is active and it may not make sense to NOT reconstruct a fragmented message even if we do not intend to process it. Would this result in weird messages that show up in the chat? This allows receiving OTR encoded messages which will be displayed as plain text(?) Non-viable policy shouldn't be used to disable plugin support. This logic seems out of place.
         final OtrPolicy policy = getSessionPolicy();
@@ -471,8 +472,9 @@ public class Session implements Context, AuthContext {
                     session = slaveSessions.get(messageSenderInstance);
                 }
             }
-            // FIXME work-around as we haven't found out yet when to switch outgoing instance.
+            // FIXME work-around as we haven't found out yet when to switch outgoing instance. (Question: when did we previously switch outgoing session?)
             setOutgoingInstance(messageSenderInstance);
+            logger.log(Level.FINEST, "Delegating to slave session for instance tag {0}", messageSenderInstance.getValue());
             return session.transformReceiving(msgText);
         }
 
@@ -535,8 +537,9 @@ public class Session implements Context, AuthContext {
     @Nullable
     private String handleDataMessage(@Nonnull final DataMessage data) throws OtrException {
         final SessionID sessionId = this.sessionState.getSessionID();
-        logger.log(Level.FINEST, "{0} received a data message from {1}.",
-                new Object[]{sessionId.getAccountID(), sessionId.getUserID()});
+        logger.log(Level.FINEST, "{0} received a data message from {1}, handling in state {2}.",
+                new Object[]{sessionId.getAccountID(), sessionId.getUserID(),
+                    this.sessionState.getClass().getName()});
         return this.sessionState.handleDataMessage(this, data);
     }
 
@@ -642,6 +645,7 @@ public class Session implements Context, AuthContext {
             return null;
         }
 
+        logger.log(Level.FINEST, "Handling AKE message in state {0}", this.authState.getClass().getName());
         try {
             return this.authState.handle(this, m);
         } catch (final IOException ex) {
@@ -719,6 +723,12 @@ public class Session implements Context, AuthContext {
         injectMessage(new QueryMessage(allowedVersions));
     }
 
+    /**
+     * End message state.
+     *
+     * @throws OtrException Throw OTR exception in case of failure during
+     * ending.
+     */
     public void endSession() throws OtrException {
         // TODO will this still work correctly? Can we determine OTRv3 session in case session is supported by slave session??!?!?!?!
         // TODO in any case, checking protocol version does not make sense here. In case of slave sessions, the master session may not have encrypted state (right?) outgoingSession is a good indicator though!
@@ -810,6 +820,13 @@ public class Session implements Context, AuthContext {
         return this.sessionState.getVersion();
     }
 
+    /**
+     * Get list of OTR session instances, i.e. sessions with different instance
+     * tags.
+     *
+     * @return Returns list of instance sessions.
+     */
+    // TODO consider only returning OTRv2 (master) session in case it is != PLAINTEXT.
     public List<Session> getInstances() {
         final List<Session> result = new ArrayList<>();
         result.add(this);
@@ -817,7 +834,13 @@ public class Session implements Context, AuthContext {
         return result;
     }
 
-    // FIXME can we be sure that outgoing session is only available in case an OTRv3 conversation was 
+    /**
+     * Set the outgoing session to the session corresponding to the specified
+     * Receiver instance tag.
+     *
+     * @param tag The receiver instance tag.
+     * @return Returns true uipon successfully setting the outgoing instance.
+     */
     public boolean setOutgoingInstance(@Nonnull final InstanceTag tag) {
         if (!masterSession) {
             // Only master session can set the outgoing session.

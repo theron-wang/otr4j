@@ -4,6 +4,7 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
+// TODO DH private keys always at least 320 bits long (check for all DH private key use cases)
 // TODO In several places arrays exposed as public fields/through accessor methods which allows code to modify its contents. (Fixed for crypto constants, not for AES keys + MAC keys + CTR values, TLV values, etc.) (Detected by FindBugs.)
 // TODO check license header for all files
 // TODO consider extracting "domain" classes from 'session' package into separate package. This may solve significant part in cyclic dependencies between packages. Problem is that this will significantly break public API. We didn't care too much for now, but this may just be plain annoying.

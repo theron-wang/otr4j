@@ -10,11 +10,7 @@ package net.java.otr4j.session.state;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.security.KeyPair;
 import java.security.PublicKey;
-import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -31,7 +27,6 @@ import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.OtrPolicyUtil;
 import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationConstants;
@@ -76,24 +71,14 @@ final class StateEncrypted extends AbstractState {
     private final SmpTlvHandler smpTlvHandler;
 
     /**
-     * Shared secret s.
-     */
-    private final SharedSecret s;
-
-    /**
      * Long-term remote public key.
      */
     private final PublicKey remotePublicKey;
 
     /**
-     * Current and next session keys containers.
+     * Manager for session keys that are used during encrypted message state.
      */
-    private final SessionKeys[][] sessionKeys;
-
-    /**
-     * List of old MAC keys for this session. (Synchronized)
-     */
-    private final List<byte[]> oldMacKeys = Collections.synchronizedList(new ArrayList<byte[]>(0));
+    private final SessionKeyManager sessionKeyManager;
 
     StateEncrypted(@Nonnull final Context context, @Nonnull final SecurityParameters params) throws OtrException {
         this.sessionId = context.getSessionID();
@@ -103,30 +88,9 @@ final class StateEncrypted extends AbstractState {
         }
         this.protocolVersion = params.getVersion();
         this.smpTlvHandler = new SmpTlvHandler(this, context, params.getS());
-        this.s = params.getS();
-
         this.remotePublicKey = params.getRemoteLongTermPublicKey();
-
-        // Initialize session keys array.
-        this.sessionKeys = new SessionKeys[][]{
-        new SessionKeys[]{
-            new SessionKeys(this.s, SessionKeys.PREVIOUS, SessionKeys.PREVIOUS),
-            new SessionKeys(this.s, SessionKeys.PREVIOUS, SessionKeys.CURRENT)},
-        new SessionKeys[]{
-            new SessionKeys(this.s, SessionKeys.CURRENT, SessionKeys.PREVIOUS),
-            new SessionKeys(this.s, SessionKeys.CURRENT, SessionKeys.CURRENT)}};
-        // Initialize current session keys
-        logger.finest("Setting most recent session keys from auth.");
-        for (final SessionKeys current : this.sessionKeys[0]) {
-            current.setLocalPair(params.getLocalDHKeyPair(), 1);
-            current.setRemoteDHPublicKey(params.getRemoteDHPublicKey(), 1);
-        }
-        // Prepare for next session keys
-        final KeyPair nextDH = OtrCryptoEngine.generateDHKeyPair(context.secureRandom());
-        for (final SessionKeys next : this.sessionKeys[1]) {
-            next.setRemoteDHPublicKey(params.getRemoteDHPublicKey(), 1);
-            next.setLocalPair(nextDH, 2);
-        }
+        this.sessionKeyManager = new SessionKeyManager(context.secureRandom(),
+                params.getLocalDHKeyPair(), params.getRemoteDHPublicKey());
     }
 
     @Override
@@ -160,7 +124,7 @@ final class StateEncrypted extends AbstractState {
 
     @Override
     public byte[] getExtraSymmetricKey() {
-        return this.s.extraSymmetricKey();
+        return this.sessionKeyManager.extraSymmetricKey();
     }
 
     @Nonnull
@@ -180,12 +144,11 @@ final class StateEncrypted extends AbstractState {
         logger.finest("Message state is ENCRYPTED. Trying to decrypt message.");
         final OtrEngineHost host = context.getHost();
         // Find matching session keys.
-        final int senderKeyID = data.senderKeyID;
-        final int receipientKeyID = data.recipientKeyID;
-        final SessionKeys matchingKeys = this.getSessionKeysByID(receipientKeyID,
-                senderKeyID);
-
-        if (matchingKeys == null) {
+        final SessionKey matchingKeys;
+        try {
+            matchingKeys = sessionKeyManager.get(data.recipientKeyID,
+                    data.senderKeyID);
+        } catch(final SessionKeyManager.SessionKeyUnavailableException ex) {
             logger.finest("No matching keys found.");
             OtrEngineHostUtil.unreadableMessageReceived(host, sessionId);
             final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionId, DEFAULT_REPLY_UNREADABLE_MESSAGE);
@@ -198,8 +161,7 @@ final class StateEncrypted extends AbstractState {
 
         final byte[] serializedT = SerializationUtils.toByteArray(data.getT());
         final byte[] computedMAC = OtrCryptoEngine.sha1Hmac(serializedT,
-                matchingKeys.getReceivingMACKey(),
-                SerializationConstants.TYPE_LEN_MAC);
+                matchingKeys.receivingMAC(), SerializationConstants.TYPE_LEN_MAC);
         if (!Arrays.equals(computedMAC, data.mac)) {
             // TODO consider replacing this with OtrCryptoEngine.checkEquals such that signaling error happens automatically. Do we want this?
             logger.finest("MAC verification failed, ignoring message");
@@ -212,22 +174,28 @@ final class StateEncrypted extends AbstractState {
         logger.finest("Computed HmacSHA1 value matches sent one.");
 
         // Mark this MAC key as old to be revealed.
-        matchingKeys.setIsUsedReceivingMACKey(true);
-
-        matchingKeys.setReceivingCtr(data.ctr);
-
-        final byte[] dmc = OtrCryptoEngine.aesDecrypt(matchingKeys
-                .getReceivingAESKey(), matchingKeys.getReceivingCtr(),
-                data.encryptedMessage);
-
-        // Rotate keys if necessary.
-        final SessionKeys mostRecent = this.getMostRecentSessionKeys();
-        if (mostRecent.getLocalKeyID() == receipientKeyID) {
-            this.rotateLocalSessionKeys(context.secureRandom());
+        matchingKeys.markUsed();
+        final byte[] dmc;
+        try {
+            final byte[] lengthenedReceivingCtr = matchingKeys.verifyReceivingCtr(data.ctr);
+            dmc = OtrCryptoEngine.aesDecrypt(matchingKeys.receivingAESKey(),
+                    lengthenedReceivingCtr, data.encryptedMessage);
+        } catch (final SessionKey.ReceivingCounterValidationFailed ex) {
+            // TODO consider if this is the right way of handling failed receiving counter validation
+            logger.finest("Receiving ctr validation failed, ignoring message");
+            OtrEngineHostUtil.unreadableMessageReceived(host, sessionId);
+            final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionId, DEFAULT_REPLY_UNREADABLE_MESSAGE);
+            context.injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
+            return null;
         }
 
-        if (mostRecent.getRemoteKeyID() == senderKeyID) {
-            this.rotateRemoteSessionKeys(data.nextDH);
+        // Rotate keys if necessary.
+        final SessionKey mostRecent = this.sessionKeyManager.getMostRecentSessionKeys();
+        if (mostRecent.getLocalKeyID() == data.recipientKeyID) {
+            this.sessionKeyManager.rotateLocalKeys();
+        }
+        if (mostRecent.getRemoteKeyID() == data.senderKeyID) {
+            this.sessionKeyManager.rotateRemoteKeys(data.nextDH);
         }
 
         // find the null TLV separator in the package, or just use the end value
@@ -325,13 +293,12 @@ final class StateEncrypted extends AbstractState {
                 new Object[]{sessionId.getAccountID(), sessionId.getUserID(), sessionId.getProtocolName()});
 
         // Get encryption keys.
-        final SessionKeys encryptionKeys = this.getEncryptionSessionKeys();
+        final SessionKey encryptionKeys = this.sessionKeyManager.getEncryptionSessionKeys();
         final int senderKeyID = encryptionKeys.getLocalKeyID();
         final int receipientKeyID = encryptionKeys.getRemoteKeyID();
 
         // Increment CTR.
-        encryptionKeys.incrementSendingCtr();
-        final byte[] ctr = encryptionKeys.getSendingCtr();
+        final byte[] ctr = encryptionKeys.acquireSendingCtr();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         if (msgText.length() > 0) {
@@ -365,14 +332,14 @@ final class StateEncrypted extends AbstractState {
 
         final byte[] data = out.toByteArray();
         // Encrypt message.
-        logger.log(Level.FINEST, "Encrypting message with keyids (localKeyID, remoteKeyID) = ({0}, {1})", new Object[]{senderKeyID, receipientKeyID});
+        logger.log(Level.FINEST, "Encrypting message with keyids (localKeyID, remoteKeyID) = ({0}, {1})",
+                new Object[]{senderKeyID, receipientKeyID});
         final byte[] encryptedMsg = OtrCryptoEngine.aesEncrypt(encryptionKeys
-                .getSendingAESKey(), ctr, data);
+                .sendingAESKey(), ctr, data);
 
         // Get most recent keys to get the next D-H public key.
-        final SessionKeys mostRecentKeys = this.getMostRecentSessionKeys();
-        final DHPublicKey nextDH = (DHPublicKey) mostRecentKeys.getLocalPair()
-                .getPublic();
+        final SessionKey mostRecentKeys = this.sessionKeyManager.getMostRecentSessionKeys();
+        final DHPublicKey nextDH = (DHPublicKey) mostRecentKeys.getLocalKeyPair().getPublic();
 
         // Calculate T.
         final MysteriousT t
@@ -383,7 +350,7 @@ final class StateEncrypted extends AbstractState {
                         encryptedMsg);
 
         // Calculate T hash.
-        final byte[] sendingMACKey = encryptionKeys.getSendingMACKey();
+        final byte[] sendingMACKey = encryptionKeys.sendingMAC();
 
         logger.finest("Transforming T to byte[] to calculate it's HmacSHA1.");
         final byte[] serializedT = SerializationUtils.toByteArray(t);
@@ -391,7 +358,7 @@ final class StateEncrypted extends AbstractState {
                 SerializationConstants.TYPE_LEN_MAC);
 
         // Get old MAC keys to be revealed.
-        final byte[] oldKeys = this.collectOldMacKeys();
+        final byte[] oldKeys = this.sessionKeyManager.collectOldMacKeys();
         final DataMessage m = new DataMessage(t, mac, oldKeys);
         m.senderInstanceTag = context.getSenderInstanceTag().getValue();
         m.receiverInstanceTag = context.getReceiverInstanceTag().getValue();
@@ -411,103 +378,4 @@ final class StateEncrypted extends AbstractState {
         context.injectMessage(m);
         context.setState(new StatePlaintext(this.sessionId));
     }
-
-    private void rotateRemoteSessionKeys(final DHPublicKey pubKey)
-            throws OtrException {
-
-        logger.finest("Rotating remote keys.");
-        final SessionKeys sess1 = this.sessionKeys[SessionKeys.CURRENT][SessionKeys.PREVIOUS];
-        if (sess1.getIsUsedReceivingMACKey()) {
-            logger
-                    .finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            this.oldMacKeys.add(sess1.getReceivingMACKey());
-        }
-
-        final SessionKeys sess2 = this.sessionKeys[SessionKeys.PREVIOUS][SessionKeys.PREVIOUS];
-        if (sess2.getIsUsedReceivingMACKey()) {
-            logger
-                    .finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            this.oldMacKeys.add(sess2.getReceivingMACKey());
-        }
-
-        final SessionKeys sess3 = this.sessionKeys[SessionKeys.CURRENT][SessionKeys.CURRENT];
-        sess1.setRemoteDHPublicKey(sess3.getRemoteKey(), sess3.getRemoteKeyID());
-
-        final SessionKeys sess4 = this.sessionKeys[SessionKeys.PREVIOUS][SessionKeys.CURRENT];
-        sess2.setRemoteDHPublicKey(sess4.getRemoteKey(), sess4.getRemoteKeyID());
-
-        sess3.setRemoteDHPublicKey(pubKey, sess3.getRemoteKeyID() + 1);
-        sess4.setRemoteDHPublicKey(pubKey, sess4.getRemoteKeyID() + 1);
-    }
-
-    private void rotateLocalSessionKeys(@Nonnull final SecureRandom secureRandom) throws OtrException {
-
-        logger.finest("Rotating local keys.");
-        final SessionKeys sess1 = this.sessionKeys[SessionKeys.PREVIOUS][SessionKeys.CURRENT];
-        if (sess1.getIsUsedReceivingMACKey()) {
-            logger.finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            this.oldMacKeys.add(sess1.getReceivingMACKey());
-        }
-
-        final SessionKeys sess2 = this.sessionKeys[SessionKeys.PREVIOUS][SessionKeys.PREVIOUS];
-        if (sess2.getIsUsedReceivingMACKey()) {
-            logger.finest("Detected used Receiving MAC key. Adding to old MAC keys to reveal it.");
-            this.oldMacKeys.add(sess2.getReceivingMACKey());
-        }
-
-        final SessionKeys sess3 = this.sessionKeys[SessionKeys.CURRENT][SessionKeys.CURRENT];
-        sess1.setLocalPair(sess3.getLocalPair(), sess3.getLocalKeyID());
-        final SessionKeys sess4 = this.sessionKeys[SessionKeys.CURRENT][SessionKeys.PREVIOUS];
-        sess2.setLocalPair(sess4.getLocalPair(), sess4.getLocalKeyID());
-
-        final KeyPair newPair = OtrCryptoEngine.generateDHKeyPair(secureRandom);
-        sess3.setLocalPair(newPair, sess3.getLocalKeyID() + 1);
-        sess4.setLocalPair(newPair, sess4.getLocalKeyID() + 1);
-    }
-
-    private SessionKeys getEncryptionSessionKeys() {
-        logger.finest("Getting encryption keys");
-        return this.sessionKeys[SessionKeys.PREVIOUS][SessionKeys.CURRENT];
-    }
-
-    private SessionKeys getMostRecentSessionKeys() {
-        logger.finest("Getting most recent keys.");
-        return this.sessionKeys[SessionKeys.CURRENT][SessionKeys.CURRENT];
-    }
-
-    private SessionKeys getSessionKeysByID(final int localKeyID, final int remoteKeyID) {
-        logger.log(Level.FINEST, "Searching for session keys with (localKeyID, remoteKeyID) = ({0},{1})",
-                new Object[]{localKeyID, remoteKeyID});
-
-        for (final SessionKeys[] sessionKey : this.sessionKeys) {
-            for (final SessionKeys current : sessionKey) {
-                if (current.getLocalKeyID() == localKeyID
-                        && current.getRemoteKeyID() == remoteKeyID) {
-                    logger.finest("Matching keys found.");
-                    return current;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private byte[] collectOldMacKeys() {
-        logger.finest("Collecting old MAC keys to be revealed.");
-        synchronized (this.oldMacKeys) {
-            int len = 0;
-            for (final byte[] k : this.oldMacKeys) {
-                len += k.length;
-            }
-
-            final ByteBuffer buff = ByteBuffer.allocate(len);
-            for (final byte[] k : this.oldMacKeys) {
-                buff.put(k);
-            }
-
-            this.oldMacKeys.clear();
-            return buff.array();
-        }
-    }
-
 }
