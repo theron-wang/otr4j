@@ -113,7 +113,6 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
         final DHPublicKey remoteDHPublicKey;
         final SharedSecret s;
         final SignatureX remoteMysteriousX;
-        // TODO OTR says "If everything checks out ... otherwise, ignore the message." Should we ignore even if 
         try {
             // Start validation of Reveal Signature message.
             // OTR: "Uses r to decrypt the value of gx sent earlier"

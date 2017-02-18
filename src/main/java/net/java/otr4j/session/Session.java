@@ -522,7 +522,7 @@ public class Session implements Context, AuthContext {
             logger.finest("Query message with V2 support found. Sending D-H Commit Message.");
             injectMessage(respondAuth(OTRv.TWO, InstanceTag.ZERO_TAG));
         } else {
-            logger.info("Query message received, but none of the versions are useful. They are either excluded by policy or by lack of support.");
+            logger.info("Query message received, but none of the versions are acceptable. They are either excluded by policy or through lack of support.");
         }
     }
 

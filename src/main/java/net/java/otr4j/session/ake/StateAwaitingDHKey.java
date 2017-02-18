@@ -84,6 +84,7 @@ final class StateAwaitingDHKey extends AbstractAuthState {
             // OTR: "If yours is the higher hash value: Ignore the incoming D-H Commit message, but resend your D-H Commit message."
             LOGGER.finest("Ignored the incoming D-H Commit message, but resent our D-H Commit message.");
             final byte[] publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(this.r, null, publicKeyBytes);
+            // TODO consider resending DHCommitMessage with receiver instance tag set ...
             return new DHCommitMessage(this.version, publicKeyHash, publicKeyEncrypted,
                     context.getSenderInstanceTag().getValue(), InstanceTag.ZERO_VALUE);
         } else {
