@@ -973,17 +973,16 @@ public class Session implements Context, AuthContext {
      */
     public void respondSmp(@Nonnull final InstanceTag receiverTag, @Nullable final String question,
             @Nonnull final String secret) throws OtrException {
+        // FIXME verify that this logic makes sense. We seem to delegate to the non-instance-specific respondSMP message thus ignoring the instance tag?
         if (receiverTag.equals(this.receiverTag)) {
             respondSmp(question, secret);
             return;
         }
         final Session slave = slaveSessions.get(receiverTag);
-        if (slave != null) {
-            slave.respondSmp(question, secret);
-        } else {
-            // FIXME is this really the appropriate response. If we are already in an ENCRYPTED message state, we should already have established OTRv2 or OTRv3. That means that we should never NOT find an instance tag. If we do find one, should we respond with OtrException?
-            respondSmp(question, secret);
+        if (slave == null) {
+            throw new IllegalStateException("Slave session cannot be found? Cannot delegate SMP response to slave session. Is receiver instance tag really correct?");
         }
+        slave.respondSmp(question, secret);
     }
 
     /**
