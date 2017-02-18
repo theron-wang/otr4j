@@ -39,7 +39,6 @@ final class SessionKeyManager {
     /**
      * Session keys. 2x2 "array" of session keys.
      */
-    // FIXME consider if it suffices to use 2 SessionKeys instances.
     private final EnumMap<Index, EnumMap<Index, SessionKey>> keys = new EnumMap(Index.class);
 
     /**
@@ -214,7 +213,6 @@ final class SessionKeyManager {
      *
      * @return Returns extra symmetric key.
      */
-    // TODO consider detecting whether or not this is an OTRv3 session, before returning Extra Symmetric Key.
     @Nonnull
     byte[] extraSymmetricKey() {
         return this.getEncryptionSessionKeys().extraSymmetricKey();
