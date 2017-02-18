@@ -60,9 +60,8 @@ final class SessionKey {
         this.remotePublicKey = Objects.requireNonNull(remotePublicKey);
         this.s = OtrCryptoEngine.generateSecret(localKeyPair.getPrivate(),
                 Objects.requireNonNull(remotePublicKey));
-        // FIXME is use of 'abs()' in comparison of DH public keys valid? (Probably unnecessary addition ...)
-        this.high = ((DHPublicKey)this.localKeyPair.getPublic()).getY().abs()
-                .compareTo(remotePublicKey.getY().abs()) > 0;
+        this.high = ((DHPublicKey) this.localKeyPair.getPublic()).getY()
+                .compareTo(remotePublicKey.getY()) > 0;
         this.used = false;
     }
 
@@ -226,7 +225,7 @@ final class SessionKey {
         for (int i = 0; i < this.receivingCtr.length; i++) {
             if (receivingCtr[i] > this.receivingCtr[i]) {
                 // Receiving ctr value is indeed larger.
-                // Persist new ctr value for future validations.
+                // Persist new ctr value for next validation.
                 System.arraycopy(receivingCtr, 0, this.receivingCtr, 0,
                         this.receivingCtr.length);
                 // Lengthen ctr value for further use.
