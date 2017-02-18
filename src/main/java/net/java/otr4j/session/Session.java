@@ -934,7 +934,10 @@ public class Session implements Context, AuthContext {
             throw new OtrException(ex);
         }
         final List<TLV> tlvs = handler.initRespondSmp(question, secret, true);
-        injectMessage(this.sessionState.transformSending(this, "", tlvs));
+        final AbstractMessage m = this.sessionState.transformSending(this, "", tlvs);
+        if (m != null) {
+            injectMessage(m);
+        }
     }
 
     /**
@@ -979,7 +982,10 @@ public class Session implements Context, AuthContext {
         } catch (final IncorrectStateException ex) {
             throw new OtrException(ex);
         }
-        injectMessage(this.sessionState.transformSending(this, "", tlvs));
+        final AbstractMessage m = this.sessionState.transformSending(this, "", tlvs);
+        if (m != null) {
+            injectMessage(m);
+        }
     }
 
     /**
@@ -998,7 +1004,10 @@ public class Session implements Context, AuthContext {
         } catch (final IncorrectStateException ex) {
             throw new OtrException(ex);
         }
-        injectMessage(this.sessionState.transformSending(this, "", tlvs));
+        final AbstractMessage m = this.sessionState.transformSending(this, "", tlvs);
+        if (m != null) {
+            injectMessage(m);
+        }
     }
 
     /**
