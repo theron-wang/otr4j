@@ -89,7 +89,6 @@ import net.java.otr4j.session.state.StatePlaintext;
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
 // TODO Make Session final, can only be done after having extracted an interface as we rely on mocking the Session implementation.
 // TODO There's now a mix of checking by messageType and checking by instanceof to discover type of AKE message. This is probably not a good thing ...
-// FIXME how does mix of OTRv3 (slave) sessions and OTRv2 session work with outgoing session? Will this lead to trouble in mix of ENCRYPTED and PLAINTEXT sessions?
 // TODO can we define some sort of sanity check that ensures that ENCRYPTED message state is always correctly reflected, i.e. we always send messages ENCRYPTED if this appears so.
 // TODO verify logic to ensure that we only attempt to start a new session if we are not ENCRYPTED (otherwise multiple clients might continue starting up new sessions to infinity)
 // TODO should we attempt to verify/time-out AKE sessions? In case of DH Commit message w/o receiver tag, we keep AWAITING_DHKEY state in master and replicate to slave upon receiving DH Key message which includes their sender tag.
@@ -836,19 +835,21 @@ public class Session implements Context, AuthContext {
 
     /**
      * Set the outgoing session to the session corresponding to the specified
-     * Receiver instance tag.
+     * Receiver instance tag. Setting the outgoing session is only allowed for
+     * master sessions.
      *
      * @param tag The receiver instance tag.
-     * @return Returns true uipon successfully setting the outgoing instance.
+     * @return Returns true upon successfully setting the outgoing instance.
      */
     public boolean setOutgoingInstance(@Nonnull final InstanceTag tag) {
         if (!masterSession) {
             // Only master session can set the outgoing session.
-            return false;
+            throw new IllegalStateException("Only master session is allowed to set/change the outgoing session instance.");
         }
         final SessionID sessionId = this.sessionState.getSessionID();
         if (tag.equals(this.receiverTag)) {
-            // FIXME not really changing outgoing session, do we really need to inform listeners?
+            // Instance tag belongs to master session, set master session as
+            // outgoing session.
             outgoingSession = this;
             OtrEngineListenerUtil.outgoingSessionChanged(
                     OtrEngineListenerUtil.duplicate(listeners), sessionId);
@@ -856,15 +857,12 @@ public class Session implements Context, AuthContext {
         }
         final Session newActiveSession = slaveSessions.get(tag);
         if (newActiveSession == null) {
-            // FIXME strange that we assign outgoingSession to this then return false without signaling outgoingSessionChanged(...) event.
-            outgoingSession = this;
             return false;
-        } else {
-            outgoingSession = newActiveSession;
-            OtrEngineListenerUtil.outgoingSessionChanged(
-                    OtrEngineListenerUtil.duplicate(listeners), sessionId);
-            return true;
         }
+        outgoingSession = newActiveSession;
+        OtrEngineListenerUtil.outgoingSessionChanged(
+                OtrEngineListenerUtil.duplicate(listeners), sessionId);
+        return true;
     }
 
     /**
