@@ -822,11 +822,11 @@ public class Session implements Context, AuthContext {
 
     /**
      * Get list of OTR session instances, i.e. sessions with different instance
-     * tags.
+     * tags. There is always at least 1 session, the master session or only
+     * session in case of OTRv2.
      *
-     * @return Returns list of instance sessions.
+     * @return Returns list of session instances.
      */
-    // TODO consider only returning OTRv2 (master) session in case it is != PLAINTEXT.
     public List<Session> getInstances() {
         final List<Session> result = new ArrayList<>();
         result.add(this);
