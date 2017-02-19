@@ -86,6 +86,7 @@ import net.java.otr4j.session.state.StatePlaintext;
  * @author George Politis
  * @author Danny van Heumen
  */
+// TODO re-evaluate methods that should delegate to outgoingSession instance. Not all of them seem to be implemented sanely.
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
 // TODO Make Session final, can only be done after having extracted an interface as we rely on mocking the Session implementation.
 // TODO There's now a mix of checking by messageType and checking by instanceof to discover type of AKE message. This is probably not a good thing ...
@@ -471,10 +472,24 @@ public class Session implements Context, AuthContext {
                     session = slaveSessions.get(messageSenderInstance);
                 }
             }
-            // FIXME work-around as we haven't found out yet when to switch outgoing instance. (Question: when did we previously switch outgoing session?)
-            setOutgoingInstance(messageSenderInstance);
+            final SessionStatus previousStatus = session.sessionState.getStatus();
             logger.log(Level.FINEST, "Delegating to slave session for instance tag {0}", messageSenderInstance.getValue());
-            return session.transformReceiving(msgText);
+            try {
+                return session.transformReceiving(msgText);
+            } finally {
+                // In any case, after transformation ensure that we switch to
+                // the ENCRYPTED session if a state transition has taken place.
+                // TODO is this work-around acceptable (for switching outgoing session)? (Alternatively we could NOT switch ever and leave it to the user, however that behavior is also different from the original behavior of the library.)
+                final SessionStatus currentStatus = session.sessionState.getStatus();
+                if (this.outgoingSession.sessionState.getStatus() == SessionStatus.PLAINTEXT
+                        && previousStatus == SessionStatus.PLAINTEXT
+                        && currentStatus == SessionStatus.ENCRYPTED) {
+                    // In case we have just established an ENCRYPTED session and
+                    // our current outgoing session is not encrypted, set new
+                    // outgoing session.
+                    setOutgoingInstance(messageSenderInstance);
+                }
+            }
         }
 
         logger.log(Level.INFO, "Received message with type {0}", m.messageType);
