@@ -518,7 +518,7 @@ public class Session implements Context, AuthContext {
                 // was not implemented at this point in the code. This should be
                 // considered a programming error. We should handle any known
                 // message type gracefully. Unknown messages are caught earlier.
-                throw new UnsupportedOperationException("Received an unknown message type.");
+                throw new UnsupportedOperationException("This message type is not supported. Support is expected to be implemented for all known message types.");
         }
     }
 
