@@ -84,9 +84,12 @@ final class StateAwaitingDHKey extends AbstractAuthState {
             // OTR: "If yours is the higher hash value: Ignore the incoming D-H Commit message, but resend your D-H Commit message."
             LOGGER.finest("Ignored the incoming D-H Commit message, but resent our D-H Commit message.");
             final byte[] publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(this.r, null, publicKeyBytes);
-            // TODO consider resending DHCommitMessage with receiver instance tag set ...
+            // Special-case repeat of your D-H Commit message: instead of
+            // resending D-H Commit message to every instance, now dedicate it
+            // to the sender of the received D-H Commit message. That way, we do
+            // not needlessly trigger other OTRv2 and OTRv3 clients.
             return new DHCommitMessage(this.version, publicKeyHash, publicKeyEncrypted,
-                    context.getSenderInstanceTag().getValue(), InstanceTag.ZERO_VALUE);
+                    context.getSenderInstanceTag().getValue(), message.senderInstanceTag);
         } else {
             // OTR: "Otherwise: Forget your old gx value that you sent (encrypted) earlier, and pretend you're in AUTHSTATE_NONE;
             // i.e. reply with a D-H Key Message, and transition authstate to AUTHSTATE_AWAITING_REVEALSIG."
