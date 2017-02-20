@@ -185,8 +185,7 @@ final class StateEncrypted extends AbstractState {
             dmc = OtrCryptoEngine.aesDecrypt(matchingKeys.receivingAESKey(),
                     lengthenedReceivingCtr, data.encryptedMessage);
         } catch (final SessionKey.ReceivingCounterValidationFailed ex) {
-            // TODO consider if this is the right way of handling failed receiving counter validation
-            logger.finest("Receiving ctr validation failed, ignoring message");
+            logger.warning("Receiving ctr value failed validation, ignoring message: " + ex.getMessage());
             OtrEngineHostUtil.unreadableMessageReceived(host, sessionId);
             final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionId, DEFAULT_REPLY_UNREADABLE_MESSAGE);
             context.injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));

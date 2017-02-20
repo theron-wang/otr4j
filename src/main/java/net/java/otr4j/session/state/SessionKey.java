@@ -228,7 +228,7 @@ final class SessionKey {
     @Nonnull
     byte[] verifyReceivingCtr(@Nonnull final byte[] receivingCtr) throws ReceivingCounterValidationFailed {
         if (receivingCtr.length != this.receivingCtr.length) {
-            throw new ReceivingCounterValidationFailed("counter value lengths not identical");
+            throw new ReceivingCounterValidationFailed("counter value has unexpected length");
         }
         for (int i = 0; i < this.receivingCtr.length; i++) {
             if (receivingCtr[i] > this.receivingCtr[i]) {
