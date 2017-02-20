@@ -228,7 +228,7 @@ final class SessionKeyManager {
     /**
      * Exception indicating that session key could not be found.
      */
-    final class SessionKeyUnavailableException extends Exception {
+    static final class SessionKeyUnavailableException extends Exception {
 
         private static final long serialVersionUID = 7887960733134415672L;
 

@@ -262,7 +262,7 @@ final class SessionKey {
     /**
      * Exception indicating that receiving counter validation failed.
      */
-    final class ReceivingCounterValidationFailed extends Exception {
+    static final class ReceivingCounterValidationFailed extends Exception {
 
         private static final long serialVersionUID = 2904530293964813552L;
 
