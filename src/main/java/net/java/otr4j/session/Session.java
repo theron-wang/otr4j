@@ -974,28 +974,6 @@ public class Session implements Context, AuthContext {
     }
 
     /**
-     * Respond with SMP message for specified receiver tag.
-     *
-     * @param receiverTag The receiver instance tag.
-     * @param question The question, optional.
-     * @param secret The secret to be verified using ZK-proof.
-     * @throws OtrException In case of failure.
-     */
-    public void respondSmp(@Nonnull final InstanceTag receiverTag, @Nullable final String question,
-            @Nonnull final String secret) throws OtrException {
-        // FIXME verify that this logic makes sense. We seem to delegate to the non-instance-specific respondSMP message thus ignoring the instance tag?
-        if (receiverTag.equals(this.receiverTag)) {
-            respondSmp(question, secret);
-            return;
-        }
-        final Session slave = slaveSessions.get(receiverTag);
-        if (slave == null) {
-            throw new IllegalStateException("Slave session cannot be found? Cannot delegate SMP response to slave session. Is receiver instance tag really correct?");
-        }
-        slave.respondSmp(question, secret);
-    }
-
-    /**
      * Respond to SMP request.
      *
      * @param question The question to be sent with SMP response, may be null.
@@ -1008,6 +986,35 @@ public class Session implements Context, AuthContext {
             outgoingSession.respondSmp(question, secret);
             return;
         }
+        sendResponseSmp(question, secret);
+    }
+
+    /**
+     * Respond with SMP message for specified receiver tag.
+     *
+     * @param receiverTag The receiver instance tag.
+     * @param question The question, optional.
+     * @param secret The secret to be verified using ZK-proof.
+     * @throws OtrException In case of failure.
+     */
+    public void respondSmp(@Nonnull final InstanceTag receiverTag, @Nullable final String question,
+            @Nonnull final String secret) throws OtrException {
+        final Session session = receiverTag.equals(this.receiverTag) ? this : slaveSessions.get(receiverTag);
+        if (session == null) {
+            throw new IllegalStateException("Slave session cannot be found? Cannot delegate SMP response to slave session. Is receiver instance tag really correct?");
+        }
+        session.sendResponseSmp(question, secret);
+    }
+
+    /**
+     * Send SMP response.
+     *
+     * @param question (Optional) question
+     * @param secret secret of which we verify common knowledge
+     * @throws OtrException In case of failure to send, message state different
+     * from ENCRYPTED, issues with SMP processing.
+     */
+    private void sendResponseSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
         final List<TLV> tlvs;
         try {
             tlvs = this.sessionState.getSmpTlvHandler().initRespondSmp(question, secret, false);
