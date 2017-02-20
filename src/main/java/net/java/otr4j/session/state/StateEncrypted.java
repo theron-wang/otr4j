@@ -167,7 +167,6 @@ final class StateEncrypted extends AbstractState {
         final byte[] computedMAC = OtrCryptoEngine.sha1Hmac(serializedT,
                 matchingKeys.receivingMAC(), SerializationConstants.TYPE_LEN_MAC);
         if (!Arrays.equals(computedMAC, data.mac)) {
-            // TODO consider replacing this with OtrCryptoEngine.checkEquals such that signaling error happens automatically. Do we want this?
             logger.finest("MAC verification failed, ignoring message");
             OtrEngineHostUtil.unreadableMessageReceived(host, sessionId);
             final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionId, DEFAULT_REPLY_UNREADABLE_MESSAGE);
