@@ -697,18 +697,11 @@ public class Session implements Context, AuthContext {
      * @return Returns the (array of) messages to be sent over IM network.
      * @throws OtrException OtrException in case of exceptions.
      */
-    // TODO consider changing public API to not allow null list of TLVs and null msgText.
     @Nonnull
-    public String[] transformSending(@Nullable String msgText, @Nullable List<TLV> tlvs)
+    public String[] transformSending(@Nonnull final String msgText, final @Nonnull List<TLV> tlvs)
             throws OtrException {
         if (masterSession && outgoingSession != this) {
             return outgoingSession.transformSending(msgText, tlvs);
-        }
-        if (msgText == null) {
-            msgText = "";
-        }
-        if (tlvs == null) {
-            tlvs = Collections.<TLV>emptyList();
         }
         final AbstractMessage m = this.sessionState.transformSending(this, msgText, tlvs);
         if (m == null) {

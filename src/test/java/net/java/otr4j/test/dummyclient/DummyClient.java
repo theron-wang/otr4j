@@ -123,7 +123,7 @@ public class DummyClient {
         session.startSession();
     }
 
-	public void send(String recipient, String s) throws OtrException {
+	public void send(@Nonnull String recipient, @Nonnull String s) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
 			session = new Session(sessionID, new DummyOtrEngineHostImpl());
