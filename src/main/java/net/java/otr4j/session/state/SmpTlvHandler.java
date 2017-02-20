@@ -102,7 +102,7 @@ public final class SmpTlvHandler {
                 // progress, an abort is signaled. We honor the abort exception
                 // and send the abort signal to the counter party. Then we
                 // immediately initiate a new SMP exchange as requested.
-                sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+                sendTLV(new TLV(TLV.SMP_ABORT, TLV.EMPTY));
                 SmpEngineHostUtil.smpAborted(engineHost, session.getSessionID());
                 try {
                     smpmsg = sm.step1(combinedSecret);
@@ -119,7 +119,7 @@ public final class SmpTlvHandler {
                 smpmsg = sm.step2b(combinedSecret);
             }
             catch (final SMAbortedException ex) {
-                sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+                sendTLV(new TLV(TLV.SMP_ABORT, TLV.EMPTY));
                 SmpEngineHostUtil.smpAborted(engineHost, session.getSessionID());
                 throw new OtrException(ex);
             }
@@ -150,7 +150,7 @@ public final class SmpTlvHandler {
 	 */
 	public List<TLV> abortSmp() throws OtrException {
         this.sm.abort();
-		final TLV sendtlv = new TLV(TLV.SMP_ABORT, new byte[0]);
+		final TLV sendtlv = new TLV(TLV.SMP_ABORT, TLV.EMPTY);
         return Collections.singletonList(sendtlv);
 	}
 
@@ -197,7 +197,7 @@ public final class SmpTlvHandler {
                     this.receiverInstanceTag, questionUTF);
         }
         catch (final SMAbortedException e) {
-            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+            sendTLV(new TLV(TLV.SMP_ABORT, TLV.EMPTY));
             SmpEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
         catch (final SMException e) {
@@ -217,7 +217,7 @@ public final class SmpTlvHandler {
                     this.receiverInstanceTag, null);
         }
         catch (final SMAbortedException e) {
-            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+            sendTLV(new TLV(TLV.SMP_ABORT, TLV.EMPTY));
             SmpEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
         catch (final SMException e) {
@@ -238,7 +238,7 @@ public final class SmpTlvHandler {
             this.sessionContext.injectMessage(m);
         }
         catch (final SMAbortedException e) {
-            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+            sendTLV(new TLV(TLV.SMP_ABORT, TLV.EMPTY));
             SmpEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
         catch (final SMException e) {
@@ -264,7 +264,7 @@ public final class SmpTlvHandler {
             sendTLV(sendtlv);
         }
         catch (final SMAbortedException e) {
-            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+            sendTLV(new TLV(TLV.SMP_ABORT, TLV.EMPTY));
             SmpEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
         catch (final SMException e) {
@@ -285,7 +285,7 @@ public final class SmpTlvHandler {
             }
         }
         catch (final SMAbortedException e) {
-            sendTLV(new TLV(TLV.SMP_ABORT, new byte[0]));
+            sendTLV(new TLV(TLV.SMP_ABORT, TLV.EMPTY));
             SmpEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
         catch (final SMException e) {

@@ -7,6 +7,10 @@ import javax.annotation.Nonnull;
  * Class representing OTR Type-Length-Value tuples.
  */
 public class TLV {
+    /**
+     * Empty array, for efficient reuse.
+     */
+    public static final byte[] EMPTY = new byte[0];
     /* This is just padding for the encrypted message, and should be ignored. */
     public static final int PADDING=0;
     /* The sender has thrown away his OTR session keys with you */

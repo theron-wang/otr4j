@@ -376,7 +376,7 @@ final class StateEncrypted extends AbstractState {
 
     @Override
     public void end(@Nonnull final Context context) throws OtrException {
-        final TLV disconnectTlv = new TLV(TLV.DISCONNECTED, new byte[0]);
+        final TLV disconnectTlv = new TLV(TLV.DISCONNECTED, TLV.EMPTY);
         final DataMessage m = transformSending(context, "", Collections.singletonList(disconnectTlv));
         // TODO consider wrapping in try-finally to ensure state transition to plaintext
         context.injectMessage(m);
