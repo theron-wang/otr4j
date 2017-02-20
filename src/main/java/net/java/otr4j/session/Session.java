@@ -715,6 +715,12 @@ public class Session implements Context, AuthContext {
         }
     }
 
+    /**
+     * Start a new OTR session by sending an OTR query message.
+     *
+     * @throws OtrException Throws an error in case we failed to inject the
+     * Query message into the host's transport channel.
+     */
     @Override
     public void startSession() throws OtrException {
         if (this.getSessionStatus() == SessionStatus.ENCRYPTED) {
@@ -737,8 +743,6 @@ public class Session implements Context, AuthContext {
      * ending.
      */
     public void endSession() throws OtrException {
-        // TODO will this still work correctly? Can we determine OTRv3 session in case session is supported by slave session??!?!?!?!
-        // TODO in any case, checking protocol version does not make sense here. In case of slave sessions, the master session may not have encrypted state (right?) outgoingSession is a good indicator though!
         if (this != outgoingSession) {
             outgoingSession.endSession();
             return;

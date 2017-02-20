@@ -141,7 +141,6 @@ final class StateEncrypted extends AbstractState {
         return plainTextMessage.cleanText;
     }
     
-    // TODO should we assume that ctr value is always incremented and should we check our expectations against actual ctr value being sent? What if counter party always picks ctr == 0?
     @Override
     @Nullable
     public String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage data) throws OtrException {
@@ -376,8 +375,13 @@ final class StateEncrypted extends AbstractState {
     public void end(@Nonnull final Context context) throws OtrException {
         final TLV disconnectTlv = new TLV(TLV.DISCONNECTED, TLV.EMPTY);
         final DataMessage m = transformSending(context, "", Collections.singletonList(disconnectTlv));
-        // TODO consider wrapping in try-finally to ensure state transition to plaintext
-        context.injectMessage(m);
-        context.setState(new StatePlaintext(this.sessionId));
+        try {
+            context.injectMessage(m);
+        } finally {
+            // Transitionig to PLAINTEXT state should not depend on host. Ensure
+            // we transition to PLAINTEXT even if we have problems injecting the
+            // message into the transport.
+            context.setState(new StatePlaintext(this.sessionId));
+        }
     }
 }
