@@ -18,7 +18,6 @@ import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.RevealSignatureMessage;
 import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureX;
-import net.java.otr4j.session.InstanceTag;
 
 /**
  * AKE state Awaiting D-H Key message, a.k.a. AUTHSTATE_AWAITING_DHKEY.

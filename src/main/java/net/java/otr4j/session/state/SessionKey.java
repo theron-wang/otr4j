@@ -18,7 +18,6 @@ import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SharedSecret;
 
-// TODO currently not doing any caching key/mac caching ... is this really an issue? (Seems harmless enough at first intuition.)
 // TODO consider doing lazy evaluation of generating 's', 'receivingCtr' and 'sendingCtr'. (Would save some memory/computation in case this session key combination is not actually used.)
 final class SessionKey {
 

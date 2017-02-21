@@ -4,7 +4,6 @@
  * This implementation will throw unchecked exceptions in case support in the
  * JVM is lacking, such as for required hashing functions and ciphers.
  */
-// TODO Verify that we always appropriately choose instance tag 0 in case of OTRv2 message handling. (Right now focus is largely on OTRv3.)
 // TODO verify that various message types do not allow invalid/illegal message contents.
 // TODO need/required to clear temporary bytearray data containing key information? (AKE states)
 // TODO consider not using InstanceTag type in this package and instead sticking with int values ... To improve reusability as stand-alone package.
