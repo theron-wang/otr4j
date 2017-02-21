@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
-import net.java.otr4j.io.messages.AbstractMessage;
+import net.java.otr4j.io.messages.Message;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.session.OfferStatus;
 import net.java.otr4j.session.Session.OTRv;
@@ -33,7 +33,7 @@ public class StatePlaintextTest {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.OPPORTUNISTIC);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(OfferStatus.idle);
-        final AbstractMessage m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
+        final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertEquals(expected, m);
         verify(context, atLeastOnce()).setOfferStatusSent();
     }
@@ -47,7 +47,7 @@ public class StatePlaintextTest {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V2 | OtrPolicy.SEND_WHITESPACE_TAG);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(OfferStatus.idle);
-        final AbstractMessage m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
+        final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertEquals(expected, m);
         verify(context, atLeastOnce()).setOfferStatusSent();
     }
@@ -61,7 +61,7 @@ public class StatePlaintextTest {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V3 | OtrPolicy.SEND_WHITESPACE_TAG);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(OfferStatus.idle);
-        final AbstractMessage m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
+        final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertEquals(expected, m);
         verify(context, atLeastOnce()).setOfferStatusSent();
     }
@@ -75,7 +75,7 @@ public class StatePlaintextTest {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.SEND_WHITESPACE_TAG);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(OfferStatus.idle);
-        final AbstractMessage m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
+        final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertEquals(expected, m);
         verify(context, never()).setOfferStatusSent();
     }
@@ -89,7 +89,7 @@ public class StatePlaintextTest {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V3);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(OfferStatus.idle);
-        final AbstractMessage m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
+        final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertEquals(expected, m);
         verify(context, never()).setOfferStatusSent();
     }
@@ -103,7 +103,7 @@ public class StatePlaintextTest {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.OPPORTUNISTIC);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(OfferStatus.rejected);
-        final AbstractMessage m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
+        final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList());
         assertEquals(expected, m);
         verify(context, never()).setOfferStatusSent();
     }

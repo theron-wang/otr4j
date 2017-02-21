@@ -4,30 +4,36 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
+
 package net.java.otr4j.io.messages;
 
+import java.util.Objects;
+import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
 
 /**
  * 
  * @author George Politis
+ * @author Danny van Heumen
  */
-public class DHKeyMessage extends AbstractEncodedMessage {
+public final class DHKeyMessage extends AbstractEncodedMessage {
 
-	// Fields.
-	public DHPublicKey dhPublicKey;
+    public final DHPublicKey dhPublicKey;
 
-	// Ctor.
-	public DHKeyMessage(final int protocolVersion, final DHPublicKey dhPublicKey) {
+    public DHKeyMessage(final int protocolVersion, @Nonnull final DHPublicKey dhPublicKey) {
         this(protocolVersion, dhPublicKey, 0, 0);
-	}
-
-    public DHKeyMessage(final int protocolVersion, final DHPublicKey dhPublicKey, final int senderInstance, final int receiverInstance) {
-		super(MESSAGE_DHKEY, protocolVersion, senderInstance, receiverInstance);
-		this.dhPublicKey = dhPublicKey;        
     }
 
-	// Methods.
+    public DHKeyMessage(final int protocolVersion, @Nonnull final DHPublicKey dhPublicKey, final int senderInstance, final int receiverInstance) {
+        super(protocolVersion, senderInstance, receiverInstance);
+        this.dhPublicKey = Objects.requireNonNull(dhPublicKey);
+    }
+
+    @Override
+    public int getType() {
+        return Message.MESSAGE_DHKEY;
+    }
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

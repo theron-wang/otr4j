@@ -37,11 +37,11 @@ import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
-import net.java.otr4j.io.messages.AbstractMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
+import net.java.otr4j.io.messages.Message;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.io.messages.QueryMessage;
 import net.java.otr4j.session.ake.AuthContext;
@@ -89,7 +89,6 @@ import net.java.otr4j.session.state.StatePlaintext;
 // TODO re-evaluate methods that should delegate to outgoingSession instance. Not all of them seem to be implemented sanely.
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
 // TODO Make Session final, can only be done after having extracted an interface as we rely on mocking the Session implementation.
-// TODO There's now a mix of checking by messageType and checking by instanceof to discover type of AKE message. This is probably not a good thing ...
 // TODO can we define some sort of sanity check that ensures that ENCRYPTED message state is always correctly reflected, i.e. we always send messages ENCRYPTED if this appears so.
 // TODO verify logic to ensure that we only attempt to start a new session if we are not ENCRYPTED (otherwise multiple clients might continue starting up new sessions to infinity)
 // TODO should we attempt to verify/time-out AKE sessions? In case of DH Commit message w/o receiver tag, we keep AWAITING_DHKEY state in master and replicate to slave upon receiving DH Key message which includes their sender tag.
@@ -371,7 +370,7 @@ public class Session implements Context, AuthContext {
             return null;
         }
 
-        final AbstractMessage m;
+        final Message m;
         try {
             m = SerializationUtils.toMessage(msgText);
             if (m == null) {
@@ -381,7 +380,7 @@ public class Session implements Context, AuthContext {
             throw new OtrException("Invalid message.", e);
         }
 
-        if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT) {
+        if (!(m instanceof PlainTextMessage)) {
             offerStatus = OfferStatus.accepted;
         } else if (offerStatus == OfferStatus.sent) {
             offerStatus = OfferStatus.rejected;
@@ -492,33 +491,29 @@ public class Session implements Context, AuthContext {
             }
         }
 
-        logger.log(Level.INFO, "Received message with type {0}", m.messageType);
-        switch (m.messageType) {
-            case AbstractEncodedMessage.MESSAGE_DATA:
-                return handleDataMessage((DataMessage) m);
-            case AbstractMessage.MESSAGE_ERROR:
-                handleErrorMessage((ErrorMessage) m);
-                return null;
-            case AbstractMessage.MESSAGE_PLAINTEXT:
-                return handlePlainTextMessage((PlainTextMessage) m);
-            case AbstractMessage.MESSAGE_QUERY:
-                handleQueryMessage((QueryMessage) m);
-                return null;
-            case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
-            case AbstractEncodedMessage.MESSAGE_DHKEY:
-            case AbstractEncodedMessage.MESSAGE_REVEALSIG:
-            case AbstractEncodedMessage.MESSAGE_SIGNATURE:
-                final AbstractEncodedMessage reply = handleAKEMessage((AbstractEncodedMessage) m);
-                if (reply != null) {
-                    injectMessage(reply);
-                }
-                return null;
-            default:
-                // At this point, the message m has a known type, but support
-                // was not implemented at this point in the code. This should be
-                // considered a programming error. We should handle any known
-                // message type gracefully. Unknown messages are caught earlier.
-                throw new UnsupportedOperationException("This message type is not supported. Support is expected to be implemented for all known message types.");
+        logger.log(Level.INFO, "Received message with type {0}", m.getType());
+        if (m instanceof DataMessage) {
+            return handleDataMessage((DataMessage) m);
+        } else if (m instanceof ErrorMessage) {
+            handleErrorMessage((ErrorMessage) m);
+            return null;
+        } else if (m instanceof PlainTextMessage) {
+            return handlePlainTextMessage((PlainTextMessage) m);
+        } else if (m instanceof QueryMessage) {
+            handleQueryMessage((QueryMessage) m);
+            return null;
+        } else if (m instanceof AbstractEncodedMessage) {
+            final AbstractEncodedMessage reply = handleAKEMessage((AbstractEncodedMessage) m);
+            if (reply != null) {
+                injectMessage(reply);
+            }
+            return null;
+        } else {
+            // At this point, the message m has a known type, but support
+            // was not implemented at this point in the code. This should be
+            // considered a programming error. We should handle any known
+            // message type gracefully. Unknown messages are caught earlier.
+            throw new UnsupportedOperationException("This message type is not supported. Support is expected to be implemented for all known message types.");
         }
     }
 
@@ -558,7 +553,7 @@ public class Session implements Context, AuthContext {
     }
 
     @Override
-    public void injectMessage(@Nonnull final AbstractMessage m) throws OtrException {
+    public void injectMessage(@Nonnull final Message m) throws OtrException {
         String msg = SerializationUtils.toString(m);
         final SessionID sessionId = this.sessionState.getSessionID();
         if (m instanceof QueryMessage) {
@@ -652,7 +647,7 @@ public class Session implements Context, AuthContext {
         // upon protocol version. Exception to this rule for DH Commit message,
         // as this message initiates a new AKE negotiation and thus proposes a
         // new protocol version corresponding to the message's intention.
-        if (m.messageType != AbstractEncodedMessage.MESSAGE_DH_COMMIT
+        if (!(m instanceof DHCommitMessage)
                 && m.protocolVersion != this.authState.getVersion()) {
             logger.log(Level.INFO, "AKE message containing unexpected protocol version encountered. ({0} instead of {1}.) Ignoring.",
                     new Object[]{m.protocolVersion, this.authState.getVersion()});
@@ -703,7 +698,7 @@ public class Session implements Context, AuthContext {
         if (masterSession && outgoingSession != this) {
             return outgoingSession.transformSending(msgText, tlvs);
         }
-        final AbstractMessage m = this.sessionState.transformSending(this, msgText, tlvs);
+        final Message m = this.sessionState.transformSending(this, msgText, tlvs);
         if (m == null) {
             return new String[0];
         }
@@ -967,7 +962,7 @@ public class Session implements Context, AuthContext {
             throw new OtrException(ex);
         }
         final List<TLV> tlvs = handler.initRespondSmp(question, secret, true);
-        final AbstractMessage m = this.sessionState.transformSending(this, "", tlvs);
+        final Message m = this.sessionState.transformSending(this, "", tlvs);
         if (m != null) {
             injectMessage(m);
         }
@@ -1021,7 +1016,7 @@ public class Session implements Context, AuthContext {
         } catch (final IncorrectStateException ex) {
             throw new OtrException(ex);
         }
-        final AbstractMessage m = this.sessionState.transformSending(this, "", tlvs);
+        final Message m = this.sessionState.transformSending(this, "", tlvs);
         if (m != null) {
             injectMessage(m);
         }
@@ -1043,7 +1038,7 @@ public class Session implements Context, AuthContext {
         } catch (final IncorrectStateException ex) {
             throw new OtrException(ex);
         }
-        final AbstractMessage m = this.sessionState.transformSending(this, "", tlvs);
+        final Message m = this.sessionState.transformSending(this, "", tlvs);
         if (m != null) {
             injectMessage(m);
         }

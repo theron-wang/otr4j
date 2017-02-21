@@ -4,58 +4,53 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
+
 package net.java.otr4j.io.messages;
 
+import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nonnull;
 
 /**
  * 
  * @author George Politis
+ * @author Danny van Heumen
  */
-public class QueryMessage extends AbstractMessage {
-	// Fields.
-	public final Set<Integer> versions;
+public class QueryMessage implements Message {
 
-	// Ctor.
-	public QueryMessage(final Set<Integer> versions) {
-		this(MESSAGE_QUERY, versions);
+    public final Set<Integer> versions;
+
+	public QueryMessage(@Nonnull final Set<Integer> versions) {
+        this.versions = Objects.requireNonNull(versions);
 	}
 
-    protected QueryMessage(final int messageType, final Set<Integer> versions) {
-		super(messageType);
-		this.versions = versions;
-	}
+    @Override
+    public int getType() {
+        return Message.MESSAGE_QUERY;
+    }
 
-	// Methods.
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result
-				+ ((versions == null) ? 0 : versions.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 47 * hash + Objects.hashCode(this.versions);
+        return hash;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-		if (!super.equals(obj)) {
+        if (obj == null) {
             return false;
         }
-		if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-		QueryMessage other = (QueryMessage) obj;
-		if (versions == null) {
-			if (other.versions != null) {
-                return false;
-            }
-		} else if (!versions.equals(other.versions)) {
+        final QueryMessage other = (QueryMessage) obj;
+        if (!Objects.equals(this.versions, other.versions)) {
             return false;
         }
-		return true;
-	}
-
+        return true;
+    }
 }

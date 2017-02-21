@@ -4,36 +4,44 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
+
 package net.java.otr4j.io.messages;
 
 import java.util.Arrays;
+import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
  * 
  * @author George Politis
+ * @author Danny van Heumen
  */
-public class DHCommitMessage extends AbstractEncodedMessage {
+public final class DHCommitMessage extends AbstractEncodedMessage {
 
-	// Fields.
-	public byte[] dhPublicKeyEncrypted;
-	public byte[] dhPublicKeyHash;
+	public final byte[] dhPublicKeyEncrypted;
+	public final byte[] dhPublicKeyHash;
 
-	// Ctor.
-	public DHCommitMessage(final int protocolVersion, final byte[] dhPublicKeyHash,
-			final byte[] dhPublicKeyEncrypted) {
+    public DHCommitMessage(final int protocolVersion,
+            @Nonnull final byte[] dhPublicKeyHash,
+            @Nonnull final byte[] dhPublicKeyEncrypted) {
         this(protocolVersion, dhPublicKeyHash, dhPublicKeyEncrypted, 0, 0);
-	}
+    }
 
-    public DHCommitMessage(final int protocolVersion, final byte[] dhPublicKeyHash,
-            final byte[] dhPublicKeyEncrypted, final int senderInstance,
+    public DHCommitMessage(final int protocolVersion,
+            @Nonnull final byte[] dhPublicKeyHash,
+            @Nonnull final byte[] dhPublicKeyEncrypted,
+            final int senderInstance,
             final int receiverInstance) {
-		super(MESSAGE_DH_COMMIT, protocolVersion, senderInstance, receiverInstance);
-		this.dhPublicKeyEncrypted = dhPublicKeyEncrypted;
-        // TODO consider verifying hash length as way of protecting against swapping hash and encrypted
-		this.dhPublicKeyHash = dhPublicKeyHash;
+        super(protocolVersion, senderInstance, receiverInstance);
+        this.dhPublicKeyEncrypted = Objects.requireNonNull(dhPublicKeyEncrypted);
+        this.dhPublicKeyHash = Objects.requireNonNull(dhPublicKeyHash);
+    }
+
+    @Override
+    public int getType() {
+        return Message.MESSAGE_DH_COMMIT;
     }
     
-	// Methods.
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -63,5 +71,4 @@ public class DHCommitMessage extends AbstractEncodedMessage {
         }
 		return true;
 	}
-
 }

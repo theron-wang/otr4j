@@ -19,9 +19,9 @@ import net.java.otr4j.OtrEngineHostUtil;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.OtrPolicyUtil;
-import net.java.otr4j.io.messages.AbstractMessage;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
+import net.java.otr4j.io.messages.Message;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.session.OfferStatus;
 import net.java.otr4j.session.SessionID;
@@ -84,7 +84,7 @@ public final class StatePlaintext extends AbstractState {
         final OtrEngineHost host = context.getHost();
         OtrEngineHostUtil.unreadableMessageReceived(host, sessionId);
         final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionId, DEFAULT_REPLY_UNREADABLE_MESSAGE);
-        context.injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
+        context.injectMessage(new ErrorMessage(replymsg));
         return null;
     }
 
@@ -102,7 +102,7 @@ public final class StatePlaintext extends AbstractState {
 
     @Override
     @Nullable
-    public AbstractMessage transformSending(@Nonnull final Context context, @Nonnull final String msgText, @Nonnull final List<TLV> tlvs) throws OtrException {
+    public Message transformSending(@Nonnull final Context context, @Nonnull final String msgText, @Nonnull final List<TLV> tlvs) throws OtrException {
         final OtrPolicy otrPolicy = context.getSessionPolicy();
         if (otrPolicy.getRequireEncryption()) {
             // Prevent original message from being sent. Start AKE.

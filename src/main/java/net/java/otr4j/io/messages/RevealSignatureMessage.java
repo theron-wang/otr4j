@@ -8,30 +8,41 @@
 package net.java.otr4j.io.messages;
 
 import java.util.Arrays;
+import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
  * 
  * @author George Politis
+ * @author Danny van Heumen
  */
 public class RevealSignatureMessage extends SignatureMessage {
-	// Fields.
-	public byte[] revealedKey;
 
-	// Ctor.
-	public RevealSignatureMessage(final int protocolVersion, final byte[] xEncrypted,
-			final byte[] xEncryptedMAC, final byte[] revealedKey) {
-		super(MESSAGE_REVEALSIG, protocolVersion, xEncrypted, xEncryptedMAC);
-		this.revealedKey = revealedKey;
-	}
+    public final byte[] revealedKey;
 
-    public RevealSignatureMessage(final int protocolVersion, final byte[] xEncrypted,
-			final byte[] xEncryptedMAC, final byte[] revealedKey,
-            final int senderInstance, final int receiverInstance) {
-		super(MESSAGE_REVEALSIG, protocolVersion, xEncrypted, xEncryptedMAC, senderInstance, receiverInstance);
-		this.revealedKey = revealedKey;
-	}
+    public RevealSignatureMessage(final int protocolVersion,
+            @Nonnull final byte[] xEncrypted,
+            @Nonnull final byte[] xEncryptedMAC,
+            @Nonnull final byte[] revealedKey) {
+        super(protocolVersion, xEncrypted, xEncryptedMAC);
+        this.revealedKey = Objects.requireNonNull(revealedKey);
+    }
 
-	// Methods.
+    public RevealSignatureMessage(final int protocolVersion,
+            @Nonnull final byte[] xEncrypted,
+            @Nonnull final byte[] xEncryptedMAC,
+            @Nonnull final byte[] revealedKey,
+            final int senderInstance,
+            final int receiverInstance) {
+        super(protocolVersion, xEncrypted, xEncryptedMAC, senderInstance, receiverInstance);
+        this.revealedKey = Objects.requireNonNull(revealedKey);
+    }
+
+    @Override
+    public int getType() {
+        return Message.MESSAGE_REVEALSIG;
+    }
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

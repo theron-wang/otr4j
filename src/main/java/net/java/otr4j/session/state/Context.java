@@ -5,7 +5,7 @@ import javax.annotation.Nonnull;
 import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
-import net.java.otr4j.io.messages.AbstractMessage;
+import net.java.otr4j.io.messages.Message;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.OfferStatus;
 import net.java.otr4j.session.SessionID;
@@ -17,7 +17,7 @@ public interface Context {
 
     int getProtocolVersion();
 
-    void injectMessage(@Nonnull AbstractMessage msg) throws OtrException;
+    void injectMessage(@Nonnull Message msg) throws OtrException;
 
     @Nonnull
     SessionID getSessionID();

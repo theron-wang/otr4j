@@ -46,7 +46,7 @@ public final class StateInitial extends AbstractAuthState {
     public DHKeyMessage handle(@Nonnull final AuthContext context, @Nonnull final AbstractEncodedMessage message) {
         if (!(message instanceof DHCommitMessage)) {
             // OTR: "Ignore the message."
-            LOGGER.log(Level.INFO, "We only expect to receive a DH Commit message. Ignoring message with messagetype: {0}", message.messageType);
+            LOGGER.log(Level.INFO, "We only expect to receive a DH Commit message. Ignoring message with messagetype: {0}", message.getType());
             return null;
         }
         if (message.protocolVersion < 2 || message.protocolVersion > 3) {

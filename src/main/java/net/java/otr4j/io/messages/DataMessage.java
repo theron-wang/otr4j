@@ -4,56 +4,71 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
+
 package net.java.otr4j.io.messages;
 
 import java.util.Arrays;
+import java.util.Objects;
+import javax.annotation.Nonnull;
 
 import javax.crypto.interfaces.DHPublicKey;
 
 /**
  * 
  * @author George Politis
+ * @author Danny van Heumen
  */
-public class DataMessage extends AbstractEncodedMessage {
+public final class DataMessage extends AbstractEncodedMessage {
 
-	// Fields.
-	public byte[] mac;
-	public byte[] oldMACKeys;
+	public final int flags;
+	public final int senderKeyID;
+	public final int recipientKeyID;
+	public final DHPublicKey nextDH;
+	public final byte[] ctr;
+	public final byte[] encryptedMessage;
+	public final byte[] mac;
+	public final byte[] oldMACKeys;
 
-	public int flags;
-	public int senderKeyID;
-	public int recipientKeyID;
-	public DHPublicKey nextDH;
-	public byte[] ctr;
-	public byte[] encryptedMessage;
-
-	// Ctor.
-	public DataMessage(final int protocolVersion, final int flags, final int senderKeyID,
-			final int recipientKeyID, final DHPublicKey nextDH, final byte[] ctr,
-			final byte[] encryptedMessage, final byte[] mac, final byte[] oldMacKeys) {
-		super(MESSAGE_DATA, protocolVersion);
-
-		this.flags = flags;
-		this.senderKeyID = senderKeyID;
-		this.recipientKeyID = recipientKeyID;
-		this.nextDH = nextDH;
-		this.ctr = ctr;
-		this.encryptedMessage = encryptedMessage;
-		this.mac = mac;
-		this.oldMACKeys = oldMacKeys;
-	}
-
-	public DataMessage(final MysteriousT t, final byte[] mac, final byte[] oldMacKeys) {
+	public DataMessage(@Nonnull final MysteriousT t, @Nonnull final byte[] mac,
+            @Nonnull final byte[] oldMacKeys) {
 		this(t.protocolVersion, t.flags, t.senderKeyID, t.recipientKeyID,
-				t.nextDH, t.ctr, t.encryptedMessage, mac, oldMacKeys);
+				t.nextDH, t.ctr, t.encryptedMessage, mac, oldMacKeys, 0, 0);
 	}
 
-	// Methods.
-	public MysteriousT getT() {
-		return new MysteriousT( protocolVersion, senderInstanceTag,
-								receiverInstanceTag, flags, senderKeyID,
-								recipientKeyID, nextDH, ctr, encryptedMessage);
+	public DataMessage(@Nonnull final MysteriousT t, @Nonnull final byte[] mac,
+            @Nonnull final byte[] oldMacKeys, final int senderInstanceTag,
+            final int receiverInstanceTag) {
+		this(t.protocolVersion, t.flags, t.senderKeyID, t.recipientKeyID,
+				t.nextDH, t.ctr, t.encryptedMessage, mac, oldMacKeys,
+                senderInstanceTag, receiverInstanceTag);
 	}
+
+    public DataMessage(final int protocolVersion, final int flags, final int senderKeyID,
+            final int recipientKeyID, @Nonnull final DHPublicKey nextDH,
+            @Nonnull final byte[] ctr, @Nonnull final byte[] encryptedMessage,
+            @Nonnull final byte[] mac, @Nonnull final byte[] oldMacKeys,
+            final int senderInstanceTag, final int receiverInstanceTag) {
+        super(protocolVersion, senderInstanceTag, receiverInstanceTag);
+        this.flags = flags;
+        this.senderKeyID = senderKeyID;
+        this.recipientKeyID = recipientKeyID;
+        this.nextDH = Objects.requireNonNull(nextDH);
+        this.ctr = Objects.requireNonNull(ctr);
+        this.encryptedMessage = Objects.requireNonNull(encryptedMessage);
+        this.mac = Objects.requireNonNull(mac);
+        this.oldMACKeys = Objects.requireNonNull(oldMacKeys);
+    }
+
+    @Override
+    public int getType() {
+        return Message.MESSAGE_DATA;
+    }
+
+    public MysteriousT getT() {
+        return new MysteriousT(protocolVersion, senderInstanceTag,
+                receiverInstanceTag, flags, senderKeyID,
+                recipientKeyID, nextDH, ctr, encryptedMessage);
+    }
 
 	@Override
 	public int hashCode() {

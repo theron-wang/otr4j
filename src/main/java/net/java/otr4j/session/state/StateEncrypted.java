@@ -31,7 +31,6 @@ import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.io.SerializationUtils;
-import net.java.otr4j.io.messages.AbstractMessage;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.MysteriousT;
@@ -155,7 +154,7 @@ final class StateEncrypted extends AbstractState {
             logger.finest("No matching keys found.");
             OtrEngineHostUtil.unreadableMessageReceived(host, sessionId);
             final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionId, DEFAULT_REPLY_UNREADABLE_MESSAGE);
-            context.injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
+            context.injectMessage(new ErrorMessage(replymsg));
             return null;
         }
 
@@ -169,7 +168,7 @@ final class StateEncrypted extends AbstractState {
             logger.finest("MAC verification failed, ignoring message");
             OtrEngineHostUtil.unreadableMessageReceived(host, sessionId);
             final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionId, DEFAULT_REPLY_UNREADABLE_MESSAGE);
-            context.injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
+            context.injectMessage(new ErrorMessage(replymsg));
             return null;
         }
 
@@ -183,10 +182,10 @@ final class StateEncrypted extends AbstractState {
             dmc = OtrCryptoEngine.aesDecrypt(matchingKeys.receivingAESKey(),
                     lengthenedReceivingCtr, data.encryptedMessage);
         } catch (final SessionKey.ReceivingCounterValidationFailed ex) {
-            logger.warning("Receiving ctr value failed validation, ignoring message: " + ex.getMessage());
+            logger.log(Level.WARNING, "Receiving ctr value failed validation, ignoring message: {0}", ex.getMessage());
             OtrEngineHostUtil.unreadableMessageReceived(host, sessionId);
             final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionId, DEFAULT_REPLY_UNREADABLE_MESSAGE);
-            context.injectMessage(new ErrorMessage(AbstractMessage.MESSAGE_ERROR, replymsg));
+            context.injectMessage(new ErrorMessage(replymsg));
             return null;
         }
 
@@ -360,10 +359,9 @@ final class StateEncrypted extends AbstractState {
 
         // Get old MAC keys to be revealed.
         final byte[] oldKeys = this.sessionKeyManager.collectOldMacKeys();
-        final DataMessage m = new DataMessage(t, mac, oldKeys);
-        m.senderInstanceTag = context.getSenderInstanceTag().getValue();
-        m.receiverInstanceTag = context.getReceiverInstanceTag().getValue();
-        return m;
+        return new DataMessage(t, mac, oldKeys,
+                context.getSenderInstanceTag().getValue(),
+                context.getReceiverInstanceTag().getValue());
     }
 
     @Override

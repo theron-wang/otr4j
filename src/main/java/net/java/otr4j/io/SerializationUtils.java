@@ -31,12 +31,11 @@ import net.java.otr4j.crypto.OtrCryptoException;
 import org.bouncycastle.util.encoders.Base64;
 
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
-import net.java.otr4j.io.messages.AbstractMessage;
-import static net.java.otr4j.io.messages.AbstractMessage.checkCast;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
+import net.java.otr4j.io.messages.Message;
 import net.java.otr4j.io.messages.MysteriousT;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.io.messages.QueryMessage;
@@ -161,147 +160,130 @@ public final class SerializationUtils {
 
     // TODO add unit tests to test serialization of plaintext messages with whitespace tags.
 	// Message IO.
-	public static String toString(@Nonnull final AbstractMessage m) {
+	public static String toString(@Nonnull final Message m) {
 		final StringWriter writer = new StringWriter();
-		if (m.messageType != AbstractMessage.MESSAGE_PLAINTEXT && m.messageType != AbstractMessage.MESSAGE_QUERY) {
+        if (!(m instanceof PlainTextMessage) && !(m instanceof QueryMessage)) {
             // We avoid writing the header until we know for sure we need it. We
             // know for sure that plaintext messages do not need it. We may not
             // need it for a query message if the versions list is empty.
             writer.write(SerializationConstants.HEAD);
         }
 
-		switch (m.messageType) {
-			case AbstractMessage.MESSAGE_ERROR:
-				final ErrorMessage error = checkCast(ErrorMessage.class, m);
-				writer.write(SerializationConstants.HEAD_ERROR);
-				writer.write(SerializationConstants.ERROR_PREFIX);
-				writer.write(error.error);
-				break;
-			case AbstractMessage.MESSAGE_PLAINTEXT:
-				final PlainTextMessage plaintxt = checkCast(PlainTextMessage.class, m);
-				writer.write(plaintxt.cleanText);
-				if (!plaintxt.versions.isEmpty()) {
-					writer.write(" \t  \t\t\t\t \t \t \t  ");
-					for (final int version : plaintxt.versions) {
-						if (version == OTRv.TWO) {
-                            writer.write("  \t\t  \t ");
-                        }
-						if (version == OTRv.THREE) {
-                            writer.write("  \t\t  \t\t");
-                        }
-					}
-				}
-				break;
-			case AbstractMessage.MESSAGE_QUERY:
-                final QueryMessage query = checkCast(QueryMessage.class, m);
-                if (query.versions.size() == 1 && query.versions.contains(1)) {
-                    throw new UnsupportedOperationException("OTR v1 is no longer supported. Support in the library has been removed, so the query message should not contain a version 1 entry.");
-                }
-                if (query.versions.size() > 0) {
-                    writer.write(SerializationConstants.HEAD);
-                    writer.write(SerializationConstants.HEAD_QUERY_V);
-                    final ArrayList<Integer> versions = new ArrayList(query.versions);
-                    Collections.sort(versions);
-                    for (final int version : versions) {
-                        // As all versions still present in the versions list
-                        // could potentially be filtered out, we may end up with
-                        // a query string "?OTRv?". Although this is strange it
-                        // is documented by OTR and is considered a strange but
-                        // valid use case.
-                        if (version <= 1 || version > 9) {
-                            LOGGER.log(Level.WARNING, "Encountered illegal OTR version: {0}. Versions 1 and lower and over 9 are not supported. This version will be skipped. If you see this message, there is likely a bug in otr4j.", version);
-                            continue;
-                        }
-                        writer.write(NUMBERINDEX.charAt(version));
+        if (m instanceof ErrorMessage) {
+            final ErrorMessage error = (ErrorMessage) m;
+            writer.write(SerializationConstants.HEAD_ERROR);
+            writer.write(SerializationConstants.ERROR_PREFIX);
+            writer.write(error.error);
+        } else if (m instanceof PlainTextMessage) {
+            final PlainTextMessage plaintxt = (PlainTextMessage) m;
+            writer.write(plaintxt.cleanText);
+            if (!plaintxt.versions.isEmpty()) {
+                writer.write(" \t  \t\t\t\t \t \t \t  ");
+                for (final int version : plaintxt.versions) {
+                    if (version == OTRv.TWO) {
+                        writer.write("  \t\t  \t ");
                     }
-                    writer.write(SerializationConstants.HEAD_QUERY_Q);
-                }
-                break;
-			case AbstractEncodedMessage.MESSAGE_DHKEY:
-			case AbstractEncodedMessage.MESSAGE_REVEALSIG:
-			case AbstractEncodedMessage.MESSAGE_SIGNATURE:
-			case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
-			case AbstractEncodedMessage.MESSAGE_DATA:
-				final ByteArrayOutputStream o = new ByteArrayOutputStream();
-                try (final OtrOutputStream s = new OtrOutputStream(o)) {
-
-                    switch (m.messageType) {
-                        case AbstractEncodedMessage.MESSAGE_DHKEY:
-                            final DHKeyMessage dhkey = checkCast(DHKeyMessage.class, m);
-                            s.writeShort(dhkey.protocolVersion);
-                            s.writeByte(dhkey.messageType);
-                            if (dhkey.protocolVersion == OTRv.THREE) {
-                                s.writeInt(dhkey.senderInstanceTag);
-                                s.writeInt(dhkey.receiverInstanceTag);
-                            }
-                            s.writeDHPublicKey(dhkey.dhPublicKey);
-                            break;
-                        case AbstractEncodedMessage.MESSAGE_REVEALSIG:
-                            final RevealSignatureMessage revealsig = checkCast(RevealSignatureMessage.class, m);
-                            s.writeShort(revealsig.protocolVersion);
-                            s.writeByte(revealsig.messageType);
-                            if (revealsig.protocolVersion == OTRv.THREE) {
-                                s.writeInt(revealsig.senderInstanceTag);
-                                s.writeInt(revealsig.receiverInstanceTag);
-                            }
-                            s.writeData(revealsig.revealedKey);
-                            s.writeData(revealsig.xEncrypted);
-                            s.writeMac(revealsig.xEncryptedMAC);
-                            break;
-                        case AbstractEncodedMessage.MESSAGE_SIGNATURE:
-                            final SignatureMessage sig = checkCast(SignatureMessage.class, m);
-                            s.writeShort(sig.protocolVersion);
-                            s.writeByte(sig.messageType);
-                            if (sig.protocolVersion == OTRv.THREE) {
-                                s.writeInt(sig.senderInstanceTag);
-                                s.writeInt(sig.receiverInstanceTag);
-                            }
-                            s.writeData(sig.xEncrypted);
-                            s.writeMac(sig.xEncryptedMAC);
-                            break;
-                        case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
-                            final DHCommitMessage dhcommit = checkCast(DHCommitMessage.class, m);
-                            s.writeShort(dhcommit.protocolVersion);
-                            s.writeByte(dhcommit.messageType);
-                            if (dhcommit.protocolVersion == OTRv.THREE) {
-                                s.writeInt(dhcommit.senderInstanceTag);
-                                s.writeInt(dhcommit.receiverInstanceTag);
-                            }
-                            s.writeData(dhcommit.dhPublicKeyEncrypted);
-                            s.writeData(dhcommit.dhPublicKeyHash);
-                            break;
-                        case AbstractEncodedMessage.MESSAGE_DATA:
-                            final DataMessage data = checkCast(DataMessage.class, m);
-                            s.writeShort(data.protocolVersion);
-                            s.writeByte(data.messageType);
-                            if (data.protocolVersion == OTRv.THREE) {
-                                s.writeInt(data.senderInstanceTag);
-                                s.writeInt(data.receiverInstanceTag);
-                            }
-                            s.writeByte(data.flags);
-                            s.writeInt(data.senderKeyID);
-                            s.writeInt(data.recipientKeyID);
-                            s.writeDHPublicKey(data.nextDH);
-                            s.writeCtr(data.ctr);
-                            s.writeData(data.encryptedMessage);
-                            s.writeMac(data.mac);
-                            s.writeData(data.oldMACKeys);
-                            break;
-                        default:
-                            break;
+                    if (version == OTRv.THREE) {
+                        writer.write("  \t\t  \t\t");
                     }
-                } catch (final IOException ex) {
-                    throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
                 }
+            }
+        } else if (m instanceof QueryMessage) {
+            final QueryMessage query = (QueryMessage) m;
+            if (query.versions.size() == 1 && query.versions.contains(1)) {
+                throw new UnsupportedOperationException("OTR v1 is no longer supported. Support in the library has been removed, so the query message should not contain a version 1 entry.");
+            }
+            if (query.versions.size() > 0) {
+                writer.write(SerializationConstants.HEAD);
+                writer.write(SerializationConstants.HEAD_QUERY_V);
+                final ArrayList<Integer> versions = new ArrayList(query.versions);
+                Collections.sort(versions);
+                for (final int version : versions) {
+                    // As all versions still present in the versions list
+                    // could potentially be filtered out, we may end up with
+                    // a query string "?OTRv?". Although this is strange it
+                    // is documented by OTR and is considered a strange but
+                    // valid use case.
+                    if (version <= 1 || version > 9) {
+                        LOGGER.log(Level.WARNING, "Encountered illegal OTR version: {0}. Versions 1 and lower and over 9 are not supported. This version will be skipped. If you see this message, there is likely a bug in otr4j.", version);
+                        continue;
+                    }
+                    writer.write(NUMBERINDEX.charAt(version));
+                }
+                writer.write(SerializationConstants.HEAD_QUERY_Q);
+            }
+        } else if (m instanceof AbstractEncodedMessage) {
+            final ByteArrayOutputStream o = new ByteArrayOutputStream();
+            try (final OtrOutputStream s = new OtrOutputStream(o)) {
 
-				writer.write(SerializationConstants.HEAD_ENCODED);
-				writer.write(new String(Base64.encode(o.toByteArray()), ASCII));
-				writer.write(".");
-				break;
-			default:
-				throw new IllegalArgumentException("Unknown message type encountered: " + m.messageType);
-		}
-
+                if (m instanceof DHKeyMessage) {
+                    final DHKeyMessage dhkey = (DHKeyMessage) m;
+                    s.writeShort(dhkey.protocolVersion);
+                    s.writeByte(dhkey.getType());
+                    if (dhkey.protocolVersion == OTRv.THREE) {
+                        s.writeInt(dhkey.senderInstanceTag);
+                        s.writeInt(dhkey.receiverInstanceTag);
+                    }
+                    s.writeDHPublicKey(dhkey.dhPublicKey);
+                } else if (m instanceof RevealSignatureMessage) {
+                    final RevealSignatureMessage revealsig = (RevealSignatureMessage) m;
+                    s.writeShort(revealsig.protocolVersion);
+                    s.writeByte(revealsig.getType());
+                    if (revealsig.protocolVersion == OTRv.THREE) {
+                        s.writeInt(revealsig.senderInstanceTag);
+                        s.writeInt(revealsig.receiverInstanceTag);
+                    }
+                    s.writeData(revealsig.revealedKey);
+                    s.writeData(revealsig.xEncrypted);
+                    s.writeMac(revealsig.xEncryptedMAC);
+                } else if (m instanceof SignatureMessage) {
+                    final SignatureMessage sig = (SignatureMessage) m;
+                    s.writeShort(sig.protocolVersion);
+                    s.writeByte(sig.getType());
+                    if (sig.protocolVersion == OTRv.THREE) {
+                        s.writeInt(sig.senderInstanceTag);
+                        s.writeInt(sig.receiverInstanceTag);
+                    }
+                    s.writeData(sig.xEncrypted);
+                    s.writeMac(sig.xEncryptedMAC);
+                } else if (m instanceof DHCommitMessage) {
+                    final DHCommitMessage dhcommit = (DHCommitMessage) m;
+                    s.writeShort(dhcommit.protocolVersion);
+                    s.writeByte(dhcommit.getType());
+                    if (dhcommit.protocolVersion == OTRv.THREE) {
+                        s.writeInt(dhcommit.senderInstanceTag);
+                        s.writeInt(dhcommit.receiverInstanceTag);
+                    }
+                    s.writeData(dhcommit.dhPublicKeyEncrypted);
+                    s.writeData(dhcommit.dhPublicKeyHash);
+                } else if (m instanceof DataMessage) {
+                    final DataMessage data = (DataMessage) m;
+                    s.writeShort(data.protocolVersion);
+                    s.writeByte(data.getType());
+                    if (data.protocolVersion == OTRv.THREE) {
+                        s.writeInt(data.senderInstanceTag);
+                        s.writeInt(data.receiverInstanceTag);
+                    }
+                    s.writeByte(data.flags);
+                    s.writeInt(data.senderKeyID);
+                    s.writeInt(data.recipientKeyID);
+                    s.writeDHPublicKey(data.nextDH);
+                    s.writeCtr(data.ctr);
+                    s.writeData(data.encryptedMessage);
+                    s.writeMac(data.mac);
+                    s.writeData(data.oldMACKeys);
+                } else {
+                    throw new UnsupportedOperationException("Unsupported encoded message type: " + m.getClass().getName());
+                }
+            } catch (final IOException ex) {
+                throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
+            }
+            writer.write(SerializationConstants.HEAD_ENCODED);
+            writer.write(new String(Base64.encode(o.toByteArray()), ASCII));
+            writer.write(".");
+        } else {
+            throw new UnsupportedOperationException("Unsupported message type encountered: " + m.getClass().getName());
+        }
 		return writer.toString();
 	}
 
@@ -322,7 +304,7 @@ public final class SerializationUtils {
 	 *             or real IO error
      * @throws net.java.otr4j.crypto.OtrCryptoException error of cryptographic nature
 	 */
-	public static AbstractMessage toMessage(@Nonnull final String s) throws IOException, OtrCryptoException {
+	public static Message toMessage(@Nonnull final String s) throws IOException, OtrCryptoException {
 		if (s.length() == 0) {
             return null;
         }
@@ -339,10 +321,9 @@ public final class SerializationUtils {
 			if (contentType == SerializationConstants.HEAD_ERROR
 					&& content.startsWith(SerializationConstants.ERROR_PREFIX)) {
 				// Error tag found.
-
 				content = content.substring(idxHead + SerializationConstants.ERROR_PREFIX
 						.length());
-				return new ErrorMessage(AbstractMessage.MESSAGE_ERROR, content);
+				return new ErrorMessage(content);
 			} else if (contentType == SerializationConstants.HEAD_QUERY_V
 					|| contentType == SerializationConstants.HEAD_QUERY_Q) {
 				// Query tag found.
@@ -406,44 +387,33 @@ public final class SerializationUtils {
 							final byte[] encryptedMessage = otr.readData();
 							final byte[] mac = otr.readMac();
 							final byte[] oldMacKeys = otr.readData();
-							final DataMessage dataMessage =
-									new DataMessage(protocolVersion, flags, senderKeyID,
+							return new DataMessage(protocolVersion, flags, senderKeyID,
 									recipientKeyID, nextDH, ctr, encryptedMessage, mac,
-									oldMacKeys);
-							dataMessage.senderInstanceTag = senderInstanceTag;
-							dataMessage.receiverInstanceTag = recipientInstanceTag;
-							return dataMessage;
+									oldMacKeys, senderInstanceTag, recipientInstanceTag);
 						case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
 							final byte[] dhPublicKeyEncrypted = otr.readData();
 							final byte[] dhPublicKeyHash = otr.readData();
-							final DHCommitMessage dhCommitMessage =
-									new DHCommitMessage(protocolVersion,
-											dhPublicKeyHash, dhPublicKeyEncrypted);
-							dhCommitMessage.senderInstanceTag = senderInstanceTag;
-							dhCommitMessage.receiverInstanceTag = recipientInstanceTag;
-							return dhCommitMessage;
+							return new DHCommitMessage(protocolVersion,
+                                    dhPublicKeyHash, dhPublicKeyEncrypted,
+                                    senderInstanceTag, recipientInstanceTag);
 						case AbstractEncodedMessage.MESSAGE_DHKEY:
 							final DHPublicKey dhPublicKey = otr.readDHPublicKey();
-                            final DHKeyMessage dhKeyMessage = new DHKeyMessage(protocolVersion, dhPublicKey);
-							dhKeyMessage.senderInstanceTag = senderInstanceTag;
-							dhKeyMessage.receiverInstanceTag = recipientInstanceTag;
-							return dhKeyMessage;
+                            return new DHKeyMessage(protocolVersion, dhPublicKey,
+                                    senderInstanceTag, recipientInstanceTag);
 						case AbstractEncodedMessage.MESSAGE_REVEALSIG: {
 							final byte[] revealedKey = otr.readData();
 							final byte[] xEncrypted = otr.readData();
 							final byte[] xEncryptedMac = otr.readMac();
-							final RevealSignatureMessage revealSignatureMessage =
-									new RevealSignatureMessage(protocolVersion,
-											xEncrypted, xEncryptedMac, revealedKey);
-							revealSignatureMessage.senderInstanceTag = senderInstanceTag;
-							revealSignatureMessage.receiverInstanceTag = recipientInstanceTag;
-							return revealSignatureMessage;
+                            return new RevealSignatureMessage(protocolVersion,
+                                    xEncrypted, xEncryptedMac, revealedKey,
+                                    senderInstanceTag, recipientInstanceTag);
 						}
 						case AbstractEncodedMessage.MESSAGE_SIGNATURE: {
 							final byte[] xEncryted = otr.readData();
 							final byte[] xEncryptedMac = otr.readMac();
-                            return new SignatureMessage(protocolVersion, xEncryted,
-                                    xEncryptedMac, senderInstanceTag, recipientInstanceTag);
+                            return new SignatureMessage(protocolVersion,
+                                    xEncryted, xEncryptedMac, senderInstanceTag,
+                                    recipientInstanceTag);
 						}
 						default:
 							// NOTE by gp: aren't we being a little too harsh here? Passing the message as a plaintext

@@ -4,26 +4,33 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
+
 package net.java.otr4j.io.messages;
 
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 
 /**
  * 
  * @author George Politis
+ * @author Danny van Heumen
  */
-public class PlainTextMessage extends QueryMessage {
-	// Fields.
-	public String cleanText;
+public final class PlainTextMessage extends QueryMessage {
 
-	// Ctor.
-	public PlainTextMessage(@Nonnull final Set<Integer> versions, @Nonnull final String cleanText) {
-		super(MESSAGE_PLAINTEXT, versions);
-		this.cleanText = cleanText;
+    public final String cleanText;
+
+	public PlainTextMessage(@Nonnull final Set<Integer> versions,
+            @Nonnull final String cleanText) {
+        super(versions);
+		this.cleanText = Objects.requireNonNull(cleanText);
 	}
 
-	// Methods.
+    @Override
+    public int getType() {
+        return Message.MESSAGE_PLAINTEXT;
+    }
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -54,5 +61,4 @@ public class PlainTextMessage extends QueryMessage {
         }
 		return true;
 	}
-
 }

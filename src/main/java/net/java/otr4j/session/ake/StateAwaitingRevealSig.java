@@ -73,7 +73,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
         } else if (message instanceof RevealSignatureMessage) {
             return handleRevealSignatureMessage(context, (RevealSignatureMessage) message);
         } else {
-            LOGGER.log(Level.FINEST, "Only expected message types are DHKeyMessage and RevealSignatureMessage. Ignoring message with type: {0}", message.messageType);
+            LOGGER.log(Level.FINEST, "Only expected message types are DHKeyMessage and RevealSignatureMessage. Ignoring message with type: {0}", message.getType());
             return null;
         }
     }

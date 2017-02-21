@@ -4,50 +4,53 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
+
 package net.java.otr4j.io.messages;
 
+import java.util.Objects;
+import javax.annotation.Nonnull;
+
 /**
- * 
+ * Type that represents an OTR error message.
+ *
  * @author George Politis
+ * @author Danny van Heumen
  */
-public class ErrorMessage extends AbstractMessage {
-	// Fields.
-	public String error;
+public final class ErrorMessage implements Message {
+
+    public final String error;
 	
-	// Ctor.
-	public ErrorMessage(final int messageType, final String error) {
-		super(messageType);
-		this.error = error;
+	public ErrorMessage(@Nonnull final String error) {
+		this.error = Objects.requireNonNull(error);
 	}
 
-	// Methods.
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + ((error == null) ? 0 : error.hashCode());
-		return result;
-	}
+    @Override
+    public int getType() {
+        return Message.MESSAGE_ERROR;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 53 * hash + Objects.hashCode(this.error);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-		if (!super.equals(obj)) {
+        if (obj == null) {
             return false;
         }
-		if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-		ErrorMessage other = (ErrorMessage) obj;
-		if (error == null) {
-			if (other.error != null) {
-                return false;
-            }
-		} else if (!error.equals(other.error)) {
+        final ErrorMessage other = (ErrorMessage) obj;
+        if (!Objects.equals(this.error, other.error)) {
             return false;
         }
-		return true;
-	}
+        return true;
+    }
 }

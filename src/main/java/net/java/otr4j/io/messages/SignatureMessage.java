@@ -8,40 +8,38 @@
 package net.java.otr4j.io.messages;
 
 import java.util.Arrays;
+import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author George Politis
+ * @author Danny van Heumen
  */
 public class SignatureMessage extends AbstractEncodedMessage {
-	// Fields.
-	public byte[] xEncrypted;
-	public byte[] xEncryptedMAC;
 
-    // Ctor.
-    public SignatureMessage(final int protocolVersion, final byte[] xEncrypted,
-            final byte[] xEncryptedMAC) {
-        this(MESSAGE_SIGNATURE, protocolVersion, xEncrypted, xEncryptedMAC, 0, 0);
+    public final byte[] xEncrypted;
+	public final byte[] xEncryptedMAC;
+
+    public SignatureMessage(final int protocolVersion,
+            @Nonnull final byte[] xEncrypted,
+            @Nonnull final byte[] xEncryptedMAC) {
+        this(protocolVersion, xEncrypted, xEncryptedMAC, 0, 0);
     }
 
-    public SignatureMessage(final int protocolVersion, final byte[] xEncrypted,
-            final byte[] xEncryptedMAC, final int senderInstance,
+    public SignatureMessage(final int protocolVersion,
+            @Nonnull final byte[] xEncrypted,
+            @Nonnull final byte[] xEncryptedMAC,
+            final int senderInstance,
             final int receiverInstance) {
-        this(MESSAGE_SIGNATURE, protocolVersion, xEncrypted, xEncryptedMAC,
-                senderInstance, receiverInstance);
+        super(protocolVersion, senderInstance, receiverInstance);
+        this.xEncrypted = Objects.requireNonNull(xEncrypted);
+        this.xEncryptedMAC = Objects.requireNonNull(xEncryptedMAC);
     }
 
-    protected SignatureMessage(final int messageType, final int protocolVersion,
-            final byte[] xEncrypted, final byte[] xEncryptedMAC) {
-        this(messageType, protocolVersion, xEncrypted, xEncryptedMAC, 0, 0);
-    }
-
-    protected SignatureMessage(final int messageType, final int protocolVersion,
-            final byte[] xEncrypted, final byte[] xEncryptedMAC,
-            final int senderInstance, final int receiverInstance) {
-        super(messageType, protocolVersion, senderInstance, receiverInstance);
-        this.xEncrypted = xEncrypted;
-        this.xEncryptedMAC = xEncryptedMAC;
+    @Override
+    public int getType() {
+        return Message.MESSAGE_SIGNATURE;
     }
 
 	@Override
