@@ -21,7 +21,7 @@ import net.java.otr4j.session.state.SmpEngineHost;
  *
  * @author George Politis
  */
-public abstract interface OtrEngineHost extends SmpEngineHost {
+public interface OtrEngineHost extends SmpEngineHost {
 
     /**
      * Request host to inject a new message into the IM communication stream

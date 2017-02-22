@@ -37,17 +37,17 @@ public final class OtrPolicy {
     public static final int SEND_WHITESPACE_TAG = 0x8;
     public static final int WHITESPACE_START_AKE = 0x10;
     public static final int ERROR_START_AKE = 0x20;
-    public static final int VERSION_MASK = (ALLOW_V2 | ALLOW_V3);
+    public static final int VERSION_MASK = ALLOW_V2 | ALLOW_V3;
 
     // The four old version 1 policies correspond to the following combinations
     // of flags (adding an allowance for version 2 of the protocol):
 
     public static final int NEVER = 0x00;
-    public static final int OPPORTUNISTIC = (ALLOW_V2 | ALLOW_V3
-            | SEND_WHITESPACE_TAG | WHITESPACE_START_AKE | ERROR_START_AKE);
-    public static final int OTRL_POLICY_MANUAL = (ALLOW_V2 | ALLOW_V3);
-    public static final int OTRL_POLICY_ALWAYS = (ALLOW_V2 | ALLOW_V3
-            | REQUIRE_ENCRYPTION | WHITESPACE_START_AKE | ERROR_START_AKE);
+    public static final int OPPORTUNISTIC = ALLOW_V2 | ALLOW_V3
+            | SEND_WHITESPACE_TAG | WHITESPACE_START_AKE | ERROR_START_AKE;
+    public static final int OTRL_POLICY_MANUAL = ALLOW_V2 | ALLOW_V3;
+    public static final int OTRL_POLICY_ALWAYS = ALLOW_V2 | ALLOW_V3
+            | REQUIRE_ENCRYPTION | WHITESPACE_START_AKE | ERROR_START_AKE;
     public static final int OTRL_POLICY_DEFAULT = OPPORTUNISTIC;
 
     public OtrPolicy() {
