@@ -342,10 +342,12 @@ public class Session implements Context, AuthContext {
     public String transformReceiving(@Nonnull String msgText) throws OtrException {
         logger.log(Level.FINEST, "Entering {0} session.", masterSession ? "master" : "slave");
 
-        // TODO consider if we should move this down after assembler processing. It is true that we do not allow any version of OTR, but at the same time, OTR is active and it may not make sense to NOT reconstruct a fragmented message even if we do not intend to process it. Would this result in weird messages that show up in the chat? This allows receiving OTR encoded messages which will be displayed as plain text(?) Non-viable policy shouldn't be used to disable plugin support. This logic seems out of place.
+        // OTR: "They all assume that at least one of ALLOW_V1, ALLOW_V2 or
+        // ALLOW_V3 is set; if not, then OTR is completely disabled, and no
+        // special handling of messages should be done at all."
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.viable()) {
-            logger.warning("Policy does not allow any version of OTR, ignoring message.");
+            logger.warning("Policy does not allow any version of OTR. OTR messages will not be processed at all.");
             return msgText;
         }
 
