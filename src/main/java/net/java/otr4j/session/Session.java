@@ -86,12 +86,8 @@ import net.java.otr4j.session.state.StatePlaintext;
  * @author George Politis
  * @author Danny van Heumen
  */
-// TODO re-evaluate methods that should delegate to outgoingSession instance. Not all of them seem to be implemented sanely.
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
 // TODO Make Session final, can only be done after having extracted an interface as we rely on mocking the Session implementation.
-// TODO can we define some sort of sanity check that ensures that ENCRYPTED message state is always correctly reflected, i.e. we always send messages ENCRYPTED if this appears so.
-// TODO verify logic to ensure that we only attempt to start a new session if we are not ENCRYPTED (otherwise multiple clients might continue starting up new sessions to infinity)
-// TODO should we attempt to verify/time-out AKE sessions? In case of DH Commit message w/o receiver tag, we keep AWAITING_DHKEY state in master and replicate to slave upon receiving DH Key message which includes their sender tag.
 public class Session implements Context, AuthContext {
 
     public interface OTRv {
@@ -343,7 +339,6 @@ public class Session implements Context, AuthContext {
         this.offerStatus = OfferStatus.sent;
     }
 
-    // TODO potential "problem": In case we send DH-Commit and progress master session's AKE state, how long do we keep? OTR spec says that we should resend same DH-Commit message if receiving DH-Commit message from our buddy. This in itself is okay, but we might be "reusing" the same DH keypair for a long time if new client instances keep appearing. This is pretty much a non-issue ... just a weird edge case in the protocol in combination with this particular implementation.
     @Nullable
     public String transformReceiving(@Nonnull String msgText) throws OtrException {
         logger.log(Level.FINEST, "Entering {0} session.", masterSession ? "master" : "slave");
@@ -575,8 +570,7 @@ public class Session implements Context, AuthContext {
                     this.host.injectMessage(sessionId, fragment);
                 }
             } catch (final IOException e) {
-                logger.warning("Failed to fragment message according to provided instructions.");
-                throw new OtrException(e);
+                throw new OtrException("Failed to fragment message according to provided instructions.", e);
             }
         } else {
             this.host.injectMessage(sessionId, msg);
@@ -761,6 +755,7 @@ public class Session implements Context, AuthContext {
     public void refreshSession() throws OtrException {
         if (this.outgoingSession != this) {
             this.outgoingSession.refreshSession();
+            return;
         }
         final int version = this.sessionState.getVersion();
         this.sessionState.end(this);
@@ -884,10 +879,11 @@ public class Session implements Context, AuthContext {
         if (tag.equals(this.receiverTag)) {
             return this.sessionState.getStatus();
         } else {
-            // TODO does it really make sense to return this session's status if instance tag does not exist? I would expect it to be a plaintext session at best in that case.
             final Session slave = slaveSessions.get(tag);
-            return slave == null ? this.sessionState.getStatus()
-                    : slave.getSessionStatus();
+            if (slave == null) {
+                throw new IllegalArgumentException("Unknown instance tag specified: " + tag.getValue());
+            }
+            return slave.getSessionStatus();
         }
     }
 
@@ -906,8 +902,10 @@ public class Session implements Context, AuthContext {
             return this.sessionState.getRemotePublicKey();
         } else {
             final Session slave = slaveSessions.get(tag);
-            return slave == null ? this.sessionState.getRemotePublicKey()
-                    : slave.getRemotePublicKey();
+            if (slave == null) {
+                throw new IllegalArgumentException("Unknown tag specified: " + tag.getValue());
+            }
+            return slave.getRemotePublicKey();
         }
     }
 
@@ -958,7 +956,6 @@ public class Session implements Context, AuthContext {
         try {
             handler = this.sessionState.getSmpTlvHandler();
         } catch (final IncorrectStateException ex) {
-            // TODO consider if we want to throw an exception. In case this is not state ENCRYPTED, we know for sure SMP is not active.
             throw new OtrException(ex);
         }
         final List<TLV> tlvs = handler.initRespondSmp(question, secret, true);
@@ -996,7 +993,7 @@ public class Session implements Context, AuthContext {
             @Nonnull final String secret) throws OtrException {
         final Session session = receiverTag.equals(this.receiverTag) ? this : slaveSessions.get(receiverTag);
         if (session == null) {
-            throw new IllegalStateException("Slave session cannot be found? Cannot delegate SMP response to slave session. Is receiver instance tag really correct?");
+            throw new IllegalArgumentException("Unknown receiver instance tag: " + receiverTag.getValue());
         }
         session.sendResponseSmp(question, secret);
     }

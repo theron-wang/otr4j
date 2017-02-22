@@ -31,7 +31,7 @@ public final class OtrPolicyUtil {
      */
     @Nonnull
     public static Set<Integer> allowedVersions(@Nonnull final OtrPolicy policy) {
-        final HashSet<Integer> versions = new HashSet<Integer>();
+        final HashSet<Integer> versions = new HashSet<>();
         if (policy.getAllowV2()) {
             versions.add(Session.OTRv.TWO);
         }

@@ -182,6 +182,7 @@ final class StateEncrypted extends AbstractState {
             dmc = OtrCryptoEngine.aesDecrypt(matchingKeys.receivingAESKey(),
                     lengthenedReceivingCtr, data.encryptedMessage);
         } catch (final SessionKey.ReceivingCounterValidationFailed ex) {
+            // TODO consider if we should take more drastic measures and end the encrypted connection due to mistrust/bad implementation.
             logger.log(Level.WARNING, "Receiving ctr value failed validation, ignoring message: {0}", ex.getMessage());
             OtrEngineHostUtil.unreadableMessageReceived(host, sessionId);
             final String replymsg = OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionId, DEFAULT_REPLY_UNREADABLE_MESSAGE);
