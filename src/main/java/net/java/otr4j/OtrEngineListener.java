@@ -1,3 +1,10 @@
+/*
+ * otr4j, the open source java otr library.
+ *
+ * Distributable under LGPL license.
+ * See terms of license at gnu.org.
+ */
+
 package net.java.otr4j;
 
 import javax.annotation.Nonnull;
@@ -8,12 +15,12 @@ import net.java.otr4j.session.SessionID;
  * about session status changes.
  * 
  * @author George Politis
- * 
  */
 public interface OtrEngineListener {
-	void sessionStatusChanged(@Nonnull SessionID sessionID);
 
-	void multipleInstancesDetected(@Nonnull SessionID sessionID);
+    void sessionStatusChanged(@Nonnull SessionID sessionID);
 
-	void outgoingSessionChanged(@Nonnull SessionID sessionID);
+    void multipleInstancesDetected(@Nonnull SessionID sessionID);
+
+    void outgoingSessionChanged(@Nonnull SessionID sessionID);
 }

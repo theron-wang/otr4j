@@ -1,3 +1,10 @@
+/*
+ * otr4j, the open source java otr library.
+ *
+ * Distributable under LGPL license.
+ * See terms of license at gnu.org.
+ */
+
 package net.java.otr4j.session.ake;
 
 import java.security.KeyPair;
@@ -5,6 +12,11 @@ import java.security.SecureRandom;
 import javax.annotation.Nonnull;
 import net.java.otr4j.session.InstanceTag;
 
+/**
+ * Context required for authentication state implementations.
+ *
+ * @author Danny van Heumen
+ */
 public interface AuthContext {
 
     /**

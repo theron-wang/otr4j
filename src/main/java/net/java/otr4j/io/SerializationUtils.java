@@ -22,14 +22,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import javax.crypto.interfaces.DHPublicKey;
-import net.java.otr4j.crypto.OtrCryptoException;
 
 import org.bouncycastle.util.encoders.Base64;
 
+import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.io.messages.DHKeyMessage;

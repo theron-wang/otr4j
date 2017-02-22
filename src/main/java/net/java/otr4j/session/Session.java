@@ -166,7 +166,6 @@ public class Session implements Context, AuthContext {
      * The receiver tag is only used in OTRv3. In case of OTRv2 the instance tag
      * will be zero-tag ({@link InstanceTag#ZERO_TAG}).
      */
-    // TODO investigate how 'receiverTag' will function given mixed OTRv2 and OTRv3 sessions and multiple sessions in slaveSessions map. This might need to move to either slave sessions or session state.
     private final InstanceTag receiverTag;
 
     /**

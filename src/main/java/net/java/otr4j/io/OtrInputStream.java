@@ -1,9 +1,17 @@
+/*
+ * otr4j, the open source java otr library.
+ *
+ * Distributable under LGPL license.
+ * See terms of license at gnu.org.
+ */
+
 package net.java.otr4j.io;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.ProtocolException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -26,7 +34,6 @@ import net.java.otr4j.io.messages.SignatureX;
  * all possibilities of incomplete or bad data. Many methods throw IOException
  * to indicate for such an illegal situation.
  */
-// TODO consider replacing IOException with ProtocolException to be more specific.
 public final class OtrInputStream extends FilterInputStream implements
 		SerializationConstants {
 
@@ -58,14 +65,14 @@ public final class OtrInputStream extends FilterInputStream implements
 	 *             the exact amount of requested bytes could not be read from
 	 *             the stream.
 	 */
-	private byte[] checkedRead(final int length) throws IOException {
+	private byte[] checkedRead(final int length) throws ProtocolException, IOException {
 		if (length == 0) {
 			return new byte[0];
 		}
 		final byte[] b = new byte[length];
 		final int bytesRead = read(b);
 		if (bytesRead != length) {
-			throw new IOException(
+			throw new ProtocolException(
 					"Unable to read the required amount of bytes from the stream. Expected were "
 							+ length + " bytes but I could only read "
 							+ bytesRead + " bytes.");

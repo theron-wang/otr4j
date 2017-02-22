@@ -4,7 +4,6 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
-// TODO check license header for all files
 // TODO consider upgrading Bouncy Castle libraries, needed?
 // FUTURE consider extracting "domain" classes from 'session' package into separate package. This may solve significant part in cyclic dependencies between packages. Problem is that this will significantly break public API. We didn't care too much for now, but this may just be plain annoying.
 // FUTURE could we create some kind of basic client such that we can perform cross-implementation testing and fuzzing?

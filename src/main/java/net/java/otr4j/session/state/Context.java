@@ -1,3 +1,10 @@
+/*
+ * otr4j, the open source java otr library.
+ *
+ * Distributable under LGPL license.
+ * See terms of license at gnu.org.
+ */
+
 package net.java.otr4j.session.state;
 
 import java.security.SecureRandom;
@@ -10,6 +17,13 @@ import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.OfferStatus;
 import net.java.otr4j.session.SessionID;
 
+/**
+ * Session state context.
+ *
+ * Context of the session as used by the session state implementations.
+ *
+ * @author Danny van Heumen
+ */
 public interface Context {
 
     @Nonnull
