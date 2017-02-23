@@ -60,6 +60,7 @@ import org.bouncycastle.util.BigIntegers;
  *
  * @author George Politis
  */
+// TODO AESFastEngine has been deprecated since version 1.56. BC now recommends using AESEngine.
 public final class OtrCryptoEngine {
 
     private static final String ALGORITHM_DSA = "DSA";
@@ -252,6 +253,7 @@ public final class OtrCryptoEngine {
         return sha1.digest();
     }
 
+    // TODO Consider switching to Non-null counter value and replacing occurrences with constant.
     @Nonnull
     public static byte[] aesDecrypt(@Nonnull final byte[] key, @Nullable byte[] ctr, @Nonnull final byte[] b)
             throws OtrCryptoException {
@@ -277,6 +279,7 @@ public final class OtrCryptoEngine {
         return aesOutLwDec;
     }
 
+    // TODO Consider switching to Non-null counter value and replacing occurrences with constant.
     @Nonnull
     public static byte[] aesEncrypt(@Nonnull final byte[] key, @Nullable byte[] ctr, @Nonnull final byte[] b)
             throws OtrCryptoException {
