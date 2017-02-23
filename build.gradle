@@ -5,7 +5,9 @@ repositories {
 apply plugin: 'java-library-distribution'
 
 dependencies {
-    compile 'org.bouncycastle:bcprov-jdk15on:1.56'
+    compile('org.bouncycastle:bcprov-jdk15on:1.56') {
+        force = true
+    }
     compile 'com.google.code.findbugs:jsr305:3.0.1'
     testCompile 'junit:junit:4.11'
     testCompile 'org.mockito:mockito-all:1.9.5'
