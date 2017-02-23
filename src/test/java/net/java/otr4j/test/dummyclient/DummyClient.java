@@ -16,11 +16,7 @@ import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.session.InstanceTag;
-import net.java.otr4j.session.Session;
-import net.java.otr4j.session.SessionID;
-import net.java.otr4j.session.SessionStatus;
-import net.java.otr4j.session.TLV;
+import net.java.otr4j.session.*;
 
 /**
  * Created by gp on 2/5/14.
@@ -118,7 +114,7 @@ public class DummyClient {
     public void init(String recipient, String message) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
-			session = new Session(sessionID, new DummyOtrEngineHostImpl());
+			session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
 		}
         session.startSession();
     }
@@ -126,7 +122,7 @@ public class DummyClient {
 	public void send(@Nonnull String recipient, @Nonnull String s) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
-			session = new Session(sessionID, new DummyOtrEngineHostImpl());
+			session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
 		}
 		String[] outgoingMessage = session.transformSending(s, Collections.<TLV>emptyList());
 		for (String part : outgoingMessage) {
@@ -165,7 +161,7 @@ public class DummyClient {
 	public void secureSession(String recipient) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
-			session = new Session(sessionID, new DummyOtrEngineHostImpl());
+			session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
 		}
 
 		session.startSession();
@@ -204,7 +200,7 @@ public class DummyClient {
 		private void process(TestMessage m) throws OtrException {
 			if (session == null) {
 				final SessionID sessionID = new SessionID(account, m.getSender(), "DummyProtocol");
-				session = new Session(sessionID, new DummyOtrEngineHostImpl());
+				session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
 			}
 
 			String receivedMessage = session.transformReceiving(m.getContent());

@@ -87,7 +87,7 @@ final class OtrFragmenter {
 	 * Compute the number of fragments required.
 	 *
 	 * @param message the original message
-	 * @param instructions fragmentation instructions
+	 * @param fragmentSize size of fragments
 	 * @return returns number of fragments required.
 	 * @throws IOException throws an IOException if fragment size is too small.
 	 */
@@ -128,7 +128,7 @@ final class OtrFragmenter {
 	 * 
 	 * @param message
 	 *            the message
-	 * @param requestedFragmentSize
+	 * @param fragmentSize
 	 *            the maximum fragment size
 	 * @return returns the fragmented message. The array will contain at least 1
 	 *         message fragment, or more if fragmentation is necessary.

@@ -16,6 +16,7 @@ import javax.annotation.Nonnull;
 
 import net.java.otr4j.session.Session;
 import net.java.otr4j.session.SessionID;
+import net.java.otr4j.session.SessionImpl;
 
 /**
  * @author George Politis
@@ -85,7 +86,7 @@ public class OtrSessionManager {
      * Fetches the existing session with this {@link SessionID} or creates a new
      * {@link Session} if one does not exist.
      *
-     * @param sessionID
+     * @param sessionID The session's ID.
      * @return Returns Session instance that corresponds to provided sessionID.
      */
     public Session getSession(@Nonnull final SessionID sessionID) {
@@ -100,7 +101,7 @@ public class OtrSessionManager {
                 // Don't differentiate between existing but null and
                 // non-existing. If we do not get a valid instance, then we
                 // create a new instance.
-                session = new Session(sessionID, this.host);
+                session = new SessionImpl(sessionID, this.host);
                 session.addOtrEngineListener(sessionManagerListener);
                 sessions.put(sessionID, session);
             }

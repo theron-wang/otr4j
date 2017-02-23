@@ -296,7 +296,7 @@ public class OtrFragmenterTest {
 	/**
 	 * Create mock OtrEngineHost which returns the provided instructions.
 	 *
-	 * @param instructions the fragmentation instructions
+	 * @param maxFragmentSize the maximum fragment size
 	 * @return returns mock host
 	 */
 	private OtrEngineHost host(final int maxFragmentSize) {
