@@ -88,6 +88,7 @@ import net.java.otr4j.session.state.StatePlaintext;
  */
 // TODO Define interface 'Session' that defines methods for general use, i.e. no intersecting methods with Context.
 // TODO Make Session final, can only be done after having extracted an interface as we rely on mocking the Session implementation.
+// TODO Consider brute-forcing/generating random strings for transformReceiving to make processing of message more robust.
 public class Session implements Context, AuthContext {
 
     public interface OTRv {

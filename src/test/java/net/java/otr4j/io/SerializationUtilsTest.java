@@ -218,4 +218,9 @@ public class SerializationUtilsTest {
         final QueryMessage msg = (QueryMessage) SerializationUtils.toMessage("?OTR ");
         assertTrue(msg.versions.isEmpty());
     }
+
+    @Test(expected = IOException.class)
+    public void testIncompleteMessageMissingEnding() throws IOException, OtrCryptoException {
+	    SerializationUtils.toMessage("?OTR:BADBASE64CODEMISSINGDOT");
+    }
 }

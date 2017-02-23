@@ -294,7 +294,7 @@ public final class SerializationUtils {
 			.compile(" \\t  \\t\\t\\t\\t \\t \\t \\t  ( \\t \\t  \\t )?(  \\t\\t  \\t )?(  \\t\\t  \\t\\t)?");
 
 	/**
-	 * Parses an encoded OTR string into an instance of {@link AbstractMessage}.
+	 * Parses an encoded OTR string into an instance of {@link Message}.
 	 *
 	 * @param s
 	 *            the string to parse
@@ -354,13 +354,16 @@ public final class SerializationUtils {
 			} else if (idxHead == 0 && contentType == SerializationConstants.HEAD_ENCODED) {
 				// Data message found.
 
+                if (content.charAt(content.length() - 1) != '.') {
+                    throw new IOException("Invalid end to OTR encoded message.");
+                }
+
                 /*
                  * BC 1.48 added a check to throw an exception if a non-base64 character is encountered.
                  * An OTR message consists of ?OTR:AbcDefFe. (note the terminating point).
                  * Otr4j doesn't strip this point before passing the content to the base64 decoder.
                  * So in order to decode the content string we have to get rid of the '.' first.
                  */
-                // TODO here an assumption is being made that the last character is a '.' Should we check before acting on this?
 				final ByteArrayInputStream bin = new ByteArrayInputStream(Base64
 						.decode(content.substring(0, content.length() - 1).getBytes(ASCII)));
 				// We have an encoded message.
