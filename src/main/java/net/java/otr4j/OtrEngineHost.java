@@ -30,7 +30,6 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID The session ID
      * @param msg The message to inject
      */
-    // TODO do we correctly handle potential runtime exceptions. Even if we don't expect it to go wrong, we might need to act on it if it does go wrong.
 	void injectMessage(@Nonnull SessionID sessionID, @Nonnull String msg);
 
     /**

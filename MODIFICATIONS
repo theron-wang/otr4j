@@ -11,7 +11,11 @@ New Features:
   * State transitions managed by the states themselves. 
   * Primary state machine state fully managed by state machine. There is no outside interaction with core protocol interaction. SmpTlvHandler handles secondary responsiblities.
   * Implemented as "defensive by default". Any deviation from expectations results in reset and possibly error.
-
+* State machine for AKE states.
+* Upgraded BC to version 1.56 (+ strict requirement for at least this version)
+* Partly redesigned (slave) session management to be more predictable, less error prone.
+  * Should now be able to support even simultaneous OTRv2 and (multiple) OTRv3 sessions.
+* Validate receiving counter values before further message handling.
 
 Backwards incompatibility / behavioral changes:
 - SM now signals bad messages with 'SM aborted' instead of 'SM error'. (This is according to OTR spec.)
