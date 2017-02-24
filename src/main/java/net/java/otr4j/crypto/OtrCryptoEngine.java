@@ -39,7 +39,7 @@ import net.java.otr4j.io.SerializationUtils;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.engines.AESFastEngine;
+import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.generators.DHKeyPairGenerator;
 import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
@@ -59,8 +59,8 @@ import org.bouncycastle.util.BigIntegers;
  * Utility for cryptographic functions.
  *
  * @author George Politis
+ * @author Danny van Heumen
  */
-// TODO AESFastEngine has been deprecated since version 1.56. BC now recommends using AESEngine.
 public final class OtrCryptoEngine {
 
     private static final String ALGORITHM_DSA = "DSA";
@@ -253,12 +253,11 @@ public final class OtrCryptoEngine {
         return sha1.digest();
     }
 
-    // TODO Consider switching to Non-null counter value and replacing occurrences with constant.
     @Nonnull
     public static byte[] aesDecrypt(@Nonnull final byte[] key, @Nullable byte[] ctr, @Nonnull final byte[] b)
             throws OtrCryptoException {
 
-        final AESFastEngine aesDec = new AESFastEngine();
+        final AESEngine aesDec = new AESEngine();
         final SICBlockCipher sicAesDec = new SICBlockCipher(aesDec);
         final BufferedBlockCipher bufSicAesDec = new BufferedBlockCipher(sicAesDec);
 
@@ -279,12 +278,11 @@ public final class OtrCryptoEngine {
         return aesOutLwDec;
     }
 
-    // TODO Consider switching to Non-null counter value and replacing occurrences with constant.
     @Nonnull
     public static byte[] aesEncrypt(@Nonnull final byte[] key, @Nullable byte[] ctr, @Nonnull final byte[] b)
             throws OtrCryptoException {
 
-        final AESFastEngine aesEnc = new AESFastEngine();
+        final AESEngine aesEnc = new AESEngine();
         final SICBlockCipher sicAesEnc = new SICBlockCipher(aesEnc);
         final BufferedBlockCipher bufSicAesEnc = new BufferedBlockCipher(sicAesEnc);
 
@@ -369,7 +367,7 @@ public final class OtrCryptoEngine {
      * @param b data expected to be signed.
      * @param pubKey Public key. Provided public key must be an instance of
      * DSAPublicKey.
-     * @param rs
+     * @param rs Components R and S.
      * @throws OtrCryptoException Thrown in case of failed verification.
      */
     public static void verify(@Nonnull final byte[] b, @Nonnull final PublicKey pubKey, @Nonnull final byte[] rs)
