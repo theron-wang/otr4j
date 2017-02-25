@@ -1,4 +1,4 @@
-**NOTE**: *This version of otr4j is in active development and contains breaking changes to the public API.*
+**NOTE**: *This version of otr4j is in active development and contains breaking changes (although mostly minor) to the public API.*
 
 ## Synopsis
 
