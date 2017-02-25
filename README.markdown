@@ -1,3 +1,5 @@
+**NOTE**: *This version of otr4j is in active development and contains breaking changes to the public API.*
+
 ## Synopsis
 
 otr4j is an implementation of the [OTR (Off The Record) protocol][1]
