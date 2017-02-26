@@ -5,7 +5,7 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j.crypto;
+package net.java.otr4j.session.smp;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -15,7 +15,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.Security;
-import net.java.otr4j.crypto.SM.SMException;
+
+import net.java.otr4j.crypto.OtrCryptoEngine;
+import net.java.otr4j.crypto.OtrCryptoException;
+import net.java.otr4j.crypto.SharedSecret;
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -40,12 +44,12 @@ public class SMTest {
     @Test
     @SuppressWarnings({"ThrowableInstanceNotThrown", "ThrowableInstanceNeverThrown", "ResultOfObjectAllocationIgnored"})
     public void testConstructSMException() {
-        new SM.SMException();
+        new SMException("Test");
     }
 
     @Test
     public void testConstructSMExceptionMessage() {
-        final SM.SMException e = new SM.SMException("Hello world!");
+        final SMException e = new SMException("Hello world!");
         assertEquals("Hello world!", e.getMessage());
     }
 
@@ -53,7 +57,7 @@ public class SMTest {
     public void testConstructSMExceptionThrowable() {
         @SuppressWarnings({"ThrowableInstanceNotThrown", "ThrowableInstanceNeverThrown"})
         final Throwable t = new Throwable("bad stuff happened");
-        final SM.SMException e = new SM.SMException(t);
+        final SMException e = new SMException(t);
         assertSame(t, e.getCause());
     }
 
@@ -61,7 +65,7 @@ public class SMTest {
     public void testConstructSMExceptionMessageThrowable() {
         @SuppressWarnings({"ThrowableInstanceNotThrown", "ThrowableInstanceNeverThrown"})
         final Throwable t = new Throwable("bad stuff happened");
-        final SM.SMException e = new SM.SMException("Hello world!", t);
+        final SMException e = new SMException("Hello world!", t);
         assertEquals("Hello world!", e.getMessage());
         assertSame(t, e.getCause());
     }
@@ -69,96 +73,96 @@ public class SMTest {
     @Test
     @SuppressWarnings({"ThrowableInstanceNotThrown", "ThrowableInstanceNeverThrown", "ResultOfObjectAllocationIgnored"})
     public void testAbortedException() {
-        final SM.SMAbortedException e = new SM.SMAbortedException(false, "Stuff was aborted!");
+        final SMAbortedException e = new SMAbortedException(false, "Stuff was aborted!");
         assertFalse(e.isInProgress());
         assertEquals("Stuff was aborted!", e.getMessage());
     }
 
     @Test
-    public void testCheckGroupElemValid() throws SM.SMException {
-        State.checkGroupElem(BigInteger.TEN);
+    public void testCheckGroupElemValid() throws SMException {
+        AbstractSMPState.checkGroupElem(BigInteger.TEN);
     }
 
     @Test
-    public void testCheckGroupElemJustValidLowerBound() throws SM.SMException {
-        State.checkGroupElem(BigInteger.valueOf(2l));
+    public void testCheckGroupElemJustValidLowerBound() throws SMException {
+        AbstractSMPState.checkGroupElem(BigInteger.valueOf(2l));
     }
 
-    @Test(expected = SM.SMException.class)
-    public void testCheckGroupElemTooSmall() throws SM.SMException {
-        State.checkGroupElem(BigInteger.ONE);
-    }
-
-    @Test
-    public void testCheckGroupElemJustValidUpperBound() throws SM.SMException {
-        State.checkGroupElem(SM.MODULUS_MINUS_2);
-    }
-
-    @Test(expected = SM.SMException.class)
-    public void testCheckGroupElemTooLarge() throws SM.SMException {
-        State.checkGroupElem(SM.MODULUS_MINUS_2.add(BigInteger.ONE));
+    @Test(expected = SMException.class)
+    public void testCheckGroupElemTooSmall() throws SMException {
+        AbstractSMPState.checkGroupElem(BigInteger.ONE);
     }
 
     @Test
-    public void testCheckExponValid() throws SM.SMException {
-        State.checkExpon(BigInteger.TEN);
+    public void testCheckGroupElemJustValidUpperBound() throws SMException {
+        AbstractSMPState.checkGroupElem(SM.MODULUS_MINUS_2);
+    }
+
+    @Test(expected = SMException.class)
+    public void testCheckGroupElemTooLarge() throws SMException {
+        AbstractSMPState.checkGroupElem(SM.MODULUS_MINUS_2.add(BigInteger.ONE));
     }
 
     @Test
-    public void testCheckExponJustValidLowerBound() throws SM.SMException {
-        State.checkExpon(BigInteger.ONE);
-    }
-
-    @Test(expected = SM.SMException.class)
-    public void testCheckExponTooSmall() throws SM.SMException {
-        State.checkExpon(BigInteger.ZERO);
+    public void testCheckExponValid() throws SMException {
+        AbstractSMPState.checkExpon(BigInteger.TEN);
     }
 
     @Test
-    public void testCheckExponJustValidUpperBound() throws SM.SMException {
-        State.checkExpon(SM.ORDER_S.subtract(BigInteger.ONE));
+    public void testCheckExponJustValidLowerBound() throws SMException {
+        AbstractSMPState.checkExpon(BigInteger.ONE);
     }
 
-    @Test(expected = SM.SMException.class)
-    public void testCheckExponTooLarge() throws SM.SMException {
-        State.checkExpon(SM.ORDER_S);
+    @Test(expected = SMException.class)
+    public void testCheckExponTooSmall() throws SMException {
+        AbstractSMPState.checkExpon(BigInteger.ZERO);
     }
 
-    @Test(expected = SM.SMException.class)
-    public void testCheckKnowLog() throws SM.SMException {
-        final State sm = new State(sr) {
+    @Test
+    public void testCheckExponJustValidUpperBound() throws SMException {
+        AbstractSMPState.checkExpon(SM.ORDER_S.subtract(BigInteger.ONE));
+    }
+
+    @Test(expected = SMException.class)
+    public void testCheckExponTooLarge() throws SMException {
+        AbstractSMPState.checkExpon(SM.ORDER_S);
+    }
+
+    @Test(expected = SMException.class)
+    public void testCheckKnowLog() throws SMException {
+        final AbstractSMPState sm = new AbstractSMPState(sr) {
             @Override
-            SM.Status status() {
-                return SM.Status.UNDECIDED;
+            SMPStatus status() {
+                return SMPStatus.UNDECIDED;
             }
         };
         sm.checkKnowLog(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, 0);
     }
 
-    @Test(expected = SM.SMException.class)
-    public void testCheckEqualCoords() throws SM.SMException {
-        final State sm = new State(sr) {
+    @Test(expected = SMException.class)
+    public void testCheckEqualCoords() throws SMException {
+        final AbstractSMPState sm = new AbstractSMPState(sr) {
             @Override
-            SM.Status status() {
-                return SM.Status.UNDECIDED;
+            SMPStatus status() {
+                return SMPStatus.UNDECIDED;
             }
         };
         sm.checkEqualCoords(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, BigInteger.valueOf(100L), BigInteger.valueOf(50L), BigInteger.valueOf(25L), BigInteger.valueOf(12L), 0);
     }
 
-    @Test(expected = SM.SMException.class)
-    public void testCheckEqualLogs() throws SM.SMException {
-        final State sm = new State(sr) {
+    @Test(expected = SMException.class)
+    public void testCheckEqualLogs() throws SMException {
+        final AbstractSMPState sm = new AbstractSMPState(sr) {
             @Override
-            SM.Status status() {
-                return SM.Status.UNDECIDED;
+            SMPStatus status() {
+                return SMPStatus.UNDECIDED;
             }
         };
         sm.checkEqualLogs(BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO, BigInteger.valueOf(23L), BigInteger.valueOf(35L), 0);
     }
 
     @Test
-    public void testUnserializeSerializedBigIntArray() throws SM.SMException {
+    public void testUnserializeSerializedBigIntArray() throws SMException {
         final BigInteger[] target = new BigInteger[] {
             BigInteger.ZERO,
             BigInteger.ONE,
@@ -169,15 +173,15 @@ public class SMTest {
     }
 
     @Test
-    public void testUnserializeZeroLength() throws SM.SMException {
+    public void testUnserializeZeroLength() throws SMException {
         final byte[] data = new byte[] { 0, 0, 0, 0 };
         final BigInteger[] result = SM.unserialize(data);
         assertNotNull(result);
         assertEquals(0, result.length);
     }
 
-    @Test(expected = SM.SMException.class)
-    public void testUnserializeLargeSignedLength() throws SM.SMException {
+    @Test(expected = SMException.class)
+    public void testUnserializeLargeSignedLength() throws SMException {
         final byte[] data = new byte[] { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
         SM.unserialize(data);
     }
@@ -195,7 +199,7 @@ public class SMTest {
     }
 
     @Test
-    public void testSuccessfulSMPConversation() throws SM.SMException, OtrCryptoException, Exception {
+    public void testSuccessfulSMPConversation() throws SMException, OtrCryptoException, Exception {
 
         // Alice
         final SM alice = new SM(sr);
@@ -215,37 +219,37 @@ public class SMTest {
         final byte[] combinedSecretBytes = combinedSecret(alicePublic, bobPublic, s, secret);
 
         // SMP session execution
-        assertEquals(SM.Status.UNDECIDED, alice.status());
-        assertEquals(SM.Status.UNDECIDED, bob.status());
+        assertEquals(SMPStatus.UNDECIDED, alice.status());
+        assertEquals(SMPStatus.UNDECIDED, bob.status());
 
         final byte[] msg1 = alice.step1(combinedSecretBytes);
-        assertEquals(SM.Status.INPROGRESS, alice.status());
-        assertEquals(SM.Status.UNDECIDED, bob.status());
+        assertEquals(SMPStatus.INPROGRESS, alice.status());
+        assertEquals(SMPStatus.UNDECIDED, bob.status());
 
         bob.step2a(msg1);
-        assertEquals(SM.Status.INPROGRESS, alice.status());
-        assertEquals(SM.Status.INPROGRESS, bob.status());
+        assertEquals(SMPStatus.INPROGRESS, alice.status());
+        assertEquals(SMPStatus.INPROGRESS, bob.status());
 
         final byte[] msg2 = bob.step2b(combinedSecretBytes);
-        assertEquals(SM.Status.INPROGRESS, alice.status());
-        assertEquals(SM.Status.INPROGRESS, bob.status());
+        assertEquals(SMPStatus.INPROGRESS, alice.status());
+        assertEquals(SMPStatus.INPROGRESS, bob.status());
 
         final byte[] msg3 = alice.step3(msg2);
-        assertEquals(SM.Status.INPROGRESS, alice.status());
-        assertEquals(SM.Status.INPROGRESS, bob.status());
+        assertEquals(SMPStatus.INPROGRESS, alice.status());
+        assertEquals(SMPStatus.INPROGRESS, bob.status());
 
         final byte[] msg4 = bob.step4(msg3);
-        assertEquals(SM.Status.INPROGRESS, alice.status());
-        assertEquals(SM.Status.SUCCEEDED, bob.status());
+        assertEquals(SMPStatus.INPROGRESS, alice.status());
+        assertEquals(SMPStatus.SUCCEEDED, bob.status());
 
         alice.step5(msg4);
         // Evaluate session end result
-        assertEquals(SM.Status.SUCCEEDED, alice.status());
-        assertEquals(SM.Status.SUCCEEDED, bob.status());
+        assertEquals(SMPStatus.SUCCEEDED, alice.status());
+        assertEquals(SMPStatus.SUCCEEDED, bob.status());
     }
 
     @Test
-    public void testUnsuccessfulSMPConversationBadSecret() throws SM.SMException, OtrCryptoException, Exception {
+    public void testUnsuccessfulSMPConversationBadSecret() throws SMException, OtrCryptoException, Exception {
 
         // Alice
         final SM alice = new SM(sr);
@@ -267,177 +271,177 @@ public class SMTest {
         final byte[] combinedSecretBytesBob = combinedSecret(alicePublic, bobPublic, s, bobSecret);
 
         // SMP session execution
-        assertEquals(SM.Status.UNDECIDED, alice.status());
-        assertEquals(SM.Status.UNDECIDED, bob.status());
+        assertEquals(SMPStatus.UNDECIDED, alice.status());
+        assertEquals(SMPStatus.UNDECIDED, bob.status());
 
         final byte[] msg1 = alice.step1(combinedSecretBytesAlice);
-        assertEquals(SM.Status.INPROGRESS, alice.status());
-        assertEquals(SM.Status.UNDECIDED, bob.status());
+        assertEquals(SMPStatus.INPROGRESS, alice.status());
+        assertEquals(SMPStatus.UNDECIDED, bob.status());
 
         bob.step2a(msg1);
-        assertEquals(SM.Status.INPROGRESS, alice.status());
-        assertEquals(SM.Status.INPROGRESS, bob.status());
+        assertEquals(SMPStatus.INPROGRESS, alice.status());
+        assertEquals(SMPStatus.INPROGRESS, bob.status());
 
         final byte[] msg2 = bob.step2b(combinedSecretBytesBob);
-        assertEquals(SM.Status.INPROGRESS, alice.status());
-        assertEquals(SM.Status.INPROGRESS, bob.status());
+        assertEquals(SMPStatus.INPROGRESS, alice.status());
+        assertEquals(SMPStatus.INPROGRESS, bob.status());
 
         final byte[] msg3 = alice.step3(msg2);
-        assertEquals(SM.Status.INPROGRESS, alice.status());
-        assertEquals(SM.Status.INPROGRESS, bob.status());
+        assertEquals(SMPStatus.INPROGRESS, alice.status());
+        assertEquals(SMPStatus.INPROGRESS, bob.status());
 
         final byte[] msg4 = bob.step4(msg3);
-        assertEquals(SM.Status.INPROGRESS, alice.status());
-        assertEquals(SM.Status.FAILED, bob.status());
+        assertEquals(SMPStatus.INPROGRESS, alice.status());
+        assertEquals(SMPStatus.FAILED, bob.status());
 
         alice.step5(msg4);
         // Evaluate session end result
-        assertEquals(SM.Status.FAILED, alice.status());
-        assertEquals(SM.Status.FAILED, bob.status());
+        assertEquals(SMPStatus.FAILED, alice.status());
+        assertEquals(SMPStatus.FAILED, bob.status());
     }
 
     @Test
     public void testVerifyCorrectSpecifiedStatusStateExpect1() {
-        assertEquals(SM.Status.FAILED, new StateExpect1(sr, SM.Status.FAILED).status());
+        assertEquals(SMPStatus.FAILED, new StateExpect1(sr, SMPStatus.FAILED).status());
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect1CorrectlyAbortOnAnswerBeforeQuestion() throws SM.SMException {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect1CorrectlyAbortOnAnswerBeforeQuestion() throws SMException {
         final SM sm = new SM(sr);
         sm.step2b(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect1CorrectlyAbortOnMessage2() throws SM.SMException {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect1CorrectlyAbortOnMessage2() throws SMException {
         final SM sm = new SM(sr);
         sm.step3(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect1CorrectlyAbortOnMessage3() throws SM.SMException {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect1CorrectlyAbortOnMessage3() throws SMException {
         final SM sm = new SM(sr);
         sm.step4(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect1CorrectlyAbortOnMessage4() throws SM.SMException {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect1CorrectlyAbortOnMessage4() throws SMException {
         final SM sm = new SM(sr);
         sm.step5(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect2CorrectlyAbortOnInit() throws SM.SMException {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect2CorrectlyAbortOnInit() throws SMException {
         final SM sm = new SM(sr);
         sm.setState(new StateExpect2(sr, BigInteger.ZERO, BigInteger.ONE, BigInteger.ONE));
         sm.step1(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect2CorrectlyAbortOnMessage1() throws SM.SMException {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect2CorrectlyAbortOnMessage1() throws SMException {
         final SM sm = new SM(sr);
         sm.setState(new StateExpect2(sr, BigInteger.ZERO, BigInteger.ONE, BigInteger.ONE));
         sm.step2a(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect2CorrectlyAbortOnMessage1Continuation() throws SM.SMException {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect2CorrectlyAbortOnMessage1Continuation() throws SMException {
         final SM sm = new SM(sr);
         sm.setState(new StateExpect2(sr, BigInteger.ZERO, BigInteger.ONE, BigInteger.ONE));
         sm.step2b(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect2CorrectlyAbortOnMessage3() throws SM.SMException {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect2CorrectlyAbortOnMessage3() throws SMException {
         final SM sm = new SM(sr);
         sm.setState(new StateExpect2(sr, BigInteger.ZERO, BigInteger.ONE, BigInteger.ONE));
         sm.step4(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect2CorrectlyAbortOnMessage4() throws SM.SMException {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect2CorrectlyAbortOnMessage4() throws SMException {
         final SM sm = new SM(sr);
         sm.setState(new StateExpect2(sr, BigInteger.ZERO, BigInteger.ONE, BigInteger.ONE));
         sm.step5(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
+    @Test(expected = SMAbortedException.class)
     public void testVerifyStateExpect3CorrectlyAbortOnInit() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {
         final SM sm = prepareStateExpect3();
         sm.step1(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
+    @Test(expected = SMAbortedException.class)
     public void testVerifyStateExpect3CorrectlyAbortOnMessage1() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {
         final SM sm = prepareStateExpect3();
         sm.step2a(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
+    @Test(expected = SMAbortedException.class)
     public void testVerifyStateExpect3CorrectlyAbortOnMessage1Continuation() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {
         final SM sm = prepareStateExpect3();
         sm.step2b(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
+    @Test(expected = SMAbortedException.class)
     public void testVerifyStateExpect3CorrectlyAbortOnMessage4() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {
         final SM sm = prepareStateExpect3();
         sm.step5(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect4CorrectlyAbortOnInit() throws NoSuchProviderException, OtrCryptoException, SM.SMException, Exception {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect4CorrectlyAbortOnInit() throws NoSuchProviderException, OtrCryptoException, SMException, Exception {
         final SM sm = prepareStateExpect4();
         sm.step1(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect4CorrectlyAbortOnMessage1() throws NoSuchProviderException, OtrCryptoException, SM.SMException, Exception {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect4CorrectlyAbortOnMessage1() throws NoSuchProviderException, OtrCryptoException, SMException, Exception {
         final SM sm = prepareStateExpect4();
         sm.step2a(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect4CorrectlyAbortOnMessage1Continuation() throws NoSuchProviderException, OtrCryptoException, SM.SMException, Exception {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect4CorrectlyAbortOnMessage1Continuation() throws NoSuchProviderException, OtrCryptoException, SMException, Exception {
         final SM sm = prepareStateExpect4();
         sm.step2b(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect4CorrectlyAbortOnMessage2() throws NoSuchProviderException, OtrCryptoException, SM.SMException, Exception {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect4CorrectlyAbortOnMessage2() throws NoSuchProviderException, OtrCryptoException, SMException, Exception {
         final SM sm = prepareStateExpect4();
         sm.step3(new byte[0]);
     }
 
-    @Test(expected = SM.SMAbortedException.class)
-    public void testVerifyStateExpect4CorrectlyAbortOnMessage3() throws NoSuchProviderException, OtrCryptoException, SM.SMException, Exception {
+    @Test(expected = SMAbortedException.class)
+    public void testVerifyStateExpect4CorrectlyAbortOnMessage3() throws NoSuchProviderException, OtrCryptoException, SMException, Exception {
         final SM sm = prepareStateExpect4();
         sm.step4(new byte[0]);
     }
 
     @Test(expected = NullPointerException.class)
     public void testConstructStateWithNullSecureRandom() {
-        new State(null) {
+        new AbstractSMPState(null) {
             @Override
-            SM.Status status() {
-                return SM.Status.UNDECIDED;
+            SMPStatus status() {
+                return SMPStatus.UNDECIDED;
             }
         };
     }
 
     @Test
-    public void testSMStep2aWithSMException() throws SM.SMException {
+    public void testSMStep2aWithSMException() throws SMException {
         final byte[] input = new byte[0];
         final SMException e = new SMException("intentionally bad");
-        final State s = new State(sr) {
+        final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage1a(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+            void smpMessage1a(SM bstate, byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
             @Override
-            SM.Status status() {
-                return SM.Status.UNDECIDED;
+            SMPStatus status() {
+                return SMPStatus.UNDECIDED;
             }
         };
         final SM sm = new SM(sr);
@@ -449,23 +453,23 @@ public class SMTest {
         catch (SMException ex) {
             assertSame(e, ex);
         }
-        assertEquals(SM.Status.CHEATED, sm.status());
+        assertEquals(SMPStatus.CHEATED, sm.status());
     }
 
     @Test
-    public void testSMStep2aWithRuntimeException() throws SM.SMException {
+    public void testSMStep2aWithRuntimeException() throws SMException {
         final byte[] input = new byte[0];
         final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
-        final State s = new State(sr) {
+        final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage1a(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+            void smpMessage1a(SM bstate, byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
             @Override
-            SM.Status status() {
-                return SM.Status.UNDECIDED;
+            SMPStatus status() {
+                return SMPStatus.UNDECIDED;
             }
         };
         final SM sm = new SM(sr);
@@ -477,23 +481,23 @@ public class SMTest {
         catch (SMException ex) {
             assertSame(e, ex.getCause());
         }
-        assertEquals(SM.Status.CHEATED, sm.status());
+        assertEquals(SMPStatus.CHEATED, sm.status());
     }
 
     @Test
-    public void testSMStep2bWithSMException() throws SM.SMException {
+    public void testSMStep2bWithSMException() throws SMException {
         final byte[] input = new byte[0];
         final SMException e = new SMException("intentionally bad");
-        final State s = new State(sr) {
+        final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            byte[] smpMessage1b(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+            byte[] smpMessage1b(SM bstate, byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
             @Override
-            SM.Status status() {
-                return SM.Status.INPROGRESS;
+            SMPStatus status() {
+                return SMPStatus.INPROGRESS;
             }
         };
         final SM sm = new SM(sr);
@@ -505,23 +509,23 @@ public class SMTest {
         catch (SMException ex) {
             assertSame(e, ex);
         }
-        assertEquals(SM.Status.CHEATED, sm.status());
+        assertEquals(SMPStatus.CHEATED, sm.status());
     }
 
     @Test
-    public void testSMStep2bWithRuntimeException() throws SM.SMException {
+    public void testSMStep2bWithRuntimeException() throws SMException {
         final byte[] input = new byte[0];
         final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
-        final State s = new State(sr) {
+        final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            byte[] smpMessage1b(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+            byte[] smpMessage1b(SM bstate, byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
             @Override
-            SM.Status status() {
-                return SM.Status.INPROGRESS;
+            SMPStatus status() {
+                return SMPStatus.INPROGRESS;
             }
         };
         final SM sm = new SM(sr);
@@ -533,23 +537,23 @@ public class SMTest {
         catch (SMException ex) {
             assertSame(e, ex.getCause());
         }
-        assertEquals(SM.Status.CHEATED, sm.status());
+        assertEquals(SMPStatus.CHEATED, sm.status());
     }
 
     @Test
-    public void testSMStep3WithSMException() throws SM.SMException {
+    public void testSMStep3WithSMException() throws SMException {
         final byte[] input = new byte[0];
         final SMException e = new SMException("intentionally bad");
-        final State s = new State(sr) {
+        final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            byte[] smpMessage2(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+            byte[] smpMessage2(SM bstate, byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
             @Override
-            SM.Status status() {
-                return SM.Status.INPROGRESS;
+            SMPStatus status() {
+                return SMPStatus.INPROGRESS;
             }
         };
         final SM sm = new SM(sr);
@@ -561,23 +565,23 @@ public class SMTest {
         catch (SMException ex) {
             assertSame(e, ex);
         }
-        assertEquals(SM.Status.CHEATED, sm.status());
+        assertEquals(SMPStatus.CHEATED, sm.status());
     }
 
     @Test
-    public void testSMStep3WithRuntimeException() throws SM.SMException {
+    public void testSMStep3WithRuntimeException() throws SMException {
         final byte[] input = new byte[0];
         final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
-        final State s = new State(sr) {
+        final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            byte[] smpMessage2(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+            byte[] smpMessage2(SM bstate, byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
             @Override
-            SM.Status status() {
-                return SM.Status.INPROGRESS;
+            SMPStatus status() {
+                return SMPStatus.INPROGRESS;
             }
         };
         final SM sm = new SM(sr);
@@ -589,23 +593,23 @@ public class SMTest {
         catch (SMException ex) {
             assertSame(e, ex.getCause());
         }
-        assertEquals(SM.Status.CHEATED, sm.status());
+        assertEquals(SMPStatus.CHEATED, sm.status());
     }
 
     @Test
-    public void testSMStep4WithSMException() throws SM.SMException {
+    public void testSMStep4WithSMException() throws SMException {
         final byte[] input = new byte[0];
         final SMException e = new SMException("intentionally bad");
-        final State s = new State(sr) {
+        final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            byte[] smpMessage3(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+            byte[] smpMessage3(SM bstate, byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
             @Override
-            SM.Status status() {
-                return SM.Status.INPROGRESS;
+            SMPStatus status() {
+                return SMPStatus.INPROGRESS;
             }
         };
         final SM sm = new SM(sr);
@@ -617,23 +621,23 @@ public class SMTest {
         catch (SMException ex) {
             assertSame(e, ex);
         }
-        assertEquals(SM.Status.CHEATED, sm.status());
+        assertEquals(SMPStatus.CHEATED, sm.status());
     }
 
     @Test
-    public void testSMStep4WithRuntimeException() throws SM.SMException {
+    public void testSMStep4WithRuntimeException() throws SMException {
         final byte[] input = new byte[0];
         final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
-        final State s = new State(sr) {
+        final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            byte[] smpMessage3(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+            byte[] smpMessage3(SM bstate, byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
             @Override
-            SM.Status status() {
-                return SM.Status.INPROGRESS;
+            SMPStatus status() {
+                return SMPStatus.INPROGRESS;
             }
         };
         final SM sm = new SM(sr);
@@ -645,23 +649,23 @@ public class SMTest {
         catch (SMException ex) {
             assertSame(e, ex.getCause());
         }
-        assertEquals(SM.Status.CHEATED, sm.status());
+        assertEquals(SMPStatus.CHEATED, sm.status());
     }
 
     @Test
-    public void testSMStep5WithSMException() throws SM.SMException {
+    public void testSMStep5WithSMException() throws SMException {
         final byte[] input = new byte[0];
         final SMException e = new SMException("intentionally bad");
-        final State s = new State(sr) {
+        final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage4(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+            void smpMessage4(SM bstate, byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
             @Override
-            SM.Status status() {
-                return SM.Status.INPROGRESS;
+            SMPStatus status() {
+                return SMPStatus.INPROGRESS;
             }
         };
         final SM sm = new SM(sr);
@@ -673,23 +677,23 @@ public class SMTest {
         catch (SMException ex) {
             assertSame(e, ex);
         }
-        assertEquals(SM.Status.CHEATED, sm.status());
+        assertEquals(SMPStatus.CHEATED, sm.status());
     }
 
     @Test
-    public void testSMStep5WithRuntimeException() throws SM.SMException {
+    public void testSMStep5WithRuntimeException() throws SMException {
         final byte[] input = new byte[0];
         final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
-        final State s = new State(sr) {
+        final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage4(SM bstate, byte[] input) throws SM.SMAbortedException, SMException {
+            void smpMessage4(SM bstate, byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
             @Override
-            SM.Status status() {
-                return SM.Status.INPROGRESS;
+            SMPStatus status() {
+                return SMPStatus.INPROGRESS;
             }
         };
         final SM sm = new SM(sr);
@@ -701,7 +705,7 @@ public class SMTest {
         catch (SMException ex) {
             assertSame(e, ex.getCause());
         }
-        assertEquals(SM.Status.CHEATED, sm.status());
+        assertEquals(SMPStatus.CHEATED, sm.status());
     }
 
     private SM prepareStateExpect4() throws NoSuchAlgorithmException, NoSuchProviderException, OtrCryptoException, Exception {

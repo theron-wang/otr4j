@@ -16,14 +16,15 @@ import javax.annotation.Nullable;
 
 import net.java.otr4j.OtrException;
 import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.crypto.SM;
-import net.java.otr4j.crypto.SM.SMException;
-import net.java.otr4j.crypto.SM.SMAbortedException;
 import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.TLV;
+import net.java.otr4j.session.smp.SM;
+import net.java.otr4j.session.smp.SMAbortedException;
+import net.java.otr4j.session.smp.SMException;
+import net.java.otr4j.session.smp.SMPStatus;
 
 /**
  * SMP TLV Handler handles any interaction w.r.t. mutual authentication using
@@ -74,7 +75,7 @@ public final class SmpTlvHandler {
      */
     public List<TLV> initRespondSmp(@Nullable final String question, @Nonnull final String secret,
             final boolean initiating) throws OtrException {
-        if (!initiating && this.sm.status() != SM.Status.INPROGRESS) {
+        if (!initiating && this.sm.status() != SMPStatus.INPROGRESS) {
             throw new OtrException(new IllegalStateException(
                     "There is no question to be answered."));
         }
@@ -102,7 +103,7 @@ public final class SmpTlvHandler {
             try {
                 smpmsg = sm.step1(combinedSecret);
             }
-            catch (final SM.SMAbortedException e) {
+            catch (final SMAbortedException e) {
                 // As prescribed by OTR, we must always be allowed to initiate a
                 // new SMP exchange. In case another SMP exchange is in
                 // progress, an abort is signaled. We honor the abort exception
@@ -117,7 +118,7 @@ public final class SmpTlvHandler {
                     throw new OtrException(ex);
                 }
             }
-            catch (SMException ex) {
+            catch (final SMException ex) {
                 throw new OtrException(ex);
             }
         } else {
@@ -169,7 +170,7 @@ public final class SmpTlvHandler {
     }
 
     public boolean isSmpInProgress() {
-        return this.sm.status() == SM.Status.INPROGRESS;
+        return this.sm.status() == SMPStatus.INPROGRESS;
     }
 
     public String getFingerprint() {
@@ -208,7 +209,7 @@ public final class SmpTlvHandler {
         }
         catch (final SMException e) {
             SmpEngineHostUtil.smpError(engineHost, session.getSessionID(),
-                    tlv.getType(), this.sm.status() == SM.Status.CHEATED);
+                    tlv.getType(), this.sm.status() == SMPStatus.CHEATED);
             throw new OtrException(e);
         }
     }
@@ -228,7 +229,7 @@ public final class SmpTlvHandler {
         }
         catch (final SMException e) {
             SmpEngineHostUtil.smpError(engineHost, session.getSessionID(),
-                    tlv.getType(), this.sm.status() == SM.Status.CHEATED);
+                    tlv.getType(), this.sm.status() == SMPStatus.CHEATED);
             throw new OtrException(e);
         }
     }
@@ -249,7 +250,7 @@ public final class SmpTlvHandler {
         }
         catch (final SMException e) {
             SmpEngineHostUtil.smpError(engineHost, session.getSessionID(),
-                    tlv.getType(), this.sm.status() == SM.Status.CHEATED);
+                    tlv.getType(), this.sm.status() == SMPStatus.CHEATED);
             throw new OtrException(e);
         }
     }
@@ -258,7 +259,7 @@ public final class SmpTlvHandler {
         try {
             final byte[] nextmsg = sm.step4(tlv.getValue());
             /* Set trust level based on result */
-            if (this.sm.status() == SM.Status.SUCCEEDED) {
+            if (this.sm.status() == SMPStatus.SUCCEEDED) {
                 SmpEngineHostUtil.verify(engineHost, session.getSessionID(),
                         getFingerprint());
             } else {
@@ -275,7 +276,7 @@ public final class SmpTlvHandler {
         }
         catch (final SMException e) {
             SmpEngineHostUtil.smpError(engineHost, session.getSessionID(),
-                    tlv.getType(), this.sm.status() == SM.Status.CHEATED);
+                    tlv.getType(), this.sm.status() == SMPStatus.CHEATED);
             throw new OtrException(e);
         }
     }
@@ -283,7 +284,7 @@ public final class SmpTlvHandler {
     public void processTlvSMP4(@Nonnull final TLV tlv) throws OtrException {
         try {
             sm.step5(tlv.getValue());
-            if (this.sm.status() == SM.Status.SUCCEEDED) {
+            if (this.sm.status() == SMPStatus.SUCCEEDED) {
                 SmpEngineHostUtil.verify(engineHost, session.getSessionID(),
                         getFingerprint());
             } else {
@@ -296,7 +297,7 @@ public final class SmpTlvHandler {
         }
         catch (final SMException e) {
             SmpEngineHostUtil.smpError(engineHost, session.getSessionID(),
-                    tlv.getType(), this.sm.status() == SM.Status.CHEATED);
+                    tlv.getType(), this.sm.status() == SMPStatus.CHEATED);
             throw new OtrException(e);
         }
     }
