@@ -38,11 +38,12 @@ import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 
 
+// TODO move SMP to separate package (including crypto.SM state implementations) and make states package-private.
 public final class SM {
 
     /**
      * Constant indicating the maximum accepted MPI array size. This array size
-     * can in principle be as large as {@link #MAX_ARRAY_SIZE} however such a
+     * can in principle be as large as JVM's max array size, however such a
      * size will not be needed for typical SMP TLV types 2-5 messages. To reduce
      * risk of misuse, go with far smaller value.
      */
@@ -117,11 +118,6 @@ public final class SM {
             return this.inProgress;
         }
     }
-
-    public static final int MSG1_LEN = 6;
-    public static final int MSG2_LEN = 11;
-    public static final int MSG3_LEN = 8;
-    public static final int MSG4_LEN = 3;
 
     public static final BigInteger MODULUS_S = new BigInteger(
             "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"+
@@ -229,7 +225,7 @@ public final class SM {
         } finally {
             try {
                 ois.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new SMException("failed to close OtrInputStream", e);
             }
         }
@@ -280,7 +276,7 @@ public final class SM {
      * and then you can immediately make a subsequent call to initiate a new SMP
      * exchange.
      */
-    public byte[] step1(@Nonnull final byte[] secret) throws SMAbortedException, SMException
+    public byte[] step1(@Nonnull final byte[] secret) throws SMException
     {
         LOGGER.fine("Initiating SMP exchange.");
 
@@ -299,7 +295,7 @@ public final class SM {
      * on request.
      * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-    public void step2a(@Nonnull final byte[] input) throws SMAbortedException, SMException
+    public void step2a(@Nonnull final byte[] input) throws SMException
     {
         LOGGER.fine("Received SMP exchange initiation request.");
         try {
@@ -336,7 +332,7 @@ public final class SM {
      * @throws net.java.otr4j.crypto.SM.SMAbortedException
      * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-    public byte[] step2b(@Nonnull final byte[] secret) throws SMAbortedException, SMException
+    public byte[] step2b(@Nonnull final byte[] secret) throws SMException
     {
         LOGGER.fine("Continuing SMP exchange initiation reply after receiving data from OtrEngineHost.");
         try {
@@ -371,7 +367,7 @@ public final class SM {
      * @throws net.java.otr4j.crypto.SM.SMAbortedException
      * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-    public byte[] step3(@Nonnull final byte[] input) throws SMAbortedException, SMException
+    public byte[] step3(@Nonnull final byte[] input) throws SMException
     {
         LOGGER.fine("Received reply to SMP exchange initiation request. Sending final message in SMP exchange.");
         try {
@@ -406,7 +402,7 @@ public final class SM {
      * @throws net.java.otr4j.crypto.SM.SMAbortedException
      * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-    public byte[] step4(@Nonnull final byte[] input) throws SMAbortedException, SMException
+    public byte[] step4(@Nonnull final byte[] input) throws SMException
     {
         LOGGER.fine("Received final SMP response. Concluding SMP exchange and sending final response.");
         try {
@@ -439,7 +435,7 @@ public final class SM {
      * @throws net.java.otr4j.crypto.SM.SMAbortedException
      * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
-    public void step5(@Nonnull final byte[] input) throws SMAbortedException, SMException
+    public void step5(@Nonnull final byte[] input) throws SMException
     {
         LOGGER.fine("Received final SMP response. Concluding SMP exchange.");
         try {
@@ -537,10 +533,9 @@ abstract class State {
      * initiation message.
      *
      * @param astate State of SM exchange (Alice)
-     * @param secret
-     * @throws net.java.otr4j.crypto.SM.SMStateException
+     * @param secret SMP secret that is commonly known by both parties, to test counter party.
      */
-    byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
+    byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMException {
         final boolean inprogress = status() == SM.Status.INPROGRESS;
         astate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException(inprogress,
@@ -572,7 +567,7 @@ abstract class State {
      * @param bstate State of SM exchange (Bob)
      * @param input Input of initiation message.
      */
-    void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMException {
         final boolean inprogress = status() == SM.Status.INPROGRESS;
         bstate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException(inprogress,
@@ -588,7 +583,7 @@ abstract class State {
      * @param secret Secret entered by user.
      * @return Returns reply to initiation message.
      */
-    byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
+    byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMException {
         final boolean inprogress = status() == SM.Status.INPROGRESS;
         bstate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException(inprogress,
@@ -604,7 +599,7 @@ abstract class State {
      * @param input Reply to initiation message.
      * @return Returns reply.
      */
-    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMException {
         final boolean inprogress = status() == SM.Status.INPROGRESS;
         astate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException(inprogress,
@@ -620,7 +615,7 @@ abstract class State {
      * @param input Reply from Alice to Bob's response to initiation message.
      * @return Returns the final message of SMP exchange to Alice.
      */
-    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMException {
         final boolean inprogress = status() == SM.Status.INPROGRESS;
         bstate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException(inprogress,
@@ -635,7 +630,7 @@ abstract class State {
      * @param astate State of SM exchange (Alice)
      * @param input Final reply from Bob with last parameters of SMP exchange.
      */
-    void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMException {
         final boolean inprogress = status() == SM.Status.INPROGRESS;
         astate.setState(new StateExpect1(this.sr));
         throw new SM.SMAbortedException(inprogress,
@@ -666,11 +661,10 @@ abstract class State {
     /**
      * Proof of knowledge of a discrete logarithm.
      *
-     * @param g the group generator
      * @param x the secret information
      * @param version the prefix to use for the hashing function
      * @return c and d.
-     * @throws SMException when c and d could not be calculated
+     * @throws SM.SMException when c and d could not be calculated
      */
     final BigInteger[] proofKnowLog(@Nonnull final BigInteger x, final int version) throws SM.SMException
     {
@@ -689,7 +683,7 @@ abstract class State {
      * @param d d from remote party
      * @param x our secret information
      * @param version the prefix to use
-     * @throws SMException when proof check fails
+     * @throws SM.SMException when proof check fails
      */
     final void checkKnowLog(@Nonnull final BigInteger c, @Nonnull final BigInteger d,
             @Nonnull final BigInteger x, final int version) throws SM.SMException
@@ -900,7 +894,7 @@ final class StateExpect1 extends State {
     }
 
     @Override
-    byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
+    byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SM.SMException {
         /* Initialize the sm state or update the secret */
         final BigInteger secret_mpi = new BigInteger(1, secret);
 
@@ -925,7 +919,7 @@ final class StateExpect1 extends State {
     }
 
     @Override
-    void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMException {
         /* Initialize the sm state if needed */
 
         /* Read from input to find the mpis */
@@ -956,7 +950,7 @@ final class StateExpect1 extends State {
     }
 
     @Override
-    byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMAbortedException, SM.SMException {
+    byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SM.SMException {
         if (status() != SM.Status.INPROGRESS) {
             // In case a question gets answered before the question is recieved,
             // this is considered bad order of messages. Abort protocol and
@@ -1027,7 +1021,7 @@ final class StateExpect2 extends State {
     }
 
     @Override
-    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMException {
         /* Read from input to find the mpis */
 
         final BigInteger[] msg2 = SM.unserialize(input);
@@ -1123,7 +1117,7 @@ final class StateExpect3 extends State {
     }
 
     @Override
-    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SM.SMException {
         /* Read from input to find the mpis */
         final BigInteger[] msg3 = SM.unserialize(input);
 
@@ -1198,7 +1192,7 @@ final class StateExpect4 extends State {
     }
 
     @Override
-    void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMAbortedException, SM.SMException {
+    void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SM.SMException {
         /* Read from input to find the mpis */
         final BigInteger[] msg4 = SM.unserialize(input);
 

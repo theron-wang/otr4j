@@ -31,7 +31,6 @@ import net.java.otr4j.session.TLV;
  *
  * @author Danny van Heumen
  */
-// TODO move SMP to separate package (including crypto.SM state implementations) and make states package-private.
 public final class SmpTlvHandler {
 
     private static final byte[] VERSION_BYTE = new byte[]{1};
