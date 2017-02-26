@@ -43,29 +43,29 @@ public class RevealSignatureMessage extends SignatureMessage {
         return Message.MESSAGE_REVEALSIG;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + Arrays.hashCode(revealedKey);
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + Arrays.hashCode(revealedKey);
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-		if (!super.equals(obj)) {
+        if (!super.equals(obj)) {
             return false;
         }
-		if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-		RevealSignatureMessage other = (RevealSignatureMessage) obj;
-		if (!Arrays.equals(revealedKey, other.revealedKey)) {
+        RevealSignatureMessage other = (RevealSignatureMessage) obj;
+        if (!Arrays.equals(revealedKey, other.revealedKey)) {
             return false;
         }
-		return true;
-	}
+        return true;
+    }
 }

@@ -37,7 +37,7 @@ public final class SmpTlvHandler {
     private static final byte[] VERSION_BYTE = new byte[]{1};
 
     private final SmpEngineHost engineHost;
-	private final StateEncrypted session;
+    private final StateEncrypted session;
     private final SharedSecret s;
     private final Context sessionContext;
     private final SM sm;
@@ -59,38 +59,38 @@ public final class SmpTlvHandler {
         this.sessionContext = Objects.requireNonNull(context);
     }
 
-	/**
-	 *  Respond to or initiate an SMP negotiation
-	 *
-	 *  @param question
-	 *  	The question to present to the peer, if initiating.
-	 *  	May be <code>null</code> for no question.
-	 *      If not initiating, then it should be received question
-	 *      in order to clarify whether this is shared secret verification.
-	 *  @param secret The secret.
-	 *  @param initiating Whether we are initiating or responding to an initial request.
-	 *
-	 *  @return TLVs to send to the peer
+    /**
+     *  Respond to or initiate an SMP negotiation
+     *
+     *  @param question
+     *  	The question to present to the peer, if initiating.
+     *  	May be <code>null</code> for no question.
+     *      If not initiating, then it should be received question
+     *      in order to clarify whether this is shared secret verification.
+     *  @param secret The secret.
+     *  @param initiating Whether we are initiating or responding to an initial request.
+     *
+     *  @return TLVs to send to the peer
      *  @throws OtrException MVN_PASS_JAVADOC_INSPECTION
-	 */
-	public List<TLV> initRespondSmp(@Nullable final String question, @Nonnull final String secret,
+     */
+    public List<TLV> initRespondSmp(@Nullable final String question, @Nonnull final String secret,
             final boolean initiating) throws OtrException {
         if (!initiating && this.sm.status() != SM.Status.INPROGRESS) {
             throw new OtrException(new IllegalStateException(
                     "There is no question to be answered."));
         }
 
-		/*
-		 * Construct the combined secret as a SHA256 hash of:
-		 * Version byte (0x01), Initiator fingerprint (20 bytes),
-		 * responder fingerprint (20 bytes), secure session id, input secret
-		 */
-		final byte[] ourFp = engineHost.getLocalFingerprintRaw(session
-				.getSessionID());
-		final PublicKey remotePublicKey = session.getRemotePublicKey();
-		final byte[] theirFp = OtrCryptoEngine.getFingerprintRaw(remotePublicKey);
-		final byte[] sessionId = this.s.ssid();
-		final byte[] secretBytes = secret.getBytes(SerializationUtils.UTF8);
+        /*
+         * Construct the combined secret as a SHA256 hash of:
+         * Version byte (0x01), Initiator fingerprint (20 bytes),
+         * responder fingerprint (20 bytes), secure session id, input secret
+         */
+        final byte[] ourFp = engineHost.getLocalFingerprintRaw(session
+                .getSessionID());
+        final PublicKey remotePublicKey = session.getRemotePublicKey();
+        final byte[] theirFp = OtrCryptoEngine.getFingerprintRaw(remotePublicKey);
+        final byte[] sessionId = this.s.ssid();
+        final byte[] secretBytes = secret.getBytes(SerializationUtils.UTF8);
         final byte[] combinedSecret;
         if (initiating) {
             combinedSecret = OtrCryptoEngine.sha256Hash(VERSION_BYTE, ourFp, theirFp, sessionId, secretBytes);
@@ -98,7 +98,7 @@ public final class SmpTlvHandler {
             combinedSecret = OtrCryptoEngine.sha256Hash(VERSION_BYTE, theirFp, ourFp, sessionId, secretBytes);
         }
 
-		byte[] smpmsg;
+        byte[] smpmsg;
         if (initiating) {
             try {
                 smpmsg = sm.step1(combinedSecret);
@@ -135,31 +135,31 @@ public final class SmpTlvHandler {
             }
         }
 
-		// If we've got a question, attach it to the smpmsg
-		if (question != null && initiating){
-			final byte[] questionBytes = question.getBytes(SerializationUtils.UTF8);
-			final byte[] qsmpmsg = new byte[questionBytes.length + 1 + smpmsg.length];
-			System.arraycopy(questionBytes, 0, qsmpmsg, 0, questionBytes.length);
-			System.arraycopy(smpmsg, 0, qsmpmsg, questionBytes.length + 1, smpmsg.length);
-			smpmsg = qsmpmsg;
-		}
+        // If we've got a question, attach it to the smpmsg
+        if (question != null && initiating){
+            final byte[] questionBytes = question.getBytes(SerializationUtils.UTF8);
+            final byte[] qsmpmsg = new byte[questionBytes.length + 1 + smpmsg.length];
+            System.arraycopy(questionBytes, 0, qsmpmsg, 0, questionBytes.length);
+            System.arraycopy(smpmsg, 0, qsmpmsg, questionBytes.length + 1, smpmsg.length);
+            smpmsg = qsmpmsg;
+        }
 
-		final TLV sendtlv = new TLV(initiating?
-				(question != null ? TLV.SMP1Q:TLV.SMP1) : TLV.SMP2, smpmsg);
+        final TLV sendtlv = new TLV(initiating?
+                (question != null ? TLV.SMP1Q:TLV.SMP1) : TLV.SMP2, smpmsg);
         return Collections.singletonList(sendtlv);
-	}
+    }
 
-	/**
-	 *  Create an abort TLV and reset our state.
-	 *
-	 *  @return TLVs to send to the peer
+    /**
+     *  Create an abort TLV and reset our state.
+     *
+     *  @return TLVs to send to the peer
      *  @throws OtrException MVN_PASS_JAVADOC_INSPECTION
-	 */
-	public List<TLV> abortSmp() throws OtrException {
+     */
+    public List<TLV> abortSmp() throws OtrException {
         this.sm.abort();
-		final TLV sendtlv = new TLV(TLV.SMP_ABORT, TLV.EMPTY);
+        final TLV sendtlv = new TLV(TLV.SMP_ABORT, TLV.EMPTY);
         return Collections.singletonList(sendtlv);
-	}
+    }
 
     /**
      * Reset SMP state to SMP_EXPECT1, the initial state, without sending an
@@ -169,18 +169,18 @@ public final class SmpTlvHandler {
         this.sm.abort();
     }
 
-	public boolean isSmpInProgress() {
-	    return this.sm.status() == SM.Status.INPROGRESS;
-	}
+    public boolean isSmpInProgress() {
+        return this.sm.status() == SM.Status.INPROGRESS;
+    }
 
-	public String getFingerprint() {
+    public String getFingerprint() {
         return OtrCryptoEngine.getFingerprint(session.getRemotePublicKey());
-	}
+    }
 
     public void processTlvSMP1Q(@Nonnull final TLV tlv) throws OtrException {
         // We can only do the verification half now.
         // We must wait for the secret to be entered
-		// to continue.
+        // to continue.
         final byte[] question = tlv.getValue();
         int qlen = 0;
         for (; qlen != question.length && question[qlen] != 0; qlen++) {
@@ -214,10 +214,10 @@ public final class SmpTlvHandler {
         }
     }
 
-	public void processTlvSMP1(@Nonnull final TLV tlv) throws OtrException {
+    public void processTlvSMP1(@Nonnull final TLV tlv) throws OtrException {
         /* We can only do the verification half now.
-			 * We must wait for the secret to be entered
-			 * to continue. */
+             * We must wait for the secret to be entered
+             * to continue. */
         try {
             sm.step2a(tlv.getValue());
             SmpEngineHostUtil.askForSecret(engineHost, session.getSessionID(),
@@ -234,7 +234,7 @@ public final class SmpTlvHandler {
         }
     }
 
-	public void processTlvSMP2(@Nonnull final TLV tlv) throws OtrException {
+    public void processTlvSMP2(@Nonnull final TLV tlv) throws OtrException {
         
         try {
             final byte[] nextmsg = sm.step3(tlv.getValue());

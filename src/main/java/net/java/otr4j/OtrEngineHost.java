@@ -30,7 +30,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID The session ID
      * @param msg The message to inject
      */
-	void injectMessage(@Nonnull SessionID sessionID, @Nonnull String msg);
+    void injectMessage(@Nonnull SessionID sessionID, @Nonnull String msg);
 
     /**
      * Warn the user that an encrypted message was received that could not be
@@ -39,7 +39,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      *
      * @param sessionID The session ID
      */
-	void unreadableMessageReceived(@Nonnull SessionID sessionID);
+    void unreadableMessageReceived(@Nonnull SessionID sessionID);
 
     /**
      * Display the message to the user, but warn him that the message was
@@ -57,7 +57,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      * @param error the error message
      */
-	void showError(@Nonnull SessionID sessionID, @Nonnull String error);
+    void showError(@Nonnull SessionID sessionID, @Nonnull String error);
 
     /**
      * Signal Engine Host that OTR secure session is finished.
@@ -65,7 +65,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      * @param msgText message text
      */
-	void finishedSessionMessage(@Nonnull SessionID sessionID, @Nonnull String msgText);
+    void finishedSessionMessage(@Nonnull SessionID sessionID, @Nonnull String msgText);
 
     /**
      * Signal Engine Host that current policy dictates that a secure session is
@@ -74,7 +74,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      * @param msgText the encryption required message
      */
-	void requireEncryptedMessage(@Nonnull SessionID sessionID, @Nonnull String msgText);
+    void requireEncryptedMessage(@Nonnull SessionID sessionID, @Nonnull String msgText);
 
     /**
      * Request the current session policy for provided session ID.
@@ -82,26 +82,26 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      * @return Returns the current policy for specified session.
      */
-	OtrPolicy getSessionPolicy(@Nonnull SessionID sessionID);
+    OtrPolicy getSessionPolicy(@Nonnull SessionID sessionID);
 
-	/**
-	 * Get instructions for the necessary fragmentation operations.
-	 *
-	 * If no fragmentation is necessary, return {@link Integer#MAX_VALUE} to
-	 * indicate the largest possible fragment size. Return any positive
-	 * integer to specify a maximum fragment size and enable fragmentation
-	 * using that boundary condition. If specified max fragment size is too
-	 * small to fit at least the fragmentation overhead + some part of the
-	 * message, fragmentation will fail with an IOException when
-	 * fragmentation is attempted during message encryption.
-	 *
-	 * @param sessionID
-	 *            the session ID of the session
-	 * @return Returns the maximum fragment size allowed. Or return the
-	 * maximum value possible, {@link Integer#MAX_VALUE}, if fragmentation
-	 * is not necessary.
-	 */
-	int getMaxFragmentSize(@Nonnull SessionID sessionID);
+    /**
+     * Get instructions for the necessary fragmentation operations.
+     *
+     * If no fragmentation is necessary, return {@link Integer#MAX_VALUE} to
+     * indicate the largest possible fragment size. Return any positive
+     * integer to specify a maximum fragment size and enable fragmentation
+     * using that boundary condition. If specified max fragment size is too
+     * small to fit at least the fragmentation overhead + some part of the
+     * message, fragmentation will fail with an IOException when
+     * fragmentation is attempted during message encryption.
+     *
+     * @param sessionID
+     *            the session ID of the session
+     * @return Returns the maximum fragment size allowed. Or return the
+     * maximum value possible, {@link Integer#MAX_VALUE}, if fragmentation
+     * is not necessary.
+     */
+    int getMaxFragmentSize(@Nonnull SessionID sessionID);
 
     /**
      * Request local key pair from Engine Host.
@@ -110,7 +110,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @return Returns the local key pair.
      */
     @Nonnull
-	KeyPair getLocalKeyPair(@Nonnull SessionID sessionID);
+    KeyPair getLocalKeyPair(@Nonnull SessionID sessionID);
 
     /**
      * Request local fingerprint in raw byte form.
@@ -119,7 +119,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @return Returns the raw fingerprint bytes.
      */
     @Nonnull
-	byte[] getLocalFingerprintRaw(@Nonnull SessionID sessionID);
+    byte[] getLocalFingerprintRaw(@Nonnull SessionID sessionID);
 
     /**
      * When a message is received that is unreadable for some reason, for
@@ -130,7 +130,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      * @return Returns an error message.
      */
-	String getReplyForUnreadableMessage(@Nonnull SessionID sessionID);
+    String getReplyForUnreadableMessage(@Nonnull SessionID sessionID);
 
     /**
      * Return the localized message that explains to the recipient how to get an
@@ -143,7 +143,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID
      * @return String the localized message
      */
-	String getFallbackMessage(@Nonnull SessionID sessionID);
+    String getFallbackMessage(@Nonnull SessionID sessionID);
 
     /**
      * Signal the Engine Host that a message is received that is intended for
@@ -152,7 +152,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      *
      * @param sessionID the session ID
      */
-	void messageFromAnotherInstanceReceived(@Nonnull SessionID sessionID);
+    void messageFromAnotherInstanceReceived(@Nonnull SessionID sessionID);
 
     /**
      * Signal the Engine Host that we have received a message that is intended
@@ -161,5 +161,5 @@ public interface OtrEngineHost extends SmpEngineHost {
      *
      * @param sessionID the session ID
      */
-	void multipleInstancesDetected(@Nonnull SessionID sessionID);
+    void multipleInstancesDetected(@Nonnull SessionID sessionID);
 }

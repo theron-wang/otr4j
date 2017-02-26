@@ -52,15 +52,15 @@ public final class SerializationUtils {
 
     private static final Logger LOGGER = Logger.getLogger(SerializationUtils.class.getName());
 
-	/**
-	 * Charset for base64-encoded content.
-	 */
-	public static final Charset ASCII = Charset.forName("US-ASCII");
+    /**
+     * Charset for base64-encoded content.
+     */
+    public static final Charset ASCII = Charset.forName("US-ASCII");
 
-	/**
-	 * Charset for message content according to OTR spec.
-	 */
-	public static final Charset UTF8 = Charset.forName("UTF-8");
+    /**
+     * Charset for message content according to OTR spec.
+     */
+    public static final Charset UTF8 = Charset.forName("UTF-8");
 
     /**
      * Index of numbers such that we can easily translate from number character
@@ -74,94 +74,94 @@ public final class SerializationUtils {
         // Utility class cannot be instantiated.
     }
 
-	// Mysterious X IO.
-	public static SignatureX toMysteriousX(@Nonnull final byte[] b) throws IOException, OtrCryptoException {
-		final ByteArrayInputStream in = new ByteArrayInputStream(b);
-		final SignatureX x;
+    // Mysterious X IO.
+    public static SignatureX toMysteriousX(@Nonnull final byte[] b) throws IOException, OtrCryptoException {
+        final ByteArrayInputStream in = new ByteArrayInputStream(b);
+        final SignatureX x;
         try (final OtrInputStream ois = new OtrInputStream(in)) {
             x = ois.readMysteriousX();
         }
-		return x;
-	}
+        return x;
+    }
 
-	public static byte[] toByteArray(@Nonnull final SignatureX x) {
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    public static byte[] toByteArray(@Nonnull final SignatureX x) {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writeMysteriousX(x);
         } catch (final IOException ex) {
             throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
-		return out.toByteArray();
-	}
+        return out.toByteArray();
+    }
 
-	// Mysterious M IO.
-	public static byte[] toByteArray(@Nonnull final SignatureM m) {
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    // Mysterious M IO.
+    public static byte[] toByteArray(@Nonnull final SignatureM m) {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writeMysteriousX(m);
         } catch (final IOException ex) {
             throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
-		return out.toByteArray();
-	}
+        return out.toByteArray();
+    }
 
-	// Mysterious T IO.
-	public static byte[] toByteArray(@Nonnull final MysteriousT t) {
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    // Mysterious T IO.
+    public static byte[] toByteArray(@Nonnull final MysteriousT t) {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writeMysteriousT(t);
         } catch (final IOException ex) {
             throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
-		return out.toByteArray();
-	}
+        return out.toByteArray();
+    }
 
-	// Basic IO.
-	public static byte[] writeData(@Nullable final byte[] b) {
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    // Basic IO.
+    public static byte[] writeData(@Nullable final byte[] b) {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writeData(b);
         } catch (final IOException ex) {
             throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
         return out.toByteArray();
-	}
+    }
 
-	// BigInteger IO.
-	public static byte[] writeMpi(@Nonnull final BigInteger bigInt) {
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    // BigInteger IO.
+    public static byte[] writeMpi(@Nonnull final BigInteger bigInt) {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writeBigInt(bigInt);
         } catch (final IOException ex) {
             throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
-		return out.toByteArray();
-	}
+        return out.toByteArray();
+    }
 
-	public static BigInteger readMpi(@Nonnull final byte[] b) throws IOException {
-		final ByteArrayInputStream in = new ByteArrayInputStream(b);
-		final BigInteger bigint;
+    public static BigInteger readMpi(@Nonnull final byte[] b) throws IOException {
+        final ByteArrayInputStream in = new ByteArrayInputStream(b);
+        final BigInteger bigint;
         try (final OtrInputStream ois = new OtrInputStream(in)) {
             bigint = ois.readBigInt();
         }
-		return bigint;
-	}
+        return bigint;
+    }
 
-	// Public Key IO.
-	public static byte[] writePublicKey(@Nonnull final PublicKey pubKey) {
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    // Public Key IO.
+    public static byte[] writePublicKey(@Nonnull final PublicKey pubKey) {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
             oos.writePublicKey(pubKey);
         } catch (final IOException ex) {
             throw new IllegalStateException("Unexpected error: failed to write to ByteArrayOutputStream.", ex);
         }
         return out.toByteArray();
-	}
+    }
 
     // TODO add unit tests to test serialization of plaintext messages with whitespace tags.
-	// Message IO.
-	public static String toString(@Nonnull final Message m) {
-		final StringWriter writer = new StringWriter();
+    // Message IO.
+    public static String toString(@Nonnull final Message m) {
+        final StringWriter writer = new StringWriter();
         if (!(m instanceof PlainTextMessage) && !(m instanceof QueryMessage)) {
             // We avoid writing the header until we know for sure we need it. We
             // know for sure that plaintext messages do not need it. We may not
@@ -284,50 +284,50 @@ public final class SerializationUtils {
         } else {
             throw new UnsupportedOperationException("Unsupported message type encountered: " + m.getClass().getName());
         }
-		return writer.toString();
-	}
+        return writer.toString();
+    }
 
     // PATTERN_WHITESPACE recognizes OTR v1, v2 and v3 whitespace tags. We will
     // continue to recognize OTR v1 whitespace tag for compatibility purposes
     // and to avoid bad interpretation.
-	private static final Pattern PATTERN_WHITESPACE = Pattern
-			.compile(" \\t  \\t\\t\\t\\t \\t \\t \\t  ( \\t \\t  \\t )?(  \\t\\t  \\t )?(  \\t\\t  \\t\\t)?");
+    private static final Pattern PATTERN_WHITESPACE = Pattern
+            .compile(" \\t  \\t\\t\\t\\t \\t \\t \\t  ( \\t \\t  \\t )?(  \\t\\t  \\t )?(  \\t\\t  \\t\\t)?");
 
-	/**
-	 * Parses an encoded OTR string into an instance of {@link Message}.
-	 *
-	 * @param s
-	 *            the string to parse
-	 * @return the parsed message
-	 * @throws IOException
-	 *             error parsing the string to a message, either format mismatch
-	 *             or real IO error
+    /**
+     * Parses an encoded OTR string into an instance of {@link Message}.
+     *
+     * @param s
+     *            the string to parse
+     * @return the parsed message
+     * @throws IOException
+     *             error parsing the string to a message, either format mismatch
+     *             or real IO error
      * @throws net.java.otr4j.crypto.OtrCryptoException error of cryptographic nature
-	 */
-	public static Message toMessage(@Nonnull final String s) throws IOException, OtrCryptoException {
-		if (s.length() == 0) {
+     */
+    public static Message toMessage(@Nonnull final String s) throws IOException, OtrCryptoException {
+        if (s.length() == 0) {
             return null;
         }
 
-		final int idxHead = s.indexOf(SerializationConstants.HEAD);
-		if (idxHead > -1) {
-			// Message **contains** the string "?OTR". Check to see if it is an error message, a query message or a data
-			// message.
+        final int idxHead = s.indexOf(SerializationConstants.HEAD);
+        if (idxHead > -1) {
+            // Message **contains** the string "?OTR". Check to see if it is an error message, a query message or a data
+            // message.
 
-			final char contentType = s.charAt(idxHead + SerializationConstants.HEAD.length());
-			String content = s
-					.substring(idxHead + SerializationConstants.HEAD.length() + 1);
+            final char contentType = s.charAt(idxHead + SerializationConstants.HEAD.length());
+            String content = s
+                    .substring(idxHead + SerializationConstants.HEAD.length() + 1);
 
-			if (contentType == SerializationConstants.HEAD_ERROR
-					&& content.startsWith(SerializationConstants.ERROR_PREFIX)) {
-				// Error tag found.
-				content = content.substring(idxHead + SerializationConstants.ERROR_PREFIX
-						.length());
-				return new ErrorMessage(content);
-			} else if (contentType == SerializationConstants.HEAD_QUERY_V
-					|| contentType == SerializationConstants.HEAD_QUERY_Q) {
-				// Query tag found.
-				final String versionString;
+            if (contentType == SerializationConstants.HEAD_ERROR
+                    && content.startsWith(SerializationConstants.ERROR_PREFIX)) {
+                // Error tag found.
+                content = content.substring(idxHead + SerializationConstants.ERROR_PREFIX
+                        .length());
+                return new ErrorMessage(content);
+            } else if (contentType == SerializationConstants.HEAD_QUERY_V
+                    || contentType == SerializationConstants.HEAD_QUERY_Q) {
+                // Query tag found.
+                final String versionString;
                 if (SerializationConstants.HEAD_QUERY_Q == contentType
                         && content.length() > 0 && content.charAt(0) == 'v') {
                     // OTR v1 query tag format. However, we do not active
@@ -335,10 +335,10 @@ public final class SerializationUtils {
                     // skipping over the OTRv1 tags in order to reach OTR v2 and
                     // v3 version tags.
                     versionString = content.substring(1, content.indexOf('?'));
-				} else if (SerializationConstants.HEAD_QUERY_V == contentType) {
+                } else if (SerializationConstants.HEAD_QUERY_V == contentType) {
                     // OTR v2+ query tag format.
-					versionString = content.substring(0, content.indexOf('?'));
-				} else {
+                    versionString = content.substring(0, content.indexOf('?'));
+                } else {
                     versionString = "";
                 }
                 final HashSet<Integer> versions = new HashSet<>();
@@ -350,9 +350,9 @@ public final class SerializationUtils {
                         versions.add(idx);
                     }
                 }
-				return new QueryMessage(versions);
-			} else if (idxHead == 0 && contentType == SerializationConstants.HEAD_ENCODED) {
-				// Data message found.
+                return new QueryMessage(versions);
+            } else if (idxHead == 0 && contentType == SerializationConstants.HEAD_ENCODED) {
+                // Data message found.
 
                 if (content.charAt(content.length() - 1) != '.') {
                     throw new IOException("Invalid end to OTR encoded message.");
@@ -364,88 +364,88 @@ public final class SerializationUtils {
                  * Otr4j doesn't strip this point before passing the content to the base64 decoder.
                  * So in order to decode the content string we have to get rid of the '.' first.
                  */
-				final ByteArrayInputStream bin = new ByteArrayInputStream(Base64
-						.decode(content.substring(0, content.length() - 1).getBytes(ASCII)));
-				// We have an encoded message.
-				try (final OtrInputStream otr = new OtrInputStream(bin)) {
-					final int protocolVersion = otr.readShort();
-					if (!OTRv.ALL.contains(protocolVersion)) {
-						throw new IOException("Unsupported protocol version "
-								+ protocolVersion);
-					}
-					final int messageType = otr.readByte();
-					int senderInstanceTag = 0;
-					int recipientInstanceTag = 0;
-					if (protocolVersion == OTRv.THREE) {
-						senderInstanceTag = otr.readInt();
-						recipientInstanceTag = otr.readInt();
-					}
-					switch (messageType) {
-						case AbstractEncodedMessage.MESSAGE_DATA:
-							final int flags = otr.readByte();
-							final int senderKeyID = otr.readInt();
-							final int recipientKeyID = otr.readInt();
-							final DHPublicKey nextDH = otr.readDHPublicKey();
-							final byte[] ctr = otr.readCtr();
-							final byte[] encryptedMessage = otr.readData();
-							final byte[] mac = otr.readMac();
-							final byte[] oldMacKeys = otr.readData();
-							return new DataMessage(protocolVersion, flags, senderKeyID,
-									recipientKeyID, nextDH, ctr, encryptedMessage, mac,
-									oldMacKeys, senderInstanceTag, recipientInstanceTag);
-						case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
-							final byte[] dhPublicKeyEncrypted = otr.readData();
-							final byte[] dhPublicKeyHash = otr.readData();
-							return new DHCommitMessage(protocolVersion,
+                final ByteArrayInputStream bin = new ByteArrayInputStream(Base64
+                        .decode(content.substring(0, content.length() - 1).getBytes(ASCII)));
+                // We have an encoded message.
+                try (final OtrInputStream otr = new OtrInputStream(bin)) {
+                    final int protocolVersion = otr.readShort();
+                    if (!OTRv.ALL.contains(protocolVersion)) {
+                        throw new IOException("Unsupported protocol version "
+                                + protocolVersion);
+                    }
+                    final int messageType = otr.readByte();
+                    int senderInstanceTag = 0;
+                    int recipientInstanceTag = 0;
+                    if (protocolVersion == OTRv.THREE) {
+                        senderInstanceTag = otr.readInt();
+                        recipientInstanceTag = otr.readInt();
+                    }
+                    switch (messageType) {
+                        case AbstractEncodedMessage.MESSAGE_DATA:
+                            final int flags = otr.readByte();
+                            final int senderKeyID = otr.readInt();
+                            final int recipientKeyID = otr.readInt();
+                            final DHPublicKey nextDH = otr.readDHPublicKey();
+                            final byte[] ctr = otr.readCtr();
+                            final byte[] encryptedMessage = otr.readData();
+                            final byte[] mac = otr.readMac();
+                            final byte[] oldMacKeys = otr.readData();
+                            return new DataMessage(protocolVersion, flags, senderKeyID,
+                                    recipientKeyID, nextDH, ctr, encryptedMessage, mac,
+                                    oldMacKeys, senderInstanceTag, recipientInstanceTag);
+                        case AbstractEncodedMessage.MESSAGE_DH_COMMIT:
+                            final byte[] dhPublicKeyEncrypted = otr.readData();
+                            final byte[] dhPublicKeyHash = otr.readData();
+                            return new DHCommitMessage(protocolVersion,
                                     dhPublicKeyHash, dhPublicKeyEncrypted,
                                     senderInstanceTag, recipientInstanceTag);
-						case AbstractEncodedMessage.MESSAGE_DHKEY:
-							final DHPublicKey dhPublicKey = otr.readDHPublicKey();
+                        case AbstractEncodedMessage.MESSAGE_DHKEY:
+                            final DHPublicKey dhPublicKey = otr.readDHPublicKey();
                             return new DHKeyMessage(protocolVersion, dhPublicKey,
                                     senderInstanceTag, recipientInstanceTag);
-						case AbstractEncodedMessage.MESSAGE_REVEALSIG: {
-							final byte[] revealedKey = otr.readData();
-							final byte[] xEncrypted = otr.readData();
-							final byte[] xEncryptedMac = otr.readMac();
+                        case AbstractEncodedMessage.MESSAGE_REVEALSIG: {
+                            final byte[] revealedKey = otr.readData();
+                            final byte[] xEncrypted = otr.readData();
+                            final byte[] xEncryptedMac = otr.readMac();
                             return new RevealSignatureMessage(protocolVersion,
                                     xEncrypted, xEncryptedMac, revealedKey,
                                     senderInstanceTag, recipientInstanceTag);
-						}
-						case AbstractEncodedMessage.MESSAGE_SIGNATURE: {
-							final byte[] xEncryted = otr.readData();
-							final byte[] xEncryptedMac = otr.readMac();
+                        }
+                        case AbstractEncodedMessage.MESSAGE_SIGNATURE: {
+                            final byte[] xEncryted = otr.readData();
+                            final byte[] xEncryptedMac = otr.readMac();
                             return new SignatureMessage(protocolVersion,
                                     xEncryted, xEncryptedMac, senderInstanceTag,
                                     recipientInstanceTag);
-						}
-						default:
-							// NOTE by gp: aren't we being a little too harsh here? Passing the message as a plaintext
-							// message to the host application shouldn't hurt anybody.
-							throw new IOException("Illegal message type.");
-					}
-				}
-			}
-		}
+                        }
+                        default:
+                            // NOTE by gp: aren't we being a little too harsh here? Passing the message as a plaintext
+                            // message to the host application shouldn't hurt anybody.
+                            throw new IOException("Illegal message type.");
+                    }
+                }
+            }
+        }
 
-		// Try to detect whitespace tag.
-		final Matcher matcher = PATTERN_WHITESPACE.matcher(s);
+        // Try to detect whitespace tag.
+        final Matcher matcher = PATTERN_WHITESPACE.matcher(s);
 
-		boolean v2 = false;
-		boolean v3 = false;
-		while (matcher.find()) {
+        boolean v2 = false;
+        boolean v3 = false;
+        while (matcher.find()) {
             // Ignore group 1 (OTRv1 tag) as V1 is not supported anymore.
-			if (!v2 && matcher.start(2) > -1) {
+            if (!v2 && matcher.start(2) > -1) {
                 v2 = true;
             }
-			if (!v3 && matcher.start(3) > -1) {
+            if (!v3 && matcher.start(3) > -1) {
                 v3 = true;
             }
-			if (v2 && v3) {
+            if (v2 && v3) {
                 break;
             }
-		}
+        }
 
-		final String cleanText = matcher.replaceAll("");
+        final String cleanText = matcher.replaceAll("");
         final HashSet<Integer> versions = new HashSet<>();
         if (v2) {
             versions.add(OTRv.TWO);
@@ -454,39 +454,39 @@ public final class SerializationUtils {
             versions.add(OTRv.THREE);
         }
         return new PlainTextMessage(versions, cleanText);
-	}
+    }
 
-	private static final char HEX_ENCODER[] = {'0', '1', '2', '3', '4', '5',
-			'6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    private static final char HEX_ENCODER[] = {'0', '1', '2', '3', '4', '5',
+            '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-	public static String byteArrayToHexString(@Nullable final byte in[]) {
-		if (in == null || in.length <= 0) {
+    public static String byteArrayToHexString(@Nullable final byte in[]) {
+        if (in == null || in.length <= 0) {
             return null;
         }
-		final StringBuilder out = new StringBuilder(in.length * 2);
-		int i = 0;
-		while (i < in.length) {
-			out.append(HEX_ENCODER[(in[i] >>> 4) & 0x0F]);
-			out.append(HEX_ENCODER[in[i] & 0x0F]);
-			i++;
-		}
-		return out.toString();
-	}
+        final StringBuilder out = new StringBuilder(in.length * 2);
+        int i = 0;
+        while (i < in.length) {
+            out.append(HEX_ENCODER[(in[i] >>> 4) & 0x0F]);
+            out.append(HEX_ENCODER[in[i] & 0x0F]);
+            i++;
+        }
+        return out.toString();
+    }
 
-	private static final String HEX_DECODER = "0123456789ABCDEF";
+    private static final String HEX_DECODER = "0123456789ABCDEF";
 
-	public static byte[] hexStringToByteArray(@Nonnull String value) {
-		value = value.toUpperCase(Locale.US);
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		for (int index = 0; index < value.length(); index += 2) {
-			int high = HEX_DECODER.indexOf(value.charAt(index));
-			int low = HEX_DECODER.indexOf(value.charAt(index + 1));
-			out.write((high << 4) + low);
-		}
-		return out.toByteArray();
-	}
+    public static byte[] hexStringToByteArray(@Nonnull String value) {
+        value = value.toUpperCase(Locale.US);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        for (int index = 0; index < value.length(); index += 2) {
+            int high = HEX_DECODER.indexOf(value.charAt(index));
+            int low = HEX_DECODER.indexOf(value.charAt(index + 1));
+            out.write((high << 4) + low);
+        }
+        return out.toByteArray();
+    }
 
-	/**
+    /**
      * Convert the {@code String} text to a {@code byte[]}, including sanitizing
      * it to make sure no corrupt characters conflict with bytes that have
      * special meaning in OTR. Mostly, this means removing NULL bytes, since
@@ -500,15 +500,15 @@ public final class SerializationUtils {
         return msg.replace('\0', '?').getBytes(SerializationUtils.UTF8);
     }
 
-	/**
-	 * Check whether the provided content is OTR encoded.
-	 *
-	 * @param content
-	 *            the content to investigate
-	 * @return returns true if content is OTR encoded, or false otherwise
-	 */
-	public static boolean otrEncoded(@Nonnull final String content) {
-		return content.startsWith(SerializationConstants.HEAD
-				+ SerializationConstants.HEAD_ENCODED);
-	}
+    /**
+     * Check whether the provided content is OTR encoded.
+     *
+     * @param content
+     *            the content to investigate
+     * @return returns true if content is OTR encoded, or false otherwise
+     */
+    public static boolean otrEncoded(@Nonnull final String content) {
+        return content.startsWith(SerializationConstants.HEAD
+                + SerializationConstants.HEAD_ENCODED);
+    }
 }

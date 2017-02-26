@@ -20,45 +20,45 @@ public final class PlainTextMessage extends QueryMessage {
 
     public final String cleanText;
 
-	public PlainTextMessage(@Nonnull final Set<Integer> versions,
+    public PlainTextMessage(@Nonnull final Set<Integer> versions,
             @Nonnull final String cleanText) {
         super(versions);
-		this.cleanText = Objects.requireNonNull(cleanText);
-	}
+        this.cleanText = Objects.requireNonNull(cleanText);
+    }
 
     @Override
     public int getType() {
         return Message.MESSAGE_PLAINTEXT;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result
-				+ ((cleanText == null) ? 0 : cleanText.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result
+                + ((cleanText == null) ? 0 : cleanText.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-		if (!super.equals(obj)) {
+        if (!super.equals(obj)) {
             return false;
         }
-		if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-		PlainTextMessage other = (PlainTextMessage) obj;
-		if (cleanText == null) {
-			if (other.cleanText != null) {
+        PlainTextMessage other = (PlainTextMessage) obj;
+        if (cleanText == null) {
+            if (other.cleanText != null) {
                 return false;
             }
-		} else if (!cleanText.equals(other.cleanText)) {
+        } else if (!cleanText.equals(other.cleanText)) {
             return false;
         }
-		return true;
-	}
+        return true;
+    }
 }

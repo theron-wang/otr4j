@@ -26,133 +26,133 @@ import net.java.otr4j.io.messages.SignatureX;
 import org.bouncycastle.util.BigIntegers;
 
 public final class OtrOutputStream extends FilterOutputStream implements
-		SerializationConstants {
+        SerializationConstants {
 
-	public OtrOutputStream(@Nonnull final OutputStream out) {
-		super(out);
-	}
+    public OtrOutputStream(@Nonnull final OutputStream out) {
+        super(out);
+    }
 
-	private void writeNumber(final int value, final int length) throws IOException {
-		final byte[] b = new byte[length];
-		for (int i = 0; i < length; i++) {
-			final int offset = (b.length - 1 - i) * 8;
-			b[i] = (byte) ((value >>> offset) & 0xFF);
-		}
-		write(b);
-	}
+    private void writeNumber(final int value, final int length) throws IOException {
+        final byte[] b = new byte[length];
+        for (int i = 0; i < length; i++) {
+            final int offset = (b.length - 1 - i) * 8;
+            b[i] = (byte) ((value >>> offset) & 0xFF);
+        }
+        write(b);
+    }
 
-	public void writeBigInt(@Nonnull final BigInteger bi) throws IOException {
-		final byte[] b = BigIntegers.asUnsignedByteArray(bi);
-		writeData(b);
-	}
+    public void writeBigInt(@Nonnull final BigInteger bi) throws IOException {
+        final byte[] b = BigIntegers.asUnsignedByteArray(bi);
+        writeData(b);
+    }
 
-	public void writeByte(final int b) throws IOException {
-		writeNumber(b, TYPE_LEN_BYTE);
-	}
+    public void writeByte(final int b) throws IOException {
+        writeNumber(b, TYPE_LEN_BYTE);
+    }
 
-	public void writeData(@Nullable final byte[] b) throws IOException {
-		final int len = (b == null || b.length < 0) ? 0 : b.length;
-		writeNumber(len, DATA_LEN);
-		if (len > 0) {
+    public void writeData(@Nullable final byte[] b) throws IOException {
+        final int len = (b == null || b.length < 0) ? 0 : b.length;
+        writeNumber(len, DATA_LEN);
+        if (len > 0) {
             write(b);
         }
-	}
+    }
 
-	public void writeInt(final int i) throws IOException {
-		writeNumber(i, TYPE_LEN_INT);
+    public void writeInt(final int i) throws IOException {
+        writeNumber(i, TYPE_LEN_INT);
 
-	}
+    }
 
-	public void writeShort(final int s) throws IOException {
-		writeNumber(s, TYPE_LEN_SHORT);
+    public void writeShort(final int s) throws IOException {
+        writeNumber(s, TYPE_LEN_SHORT);
 
-	}
+    }
 
-	public void writeMac(@Nonnull final byte[] mac) throws IOException {
-		if (mac.length != TYPE_LEN_MAC) {
+    public void writeMac(@Nonnull final byte[] mac) throws IOException {
+        if (mac.length != TYPE_LEN_MAC) {
             throw new IllegalArgumentException();
         }
 
-		write(mac);
-	}
+        write(mac);
+    }
 
-	public void writeCtr(@Nullable final byte[] ctr) throws IOException {
-		if (ctr == null || ctr.length < 1) {
+    public void writeCtr(@Nullable final byte[] ctr) throws IOException {
+        if (ctr == null || ctr.length < 1) {
             return;
         }
 
-		int i = 0;
-		while (i < TYPE_LEN_CTR && i < ctr.length) {
-			write(ctr[i]);
-			i++;
-		}
-	}
+        int i = 0;
+        while (i < TYPE_LEN_CTR && i < ctr.length) {
+            write(ctr[i]);
+            i++;
+        }
+    }
 
-	public void writeDHPublicKey(@Nonnull final DHPublicKey dhPublicKey) throws IOException {
-		final byte[] b = BigIntegers.asUnsignedByteArray(dhPublicKey.getY());
-		writeData(b);
-	}
+    public void writeDHPublicKey(@Nonnull final DHPublicKey dhPublicKey) throws IOException {
+        final byte[] b = BigIntegers.asUnsignedByteArray(dhPublicKey.getY());
+        writeData(b);
+    }
 
-	public void writePublicKey(@Nonnull final PublicKey pubKey) throws IOException {
-		if (!(pubKey instanceof DSAPublicKey)) {
+    public void writePublicKey(@Nonnull final PublicKey pubKey) throws IOException {
+        if (!(pubKey instanceof DSAPublicKey)) {
             throw new UnsupportedOperationException(
                     "Key types other than DSA are not supported at the moment.");
         }
 
-		final DSAPublicKey dsaKey = (DSAPublicKey) pubKey;
+        final DSAPublicKey dsaKey = (DSAPublicKey) pubKey;
 
-		writeShort(PUBLIC_KEY_TYPE_DSA);
+        writeShort(PUBLIC_KEY_TYPE_DSA);
 
-		final DSAParams dsaParams = dsaKey.getParams();
-		writeBigInt(dsaParams.getP());
-		writeBigInt(dsaParams.getQ());
-		writeBigInt(dsaParams.getG());
-		writeBigInt(dsaKey.getY());
+        final DSAParams dsaParams = dsaKey.getParams();
+        writeBigInt(dsaParams.getP());
+        writeBigInt(dsaParams.getQ());
+        writeBigInt(dsaParams.getG());
+        writeBigInt(dsaKey.getY());
 
-	}
+    }
 
-	public void writeTlvData(@Nullable final byte[] b) throws IOException {
-		final int len = (b == null || b.length < 0) ? 0 : b.length;
-		writeNumber(len, TLV_LEN);
-		if (len > 0) {
+    public void writeTlvData(@Nullable final byte[] b) throws IOException {
+        final int len = (b == null || b.length < 0) ? 0 : b.length;
+        writeNumber(len, TLV_LEN);
+        if (len > 0) {
             write(b);
         }
-	}
+    }
 
-	public void writeSignature(@Nonnull final byte[] signature, @Nonnull final PublicKey pubKey)
-			throws IOException {
-		if (!pubKey.getAlgorithm().equals("DSA")) {
+    public void writeSignature(@Nonnull final byte[] signature, @Nonnull final PublicKey pubKey)
+            throws IOException {
+        if (!pubKey.getAlgorithm().equals("DSA")) {
             throw new UnsupportedOperationException();
         }
-		out.write(signature);
-	}
+        out.write(signature);
+    }
 
-	public void writeMysteriousX(@Nonnull final SignatureX x) throws IOException {
-		writePublicKey(x.longTermPublicKey);
-		writeInt(x.dhKeyID);
-		writeSignature(x.signature, x.longTermPublicKey);
-	}
+    public void writeMysteriousX(@Nonnull final SignatureX x) throws IOException {
+        writePublicKey(x.longTermPublicKey);
+        writeInt(x.dhKeyID);
+        writeSignature(x.signature, x.longTermPublicKey);
+    }
 
-	public void writeMysteriousX(@Nonnull final SignatureM m) throws IOException {
-		writeBigInt(m.localPubKey.getY());
-		writeBigInt(m.remotePubKey.getY());
-		writePublicKey(m.localLongTermPubKey);
-		writeInt(m.keyPairID);
-	}
+    public void writeMysteriousX(@Nonnull final SignatureM m) throws IOException {
+        writeBigInt(m.localPubKey.getY());
+        writeBigInt(m.remotePubKey.getY());
+        writePublicKey(m.localLongTermPubKey);
+        writeInt(m.keyPairID);
+    }
 
-	public void writeMysteriousT(@Nonnull final MysteriousT t) throws IOException {
-		writeShort(t.protocolVersion);
-		writeByte(t.messageType);
-		if (t.protocolVersion == 3) {
-			writeInt(t.senderInstanceTag);
-			writeInt(t.receiverInstanceTag);
-		}
-		writeByte(t.flags);
+    public void writeMysteriousT(@Nonnull final MysteriousT t) throws IOException {
+        writeShort(t.protocolVersion);
+        writeByte(t.messageType);
+        if (t.protocolVersion == 3) {
+            writeInt(t.senderInstanceTag);
+            writeInt(t.receiverInstanceTag);
+        }
+        writeByte(t.flags);
 
-		writeInt(t.senderKeyID);
-		writeInt(t.recipientKeyID);
-		writeDHPublicKey(t.nextDH);
-		writeCtr(t.ctr);
-		writeData(t.encryptedMessage);
-	}
+        writeInt(t.senderKeyID);
+        writeInt(t.recipientKeyID);
+        writeDHPublicKey(t.nextDH);
+        writeCtr(t.ctr);
+        writeData(t.encryptedMessage);
+    }
 }

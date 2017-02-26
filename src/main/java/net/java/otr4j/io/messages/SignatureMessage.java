@@ -19,7 +19,7 @@ import javax.annotation.Nonnull;
 public class SignatureMessage extends AbstractEncodedMessage {
 
     public final byte[] xEncrypted;
-	public final byte[] xEncryptedMAC;
+    public final byte[] xEncryptedMAC;
 
     public SignatureMessage(final int protocolVersion,
             @Nonnull final byte[] xEncrypted,
@@ -42,33 +42,33 @@ public class SignatureMessage extends AbstractEncodedMessage {
         return Message.MESSAGE_SIGNATURE;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + Arrays.hashCode(xEncrypted);
-		result = prime * result + Arrays.hashCode(xEncryptedMAC);
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + Arrays.hashCode(xEncrypted);
+        result = prime * result + Arrays.hashCode(xEncryptedMAC);
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-		if (!super.equals(obj)) {
+        if (!super.equals(obj)) {
             return false;
         }
-		if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-		SignatureMessage other = (SignatureMessage) obj;
-		if (!Arrays.equals(xEncrypted, other.xEncrypted)) {
+        SignatureMessage other = (SignatureMessage) obj;
+        if (!Arrays.equals(xEncrypted, other.xEncrypted)) {
             return false;
         }
-		if (!Arrays.equals(xEncryptedMAC, other.xEncryptedMAC)) {
+        if (!Arrays.equals(xEncryptedMAC, other.xEncryptedMAC)) {
             return false;
         }
-		return true;
-	}
+        return true;
+    }
 }

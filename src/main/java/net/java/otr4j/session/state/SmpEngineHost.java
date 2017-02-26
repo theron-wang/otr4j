@@ -32,7 +32,7 @@ public interface SmpEngineHost {
      * @param receiverTag the receiver instance tag
      * @param question the question to be asked to the user by the Engine Host
      */
-	void askForSecret(@Nonnull SessionID sessionID, @Nonnull InstanceTag receiverTag, @Nullable String question);
+    void askForSecret(@Nonnull SessionID sessionID, @Nonnull InstanceTag receiverTag, @Nullable String question);
 
     /**
      * Request local fingerprint in raw byte form.
@@ -41,7 +41,7 @@ public interface SmpEngineHost {
      * @return Returns the raw fingerprint bytes.
      */
     @Nonnull
-	byte[] getLocalFingerprintRaw(@Nonnull SessionID sessionID);
+    byte[] getLocalFingerprintRaw(@Nonnull SessionID sessionID);
 
     /**
      * Call Engine Host to inform of SMP error during authentication.
@@ -51,14 +51,14 @@ public interface SmpEngineHost {
      * @param cheated status indicator for cheating (interruption before SMP
      * verification step was able to complete)
      */
-	void smpError(@Nonnull SessionID sessionID, int tlvType, boolean cheated);
+    void smpError(@Nonnull SessionID sessionID, int tlvType, boolean cheated);
 
     /**
      * Call Engine Host to inform of SMP abort.
      *
      * @param sessionID the session ID
      */
-	void smpAborted(@Nonnull SessionID sessionID);
+    void smpAborted(@Nonnull SessionID sessionID);
 
     /**
      * When a remote user's key is verified via the Socialist Millionaire's
@@ -68,7 +68,7 @@ public interface SmpEngineHost {
      * @param sessionID of the session where the SMP happened.
      * @param fingerprint of the key to verify
      */
-	void verify(@Nonnull SessionID sessionID, @Nonnull String fingerprint);
+    void verify(@Nonnull SessionID sessionID, @Nonnull String fingerprint);
 
     /**
      * If the Socialist Millionaire's Protocol (SMP) process fails, then this
@@ -78,5 +78,5 @@ public interface SmpEngineHost {
      * @param sessionID of the session where the SMP happened.
      * @param fingerprint of the key to unverify
      */
-	void unverify(@Nonnull SessionID sessionID, @Nonnull String fingerprint);
+    void unverify(@Nonnull SessionID sessionID, @Nonnull String fingerprint);
 }

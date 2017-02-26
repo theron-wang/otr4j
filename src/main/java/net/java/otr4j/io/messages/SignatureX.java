@@ -14,59 +14,59 @@ import java.util.Arrays;
  * @author George Politis
  */
 public class SignatureX {
-	// Fields.
-	public PublicKey longTermPublicKey;
-	public int dhKeyID;
-	public byte[] signature;
+    // Fields.
+    public PublicKey longTermPublicKey;
+    public int dhKeyID;
+    public byte[] signature;
 
-	// Ctor.
-	public SignatureX(final PublicKey ourLongTermPublicKey, final int ourKeyID,
-			final byte[] signature) {
-		this.longTermPublicKey = ourLongTermPublicKey;
-		this.dhKeyID = ourKeyID;
-		this.signature = signature;
-	}
+    // Ctor.
+    public SignatureX(final PublicKey ourLongTermPublicKey, final int ourKeyID,
+            final byte[] signature) {
+        this.longTermPublicKey = ourLongTermPublicKey;
+        this.dhKeyID = ourKeyID;
+        this.signature = signature;
+    }
 
-	// Methods.
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + dhKeyID;
-		result = prime
-				* result
-				+ ((longTermPublicKey == null) ? 0 : longTermPublicKey
-						.hashCode());
-		result = prime * result + Arrays.hashCode(signature);
-		return result;
-	}
+    // Methods.
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + dhKeyID;
+        result = prime
+                * result
+                + ((longTermPublicKey == null) ? 0 : longTermPublicKey
+                        .hashCode());
+        result = prime * result + Arrays.hashCode(signature);
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-		if (obj == null) {
+        if (obj == null) {
             return false;
         }
-		if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-		SignatureX other = (SignatureX) obj;
-		if (dhKeyID != other.dhKeyID) {
+        SignatureX other = (SignatureX) obj;
+        if (dhKeyID != other.dhKeyID) {
             return false;
         }
-		if (longTermPublicKey == null) {
-			if (other.longTermPublicKey != null) {
+        if (longTermPublicKey == null) {
+            if (other.longTermPublicKey != null) {
                 return false;
             }
-		} else if (!longTermPublicKey.equals(other.longTermPublicKey)) {
+        } else if (!longTermPublicKey.equals(other.longTermPublicKey)) {
             return false;
         }
-		if (!Arrays.equals(signature, other.signature)) {
+        if (!Arrays.equals(signature, other.signature)) {
             return false;
         }
-		return true;
-	}
+        return true;
+    }
 
 }

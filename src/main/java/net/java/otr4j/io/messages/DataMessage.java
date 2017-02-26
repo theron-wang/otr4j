@@ -20,28 +20,28 @@ import javax.crypto.interfaces.DHPublicKey;
  */
 public final class DataMessage extends AbstractEncodedMessage {
 
-	public final int flags;
-	public final int senderKeyID;
-	public final int recipientKeyID;
-	public final DHPublicKey nextDH;
-	public final byte[] ctr;
-	public final byte[] encryptedMessage;
-	public final byte[] mac;
-	public final byte[] oldMACKeys;
+    public final int flags;
+    public final int senderKeyID;
+    public final int recipientKeyID;
+    public final DHPublicKey nextDH;
+    public final byte[] ctr;
+    public final byte[] encryptedMessage;
+    public final byte[] mac;
+    public final byte[] oldMACKeys;
 
-	public DataMessage(@Nonnull final MysteriousT t, @Nonnull final byte[] mac,
+    public DataMessage(@Nonnull final MysteriousT t, @Nonnull final byte[] mac,
             @Nonnull final byte[] oldMacKeys) {
-		this(t.protocolVersion, t.flags, t.senderKeyID, t.recipientKeyID,
-				t.nextDH, t.ctr, t.encryptedMessage, mac, oldMacKeys, 0, 0);
-	}
+        this(t.protocolVersion, t.flags, t.senderKeyID, t.recipientKeyID,
+                t.nextDH, t.ctr, t.encryptedMessage, mac, oldMacKeys, 0, 0);
+    }
 
-	public DataMessage(@Nonnull final MysteriousT t, @Nonnull final byte[] mac,
+    public DataMessage(@Nonnull final MysteriousT t, @Nonnull final byte[] mac,
             @Nonnull final byte[] oldMacKeys, final int senderInstanceTag,
             final int receiverInstanceTag) {
-		this(t.protocolVersion, t.flags, t.senderKeyID, t.recipientKeyID,
-				t.nextDH, t.ctr, t.encryptedMessage, mac, oldMacKeys,
+        this(t.protocolVersion, t.flags, t.senderKeyID, t.recipientKeyID,
+                t.nextDH, t.ctr, t.encryptedMessage, mac, oldMacKeys,
                 senderInstanceTag, receiverInstanceTag);
-	}
+    }
 
     public DataMessage(final int protocolVersion, final int flags, final int senderKeyID,
             final int recipientKeyID, @Nonnull final DHPublicKey nextDH,
@@ -70,61 +70,61 @@ public final class DataMessage extends AbstractEncodedMessage {
                 recipientKeyID, nextDH, ctr, encryptedMessage);
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + Arrays.hashCode(ctr);
-		result = prime * result + Arrays.hashCode(encryptedMessage);
-		result = prime * result + flags;
-		result = prime * result + Arrays.hashCode(mac);
-		result = prime * result + ((nextDH == null) ? 0 : nextDH.hashCode());
-		result = prime * result + Arrays.hashCode(oldMACKeys);
-		result = prime * result + recipientKeyID;
-		result = prime * result + senderKeyID;
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + Arrays.hashCode(ctr);
+        result = prime * result + Arrays.hashCode(encryptedMessage);
+        result = prime * result + flags;
+        result = prime * result + Arrays.hashCode(mac);
+        result = prime * result + ((nextDH == null) ? 0 : nextDH.hashCode());
+        result = prime * result + Arrays.hashCode(oldMACKeys);
+        result = prime * result + recipientKeyID;
+        result = prime * result + senderKeyID;
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-		if (!super.equals(obj)) {
+        if (!super.equals(obj)) {
             return false;
         }
-		if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-		DataMessage other = (DataMessage) obj;
-		if (!Arrays.equals(ctr, other.ctr)) {
+        DataMessage other = (DataMessage) obj;
+        if (!Arrays.equals(ctr, other.ctr)) {
             return false;
         }
-		if (!Arrays.equals(encryptedMessage, other.encryptedMessage)) {
+        if (!Arrays.equals(encryptedMessage, other.encryptedMessage)) {
             return false;
         }
-		if (flags != other.flags) {
+        if (flags != other.flags) {
             return false;
         }
-		if (!Arrays.equals(mac, other.mac)) {
+        if (!Arrays.equals(mac, other.mac)) {
             return false;
         }
-		if (nextDH == null) {
-			if (other.nextDH != null) {
+        if (nextDH == null) {
+            if (other.nextDH != null) {
                 return false;
             }
-		} else if (!nextDH.equals(other.nextDH)) {
+        } else if (!nextDH.equals(other.nextDH)) {
             return false;
         }
-		if (!Arrays.equals(oldMACKeys, other.oldMACKeys)) {
+        if (!Arrays.equals(oldMACKeys, other.oldMACKeys)) {
             return false;
         }
-		if (recipientKeyID != other.recipientKeyID) {
+        if (recipientKeyID != other.recipientKeyID) {
             return false;
         }
-		if (senderKeyID != other.senderKeyID) {
+        if (senderKeyID != other.senderKeyID) {
             return false;
         }
-		return true;
-	}
+        return true;
+    }
 }

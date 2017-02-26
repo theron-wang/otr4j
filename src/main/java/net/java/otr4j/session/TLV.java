@@ -49,19 +49,19 @@ public class TLV {
      */
     public static final int USE_EXTRA_SYMMETRIC_KEY = 0x0008;
 
-	private final int type;
-	private final byte[] value;
+    private final int type;
+    private final byte[] value;
 
-	public TLV(final int type, @Nonnull final byte[] value) {
+    public TLV(final int type, @Nonnull final byte[] value) {
         this.type = type;
         this.value = Objects.requireNonNull(value);
-	}
+    }
 
-	public int getType() {
-		return type;
-	}
+    public int getType() {
+        return type;
+    }
 
-	public byte[] getValue() {
-		return value;
-	}
+    public byte[] getValue() {
+        return value;
+    }
 }

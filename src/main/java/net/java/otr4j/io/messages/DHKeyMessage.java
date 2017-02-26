@@ -34,34 +34,34 @@ public final class DHKeyMessage extends AbstractEncodedMessage {
         return Message.MESSAGE_DHKEY;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result
-				+ ((dhPublicKey == null) ? 0 : dhPublicKey.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result
+                + ((dhPublicKey == null) ? 0 : dhPublicKey.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-		if (!super.equals(obj)) {
+        if (!super.equals(obj)) {
             return false;
         }
-		if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-		DHKeyMessage other = (DHKeyMessage) obj;
-		if (dhPublicKey == null) {
-			if (other.dhPublicKey != null) {
+        DHKeyMessage other = (DHKeyMessage) obj;
+        if (dhPublicKey == null) {
+            if (other.dhPublicKey != null) {
                 return false;
             }
-		} else if (dhPublicKey.getY().compareTo(other.dhPublicKey.getY()) != 0) {
+        } else if (dhPublicKey.getY().compareTo(other.dhPublicKey.getY()) != 0) {
             return false;
         }
-		return true;
-	}
+        return true;
+    }
 }

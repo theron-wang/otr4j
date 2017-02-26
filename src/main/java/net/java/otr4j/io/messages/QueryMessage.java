@@ -20,9 +20,9 @@ public class QueryMessage implements Message {
 
     public final Set<Integer> versions;
 
-	public QueryMessage(@Nonnull final Set<Integer> versions) {
+    public QueryMessage(@Nonnull final Set<Integer> versions) {
         this.versions = Objects.requireNonNull(versions);
-	}
+    }
 
     @Override
     public int getType() {
