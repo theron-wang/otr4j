@@ -155,6 +155,7 @@ public final class SmpTlvHandler {
      *  @return TLVs to send to the peer
      *  @throws OtrException MVN_PASS_JAVADOC_INSPECTION
      */
+    @Nonnull
     public List<TLV> abortSmp() throws OtrException {
         this.sm.abort();
         final TLV sendtlv = new TLV(TLV.SMP_ABORT, TLV.EMPTY);
@@ -173,17 +174,14 @@ public final class SmpTlvHandler {
         return this.sm.status() == SMPStatus.INPROGRESS;
     }
 
-    public String getFingerprint() {
-        return OtrCryptoEngine.getFingerprint(session.getRemotePublicKey());
-    }
-
-    public void processTlvSMP1Q(@Nonnull final TLV tlv) throws OtrException {
+    void processTlvSMP1Q(@Nonnull final TLV tlv) throws OtrException {
         // We can only do the verification half now.
         // We must wait for the secret to be entered
         // to continue.
         final byte[] question = tlv.getValue();
         int qlen = 0;
-        for (; qlen != question.length && question[qlen] != 0; qlen++) {
+        while (qlen != question.length && question[qlen] != 0) {
+            qlen++;
         }
         if (qlen == question.length) {
             qlen = 0;
@@ -214,7 +212,7 @@ public final class SmpTlvHandler {
         }
     }
 
-    public void processTlvSMP1(@Nonnull final TLV tlv) throws OtrException {
+    void processTlvSMP1(@Nonnull final TLV tlv) throws OtrException {
         /* We can only do the verification half now.
              * We must wait for the secret to be entered
              * to continue. */
@@ -234,7 +232,7 @@ public final class SmpTlvHandler {
         }
     }
 
-    public void processTlvSMP2(@Nonnull final TLV tlv) throws OtrException {
+    void processTlvSMP2(@Nonnull final TLV tlv) throws OtrException {
         
         try {
             final byte[] nextmsg = sm.step3(tlv.getValue());
@@ -255,7 +253,7 @@ public final class SmpTlvHandler {
         }
     }
 
-    public void processTlvSMP3(@Nonnull final TLV tlv) throws OtrException {
+    void processTlvSMP3(@Nonnull final TLV tlv) throws OtrException {
         try {
             final byte[] nextmsg = sm.step4(tlv.getValue());
             /* Set trust level based on result */
@@ -281,7 +279,7 @@ public final class SmpTlvHandler {
         }
     }
 
-    public void processTlvSMP4(@Nonnull final TLV tlv) throws OtrException {
+    void processTlvSMP4(@Nonnull final TLV tlv) throws OtrException {
         try {
             sm.step5(tlv.getValue());
             if (this.sm.status() == SMPStatus.SUCCEEDED) {
@@ -302,10 +300,15 @@ public final class SmpTlvHandler {
         }
     }
 
-    public void processTlvSMP_ABORT(@Nonnull final TLV tlv) throws OtrException {
+    void processTlvSMP_ABORT(@Nonnull final TLV tlv) throws OtrException {
         if (this.sm.abort()) {
             SmpEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }
+    }
+
+    @Nonnull
+    private String getFingerprint() {
+        return OtrCryptoEngine.getFingerprint(session.getRemotePublicKey());
     }
 
     private void sendTLV(@Nonnull final TLV tlv) throws OtrException {

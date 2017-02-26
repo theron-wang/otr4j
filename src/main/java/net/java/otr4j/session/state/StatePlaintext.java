@@ -74,6 +74,7 @@ public final class StatePlaintext extends AbstractState {
     }
 
     @Override
+    @Nonnull
     public byte[] getExtraSymmetricKey() throws IncorrectStateException {
         throw new IncorrectStateException("Extra symmetric key is not available in plaintext state.");
     }

@@ -186,8 +186,7 @@ abstract class AbstractSMPState {
      * @throws SMException when c and d could not be calculated
      */
     @Nonnull
-    final BigInteger[] proofKnowLog(@Nonnull final BigInteger x, final int version) throws SMException
-    {
+    final BigInteger[] proofKnowLog(@Nonnull final BigInteger x, final int version) {
         final BigInteger r = randomExponent();
         BigInteger temp = G1.modPow(r, SM.MODULUS_S);
         final BigInteger c = SM.hash(version, temp, null);
@@ -224,8 +223,7 @@ abstract class AbstractSMPState {
     @Nonnull
     final BigInteger[] proofEqualCoords(@Nonnull final BigInteger g2,
                                         @Nonnull final BigInteger g3, @Nonnull final BigInteger secret_mpi,
-                                        @Nonnull final BigInteger r, final int version) throws SMException
-    {
+                                        @Nonnull final BigInteger r, final int version) {
         final BigInteger r1 = randomExponent();
         final BigInteger r2 = randomExponent();
 
@@ -286,8 +284,7 @@ abstract class AbstractSMPState {
      */
     @Nonnull
     final BigInteger[] proofEqualLogs(@Nonnull final BigInteger qab,
-                                      @Nonnull final BigInteger x3, final int version) throws SMException
-    {
+                                      @Nonnull final BigInteger x3, final int version) {
         final BigInteger r = randomExponent();
 
         /* Compute the value of c, as c = h(g1^r, (Qa/Qb)^r) */

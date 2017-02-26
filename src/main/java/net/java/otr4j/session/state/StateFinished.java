@@ -69,11 +69,13 @@ final class StateFinished extends AbstractState {
     }
 
     @Override
+    @Nonnull
     public byte[] getExtraSymmetricKey() throws IncorrectStateException {
         throw new IncorrectStateException("Extra symmetric key is not available in finished state.");
     }
 
     @Override
+    @Nonnull
     public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage plainTextMessage) throws OtrException {
         // Display the message to the user, but warn him that the message was
         // received unencrypted.

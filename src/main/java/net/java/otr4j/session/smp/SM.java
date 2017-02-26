@@ -37,7 +37,6 @@ import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
 
-
 public final class SM {
 
     /**
@@ -107,13 +106,11 @@ public final class SM {
      * @param a The 1st BigInteger to hash.
      * @param b The 2nd BigInteger to hash.
      * @return the BigInteger for the resulting hash value.
-     * @throws SMException when the SHA-256 algorithm
-     * is missing or when the biginteger can't be serialized.
      */
     static BigInteger hash(final int version, @Nonnull final BigInteger a,
-            @Nullable final BigInteger b) throws SMException
-    {
+            @Nullable final BigInteger b) {
         try {
+            // TODO consider acquiring MessageDigest through OtrCryptoEngine for consistency.
             final MessageDigest sha256 = MessageDigest.getInstance(MD_SHA256);
             sha256.update((byte)version);
             sha256.update(SerializationUtils.writeMpi(a));
@@ -122,7 +119,7 @@ public final class SM {
             }
             return new BigInteger(1, sha256.digest());
         } catch (final NoSuchAlgorithmException e) {
-            throw new SMException("cannot find SHA-256", e);
+            throw new IllegalStateException("cannot find SHA-256", e);
         }
     }
 

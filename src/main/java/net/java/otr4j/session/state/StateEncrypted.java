@@ -123,6 +123,7 @@ final class StateEncrypted extends AbstractState {
     }
 
     @Override
+    @Nonnull
     public byte[] getExtraSymmetricKey() {
         if (this.protocolVersion == Session.OTRv.TWO) {
             throw new IllegalStateException("An OTR version 2 session was negotiated. The Extra Symmetric Key is not available in this version of the protocol.");
@@ -130,8 +131,8 @@ final class StateEncrypted extends AbstractState {
         return this.sessionKeyManager.extraSymmetricKey();
     }
 
-    @Nonnull
     @Override
+    @Nonnull
     public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage plainTextMessage) throws OtrException {
         // Display the message to the user, but warn him that the message was
         // received unencrypted.
