@@ -39,7 +39,7 @@ final class SessionKeyManager {
     /**
      * Session keys. 2x2 "array" of session keys.
      */
-    private final EnumMap<Index, EnumMap<Index, SessionKey>> keys = new EnumMap(Index.class);
+    private final EnumMap<Index, EnumMap<Index, SessionKey>> keys = new EnumMap<>(Index.class);
 
     /**
      * List of old MAC keys for this session. (Synchronized)
@@ -51,13 +51,13 @@ final class SessionKeyManager {
             @Nonnull final DHPublicKey remotePublicKey) throws OtrCryptoException {
         this.secureRandom = Objects.requireNonNull(secureRandom);
         // Prepare current set of session keys.
-        final EnumMap<Index, SessionKey> current = new EnumMap(Index.class);
+        final EnumMap<Index, SessionKey> current = new EnumMap<>(Index.class);
         current.put(Index.CURRENT, new SessionKey(1, localKeyPair, 1, remotePublicKey));
         current.put(Index.NEXT, new SessionKey(1, localKeyPair, 1, remotePublicKey));
         this.keys.put(Index.CURRENT, current);
         // Prepare next set of session keys.
         final KeyPair nextLocalDH = OtrCryptoEngine.generateDHKeyPair(this.secureRandom);
-        final EnumMap<Index, SessionKey> next = new EnumMap(Index.class);
+        final EnumMap<Index, SessionKey> next = new EnumMap<>(Index.class);
         next.put(Index.CURRENT, new SessionKey(2, nextLocalDH, 1, remotePublicKey));
         next.put(Index.NEXT, new SessionKey(2, nextLocalDH, 1, remotePublicKey));
         this.keys.put(Index.NEXT, next);
@@ -222,7 +222,7 @@ final class SessionKeyManager {
      * Index identifiers for session keys storage.
      */
     private enum Index {
-        CURRENT, NEXT;
+        CURRENT, NEXT
     }
 
     /**

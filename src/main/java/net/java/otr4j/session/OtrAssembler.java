@@ -68,8 +68,7 @@ final class OtrAssembler {
      * @throws ProtocolException MVN_PASS_JAVADOC_INSPECTION
      * @throws UnknownInstanceException MVN_PASS_JAVADOC_INSPECTION
      */
-    String accumulate(@Nonnull String msgText)
-        throws ProtocolException, UnknownInstanceException {
+    String accumulate(@Nonnull String msgText) throws ProtocolException {
         // if it's a fragment, remove everything before "k,n,piece-k"
         if (msgText.startsWith(HEAD_FRAGMENT_V2)) {
             // v2

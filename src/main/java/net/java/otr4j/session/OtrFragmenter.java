@@ -194,10 +194,9 @@ final class OtrFragmenter {
      */
     private String createV3MessageFragment(final int count, final int total,
             @Nonnull final String partialContent) {
-        final String msg = String.format(OTRV3_MESSAGE_FRAGMENT_FORMAT,
+        return String.format(OTRV3_MESSAGE_FRAGMENT_FORMAT,
                 getSenderInstance(), getReceiverInstance(), count + 1, total,
                 partialContent);
-        return msg;
     }
 
     /**
@@ -210,9 +209,8 @@ final class OtrFragmenter {
      */
     private String createV2MessageFragment(final int count, final int total,
             @Nonnull final String partialContent) {
-        final String msg = String.format(OTRV2_MESSAGE_FRAGMENT_FORMAT,
+        return String.format(OTRV2_MESSAGE_FRAGMENT_FORMAT,
                 count + 1, total, partialContent);
-        return msg;
     }
 
     /**

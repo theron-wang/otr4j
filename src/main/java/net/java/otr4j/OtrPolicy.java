@@ -18,6 +18,7 @@ import java.util.logging.Logger;
  *
  * @author George Politis
  */
+// TODO consider getting rid of OTRv1 methods altogether
 public final class OtrPolicy {
 
     private static final Logger LOGGER = Logger.getLogger(OtrPolicy.class.getName());
@@ -174,6 +175,7 @@ public final class OtrPolicy {
      */
     @Deprecated
     public void setAllowV1(final boolean value) {
+        // setAllowV1 is not supported anymore
     }
 
     public void setAllowV2(final boolean value) {

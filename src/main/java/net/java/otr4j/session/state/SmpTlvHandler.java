@@ -156,7 +156,7 @@ public final class SmpTlvHandler {
      *  @throws OtrException MVN_PASS_JAVADOC_INSPECTION
      */
     @Nonnull
-    public List<TLV> abortSmp() throws OtrException {
+    public List<TLV> abortSmp() {
         this.sm.abort();
         final TLV sendtlv = new TLV(TLV.SMP_ABORT, TLV.EMPTY);
         return Collections.singletonList(sendtlv);
@@ -300,7 +300,7 @@ public final class SmpTlvHandler {
         }
     }
 
-    void processTlvSMP_ABORT(@Nonnull final TLV tlv) throws OtrException {
+    void processTlvSMP_ABORT(@Nonnull final TLV tlv) {
         if (this.sm.abort()) {
             SmpEngineHostUtil.smpAborted(engineHost, session.getSessionID());
         }

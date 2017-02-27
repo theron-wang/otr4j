@@ -65,7 +65,7 @@ public final class OtrInputStream extends FilterInputStream implements
      *             the exact amount of requested bytes could not be read from
      *             the stream.
      */
-    private byte[] checkedRead(final int length) throws ProtocolException, IOException {
+    private byte[] checkedRead(final int length) throws IOException {
         if (length == 0) {
             return new byte[0];
         }

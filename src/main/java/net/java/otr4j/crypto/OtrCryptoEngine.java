@@ -319,8 +319,7 @@ public final class OtrCryptoEngine {
     }
 
     @Nonnull
-    public static byte[] sign(@Nonnull final byte[] b, @Nonnull final PrivateKey privatekey)
-            throws OtrCryptoException {
+    public static byte[] sign(@Nonnull final byte[] b, @Nonnull final PrivateKey privatekey) {
 
         if (!(privatekey instanceof DSAPrivateKey)) {
             throw new IllegalArgumentException("Private key instance must be of type DSAPrivateKey.");

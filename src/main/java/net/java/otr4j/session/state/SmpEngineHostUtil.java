@@ -63,7 +63,7 @@ final class SmpEngineHostUtil {
      * of "cheat" status or for other reason.
      */
     public static void smpError(@Nonnull final SmpEngineHost host, @Nonnull final SessionID sessionID,
-            @Nonnull final int tlvType, final boolean cheated) {
+            final int tlvType, final boolean cheated) {
         try {
             host.smpError(sessionID, tlvType, cheated);
         } catch (RuntimeException e) {

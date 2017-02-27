@@ -196,7 +196,7 @@ public final class SerializationUtils {
             if (query.versions.size() > 0) {
                 writer.write(SerializationConstants.HEAD);
                 writer.write(SerializationConstants.HEAD_QUERY_V);
-                final ArrayList<Integer> versions = new ArrayList(query.versions);
+                final ArrayList<Integer> versions = new ArrayList<>(query.versions);
                 Collections.sort(versions);
                 for (final int version : versions) {
                     // As all versions still present in the versions list

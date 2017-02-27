@@ -39,7 +39,7 @@ public final class OtrEngineListenerUtil {
      */
     public static List<OtrEngineListener> duplicate(@Nonnull final List<OtrEngineListener> listeners) {
         synchronized (listeners) {
-            return new ArrayList<OtrEngineListener>(listeners);
+            return new ArrayList<>(listeners);
         }
     }
 

@@ -12,5 +12,5 @@ package net.java.otr4j.session;
  * 
  */
 public enum OfferStatus {
-    idle, sent, rejected, accepted;
+    idle, sent, rejected, accepted
 }
