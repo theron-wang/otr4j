@@ -1,5 +1,7 @@
 package net.java.otr4j.session.smp;
 
+import net.java.otr4j.crypto.OtrCryptoEngine;
+
 import javax.annotation.Nonnull;
 import java.math.BigInteger;
 
@@ -11,12 +13,12 @@ import java.math.BigInteger;
  */
 final class StateExpect3 extends AbstractSMPState {
 
-    final BigInteger x3;
-    final BigInteger g2;
-    final BigInteger g3;
-    final BigInteger g3o;
-    final BigInteger p;
-    final BigInteger q;
+    private final BigInteger x3;
+    private final BigInteger g2;
+    private final BigInteger g3;
+    private final BigInteger g3o;
+    private final BigInteger p;
+    private final BigInteger q;
 
     StateExpect3(@Nonnull final StateExpect1 previous, @Nonnull final BigInteger p, @Nonnull final BigInteger q) {
         super(previous.secureRandom());
@@ -54,17 +56,17 @@ final class StateExpect3 extends AbstractSMPState {
         checkEqualCoords(msg3[2], msg3[3], msg3[4], msg3[0], msg3[1], g2, g3, 6);
 
         /* Find Pa/Pb and Qa/Qb */
-        BigInteger inv = p.modInverse(SM.MODULUS_S);
-        final BigInteger pab = msg3[0].multiply(inv).mod(SM.MODULUS_S);
-        inv = q.modInverse(SM.MODULUS_S);
-        final BigInteger qab = msg3[1].multiply(inv).mod(SM.MODULUS_S);
+        BigInteger inv = p.modInverse(OtrCryptoEngine.MODULUS);
+        final BigInteger pab = msg3[0].multiply(inv).mod(OtrCryptoEngine.MODULUS);
+        inv = q.modInverse(OtrCryptoEngine.MODULUS);
+        final BigInteger qab = msg3[1].multiply(inv).mod(OtrCryptoEngine.MODULUS);
 
 
         /* Verify Alice's log equality proof */
         checkEqualLogs(msg3[6], msg3[7], msg3[5], g3o, qab, 7);
 
         /* Calculate Rb and proof */
-        msg4[0] = qab.modPow(x3, SM.MODULUS_S);
+        msg4[0] = qab.modPow(x3, OtrCryptoEngine.MODULUS);
         BigInteger[] res = proofEqualLogs(qab, x3, 8);
         msg4[1] = res[0];
         msg4[2] = res[1];
@@ -73,7 +75,7 @@ final class StateExpect3 extends AbstractSMPState {
 
         /* Calculate Rab and verify that secrets match */
 
-        final BigInteger rab = msg3[5].modPow(x3, SM.MODULUS_S);
+        final BigInteger rab = msg3[5].modPow(x3, OtrCryptoEngine.MODULUS);
         final int comp = rab.compareTo(pab);
 
         final SMPStatus status = (comp == 0) ? SMPStatus.SUCCEEDED : SMPStatus.FAILED;

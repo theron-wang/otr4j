@@ -1,5 +1,7 @@
 package net.java.otr4j.session.smp;
 
+import net.java.otr4j.crypto.OtrCryptoEngine;
+
 import javax.annotation.Nonnull;
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -12,8 +14,8 @@ import java.security.SecureRandom;
  */
 final class StateExpect2 extends AbstractSMPState {
 
-    final BigInteger secret_mpi;
-    final BigInteger x2;
+    private final BigInteger secret_mpi;
+    private final BigInteger x2;
     final BigInteger x3;
 
     StateExpect2(@Nonnull final SecureRandom sr, @Nonnull final BigInteger secret_mpi,
@@ -57,8 +59,8 @@ final class StateExpect2 extends AbstractSMPState {
         checkKnowLog(msg2[4], msg2[5], msg2[3], 4);
 
         /* Combine the two halves from Bob and Alice and determine g2 and g3 */
-        final BigInteger g2 = msg2[0].modPow(x2, SM.MODULUS_S);
-        final BigInteger g3 = msg2[3].modPow(x3, SM.MODULUS_S);
+        final BigInteger g2 = msg2[0].modPow(x2, OtrCryptoEngine.MODULUS);
+        final BigInteger g3 = msg2[3].modPow(x3, OtrCryptoEngine.MODULUS);
 
         /* Verify Bob's coordinate equality proof */
         checkEqualCoords(msg2[8], msg2[9], msg2[10], msg2[6], msg2[7], g2, g3, 5);
@@ -66,11 +68,11 @@ final class StateExpect2 extends AbstractSMPState {
         /* Calculate P and Q values for Alice */
         final BigInteger r = randomExponent();
 
-        final BigInteger p = g3.modPow(r, SM.MODULUS_S);
+        final BigInteger p = g3.modPow(r, OtrCryptoEngine.MODULUS);
         msg3[0] = p;
-        final BigInteger qa1 = G1.modPow(r, SM.MODULUS_S);
-        final BigInteger qa2 = g2.modPow(secret_mpi, SM.MODULUS_S);
-        final BigInteger q = qa1.multiply(qa2).mod(SM.MODULUS_S);
+        final BigInteger qa1 = G1.modPow(r, OtrCryptoEngine.MODULUS);
+        final BigInteger qa2 = g2.modPow(secret_mpi, OtrCryptoEngine.MODULUS);
+        final BigInteger q = qa1.multiply(qa2).mod(OtrCryptoEngine.MODULUS);
         msg3[1] = q;
 
         BigInteger[] res = proofEqualCoords(g2, g3, secret_mpi, r, 6);
@@ -80,11 +82,11 @@ final class StateExpect2 extends AbstractSMPState {
 
 
         /* Calculate Ra and proof */
-        BigInteger inv = msg2[6].modInverse(SM.MODULUS_S);
-        final BigInteger pab = p.multiply(inv).mod(SM.MODULUS_S);
-        inv = msg2[7].modInverse(SM.MODULUS_S);
-        final BigInteger qab = q.multiply(inv).mod(SM.MODULUS_S);
-        msg3[5] = qab.modPow(x3, SM.MODULUS_S);
+        BigInteger inv = msg2[6].modInverse(OtrCryptoEngine.MODULUS);
+        final BigInteger pab = p.multiply(inv).mod(OtrCryptoEngine.MODULUS);
+        inv = msg2[7].modInverse(OtrCryptoEngine.MODULUS);
+        final BigInteger qab = q.multiply(inv).mod(OtrCryptoEngine.MODULUS);
+        msg3[5] = qab.modPow(x3, OtrCryptoEngine.MODULUS);
         res = proofEqualLogs(qab, x3, 7);
         msg3[6] = res[0];
         msg3[7] = res[1];

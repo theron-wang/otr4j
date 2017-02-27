@@ -1,5 +1,7 @@
 package net.java.otr4j.session.smp;
 
+import net.java.otr4j.crypto.OtrCryptoEngine;
+
 import javax.annotation.Nonnull;
 import java.math.BigInteger;
 
@@ -11,10 +13,10 @@ import java.math.BigInteger;
  */
 final class StateExpect4 extends AbstractSMPState {
 
-    final BigInteger x3;
-    final BigInteger g3o;
-    final BigInteger pab;
-    final BigInteger qab;
+    private final BigInteger x3;
+    private final BigInteger g3o;
+    private final BigInteger pab;
+    private final BigInteger qab;
 
     StateExpect4(@Nonnull final StateExpect2 previous, @Nonnull final BigInteger g3o,
                  @Nonnull final BigInteger pab, @Nonnull final BigInteger qab) {
@@ -45,7 +47,7 @@ final class StateExpect4 extends AbstractSMPState {
 
         /* Calculate Rab and verify that secrets match */
 
-        final BigInteger rab = msg4[0].modPow(x3, SM.MODULUS_S);
+        final BigInteger rab = msg4[0].modPow(x3, OtrCryptoEngine.MODULUS);
         final int comp = rab.compareTo(pab);
 
         final SMPStatus status = (comp == 0) ? SMPStatus.SUCCEEDED : SMPStatus.FAILED;

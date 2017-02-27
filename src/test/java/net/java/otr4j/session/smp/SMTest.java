@@ -28,6 +28,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
+
 /**
  * Tests for Socialist Millionaire Protocol.
  *
@@ -95,12 +97,12 @@ public class SMTest {
 
     @Test
     public void testCheckGroupElemJustValidUpperBound() throws SMException {
-        AbstractSMPState.checkGroupElem(SM.MODULUS_MINUS_2);
+        AbstractSMPState.checkGroupElem(OtrCryptoEngine.MODULUS_MINUS_TWO);
     }
 
     @Test(expected = SMException.class)
     public void testCheckGroupElemTooLarge() throws SMException {
-        AbstractSMPState.checkGroupElem(SM.MODULUS_MINUS_2.add(BigInteger.ONE));
+        AbstractSMPState.checkGroupElem(OtrCryptoEngine.MODULUS_MINUS_TWO.add(BigInteger.ONE));
     }
 
     @Test
@@ -120,12 +122,12 @@ public class SMTest {
 
     @Test
     public void testCheckExponJustValidUpperBound() throws SMException {
-        AbstractSMPState.checkExpon(SM.ORDER_S.subtract(BigInteger.ONE));
+        AbstractSMPState.checkExpon(AbstractSMPState.ORDER_S.subtract(BigInteger.ONE));
     }
 
     @Test(expected = SMException.class)
     public void testCheckExponTooLarge() throws SMException {
-        AbstractSMPState.checkExpon(SM.ORDER_S);
+        AbstractSMPState.checkExpon(AbstractSMPState.ORDER_S);
     }
 
     @Test(expected = SMException.class)
@@ -422,6 +424,7 @@ public class SMTest {
     public void testConstructStateWithNullSecureRandom() {
         new AbstractSMPState(null) {
             @Override
+            @Nonnull
             SMPStatus status() {
                 return SMPStatus.UNDECIDED;
             }
@@ -440,6 +443,7 @@ public class SMTest {
             }
 
             @Override
+            @Nonnull
             SMPStatus status() {
                 return SMPStatus.UNDECIDED;
             }
@@ -468,6 +472,7 @@ public class SMTest {
             }
 
             @Override
+            @Nonnull
             SMPStatus status() {
                 return SMPStatus.UNDECIDED;
             }

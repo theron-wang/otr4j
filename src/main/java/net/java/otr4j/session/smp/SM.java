@@ -40,6 +40,8 @@ import net.java.otr4j.io.SerializationUtils;
 
 public final class SM {
 
+    private static final Logger LOGGER = Logger.getLogger(SM.class.getName());
+
     /**
      * Constant indicating the maximum accepted MPI array size. This array size
      * can in principle be as large as JVM's max array size, however such a
@@ -47,8 +49,6 @@ public final class SM {
      * risk of misuse, go with far smaller value.
      */
     private static final int MAX_MPI_ARRAY_SIZE = 100;
-
-    private static final Logger LOGGER = Logger.getLogger(SM.class.getName());
 
     private AbstractSMPState state;
 
@@ -60,45 +60,6 @@ public final class SM {
         LOGGER.log(Level.FINER, "Updating SMP state to: {0}", state);
         this.state = Objects.requireNonNull(state);
     }
-
-    // FIXME duplicate crypto constants.
-    static final BigInteger MODULUS_S = new BigInteger(
-            "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"+
-            "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"+
-            "EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245"+
-            "E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED"+
-            "EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3D"+
-            "C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F"+
-            "83655D23DCA3AD961C62F356208552BB9ED529077096966D"+
-            "670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF", 16);
-
-    // FIXME duplicate crypto constants.
-    static final BigInteger MODULUS_MINUS_2 = new BigInteger(
-            "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"+
-            "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"+
-            "EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245"+
-            "E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED"+
-            "EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3D"+
-            "C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F"+
-            "83655D23DCA3AD961C62F356208552BB9ED529077096966D"+
-            "670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFD", 16);
-
-    static final BigInteger ORDER_S = new BigInteger(
-            "7FFFFFFFFFFFFFFFE487ED5110B4611A62633145C06E0E68"+
-            "948127044533E63A0105DF531D89CD9128A5043CC71A026E"+
-            "F7CA8CD9E69D218D98158536F92F8A1BA7F09AB6B6A8E122"+
-            "F242DABB312F3F637A262174D31BF6B585FFAE5B7A035BF6"+
-            "F71C35FDAD44CFD2D74F9208BE258FF324943328F6722D9E"+
-            "E1003E5C50B1DF82CC6D241B0E2AE9CD348B1FD47E9267AF"+
-            "C1B2AE91EE51D6CB0E3179AB1042A95DCF6A9483B84B4B36"+
-            "B3861AA7255E4C0278BA36046511B993FFFFFFFFFFFFFFFF", 16);
-
-    // FIXME duplicate crypto constants.
-    static final BigInteger GENERATOR_S = BigInteger.valueOf(2L);
-
-    // TODO unused constant: duplicate? obsolete? is there an error somewhere?
-    public static final int MOD_LEN_BITS = 1536;
-    static final int MOD_LEN_BYTES = 192;
 
     /**
      * Hash one or two BigIntegers. To hash only one BigInteger, b may be set to
@@ -269,7 +230,6 @@ public final class SM {
      *
      * @param secret MVN_PASS_JAVADOC_INSPECTION
      * @return MVN_PASS_JAVADOC_INSPECTION
-     * @throws SMAbortedException
      * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
     public byte[] step2b(@Nonnull final byte[] secret) throws SMException
@@ -304,7 +264,6 @@ public final class SM {
      *
      * @param input MVN_PASS_JAVADOC_INSPECTION
      * @return MVN_PASS_JAVADOC_INSPECTION
-     * @throws SMAbortedException
      * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
     public byte[] step3(@Nonnull final byte[] input) throws SMException
@@ -339,7 +298,6 @@ public final class SM {
      *
      * @param input MVN_PASS_JAVADOC_INSPECTION
      * @return MVN_PASS_JAVADOC_INSPECTION
-     * @throws SMAbortedException
      * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
     public byte[] step4(@Nonnull final byte[] input) throws SMException
@@ -372,7 +330,6 @@ public final class SM {
      * NO_ERROR. If the secrets differ, an INV_VALUE error is returned instead.
      *
      * @param input MVN_PASS_JAVADOC_INSPECTION
-     * @throws SMAbortedException
      * @throws SMException MVN_PASS_JAVADOC_INSPECTION
      */
     public void step5(@Nonnull final byte[] input) throws SMException
