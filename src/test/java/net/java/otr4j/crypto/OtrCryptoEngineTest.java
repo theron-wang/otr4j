@@ -88,4 +88,9 @@ public class OtrCryptoEngineTest {
         final byte[] b = new byte[]{'a', 'a', 'a', 'a'};
         OtrCryptoEngine.checkEquals(null, b, "Expected array to be equal.");
     }
+
+    @Test
+    public void testCreateSHA256MessageDigest() {
+        assertNotNull(OtrCryptoEngine.createSHA256MessageDigest());
+    }
 }

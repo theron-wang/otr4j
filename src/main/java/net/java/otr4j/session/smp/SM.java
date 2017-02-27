@@ -26,13 +26,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationUtils;
@@ -47,8 +48,6 @@ public final class SM {
      */
     private static final int MAX_MPI_ARRAY_SIZE = 100;
 
-    private static final String MD_SHA256 = "SHA-256";
-
     private static final Logger LOGGER = Logger.getLogger(SM.class.getName());
 
     private AbstractSMPState state;
@@ -62,6 +61,7 @@ public final class SM {
         this.state = Objects.requireNonNull(state);
     }
 
+    // FIXME duplicate crypto constants.
     static final BigInteger MODULUS_S = new BigInteger(
             "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"+
             "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"+
@@ -72,6 +72,7 @@ public final class SM {
             "83655D23DCA3AD961C62F356208552BB9ED529077096966D"+
             "670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF", 16);
 
+    // FIXME duplicate crypto constants.
     static final BigInteger MODULUS_MINUS_2 = new BigInteger(
             "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"+
             "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"+
@@ -92,6 +93,7 @@ public final class SM {
             "C1B2AE91EE51D6CB0E3179AB1042A95DCF6A9483B84B4B36"+
             "B3861AA7255E4C0278BA36046511B993FFFFFFFFFFFFFFFF", 16);
 
+    // FIXME duplicate crypto constants.
     static final BigInteger GENERATOR_S = BigInteger.valueOf(2L);
 
     // TODO unused constant: duplicate? obsolete? is there an error somewhere?
@@ -102,25 +104,20 @@ public final class SM {
      * Hash one or two BigIntegers. To hash only one BigInteger, b may be set to
      * NULL.
      *
-     * @param version the prefix to use
+     * @param version the prefix to use (byte)
      * @param a The 1st BigInteger to hash.
      * @param b The 2nd BigInteger to hash.
      * @return the BigInteger for the resulting hash value.
      */
     static BigInteger hash(final int version, @Nonnull final BigInteger a,
             @Nullable final BigInteger b) {
-        try {
-            // TODO consider acquiring MessageDigest through OtrCryptoEngine for consistency.
-            final MessageDigest sha256 = MessageDigest.getInstance(MD_SHA256);
-            sha256.update((byte)version);
-            sha256.update(SerializationUtils.writeMpi(a));
-            if (b != null) {
-                sha256.update(SerializationUtils.writeMpi(b));
-            }
-            return new BigInteger(1, sha256.digest());
-        } catch (final NoSuchAlgorithmException e) {
-            throw new IllegalStateException("cannot find SHA-256", e);
+        final MessageDigest sha256 = OtrCryptoEngine.createSHA256MessageDigest();
+        sha256.update((byte)version);
+        sha256.update(SerializationUtils.writeMpi(a));
+        if (b != null) {
+            sha256.update(SerializationUtils.writeMpi(b));
         }
+        return new BigInteger(1, sha256.digest());
     }
 
     static byte[] serialize(@Nonnull final BigInteger[] ints) throws SMException {

@@ -509,4 +509,18 @@ public final class OtrCryptoEngine {
             throw new OtrCryptoException(message);
         }
     }
+
+    /**
+     * Create SHA-256 based message digest instance.
+     *
+     * @return Returns instance of SHA-256 message digest.
+     */
+    @Nonnull
+    public static MessageDigest createSHA256MessageDigest() {
+        try {
+            return MessageDigest.getInstance(MD_SHA256);
+        } catch (final NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("Failed to acquire SHA-256 message digest.", ex);
+        }
+    }
 }
