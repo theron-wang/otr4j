@@ -237,41 +237,39 @@ final class StateEncrypted extends AbstractState {
                 }
             }
         }
-        if (!tlvs.isEmpty()) {
-            for (final TLV tlv : tlvs) {
-                logger.log(Level.FINE, "Received TLV type {0}", tlv.getType());
-                switch (tlv.getType()) {
-                    case TLV.PADDING: // TLV0
-                        // nothing to do here, just ignore the padding
-                        break;
-                    case TLV.DISCONNECTED: // TLV1
-                        context.setState(new StateFinished(this.sessionId));
-                        break;
-                    case TLV.SMP1Q: //TLV7
-                        this.smpTlvHandler.processTlvSMP1Q(tlv);
-                        break;
-                    case TLV.SMP1: // TLV2
-                        this.smpTlvHandler.processTlvSMP1(tlv);
-                        break;
-                    case TLV.SMP2: // TLV3
-                        this.smpTlvHandler.processTlvSMP2(tlv);
-                        break;
-                    case TLV.SMP3: // TLV4
-                        this.smpTlvHandler.processTlvSMP3(tlv);
-                        break;
-                    case TLV.SMP4: // TLV5
-                        this.smpTlvHandler.processTlvSMP4(tlv);
-                        break;
-                    case TLV.SMP_ABORT: //TLV6
-                        this.smpTlvHandler.processTlvSMP_ABORT(tlv);
-                        break;
-                    case TLV.USE_EXTRA_SYMMETRIC_KEY:
-                        // FIXME extract extra symmetric key from same sessionkey as we used to decrypt the message content.
-                        break;
-                    default:
-                        logger.log(Level.WARNING, "Unsupported TLV #{0} received!", tlv.getType());
-                        break;
-                }
+        for (final TLV tlv : tlvs) {
+            logger.log(Level.FINE, "Received TLV type {0}", tlv.getType());
+            switch (tlv.getType()) {
+                case TLV.PADDING: // TLV0
+                    // nothing to do here, just ignore the padding
+                    break;
+                case TLV.DISCONNECTED: // TLV1
+                    context.setState(new StateFinished(this.sessionId));
+                    break;
+                case TLV.SMP1Q: //TLV7
+                    this.smpTlvHandler.processTlvSMP1Q(tlv);
+                    break;
+                case TLV.SMP1: // TLV2
+                    this.smpTlvHandler.processTlvSMP1(tlv);
+                    break;
+                case TLV.SMP2: // TLV3
+                    this.smpTlvHandler.processTlvSMP2(tlv);
+                    break;
+                case TLV.SMP3: // TLV4
+                    this.smpTlvHandler.processTlvSMP3(tlv);
+                    break;
+                case TLV.SMP4: // TLV5
+                    this.smpTlvHandler.processTlvSMP4(tlv);
+                    break;
+                case TLV.SMP_ABORT: //TLV6
+                    this.smpTlvHandler.processTlvSMP_ABORT(tlv);
+                    break;
+                case TLV.USE_EXTRA_SYMMETRIC_KEY:
+                    // FIXME extract extra symmetric key from same sessionkey as we used to decrypt the message content.
+                    break;
+                default:
+                    logger.log(Level.WARNING, "Unsupported TLV #{0} received!", tlv.getType());
+                    break;
             }
         }
         return decryptedMsgContent;
