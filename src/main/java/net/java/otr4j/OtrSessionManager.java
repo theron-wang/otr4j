@@ -22,7 +22,7 @@ import net.java.otr4j.session.SessionImpl;
  * @author George Politis
  * @author Danny van Heumen
  */
-public class OtrSessionManager {
+public final class OtrSessionManager {
 
     /**
      * The OTR Engine Host instance.
