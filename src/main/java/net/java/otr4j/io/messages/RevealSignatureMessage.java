@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
  * @author George Politis
  * @author Danny van Heumen
  */
-public class RevealSignatureMessage extends SignatureMessage {
+public final class RevealSignatureMessage extends SignatureMessage {
 
     public final byte[] revealedKey;
 

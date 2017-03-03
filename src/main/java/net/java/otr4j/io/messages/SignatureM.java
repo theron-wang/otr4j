@@ -14,12 +14,12 @@ import javax.crypto.interfaces.DHPublicKey;
  * 
  * @author George Politis
  */
-public class SignatureM {
+public final class SignatureM {
     // Fields.
-    public DHPublicKey localPubKey;
-    public DHPublicKey remotePubKey;
-    public PublicKey localLongTermPubKey;
-    public int keyPairID;
+    public final DHPublicKey localPubKey;
+    public final DHPublicKey remotePubKey;
+    public final PublicKey localLongTermPubKey;
+    public final int keyPairID;
 
     // Ctor.
     public SignatureM(final DHPublicKey localPubKey, final DHPublicKey remotePublicKey,

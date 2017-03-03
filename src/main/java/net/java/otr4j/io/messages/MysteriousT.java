@@ -11,18 +11,18 @@ import java.util.Arrays;
 
 import javax.crypto.interfaces.DHPublicKey;
 
-public class MysteriousT {
+public final class MysteriousT {
     // Fields.
-    public int protocolVersion;
-    public int senderInstanceTag;
-    public int receiverInstanceTag;
-    public int messageType;
-    public int flags;
-    public int senderKeyID;
-    public int recipientKeyID;
-    public DHPublicKey nextDH;
-    public byte[] ctr;
-    public byte[] encryptedMessage;
+    public final int protocolVersion;
+    public final int senderInstanceTag;
+    public final int receiverInstanceTag;
+    public final int messageType;
+    public final int flags;
+    public final int senderKeyID;
+    public final int recipientKeyID;
+    public final DHPublicKey nextDH;
+    public final byte[] ctr;
+    public final byte[] encryptedMessage;
 
     // Ctor.
     public MysteriousT(final int protocolVersion, final int senderInstanceTag, final int receiverInstanceTag,

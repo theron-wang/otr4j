@@ -13,7 +13,7 @@ import java.util.Arrays;
  * 
  * @author George Politis
  */
-public class SignatureX {
+public final class SignatureX {
     // Fields.
     public PublicKey longTermPublicKey;
     public int dhKeyID;

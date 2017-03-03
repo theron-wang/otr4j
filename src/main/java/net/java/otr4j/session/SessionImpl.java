@@ -546,21 +546,10 @@ public final class SessionImpl implements Session, Context, AuthContext {
     public void injectMessage(@Nonnull final Message m) throws OtrException {
         String msg = SerializationUtils.toString(m);
         final SessionID sessionId = this.sessionState.getSessionID();
-        if (m instanceof QueryMessage) {
-            // TODO consider moving this somewhere else. It's a bit weird that we modify parts of a Query Message here.
-            String fallback = OtrEngineHostUtil.getFallbackMessage(this.host,
-                    sessionId);
-            if (fallback == null || fallback.isEmpty()) {
-                fallback = SerializationConstants.DEFAULT_FALLBACK_MESSAGE;
-            }
-            msg += fallback;
-        }
-
         if (SerializationUtils.otrEncoded(msg)) {
             // Content is OTR encoded, so we are allowed to partition.
-            final String[] fragments;
             try {
-                fragments = this.fragmenter.fragment(msg);
+                final String[] fragments = this.fragmenter.fragment(msg);
                 for (final String fragment : fragments) {
                     this.host.injectMessage(sessionId, fragment);
                 }
@@ -568,8 +557,19 @@ public final class SessionImpl implements Session, Context, AuthContext {
                 throw new OtrException("Failed to fragment message according to provided instructions.", e);
             }
         } else {
+            if (m instanceof QueryMessage) {
+                msg += getFallbackMessage(sessionId);
+            }
             this.host.injectMessage(sessionId, msg);
         }
+    }
+
+    private String getFallbackMessage(final SessionID sessionId) {
+        String fallback = OtrEngineHostUtil.getFallbackMessage(this.host, sessionId);
+        if (fallback == null || fallback.isEmpty()) {
+            fallback = SerializationConstants.DEFAULT_FALLBACK_MESSAGE;
+        }
+        return fallback;
     }
 
     private String handlePlainTextMessage(@Nonnull final PlainTextMessage plainTextMessage)
