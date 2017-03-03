@@ -12,13 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.ProtocolException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPublicKey;
-import java.security.spec.DSAPublicKeySpec;
-import java.security.spec.InvalidKeySpecException;
 import javax.annotation.Nonnull;
 
 import javax.crypto.interfaces.DHPublicKey;
@@ -150,6 +146,13 @@ public final class OtrInputStream extends FilterInputStream implements
         return checkedRead(dataLen);
     }
 
+    /**
+     * Read public key from OTR data stream.
+     *
+     * @return Returns public key components.
+     * @throws IOException Throws IOException in case of failing to read full public key from input data.
+     * @throws OtrCryptoException Throws OtrCryptoException if failed to reconstruct corresponding public key.
+     */
     public PublicKey readPublicKey() throws IOException, OtrCryptoException {
         final int type = readShort();
         switch (type) {
@@ -158,19 +161,9 @@ public final class OtrInputStream extends FilterInputStream implements
             final BigInteger q = readBigInt();
             final BigInteger g = readBigInt();
             final BigInteger y = readBigInt();
-            final DSAPublicKeySpec keySpec = new DSAPublicKeySpec(y, p, q, g);
-            final KeyFactory keyFactory;
-            try {
-                keyFactory = KeyFactory.getInstance("DSA");
-            } catch (final NoSuchAlgorithmException e) {
-                throw new IllegalStateException("Failed to initialize DSA key factory.", e);
-            }
-            try {
-                return keyFactory.generatePublic(keySpec);
-            } catch (final InvalidKeySpecException e) {
-                throw new OtrCryptoException("Read invalid public key from input stream.", e);
-            }
+            return OtrCryptoEngine.createDSAPublicKey(y, p, q, g);
         default:
+            // FIXME consider throwing a checked exception, given that in case of bad input data this may happen (or OTRv4 input data).
             throw new UnsupportedOperationException("Unsupported public key type: " + type);
         }
     }
@@ -199,6 +192,7 @@ public final class OtrInputStream extends FilterInputStream implements
 
     public byte[] readSignature(@Nonnull final PublicKey pubKey) throws IOException {
         if (!pubKey.getAlgorithm().equals("DSA")) {
+            // FIXME consider throwing a checked exception given that newer protocol versions might send unknown types.
             throw new UnsupportedOperationException();
         }
 

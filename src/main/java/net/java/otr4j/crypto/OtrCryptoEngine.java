@@ -20,6 +20,7 @@ import java.security.SecureRandom;
 import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPrivateKey;
 import java.security.interfaces.DSAPublicKey;
+import java.security.spec.DSAPublicKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
@@ -61,6 +62,7 @@ import org.bouncycastle.util.BigIntegers;
  * @author George Politis
  * @author Danny van Heumen
  */
+// TODO Investigate what we can reuse of KeyFactories, KeyAgreement instances, MessageDigest instances, Hmac instances.
 public final class OtrCryptoEngine {
 
     private static final String ALGORITHM_DSA = "DSA";
@@ -165,6 +167,7 @@ public final class OtrCryptoEngine {
         }
     }
 
+    @Nonnull
     public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key) throws OtrCryptoException {
         return sha256Hmac(b, key, 0);
     }
@@ -520,6 +523,34 @@ public final class OtrCryptoEngine {
             return MessageDigest.getInstance(MD_SHA256);
         } catch (final NoSuchAlgorithmException ex) {
             throw new IllegalStateException("Failed to acquire SHA-256 message digest.", ex);
+        }
+    }
+
+    /**
+     * (Re)Create DSA public key based on provided input parameters.
+     *
+     * @param y y
+     * @param p p
+     * @param q q
+     * @param g g
+     * @return Returns DSA public key.
+     * @throws OtrCryptoException Throws OtrCryptoException in case of failure to create DSA public key.
+     */
+    @Nonnull
+    public static PublicKey createDSAPublicKey(@Nonnull final BigInteger y, @Nonnull final BigInteger p,
+                                               @Nonnull final BigInteger q, @Nonnull final BigInteger g)
+            throws OtrCryptoException {
+        final DSAPublicKeySpec keySpec = new DSAPublicKeySpec(y, p, q, g);
+        final KeyFactory keyFactory;
+        try {
+            keyFactory = KeyFactory.getInstance("DSA");
+        } catch (final NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Failed to initialize DSA key factory.", e);
+        }
+        try {
+            return keyFactory.generatePublic(keySpec);
+        } catch (final InvalidKeySpecException e) {
+            throw new OtrCryptoException("Read invalid public key from input stream.", e);
         }
     }
 }
