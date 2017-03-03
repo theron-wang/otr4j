@@ -124,18 +124,18 @@ public class OtrInputStreamTest {
     public void testReadBigInteger() throws IOException {
         final byte[] data = new byte[] { 0x0, 0x0, 0x0, 0x1, 0x55 };
         final OtrInputStream ois = new OtrInputStream(new ByteArrayInputStream(data));
-        assertEquals(BigInteger.valueOf(85l), ois.readBigInt());
+        assertEquals(BigInteger.valueOf(85L), ois.readBigInt());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testReadBadPublicKeyType() throws IOException, OtrCryptoException {
+    @Test(expected = UnsupportedTypeException.class)
+    public void testReadBadPublicKeyType() throws IOException, OtrCryptoException, UnsupportedTypeException {
         final byte[] data = new byte[] { 0x0, 0x55 };
         final OtrInputStream ois = new OtrInputStream(new ByteArrayInputStream(data));
         ois.readPublicKey();
     }
 
     @Test
-    public void testReadPUblicKeyType() throws IOException, OtrCryptoException {
+    public void testReadPUblicKeyType() throws IOException, OtrCryptoException, UnsupportedTypeException {
         final byte[] data = new byte[] { 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x1, 0x0, 0x0, 0x0, 0x1, 0x2, 0x0, 0x0, 0x0, 0x1, 0x3, 0x0, 0x0, 0x0, 0x1, 0x4 };
         final OtrInputStream ois = new OtrInputStream(new ByteArrayInputStream(data));
         final PublicKey key = ois.readPublicKey();
@@ -186,7 +186,7 @@ public class OtrInputStreamTest {
     }
 
     @Test
-    public void testReadMysteriousXOtrInputStreamReadBehavior() throws IOException, OtrCryptoException {
+    public void testReadMysteriousXOtrInputStreamReadBehavior() throws IOException, OtrCryptoException, UnsupportedTypeException {
         // This test uses nonsensicle data and as such it does not verify
         // correct parsing of the read public key material. However, it does
         // test the reading behavior of OtrInputStream expected for such a read

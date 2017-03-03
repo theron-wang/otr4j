@@ -16,6 +16,7 @@ import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.crypto.OtrCryptoEngine;
+import net.java.otr4j.io.UnsupportedTypeException;
 import net.java.otr4j.session.*;
 
 /**

@@ -153,7 +153,8 @@ public final class OtrInputStream extends FilterInputStream implements
      * @throws IOException Throws IOException in case of failing to read full public key from input data.
      * @throws OtrCryptoException Throws OtrCryptoException if failed to reconstruct corresponding public key.
      */
-    public PublicKey readPublicKey() throws IOException, OtrCryptoException {
+    @Nonnull
+    public PublicKey readPublicKey() throws IOException, OtrCryptoException, UnsupportedTypeException {
         final int type = readShort();
         switch (type) {
         case PUBLIC_KEY_TYPE_DSA:
@@ -163,8 +164,7 @@ public final class OtrInputStream extends FilterInputStream implements
             final BigInteger y = readBigInt();
             return OtrCryptoEngine.createDSAPublicKey(y, p, q, g);
         default:
-            // FIXME consider throwing a checked exception, given that in case of bad input data this may happen (or OTRv4 input data).
-            throw new UnsupportedOperationException("Unsupported public key type: " + type);
+            throw new UnsupportedTypeException("Unsupported type for public key: " + type);
         }
     }
 
@@ -192,16 +192,14 @@ public final class OtrInputStream extends FilterInputStream implements
 
     public byte[] readSignature(@Nonnull final PublicKey pubKey) throws IOException {
         if (!pubKey.getAlgorithm().equals("DSA")) {
-            // FIXME consider throwing a checked exception given that newer protocol versions might send unknown types.
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException("Unsupported public key instance type encountered. Cannot read signature.");
         }
-
         final DSAPublicKey dsaPubKey = (DSAPublicKey) pubKey;
         final DSAParams dsaParams = dsaPubKey.getParams();
         return checkedRead(dsaParams.getQ().bitLength() / 4);
     }
 
-    public SignatureX readMysteriousX() throws IOException, OtrCryptoException {
+    public SignatureX readMysteriousX() throws IOException, OtrCryptoException, UnsupportedTypeException {
         final PublicKey pubKey = readPublicKey();
         final int dhKeyID = readInt();
         final byte[] sig = readSignature(pubKey);

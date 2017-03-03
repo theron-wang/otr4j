@@ -75,7 +75,7 @@ public final class SerializationUtils {
     }
 
     // Mysterious X IO.
-    public static SignatureX toMysteriousX(@Nonnull final byte[] b) throws IOException, OtrCryptoException {
+    public static SignatureX toMysteriousX(@Nonnull final byte[] b) throws IOException, OtrCryptoException, UnsupportedTypeException {
         final ByteArrayInputStream in = new ByteArrayInputStream(b);
         final SignatureX x;
         try (final OtrInputStream ois = new OtrInputStream(in)) {

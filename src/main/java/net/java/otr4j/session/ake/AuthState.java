@@ -11,6 +11,7 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.java.otr4j.crypto.OtrCryptoException;
+import net.java.otr4j.io.UnsupportedTypeException;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.session.InstanceTag;
@@ -56,9 +57,13 @@ public interface AuthState {
      * exceptions.
      * @throws AuthContext.InteractionFailedException Thrown in case of failure
      * while interacting with the provided AKE context.
+     * @throws UnsupportedTypeException Thrown in case we receive messages that
+     * contain types that are unknown to this OTR implementation. Types such as,
+     * for example, a public key type.
      */
     @Nullable
-    AbstractEncodedMessage handle(@Nonnull AuthContext context, @Nonnull AbstractEncodedMessage message) throws IOException, OtrCryptoException, AuthContext.InteractionFailedException;
+    AbstractEncodedMessage handle(@Nonnull AuthContext context, @Nonnull AbstractEncodedMessage message)
+            throws IOException, OtrCryptoException, AuthContext.InteractionFailedException, UnsupportedTypeException;
 
     /**
      * Get active protocol version in AKE negotiation.

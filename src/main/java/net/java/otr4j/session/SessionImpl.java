@@ -35,6 +35,7 @@ import net.java.otr4j.OtrPolicyUtil;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.io.SerializationUtils;
+import net.java.otr4j.io.UnsupportedTypeException;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
 import net.java.otr4j.io.messages.DHKeyMessage;
@@ -654,6 +655,9 @@ public final class SessionImpl implements Session, Context, AuthContext {
             return null;
         } catch (final InteractionFailedException ex) {
             logger.log(Level.WARNING, "Failed to transition to ENCRYPTED message state.", ex);
+            return null;
+        } catch (final UnsupportedTypeException ex) {
+            logger.log(Level.INFO, "Unsupported type in AKE message: " + ex.getMessage());
             return null;
         }
     }
