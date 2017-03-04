@@ -291,7 +291,7 @@ final class StateEncrypted extends AbstractState {
         // Get encryption keys.
         final SessionKey encryptionKeys = this.sessionKeyManager.getEncryptionSessionKeys();
         final int senderKeyID = encryptionKeys.getLocalKeyID();
-        final int receipientKeyID = encryptionKeys.getRemoteKeyID();
+        final int recipientKeyID = encryptionKeys.getRemoteKeyID();
 
         // Increment CTR.
         final byte[] ctr = encryptionKeys.acquireSendingCtr();
@@ -322,7 +322,7 @@ final class StateEncrypted extends AbstractState {
         final byte[] data = out.toByteArray();
         // Encrypt message.
         logger.log(Level.FINEST, "Encrypting message with keyids (localKeyID, remoteKeyID) = ({0}, {1})",
-                new Object[]{senderKeyID, receipientKeyID});
+                new Object[]{senderKeyID, recipientKeyID});
         final byte[] encryptedMsg = OtrCryptoEngine.aesEncrypt(encryptionKeys
                 .sendingAESKey(), ctr, data);
 
@@ -335,7 +335,7 @@ final class StateEncrypted extends AbstractState {
                 = new MysteriousT(this.protocolVersion,
                         context.getSenderInstanceTag().getValue(),
                         context.getReceiverInstanceTag().getValue(),
-                        0, senderKeyID, receipientKeyID, nextDH, ctr,
+                        0, senderKeyID, recipientKeyID, nextDH, ctr,
                         encryptedMsg);
 
         // Calculate T hash.
