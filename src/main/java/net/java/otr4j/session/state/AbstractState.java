@@ -19,7 +19,7 @@ import net.java.otr4j.io.messages.ErrorMessage;
  */
 abstract class AbstractState implements State {
 
-    protected static final String DEFAULT_REPLY_UNREADABLE_MESSAGE = "This message cannot be read.";
+    static final String DEFAULT_REPLY_UNREADABLE_MESSAGE = "This message cannot be read.";
 
     @Override
     public void handleErrorMessage(@Nonnull final Context context, @Nonnull final ErrorMessage errorMessage) throws OtrException {
