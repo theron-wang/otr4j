@@ -133,6 +133,7 @@ public class SMTest {
     @Test(expected = SMException.class)
     public void testCheckKnowLog() throws SMException {
         final AbstractSMPState sm = new AbstractSMPState(sr) {
+            @Nonnull
             @Override
             SMPStatus status() {
                 return SMPStatus.UNDECIDED;
@@ -144,6 +145,7 @@ public class SMTest {
     @Test(expected = SMException.class)
     public void testCheckEqualCoords() throws SMException {
         final AbstractSMPState sm = new AbstractSMPState(sr) {
+            @Nonnull
             @Override
             SMPStatus status() {
                 return SMPStatus.UNDECIDED;
@@ -155,6 +157,7 @@ public class SMTest {
     @Test(expected = SMException.class)
     public void testCheckEqualLogs() throws SMException {
         final AbstractSMPState sm = new AbstractSMPState(sr) {
+            @Nonnull
             @Override
             SMPStatus status() {
                 return SMPStatus.UNDECIDED;
@@ -438,7 +441,7 @@ public class SMTest {
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage1a(SM bstate, byte[] input) throws SMAbortedException, SMException {
+            void smpMessage1a(@Nonnull SM bstate, @Nonnull byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
@@ -467,7 +470,7 @@ public class SMTest {
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage1a(SM bstate, byte[] input) throws SMAbortedException, SMException {
+            void smpMessage1a(@Nonnull SM bstate, @Nonnull byte[] input) throws SMAbortedException, SMException {
                 throw e;
             }
 
@@ -495,11 +498,13 @@ public class SMTest {
         final SMException e = new SMException("intentionally bad");
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
+            @Nonnull
             @Override
-            byte[] smpMessage1b(SM bstate, byte[] input) throws SMAbortedException, SMException {
+            byte[] smpMessage1b(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
                 throw e;
             }
 
+            @Nonnull
             @Override
             SMPStatus status() {
                 return SMPStatus.INPROGRESS;
@@ -523,11 +528,13 @@ public class SMTest {
         final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
+            @Nonnull
             @Override
-            byte[] smpMessage1b(SM bstate, byte[] input) throws SMAbortedException, SMException {
+            byte[] smpMessage1b(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
                 throw e;
             }
 
+            @Nonnull
             @Override
             SMPStatus status() {
                 return SMPStatus.INPROGRESS;
@@ -551,11 +558,13 @@ public class SMTest {
         final SMException e = new SMException("intentionally bad");
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
+            @Nonnull
             @Override
-            byte[] smpMessage2(SM bstate, byte[] input) throws SMAbortedException, SMException {
+            byte[] smpMessage2(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
                 throw e;
             }
 
+            @Nonnull
             @Override
             SMPStatus status() {
                 return SMPStatus.INPROGRESS;
@@ -579,11 +588,13 @@ public class SMTest {
         final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
+            @Nonnull
             @Override
-            byte[] smpMessage2(SM bstate, byte[] input) throws SMAbortedException, SMException {
+            byte[] smpMessage2(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
                 throw e;
             }
 
+            @Nonnull
             @Override
             SMPStatus status() {
                 return SMPStatus.INPROGRESS;
@@ -607,11 +618,13 @@ public class SMTest {
         final SMException e = new SMException("intentionally bad");
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
+            @Nonnull
             @Override
-            byte[] smpMessage3(SM bstate, byte[] input) throws SMAbortedException, SMException {
+            byte[] smpMessage3(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
                 throw e;
             }
 
+            @Nonnull
             @Override
             SMPStatus status() {
                 return SMPStatus.INPROGRESS;
@@ -635,11 +648,13 @@ public class SMTest {
         final IllegalArgumentException e = new IllegalArgumentException("intentionally bad");
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
+            @Nonnull
             @Override
-            byte[] smpMessage3(SM bstate, byte[] input) throws SMAbortedException, SMException {
+            byte[] smpMessage3(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
                 throw e;
             }
 
+            @Nonnull
             @Override
             SMPStatus status() {
                 return SMPStatus.INPROGRESS;
@@ -664,10 +679,11 @@ public class SMTest {
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage4(SM bstate, byte[] input) throws SMAbortedException, SMException {
+            void smpMessage4(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
                 throw e;
             }
 
+            @Nonnull
             @Override
             SMPStatus status() {
                 return SMPStatus.INPROGRESS;
@@ -692,10 +708,11 @@ public class SMTest {
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage4(SM bstate, byte[] input) throws SMAbortedException, SMException {
+            void smpMessage4(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
                 throw e;
             }
 
+            @Nonnull
             @Override
             SMPStatus status() {
                 return SMPStatus.INPROGRESS;
