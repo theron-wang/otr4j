@@ -70,6 +70,25 @@ public final class SerializationUtils {
      */
     private static final String NUMBERINDEX = "0123456789";
 
+    /**
+     * Index for hexadecimal symbols.
+     */
+    private static final char HEX_ENCODER[] = {'0', '1', '2', '3', '4', '5',
+            '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+    /**
+     * Index for decoding hexadecimal values.
+     */
+    private static final String HEX_DECODER = "0123456789ABCDEF";
+
+    /**
+     * PATTERN_WHITESPACE recognizes OTR v1, v2 and v3 whitespace tags. We will
+     * continue to recognize OTR v1 whitespace tag for compatibility purposes
+     * and to avoid bad interpretation.
+     */
+    private static final Pattern PATTERN_WHITESPACE = Pattern
+            .compile(" \\t  \\t\\t\\t\\t \\t \\t \\t  ( \\t \\t  \\t )?(  \\t\\t  \\t )?(  \\t\\t  \\t\\t)?");
+
     private SerializationUtils() {
         // Utility class cannot be instantiated.
     }
@@ -287,12 +306,6 @@ public final class SerializationUtils {
         return writer.toString();
     }
 
-    // PATTERN_WHITESPACE recognizes OTR v1, v2 and v3 whitespace tags. We will
-    // continue to recognize OTR v1 whitespace tag for compatibility purposes
-    // and to avoid bad interpretation.
-    private static final Pattern PATTERN_WHITESPACE = Pattern
-            .compile(" \\t  \\t\\t\\t\\t \\t \\t \\t  ( \\t \\t  \\t )?(  \\t\\t  \\t )?(  \\t\\t  \\t\\t)?");
-
     /**
      * Parses an encoded OTR string into an instance of {@link Message}.
      *
@@ -456,25 +469,17 @@ public final class SerializationUtils {
         return new PlainTextMessage(versions, cleanText);
     }
 
-    private static final char HEX_ENCODER[] = {'0', '1', '2', '3', '4', '5',
-            '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
-    public static String byteArrayToHexString(@Nullable final byte in[]) {
-        if (in == null || in.length <= 0) {
-            return null;
-        }
+    @Nonnull
+    public static String byteArrayToHexString(@Nonnull final byte in[]) {
         final StringBuilder out = new StringBuilder(in.length * 2);
-        int i = 0;
-        while (i < in.length) {
-            out.append(HEX_ENCODER[(in[i] >>> 4) & 0x0F]);
-            out.append(HEX_ENCODER[in[i] & 0x0F]);
-            i++;
+        for (final byte b : in) {
+            out.append(HEX_ENCODER[(b >>> 4) & 0x0F]);
+            out.append(HEX_ENCODER[b & 0x0F]);
         }
         return out.toString();
     }
 
-    private static final String HEX_DECODER = "0123456789ABCDEF";
-
+    @Nonnull
     public static byte[] hexStringToByteArray(@Nonnull String value) {
         value = value.toUpperCase(Locale.US);
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -496,6 +501,7 @@ public final class SerializationUtils {
      * @param msg the plain text message being sent
      * @return byte[] the incoming message converted to OTR-safe bytes
      */
+    @Nonnull
     public static byte[] convertTextToBytes(@Nonnull final String msg) {
         return msg.replace('\0', '?').getBytes(SerializationUtils.UTF8);
     }
