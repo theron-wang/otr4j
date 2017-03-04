@@ -220,21 +220,14 @@ final class StateEncrypted extends AbstractState {
             System.arraycopy(dmc, tlvIndex, tlvsb, 0, tlvsb.length);
 
             final ByteArrayInputStream tin = new ByteArrayInputStream(tlvsb);
-            final OtrInputStream eois = new OtrInputStream(tin);
-            try {
+            try (final OtrInputStream eois = new OtrInputStream(tin)) {
                 while (tin.available() > 0) {
                     final int type = eois.readShort();
                     final byte[] tdata = eois.readTlvData();
                     tlvs.add(new TLV(type, tdata));
                 }
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new OtrException(e);
-            } finally {
-                try {
-                    eois.close();
-                } catch (IOException e) {
-                    throw new OtrException(e);
-                }
             }
         }
         for (final TLV tlv : tlvs) {
@@ -316,20 +309,13 @@ final class StateEncrypted extends AbstractState {
         if (!tlvs.isEmpty()) {
             out.write((byte) 0x00);
 
-            final OtrOutputStream eoos = new OtrOutputStream(out);
-            try {
+            try (final OtrOutputStream eoos = new OtrOutputStream(out)) {
                 for (TLV tlv : tlvs) {
                     eoos.writeShort(tlv.getType());
                     eoos.writeTlvData(tlv.getValue());
                 }
             } catch (final IOException ex) {
                 throw new OtrException(ex);
-            } finally {
-                try {
-                    eoos.close();
-                } catch (IOException e) {
-                    throw new OtrException(e);
-                }
             }
         }
 

@@ -122,7 +122,7 @@ public final class SM {
             }
             return ints;
         } catch (final IOException ex) {
-            throw new SMException("cannot unserialize bigints", ex);
+            throw new SMException("cannot deserialize bigints", ex);
         } finally {
             try {
                 ois.close();
