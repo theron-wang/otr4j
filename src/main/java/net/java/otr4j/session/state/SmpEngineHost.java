@@ -22,7 +22,6 @@ import net.java.otr4j.session.SessionID;
  *
  * @author Danny van Heumen
  */
-// TODO annotate overriding parametres in DummyClient (for consistency)
 public interface SmpEngineHost {
 
     /**

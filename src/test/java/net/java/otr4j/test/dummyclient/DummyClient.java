@@ -11,12 +11,12 @@ import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.java.otr4j.OtrEngineHost;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.io.UnsupportedTypeException;
 import net.java.otr4j.session.*;
 
 /**
@@ -30,8 +30,8 @@ public class DummyClient {
 	private OtrPolicy policy;
 	private Connection connection;
 	private MessageProcessor processor;
-	private Queue<ProcessedTestMessage> processedMsgs = new LinkedList<>();
-	private HashMap<SessionID, String>smpQuestions = new HashMap<>();
+	private final Queue<ProcessedTestMessage> processedMsgs = new LinkedList<>();
+	private final HashMap<SessionID, String> smpQuestions = new HashMap<>();
 
     private CountDownLatch lock;
     private int verified = NOTSET;
@@ -79,18 +79,15 @@ public class DummyClient {
 		bob.pollReceivedMessage(); // Reveal signature
 		alice.pollReceivedMessage(); // Signature
 
-		if (bob.getSession().getSessionStatus() != SessionStatus.ENCRYPTED)
-			return false;
-		if (alice.getSession().getSessionStatus() != SessionStatus.ENCRYPTED)
-			return false;
-		return true;
+		return bob.getSession().getSessionStatus() == SessionStatus.ENCRYPTED
+				&& alice.getSession().getSessionStatus() == SessionStatus.ENCRYPTED;
 	}
 
 	public DummyClient(String account) {
 	    this(account, null);
 	}
 
-	public DummyClient(String account, CountDownLatch lock) {
+	private DummyClient(String account, CountDownLatch lock) {
 	    this.lock = lock;
 	    logger = Logger.getLogger(account);
 		this.account = account;
@@ -220,8 +217,7 @@ public class DummyClient {
 					if (m == null) {
 						try {
 							messageQueue.wait();
-						} catch (InterruptedException e) {
-
+						} catch (InterruptedException ignored) {
 						}
 					} else {
 						try {
@@ -229,10 +225,8 @@ public class DummyClient {
                                 break;
                             }
 							process(m);
-                        } catch (RuntimeException e) {
+                        } catch (RuntimeException | OtrException e) {
                             e.printStackTrace();
-						} catch (OtrException e) {
-							e.printStackTrace();
 						}
 					}
 
@@ -282,9 +276,9 @@ public class DummyClient {
 
 	public class DummyOtrEngineHostImpl implements OtrEngineHost {
 
-	    private HashMap<SessionID, KeyPair> keypairs = new HashMap<SessionID, KeyPair>();
+	    private final HashMap<SessionID, KeyPair> keypairs = new HashMap<SessionID, KeyPair>();
 
-		public void injectMessage(SessionID sessionID, String msg) {
+		public void injectMessage(@Nonnull SessionID sessionID, @Nonnull String msg) {
 			connection.send(sessionID.getUserID(), msg);
 
 			String msgDisplay = (msg.length() > 10) ? msg.substring(0, 10)
@@ -292,65 +286,66 @@ public class DummyClient {
 			logger.finest("IM injects message: " + msgDisplay);
 		}
 
-		public void smpError(SessionID sessionID, int tlvType, boolean cheated) {
+		public void smpError(@Nonnull SessionID sessionID, int tlvType, boolean cheated) {
 			logger.severe("SM verification error with user: " + sessionID);
 			smpQuestions.remove(sessionID);
 		}
 
-		public void smpAborted(SessionID sessionID) {
+		public void smpAborted(@Nonnull SessionID sessionID) {
 			logger.severe("SM verification has been aborted by user: "
 					+ sessionID);
 			smpQuestions.remove(sessionID);
 		}
 
-		public void finishedSessionMessage(SessionID sessionID, String msgText) {
+		public void finishedSessionMessage(@Nonnull SessionID sessionID, @Nonnull String msgText) {
 			logger.severe("SM session was finished. You shouldn't send messages to: "
 					+ sessionID);
 		}
 
-		public void requireEncryptedMessage(SessionID sessionID, String msgText) {
+		public void requireEncryptedMessage(@Nonnull SessionID sessionID, @Nonnull String msgText) {
 			logger.severe("Message can't be sent while encrypted session is not established: "
 					+ sessionID);
 		}
 
-		public void unreadableMessageReceived(SessionID sessionID) {
+		public void unreadableMessageReceived(@Nonnull SessionID sessionID) {
 			logger.warning("Unreadable message received from: " + sessionID);
 		}
 
-		public void unencryptedMessageReceived(SessionID sessionID, String msg) {
+		public void unencryptedMessageReceived(@Nonnull SessionID sessionID, @Nonnull String msg) {
 			logger.warning("Unencrypted message received: " + msg + " from "
 					+ sessionID);
 		}
 
-		public void showError(SessionID sessionID, String error) {
+		public void showError(@Nonnull SessionID sessionID, @Nonnull String error) {
 			logger.severe("IM shows error to user: " + error);
 		}
 
-        public KeyPair getLocalKeyPair(SessionID paramSessionID) {
+        @Nonnull
+		public KeyPair getLocalKeyPair(@Nonnull SessionID paramSessionID) {
             KeyPair keypair = this.keypairs.get(paramSessionID);
             if (keypair == null) {
                 try {
                     KeyPairGenerator kg = KeyPairGenerator.getInstance("DSA");
                     keypair = kg.genKeyPair();
                     this.keypairs.put(paramSessionID, keypair);
-                } catch (NoSuchAlgorithmException e) {
-                    logger.severe(e.getMessage());
+                } catch (NoSuchAlgorithmException ex) {
+                    throw new IllegalStateException("DSA algorithm unavailable.", ex);
                 }
             }
             return keypair;
         }
 
-		public OtrPolicy getSessionPolicy(SessionID ctx) {
+		public OtrPolicy getSessionPolicy(@Nonnull SessionID ctx) {
 			return policy;
 		}
 
         @Nonnull
-        public byte[] getLocalFingerprintRaw(SessionID sessionID) {
+        public byte[] getLocalFingerprintRaw(@Nonnull SessionID sessionID) {
             return OtrCryptoEngine.getFingerprintRaw(getLocalKeyPair(sessionID)
                     .getPublic());
         }
 
-		public void askForSecret(SessionID sessionID, InstanceTag receiverTag, String question) {
+		public void askForSecret(@Nonnull SessionID sessionID, @Nonnull InstanceTag receiverTag, @Nullable String question) {
             logger.finer("Ask for secret from: " + sessionID
                     + ", instanceTag: " + receiverTag + ", question: " + question);
             smpQuestions.put(sessionID, question);
@@ -358,37 +353,37 @@ public class DummyClient {
                 lock.countDown();
 		}
 
-		public void verify(SessionID sessionID, String fingerprint) {
+		public void verify(@Nonnull SessionID sessionID, @Nonnull String fingerprint) {
             logger.finer("Session was verified: " + sessionID);
             verified = VERIFIED;
             if (lock != null)
                 lock.countDown();
 		}
 
-		public void unverify(SessionID sessionID, String fingerprint) {
+		public void unverify(@Nonnull SessionID sessionID, @Nonnull String fingerprint) {
             logger.fine("Session was not verified: " + sessionID + "  fingerprint: " + fingerprint);
             verified = UNVERIFIED;
             if (lock != null)
                 lock.countDown();
 		}
 
-		public String getReplyForUnreadableMessage(SessionID sessionID) {
+		public String getReplyForUnreadableMessage(@Nonnull SessionID sessionID) {
             return "You sent me an unreadable encrypted message.";
 		}
 
-		public String getFallbackMessage(SessionID sessionID) {
+		public String getFallbackMessage(@Nonnull SessionID sessionID) {
             return "Off-the-Record private conversation has been requested. However, you do not have a plugin to support that.";
 		}
 
-		public void messageFromAnotherInstanceReceived(SessionID sessionID) {
+		public void messageFromAnotherInstanceReceived(@Nonnull SessionID sessionID) {
 
 		}
 
-		public void multipleInstancesDetected(SessionID sessionID) {
+		public void multipleInstancesDetected(@Nonnull SessionID sessionID) {
 
 		}
 
-		public int getMaxFragmentSize(SessionID sessionID) {
+		public int getMaxFragmentSize(@Nonnull SessionID sessionID) {
 			return Integer.MAX_VALUE;
 		}
 	}

@@ -140,7 +140,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * message specified in
      * {@link SerializationConstants#DEFAULT_FALLBACK_MESSAGE}
      *
-     * @param sessionID
+     * @param sessionID the session ID
      * @return String the localized message
      */
     String getFallbackMessage(@Nonnull SessionID sessionID);
