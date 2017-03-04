@@ -62,7 +62,6 @@ import org.bouncycastle.util.BigIntegers;
  * @author George Politis
  * @author Danny van Heumen
  */
-// TODO Investigate what we can reuse of KeyFactories, KeyAgreement instances, MessageDigest instances, Hmac instances.
 public final class OtrCryptoEngine {
 
     private static final String ALGORITHM_DSA = "DSA";
