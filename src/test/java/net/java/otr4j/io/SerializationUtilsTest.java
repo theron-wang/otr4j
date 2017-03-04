@@ -54,14 +54,15 @@ public class SerializationUtilsTest {
 				.toMessage("?OTR:AAQDdAYBciqzcLcAAAAAAQAAAAIAAADAh7NAcXJNpXa8qw89tvx4eoxhR3iaTx4omdj34HRpgMXDGIR7Kp4trQ+L5k8INcse58RJWHQPYW+dgKMkwrpCNJIgaqjzaiJC5+QPylSchrAB78MNZiCLXW7YU3dSic1Pm0dpa57wwiFp7sfSm00GEcE7M1bRe7Pr1zgb8KP/5PJUeI7IVmYTDj5ONWUsyoocD40RQ+Bu+I7GLgb7WICGZ6mpof3UGEFFmJLB5lDfunhCqb0d3MRP0G6k/8YJzjIlAAAAAAAAAAEAAAAF8VtymMJceqLiPIYPjRTLmlr5gQPirDY87QAAAAA=.");
 	}
 
-    @Test
+    @SuppressWarnings("ConstantConditions")
+    @Test(expected = NullPointerException.class)
     public void testByteArrayToHexStringNullArray() {
-        assertNull(SerializationUtils.byteArrayToHexString(null));
+        SerializationUtils.byteArrayToHexString(null);
     }
 
     @Test
     public void testByteArrayToHexStringEmptyArray() {
-        assertNull(SerializationUtils.byteArrayToHexString(new byte[0]));
+        assertEquals("", SerializationUtils.byteArrayToHexString(new byte[0]));
     }
 
     @Test
