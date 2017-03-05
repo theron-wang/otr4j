@@ -474,7 +474,7 @@ final class SessionImpl implements Session, Context, AuthContext {
             } finally {
                 // In any case, after transformation ensure that we switch to
                 // the ENCRYPTED session if a state transition has taken place.
-                // TODO is this work-around acceptable (for switching outgoing session)? (Alternatively we could NOT switch ever and leave it to the user, however that behavior is also different from the original behavior of the library.)
+                // FIXME is this work-around acceptable (for switching outgoing session)? (Alternatively we could NOT switch ever and leave it to the user, however that behavior is also different from the original behavior of the library.)
                 final SessionStatus currentStatus = session.sessionState.getStatus();
                 if (this.outgoingSession.sessionState.getStatus() == SessionStatus.PLAINTEXT
                         && previousStatus == SessionStatus.PLAINTEXT

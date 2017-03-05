@@ -19,6 +19,7 @@ import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.session.state.IncorrectStateException;
 
+// TODO consider getting rid of IncorrectStateException in interface definition for future move to 'api' package.
 public interface Session {
 
     interface OTRv {

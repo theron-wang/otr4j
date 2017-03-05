@@ -10,7 +10,6 @@ package net.java.otr4j;
 import java.security.KeyPair;
 import javax.annotation.Nonnull;
 
-import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.session.SessionID;
 import net.java.otr4j.session.state.SmpEngineHost;
 
@@ -137,8 +136,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * OTR-enabled client. This is sent as part of the initial OTR Query message
      * that prompts the other side to set up an OTR session. If this returns
      * {@code null} or {@code ""}, then otr4j will use the built-in default
-     * message specified in
-     * {@link SerializationConstants#DEFAULT_FALLBACK_MESSAGE}
+     * message specified in SerializationConstants#DEFAULT_FALLBACK_MESSAGE.
      *
      * @param sessionID the session ID
      * @return String the localized message
