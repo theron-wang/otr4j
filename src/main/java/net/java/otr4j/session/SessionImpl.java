@@ -657,7 +657,7 @@ public final class SessionImpl implements Session, Context, AuthContext {
             logger.log(Level.WARNING, "Failed to transition to ENCRYPTED message state.", ex);
             return null;
         } catch (final UnsupportedTypeException ex) {
-            logger.log(Level.INFO, "Unsupported type in AKE message: " + ex.getMessage());
+            logger.log(Level.INFO, "Unsupported type in AKE message: {0}", ex.getMessage());
             return null;
         }
     }
