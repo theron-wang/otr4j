@@ -14,10 +14,11 @@ import java.util.Arrays;
  * @author George Politis
  */
 public final class SignatureX {
+
     // Fields.
-    public PublicKey longTermPublicKey;
-    public int dhKeyID;
-    public byte[] signature;
+    public final PublicKey longTermPublicKey;
+    public final int dhKeyID;
+    public final byte[] signature;
 
     // Ctor.
     public SignatureX(final PublicKey ourLongTermPublicKey, final int ourKeyID,
