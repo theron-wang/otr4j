@@ -24,7 +24,10 @@ Backwards incompatibility / behavioral changes:
   * New exception OtrCryptoException thrown.
   * OtrCryptoException was originally wrapped in IOException, so less IOExceptions are thrown.
 - Potentially more RuntimeExceptions. Not explicitly thrown, but less are caught with the general catch-all "catch (Exception)".
-
+- Moved classes:
+  * net.java.otr4j.OtrSessionManager -> net.java.otr4j.session.OtrSessionManager
+- Deleted classes:
+  * net.java.otr4j.crypto.Util: was unused and is now deleted.
 
 Modifications in improvements branch:
 * More leverage of (static) type-safety.
@@ -34,7 +37,7 @@ Modifications in improvements branch:
 * Safely calling engine host such that faulty engine host implementation does not interrupt session state management:
  * This improvement is especially important as a significant number of calls depend on successful execution and assume that directly after a response can be constructed or state updated. Some cases are:
  * receiving of plain text message: plain text message is returned afterwards.
- * informing of errored/aborted SMP: state is reset afterwards.
+ * informing of erred/aborted SMP: state is reset afterwards.
  * NOTE that OtrException are technically allowed, but are not handled correctly either. The utility class that is now used, will catch, log and silence OtrException too.
 * Fixed potential exceptions due to negative array sizes caused by interpretation of ints as signed in unserialization.
 * Fixed issue with SM exponent and group element verification.

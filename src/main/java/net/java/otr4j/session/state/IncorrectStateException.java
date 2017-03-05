@@ -13,6 +13,7 @@ package net.java.otr4j.session.state;
  * any time. The nature of the checked exception can be used to handle
  * unexpected state transitions appropriately.
  */
+// TODO consider basing on OtrException to ensure only a single exception type in public api
 public final class IncorrectStateException extends Exception {
 
     private static final long serialVersionUID = -5335635776510194254L;
