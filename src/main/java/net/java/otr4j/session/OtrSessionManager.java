@@ -5,7 +5,7 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j;
+package net.java.otr4j.session;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,9 +14,9 @@ import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 
-import net.java.otr4j.session.Session;
-import net.java.otr4j.session.SessionID;
-import net.java.otr4j.session.SessionImpl;
+import net.java.otr4j.OtrEngineHost;
+import net.java.otr4j.OtrEngineListener;
+import net.java.otr4j.OtrEngineListenerUtil;
 
 /**
  * @author George Politis
@@ -50,6 +50,20 @@ public final class OtrSessionManager {
      */
     public OtrSessionManager(@Nonnull final OtrEngineHost host) {
         this.host = Objects.requireNonNull(host, "OtrEngineHost is required");
+    }
+
+    /**
+     * Create an OTR session instance without the management of the OtrSessionManager.
+     * <p>
+     * Sessions created through this method will not be managed or remembered by any OtrSessionManager.
+     *
+     * @param sessionID The session ID
+     * @param host      The OTR engine host
+     * @return Returns a newly created OTR session instance.
+     */
+    @Nonnull
+    public static Session createSession(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost host) {
+        return new SessionImpl(sessionID, host);
     }
 
     /**

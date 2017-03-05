@@ -6,6 +6,7 @@
  */
 package net.java.otr4j;
 
+import net.java.otr4j.session.OtrSessionManager;
 import net.java.otr4j.session.Session;
 import net.java.otr4j.session.SessionID;
 import org.junit.Test;

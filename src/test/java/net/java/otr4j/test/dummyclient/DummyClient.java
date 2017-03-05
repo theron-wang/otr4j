@@ -112,7 +112,7 @@ public class DummyClient {
     public void init(String recipient, String message) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
-			session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
+			session = OtrSessionManager.createSession(sessionID, new DummyOtrEngineHostImpl());
 		}
         session.startSession();
     }
@@ -120,7 +120,7 @@ public class DummyClient {
 	public void send(@Nonnull String recipient, @Nonnull String s) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
-			session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
+			session = OtrSessionManager.createSession(sessionID, new DummyOtrEngineHostImpl());
 		}
 		String[] outgoingMessage = session.transformSending(s, Collections.<TLV>emptyList());
 		for (String part : outgoingMessage) {
@@ -159,7 +159,7 @@ public class DummyClient {
 	public void secureSession(String recipient) throws OtrException {
 		if (session == null) {
 			final SessionID sessionID = new SessionID(account, recipient, "DummyProtocol");
-			session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
+			session = OtrSessionManager.createSession(sessionID, new DummyOtrEngineHostImpl());
 		}
 
 		session.startSession();
@@ -198,7 +198,7 @@ public class DummyClient {
 		private void process(TestMessage m) throws OtrException {
 			if (session == null) {
 				final SessionID sessionID = new SessionID(account, m.getSender(), "DummyProtocol");
-				session = new SessionImpl(sessionID, new DummyOtrEngineHostImpl());
+				session = OtrSessionManager.createSession(sessionID, new DummyOtrEngineHostImpl());
 			}
 
 			String receivedMessage = session.transformReceiving(m.getContent());

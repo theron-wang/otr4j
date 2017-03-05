@@ -87,7 +87,7 @@ import net.java.otr4j.session.state.StatePlaintext;
  * @author Danny van Heumen
  */
 // TODO Consider brute-forcing/generating random strings for transformReceiving to make processing of message more robust.
-public final class SessionImpl implements Session, Context, AuthContext {
+final class SessionImpl implements Session, Context, AuthContext {
 
     /**
      * Session state contains the currently active message state of the session.
@@ -214,11 +214,16 @@ public final class SessionImpl implements Session, Context, AuthContext {
 
     /**
      * Constructor.
+     * <p>
+     * Package-private constructor for creating new sessions. To create a
+     * sessions without using the OTR session manager, we offer a static method
+     * that (indirectly) provides access to the session implementation. See
+     * {@link OtrSessionManager#createSession(SessionID, OtrEngineHost)}.
      *
      * @param sessionID The session ID
-     * @param listener The OTR engine host listener.
+     * @param listener  The OTR engine host listener.
      */
-    public SessionImpl(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost listener) {
+    SessionImpl(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost listener) {
         this(true, sessionID, listener, InstanceTag.ZERO_TAG, InstanceTag.ZERO_TAG,
                 new SecureRandom(), StateInitial.instance());
     }
