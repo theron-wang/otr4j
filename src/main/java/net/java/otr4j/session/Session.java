@@ -66,6 +66,14 @@ public interface Session {
     OtrPolicy getSessionPolicy();
 
     /**
+     * Get status of offering OTR through whitespace tags.
+     *
+     * @return Returns status of whitespace offer.
+     */
+    @Nonnull
+    OfferStatus getOfferStatus();
+
+    /**
      * Get protocol version for active session.
      *
      * @return Returns protocol version or 0 in case of no session active.
