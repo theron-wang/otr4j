@@ -71,13 +71,13 @@ public final class SmpTlvHandler {
      *  @param initiating Whether we are initiating or responding to an initial request.
      *
      *  @return TLVs to send to the peer
-     *  @throws OtrException MVN_PASS_JAVADOC_INSPECTION
+     *  @throws OtrException Failures in case an SMP step cannot be processed
+     *  successfully, or in case expected data is not provided.
      */
     public List<TLV> initRespondSmp(@Nullable final String question, @Nonnull final String secret,
             final boolean initiating) throws OtrException {
         if (!initiating && this.sm.status() != SMPStatus.INPROGRESS) {
-            throw new OtrException(new IllegalStateException(
-                    "There is no question to be answered."));
+            throw new OtrException("There is no question to be answered.");
         }
 
         /*
@@ -150,10 +150,9 @@ public final class SmpTlvHandler {
     }
 
     /**
-     *  Create an abort TLV and reset our state.
+     * Create an abort TLV and reset our state.
      *
-     *  @return TLVs to send to the peer
-     *  @throws OtrException MVN_PASS_JAVADOC_INSPECTION
+     * @return TLVs to send to the peer
      */
     @Nonnull
     public List<TLV> abortSmp() {

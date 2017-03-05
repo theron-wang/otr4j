@@ -65,8 +65,10 @@ final class OtrAssembler {
      *
      * @return String with the accumulated message or
      *         null if the message was incomplete or malformed
-     * @throws ProtocolException MVN_PASS_JAVADOC_INSPECTION
-     * @throws UnknownInstanceException MVN_PASS_JAVADOC_INSPECTION
+     * @throws ProtocolException Thrown in case the message is bad in some way
+     * that breaks with the expectations of the OTR protocol.
+     * @throws UnknownInstanceException In case receiver instance tag in
+     * message is unknown.
      */
     String accumulate(@Nonnull String msgText) throws ProtocolException {
         // if it's a fragment, remove everything before "k,n,piece-k"
