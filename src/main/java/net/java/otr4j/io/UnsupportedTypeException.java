@@ -3,7 +3,8 @@ package net.java.otr4j.io;
 import javax.annotation.Nonnull;
 
 /**
- * Exception indicating some unsupported type is encountered and we cannot successfully read the corresponding data.
+ * Exception indicating some unsupported type is encountered and we cannot
+ * successfully read the corresponding data.
  */
 public final class UnsupportedTypeException extends Exception {
 

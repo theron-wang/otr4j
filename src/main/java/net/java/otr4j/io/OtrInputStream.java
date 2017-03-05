@@ -152,6 +152,7 @@ public final class OtrInputStream extends FilterInputStream implements
      * @return Returns public key components.
      * @throws IOException Throws IOException in case of failing to read full public key from input data.
      * @throws OtrCryptoException Throws OtrCryptoException if failed to reconstruct corresponding public key.
+     * @throws UnsupportedTypeException Thrown in case an unsupported public key type is encountered.
      */
     @Nonnull
     public PublicKey readPublicKey() throws IOException, OtrCryptoException, UnsupportedTypeException {
@@ -199,6 +200,15 @@ public final class OtrInputStream extends FilterInputStream implements
         return checkedRead(dsaParams.getQ().bitLength() / 4);
     }
 
+    /**
+     * Read Mysterious X signature data.
+     *
+     * @return Returns Mysterious X instance.
+     * @throws IOException In case of failure in reading the message.
+     * @throws OtrCryptoException In case of failures while processing the
+     * message content.
+     * @throws UnsupportedTypeException In case of unsupported public key type.
+     */
     public SignatureX readMysteriousX() throws IOException, OtrCryptoException, UnsupportedTypeException {
         final PublicKey pubKey = readPublicKey();
         final int dhKeyID = readInt();
