@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+
+import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.SessionID;
 
 /**
@@ -48,16 +50,17 @@ public final class OtrEngineListenerUtil {
      *
      * @param listeners All listeners to be called.
      * @param sessionID the session ID
+     * @param receiver The receiver instance.
      */
     public static void sessionStatusChanged(@Nonnull final Iterable<OtrEngineListener> listeners,
-            @Nonnull final SessionID sessionID) {
+            @Nonnull final SessionID sessionID, @Nonnull final InstanceTag receiver) {
         for (final OtrEngineListener l : listeners) {
             try {
                 // Calling the listeners in order to inform of events. As a
                 // service to the user we log any problems that occur while
                 // calling listeners.
-                l.sessionStatusChanged(sessionID);
-            } catch (RuntimeException e) {
+                l.sessionStatusChanged(sessionID, receiver);
+            } catch (final RuntimeException e) {
                 LOGGER.log(Level.WARNING, "Faulty listener! Runtime exception thrown while calling 'sessionStatusChanged' on listener '" + l.getClass().getCanonicalName() + "' for session " + sessionID, e);
             }
         }

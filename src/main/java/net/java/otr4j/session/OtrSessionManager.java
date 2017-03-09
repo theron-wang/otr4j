@@ -78,9 +78,10 @@ public final class OtrSessionManager {
         // instance is now reused in all sessions.
 
         @Override
-        public void sessionStatusChanged(@Nonnull final SessionID sessionID) {
+        public void sessionStatusChanged(@Nonnull final SessionID sessionID, @Nonnull final InstanceTag receiverTag) {
             OtrEngineListenerUtil.sessionStatusChanged(
-                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
+                    OtrEngineListenerUtil.duplicate(listeners),
+                    sessionID, receiverTag);
         }
 
         @Override

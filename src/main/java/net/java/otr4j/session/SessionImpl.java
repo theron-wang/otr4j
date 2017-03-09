@@ -196,9 +196,9 @@ final class SessionImpl implements Session, Context, AuthContext {
     private final OtrEngineListener slaveSessionsListener = new OtrEngineListener() {
 
         @Override
-        public void sessionStatusChanged(@Nonnull final SessionID sessionID) {
+        public void sessionStatusChanged(@Nonnull final SessionID sessionID, @Nonnull final InstanceTag receiver) {
             OtrEngineListenerUtil.sessionStatusChanged(
-                    OtrEngineListenerUtil.duplicate(listeners), sessionID);
+                    OtrEngineListenerUtil.duplicate(listeners), sessionID, receiver);
         }
 
         @Override
@@ -290,7 +290,7 @@ final class SessionImpl implements Session, Context, AuthContext {
             throw new InteractionFailedException(ex);
         }
         if (this.sessionState.getStatus() != SessionStatus.ENCRYPTED) {
-            throw new IllegalStateException("Session fails to transition to ENCRYPTED.");
+            throw new IllegalStateException("Session failed to transition to ENCRYPTED.");
         }
         logger.info("Session secured. Message state transitioned to ENCRYPTED.");
     }
@@ -299,7 +299,8 @@ final class SessionImpl implements Session, Context, AuthContext {
     public void setState(@Nonnull final State state) {
         this.sessionState = Objects.requireNonNull(state);
         OtrEngineListenerUtil.sessionStatusChanged(
-                OtrEngineListenerUtil.duplicate(listeners), state.getSessionID());
+                OtrEngineListenerUtil.duplicate(listeners),
+                state.getSessionID(), this.receiverTag);
     }
 
     @Override

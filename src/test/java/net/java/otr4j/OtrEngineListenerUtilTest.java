@@ -10,6 +10,8 @@ package net.java.otr4j;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.SessionID;
 import org.junit.After;
 import org.junit.Before;
@@ -39,9 +41,9 @@ public class OtrEngineListenerUtilTest {
         final SessionID s = new SessionID("localAccountID", "remoteAccountID", "protocolName");
         final OtrEngineListener l1 = mock(OtrEngineListener.class);
         final OtrEngineListener l2 = mock(OtrEngineListener.class);
-        OtrEngineListenerUtil.sessionStatusChanged(Arrays.asList(l1, l2), s);
-        verify(l1).sessionStatusChanged(s);
-        verify(l2).sessionStatusChanged(s);
+        OtrEngineListenerUtil.sessionStatusChanged(Arrays.asList(l1, l2), s, InstanceTag.ZERO_TAG);
+        verify(l1).sessionStatusChanged(s, InstanceTag.ZERO_TAG);
+        verify(l2).sessionStatusChanged(s, InstanceTag.ZERO_TAG);
     }
 
     @Test
@@ -49,10 +51,10 @@ public class OtrEngineListenerUtilTest {
         final SessionID s = new SessionID("localAccountID", "remoteAccountID", "protocolName");
         final OtrEngineListener l1 = mock(OtrEngineListener.class);
         final OtrEngineListener l2 = mock(OtrEngineListener.class);
-        doThrow(new IllegalStateException("bad stuff happened")).when(l1).sessionStatusChanged(s);
-        OtrEngineListenerUtil.sessionStatusChanged(Arrays.asList(l1, l2), s);
-        verify(l1).sessionStatusChanged(s);
-        verify(l2).sessionStatusChanged(s);
+        doThrow(new IllegalStateException("bad stuff happened")).when(l1).sessionStatusChanged(s, InstanceTag.ZERO_TAG);
+        OtrEngineListenerUtil.sessionStatusChanged(Arrays.asList(l1, l2), s, InstanceTag.ZERO_TAG);
+        verify(l1).sessionStatusChanged(s, InstanceTag.ZERO_TAG);
+        verify(l2).sessionStatusChanged(s, InstanceTag.ZERO_TAG);
     }
 
     @Test

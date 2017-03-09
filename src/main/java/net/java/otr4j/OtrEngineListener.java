@@ -9,6 +9,7 @@ package net.java.otr4j;
 
 import javax.annotation.Nonnull;
 
+import net.java.otr4j.session.InstanceTag;
 import net.java.otr4j.session.SessionID;
 
 /**
@@ -22,9 +23,13 @@ public interface OtrEngineListener {
     /**
      * Event triggered in case of session status changes.
      *
-     * @param sessionID The session ID
+     * @param sessionID The session ID.
+     * @param receiver  The receiver instance for which the status has changed.
+     *                  (It might not be the active outgoing session.) The
+     *                  receiver instance tag may be {@link InstanceTag#ZERO_TAG}
+     *                  in case an OTR v2 session was changed.
      */
-    void sessionStatusChanged(@Nonnull SessionID sessionID);
+    void sessionStatusChanged(@Nonnull SessionID sessionID, @Nonnull InstanceTag receiver);
 
     /**
      * Event triggered in case multiple instances are detected.
