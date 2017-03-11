@@ -224,4 +224,31 @@ public class SerializationUtilsTest {
     public void testIncompleteMessageMissingEnding() throws IOException, OtrCryptoException {
 	    SerializationUtils.toMessage("?OTR:BADBASE64CODEMISSINGDOT");
     }
+
+    @Test
+    public void testWhitespaceTagsNoVersions() {
+        final PlainTextMessage m = new PlainTextMessage(Collections.<Integer>emptySet(), "Hello");
+        assertEquals("Hello", SerializationUtils.toString(m));
+    }
+
+    @Test
+    public void testWhitespaceTagsAllVersions() {
+        final HashSet<Integer> versions = new HashSet<>();
+        versions.add(OTRv.TWO);
+        versions.add(OTRv.THREE);
+        final PlainTextMessage m = new PlainTextMessage(versions, "Hello");
+        assertEquals("Hello \t  \t\t\t\t \t \t \t    \t\t  \t   \t\t  \t\t", SerializationUtils.toString(m));
+    }
+
+    @Test
+    public void testWhitespaceTagsVersion2Only() {
+        final PlainTextMessage m = new PlainTextMessage(Collections.singleton(OTRv.TWO), "Hello");
+        assertEquals("Hello \t  \t\t\t\t \t \t \t    \t\t  \t ", SerializationUtils.toString(m));
+    }
+
+    @Test
+    public void testWhitespaceTagsVersion3Only() {
+        final PlainTextMessage m = new PlainTextMessage(Collections.singleton(OTRv.THREE), "Hello");
+        assertEquals("Hello \t  \t\t\t\t \t \t \t    \t\t  \t\t", SerializationUtils.toString(m));
+    }
 }

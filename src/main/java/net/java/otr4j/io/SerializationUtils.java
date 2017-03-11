@@ -177,7 +177,6 @@ public final class SerializationUtils {
         return out.toByteArray();
     }
 
-    // TODO add unit tests to test serialization of plaintext messages with whitespace tags.
     // Message IO.
     public static String toString(@Nonnull final Message m) {
         final StringWriter writer = new StringWriter();
@@ -317,6 +316,7 @@ public final class SerializationUtils {
      *             or real IO error
      * @throws net.java.otr4j.crypto.OtrCryptoException error of cryptographic nature
      */
+    @Nullable
     public static Message toMessage(@Nonnull final String s) throws IOException, OtrCryptoException {
         if (s.length() == 0) {
             return null;
