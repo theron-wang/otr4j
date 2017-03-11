@@ -939,7 +939,7 @@ final class SessionImpl implements Session, Context, AuthContext {
      */
     @Override
     @Nonnull
-    public Session getOutgoingInstance() {
+    public Session getOutgoingSession() {
         return outgoingSession;
     }
 

@@ -152,7 +152,7 @@ public interface Session {
      * @return Returns session instance.
      */
     @Nonnull
-    Session getOutgoingInstance();
+    Session getOutgoingSession();
 
     /**
      * Set outgoing session to instance corresponding to specified receiver
