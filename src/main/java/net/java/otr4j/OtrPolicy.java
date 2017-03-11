@@ -18,7 +18,6 @@ import java.util.logging.Logger;
  *
  * @author George Politis
  */
-// TODO consider getting rid of OTRv1 methods altogether
 public final class OtrPolicy {
 
     private static final Logger LOGGER = Logger.getLogger(OtrPolicy.class.getName());
@@ -30,7 +29,6 @@ public final class OtrPolicy {
      */
     @Deprecated
     public static final int ALLOW_V1 = 0x01;
-
     public static final int ALLOW_V2 = 0x02;
     // ALLOW_V3 is set to 0x40 for compatibility with older versions
     public static final int ALLOW_V3 = 0x40;
@@ -51,15 +49,23 @@ public final class OtrPolicy {
             | REQUIRE_ENCRYPTION | WHITESPACE_START_AKE | ERROR_START_AKE;
     public static final int OTRL_POLICY_DEFAULT = OPPORTUNISTIC;
 
+    private int policy;
+
+    /**
+     * Create OTR policy instance based on NEVER profile.
+     */
     public OtrPolicy() {
         this(NEVER);
     }
 
+    /**
+     * Create OTR policy instance based on provided policy value (bitset).
+     *
+     * @param policy The initial policy value.
+     */
     public OtrPolicy(final int policy) {
         this.policy = policy;
     }
-
-    private int policy;
 
     /**
      * Get full policy value. Returns raw policy value containing composition of
@@ -170,7 +176,7 @@ public final class OtrPolicy {
      * OTR V1 is not supported anymore. Calling this method will not change the
      * policy.
      *
-     * @param value
+     * @param value value is ignored
      * @deprecated Support for OTR V1 is dropped.
      */
     @Deprecated
@@ -178,6 +184,12 @@ public final class OtrPolicy {
         // setAllowV1 is not supported anymore
     }
 
+    /**
+     * Set/unset ALLOW_V2 policy flag, indicating that OTR version 2 is
+     * allowed.
+     *
+     * @param value True to set, false to unset.
+     */
     public void setAllowV2(final boolean value) {
         if (value) {
             policy |= ALLOW_V2;
@@ -186,6 +198,12 @@ public final class OtrPolicy {
         }
     }
 
+    /**
+     * Set/unset ALLOW_V3 policy flag, indicating that OTR version 3 is
+     * allowed.
+     *
+     * @param value True to set, false to unset.
+     */
     public void setAllowV3(final boolean value) {
         if (value) {
             policy |= ALLOW_V3;
@@ -194,6 +212,12 @@ public final class OtrPolicy {
         }
     }
 
+    /**
+     * Set ERROR_START_AKE flag, indicating that we should start a new AKE
+     * negotiation upon receiving an OTR error message.
+     *
+     * @param value True to set, false to unset.
+     */
     public void setErrorStartAKE(final boolean value) {
         if (value) {
             policy |= ERROR_START_AKE;
@@ -202,6 +226,13 @@ public final class OtrPolicy {
         }
     }
 
+    /**
+     * Set REQUIRE_ENCRYPTION flag, indicating that we should ensure an
+     * encrypted session is established before allowing to pass through
+     * messages.
+     *
+     * @param value True to set, false to unset.
+     */
     public void setRequireEncryption(final boolean value) {
         if (value) {
             policy |= REQUIRE_ENCRYPTION;
@@ -210,6 +241,12 @@ public final class OtrPolicy {
         }
     }
 
+    /**
+     * Set SEND_WHITESPACE_TAG flag, indicating that we should send a
+     * whitespace tag once to test OTR capabilities/willingness of other party.
+     *
+     * @param value True to set, false to unset.
+     */
     public void setSendWhitespaceTag(final boolean value) {
         if (value) {
             policy |= SEND_WHITESPACE_TAG;
@@ -218,6 +255,12 @@ public final class OtrPolicy {
         }
     }
 
+    /**
+     * Set WHITESPACE_START_AKE flag, indicating that we should start an AKE
+     * negotiation upon receiving a whitespace tag from the other party.
+     *
+     * @param value True to set, false to unset.
+     */
     public void setWhitespaceStartAKE(final boolean value) {
         if (value) {
             policy |= WHITESPACE_START_AKE;
@@ -226,6 +269,12 @@ public final class OtrPolicy {
         }
     }
 
+    /**
+     * Check with policy value to see whether or not all flags are set to
+     * compose into the ENABLE_ALWAYS policy profile.
+     *
+     * @return Returns true in case full ENABLE_ALWAYS profile is active.
+     */
     public boolean getEnableAlways() {
         return getEnableManual() && getErrorStartAKE()
                 && getRequireEncryption() && getWhitespaceStartAKE();
@@ -260,6 +309,11 @@ public final class OtrPolicy {
         setWhitespaceStartAKE(true);
     }
 
+    /**
+     * Get boolean indicating that ENABLE_MANUAL policy profile is active.
+     *
+     * @return Returns true if ENABLE_MANUAL is active, false otherwise.
+     */
     public boolean getEnableManual() {
         return getAllowV2() && getAllowV3();
     }
