@@ -309,7 +309,7 @@ final class SessionImpl implements Session, Context, AuthContext {
             // that subsequently sent messages are already encrypted, even if
             // the client does not explicitly switch.
             logger.finest("Switching to the just-secured session, as the previous state was a PLAINTEXT state.");
-            this.masterSession.setOutgoingInstance(this.receiverTag);
+            this.masterSession.setOutgoingSession(this.receiverTag);
         }
     }
 
@@ -864,9 +864,8 @@ final class SessionImpl implements Session, Context, AuthContext {
      * @param tag The receiver instance tag.
      * @return Returns true upon successfully setting the outgoing instance.
      */
-    // FIXME to be renamed to setOutgoingSession.
     @Override
-    public boolean setOutgoingInstance(@Nonnull final InstanceTag tag) {
+    public boolean setOutgoingSession(@Nonnull final InstanceTag tag) {
         if (masterSession != this) {
             // Only master session can set the outgoing session.
             throw new IllegalStateException("Only master session is allowed to set/change the outgoing session instance.");

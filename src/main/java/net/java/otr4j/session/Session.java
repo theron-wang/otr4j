@@ -164,7 +164,7 @@ public interface Session {
      * or false in case of failure to set. Failure happens in case receiver
      * instance cannot be found.
      */
-    boolean setOutgoingInstance(@Nonnull final InstanceTag tag);
+    boolean setOutgoingSession(@Nonnull final InstanceTag tag);
 
     /**
      * Transform message text to prepare for sending which includes possible

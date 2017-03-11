@@ -29,6 +29,8 @@ Backwards incompatibility / behavioral changes:
 - Deleted classes:
   * net.java.otr4j.crypto.Util: was unused and is now deleted.
 - Session#getOutgoingInstance --> Session#getOutgoingSession
+- Session#setOutgoingInstance --> Session#setOutgoingSession
+
 
 Modifications in improvements branch:
 * More leverage of (static) type-safety.
