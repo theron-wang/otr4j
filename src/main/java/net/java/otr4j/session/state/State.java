@@ -92,7 +92,7 @@ public interface State {
      * @throws OtrException In case an exception occurs.
      */
     @Nonnull
-    String handlePlainTextMessage(@Nonnull Context context, @Nonnull PlainTextMessage plainTextMessage) throws OtrException;
+    String handlePlainTextMessage(@Nonnull Context context, @Nonnull PlainTextMessage plainTextMessage);
 
     /**
      * Handle the received data message.

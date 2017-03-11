@@ -97,7 +97,7 @@ public final class OtrEngineHostUtil {
             @Nonnull final SessionID sessionID, @Nonnull final String message) {
         try {
             host.unencryptedMessageReceived(sessionID, message);
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'unencryptedMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }

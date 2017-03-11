@@ -130,7 +130,7 @@ final class StateEncrypted extends AbstractState {
 
     @Override
     @Nonnull
-    public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage plainTextMessage) throws OtrException {
+    public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage plainTextMessage) {
         // Display the message to the user, but warn him that the message was
         // received unencrypted.
         OtrEngineHostUtil.unencryptedMessageReceived(context.getHost(),

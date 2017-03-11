@@ -91,7 +91,7 @@ public final class StatePlaintext extends AbstractState {
 
     @Override
     @Nonnull
-    public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage plainTextMessage) throws OtrException {
+    public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage plainTextMessage) {
         // Simply display the message to the user. If REQUIRE_ENCRYPTION is set,
         // warn him that the message was received unencrypted.
         if (context.getSessionPolicy().getRequireEncryption()) {
