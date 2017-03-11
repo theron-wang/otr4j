@@ -42,10 +42,11 @@ public interface Session {
     SessionID getSessionID();
 
     /**
-     * Get current session status.
+     * Get current outgoing session's status.
      *
      * @return Returns session status.
      */
+    // TODO consider getting rid of getSessionStatus w/o param in favor of always explicitly mentioning session status.
     @Nonnull
     SessionStatus getSessionStatus();
 

@@ -129,13 +129,15 @@ final class SessionImpl implements Session, Context, AuthContext {
      * Flag indicating whether this instance is a master session or a slave
      * session.
      */
-    private final boolean masterSession;
+    @Nonnull
+    private final SessionImpl masterSession;
 
     /**
      * The Engine Host instance. This is a reference to the host logic that uses
      * OTR. The reference is used to call back into the program logic in order
      * to query for parameters that are determined by the program logic.
      */
+    @Nonnull
     private final OtrEngineHost host;
 
     @SuppressWarnings("NonConstantLogger")
@@ -220,18 +222,23 @@ final class SessionImpl implements Session, Context, AuthContext {
      * that (indirectly) provides access to the session implementation. See
      * {@link OtrSessionManager#createSession(SessionID, OtrEngineHost)}.
      *
+     * This constructor constructs a master session instance.
+     *
      * @param sessionID The session ID
      * @param listener  The OTR engine host listener.
      */
     SessionImpl(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost listener) {
-        this(true, sessionID, listener, InstanceTag.ZERO_TAG, InstanceTag.ZERO_TAG,
+        this(null, sessionID, listener, InstanceTag.ZERO_TAG, InstanceTag.ZERO_TAG,
                 new SecureRandom(), StateInitial.instance());
     }
 
     /**
      * Constructor.
      *
-     * @param masterSession True to construct master session, false for slave
+     * @param masterSession The master session instance. The provided instance
+     * is set as the master session. In case of the master session, null can
+     * be provided to indicate that this session instance is the master
+     * session. Providing null, sets the master session instance to this
      * session.
      * @param sessionID The session ID.
      * @param host OTR engine host instance.
@@ -244,14 +251,14 @@ final class SessionImpl implements Session, Context, AuthContext {
      * @param authState The initial authentication state of this session
      * instance.
      */
-    private SessionImpl(final boolean masterSession,
+    private SessionImpl(@Nullable final SessionImpl masterSession,
             @Nonnull final SessionID sessionID,
             @Nonnull final OtrEngineHost host,
             @Nonnull final InstanceTag senderTag,
             @Nonnull final InstanceTag receiverTag,
             @Nonnull final SecureRandom secureRandom,
             @Nonnull final AuthState authState) {
-        this.masterSession = masterSession;
+        this.masterSession = masterSession == null ? this : masterSession;
         this.secureRandom = Objects.requireNonNull(secureRandom);
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.sessionState = new StatePlaintext(sessionID);
@@ -261,7 +268,7 @@ final class SessionImpl implements Session, Context, AuthContext {
         this.receiverTag = Objects.requireNonNull(receiverTag);
         this.offerStatus = OfferStatus.idle;
         // Master session uses the map to manage slave sessions. Slave sessions do not use the map.
-        slaveSessions = masterSession
+        slaveSessions = this.masterSession == this
                 ? Collections.synchronizedMap(new HashMap<InstanceTag, SessionImpl>(0))
                 : Collections.<InstanceTag, SessionImpl>emptyMap();
         outgoingSession = this;
@@ -341,7 +348,7 @@ final class SessionImpl implements Session, Context, AuthContext {
     @Override
     @Nullable
     public String transformReceiving(@Nonnull String msgText) throws OtrException {
-        logger.log(Level.FINEST, "Entering {0} session.", masterSession ? "master" : "slave");
+        logger.log(Level.FINEST, "Entering {0} session.", masterSession == this ? "master" : "slave");
 
         // OTR: "They all assume that at least one of ALLOW_V1, ALLOW_V2 or
         // ALLOW_V3 is set; if not, then OTR is completely disabled, and no
@@ -383,7 +390,7 @@ final class SessionImpl implements Session, Context, AuthContext {
             offerStatus = OfferStatus.rejected;
         }
 
-        if (masterSession && m instanceof AbstractEncodedMessage
+        if (masterSession == this && m instanceof AbstractEncodedMessage
                 && ((AbstractEncodedMessage) m).protocolVersion == Session.OTRv.THREE) {
             // In case of OTRv3 delegate message processing to dedicated slave
             // session.
@@ -415,7 +422,7 @@ final class SessionImpl implements Session, Context, AuthContext {
                 synchronized (slaveSessions) {
                     if (!slaveSessions.containsKey(messageSenderInstance)) {
                         final SessionImpl newSlaveSession = new SessionImpl(
-                                false, this.sessionState.getSessionID(),
+                                this, this.sessionState.getSessionID(),
                                 this.host, this.senderTag,
                                 messageSenderInstance, this.secureRandom,
                                 StateInitial.instance());
@@ -430,7 +437,7 @@ final class SessionImpl implements Session, Context, AuthContext {
                 synchronized (slaveSessions) {
                     if (!slaveSessions.containsKey(messageSenderInstance)) {
                         final SessionImpl newSlaveSession = new SessionImpl(
-                                false, this.sessionState.getSessionID(),
+                                this, this.sessionState.getSessionID(),
                                 this.host, this.senderTag,
                                 messageSenderInstance, this.secureRandom,
                                 this.authState);
@@ -458,7 +465,7 @@ final class SessionImpl implements Session, Context, AuthContext {
                         OtrEngineListenerUtil.multipleInstancesDetected(
                                 OtrEngineListenerUtil.duplicate(listeners), this.sessionState.getSessionID());
                         final SessionImpl newSlaveSession = new SessionImpl(
-                                false, this.sessionState.getSessionID(),
+                                this, this.sessionState.getSessionID(),
                                 this.host, this.senderTag,
                                 messageSenderInstance, this.secureRandom,
                                 StateInitial.instance());
@@ -696,7 +703,7 @@ final class SessionImpl implements Session, Context, AuthContext {
     @Nonnull
     public String[] transformSending(@Nonnull final String msgText, final @Nonnull List<TLV> tlvs)
             throws OtrException {
-        if (masterSession && outgoingSession != this) {
+        if (masterSession == this && outgoingSession != this) {
             return outgoingSession.transformSending(msgText, tlvs);
         }
         final Message m = this.sessionState.transformSending(this, msgText, tlvs);
@@ -864,7 +871,7 @@ final class SessionImpl implements Session, Context, AuthContext {
      */
     @Override
     public boolean setOutgoingInstance(@Nonnull final InstanceTag tag) {
-        if (!masterSession) {
+        if (masterSession != this) {
             // Only master session can set the outgoing session.
             throw new IllegalStateException("Only master session is allowed to set/change the outgoing session instance.");
         }
