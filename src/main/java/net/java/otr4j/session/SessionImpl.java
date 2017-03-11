@@ -548,7 +548,11 @@ final class SessionImpl implements Session, Context, AuthContext {
         logger.log(Level.FINEST, "{0} received a data message from {1}, handling in state {2}.",
                 new Object[]{sessionId.getAccountID(), sessionId.getUserID(),
                     this.sessionState.getClass().getName()});
-        return this.sessionState.handleDataMessage(this, data);
+        try {
+            return this.sessionState.handleDataMessage(this, data);
+        } catch (final IOException ex) {
+            throw new OtrException("Failed to process full data message.", ex);
+        }
     }
 
     @Override

@@ -7,13 +7,11 @@
 
 package net.java.otr4j.session.state;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -27,7 +25,6 @@ import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
 import net.java.otr4j.OtrPolicyUtil;
 import net.java.otr4j.crypto.OtrCryptoEngine;
-import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.SerializationConstants;
 import net.java.otr4j.io.SerializationUtils;
@@ -143,7 +140,7 @@ final class StateEncrypted extends AbstractState {
     
     @Override
     @Nullable
-    public String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage data) throws OtrException {
+    public String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage data) throws OtrException, IOException {
         logger.finest("Message state is ENCRYPTED. Trying to decrypt message.");
         final OtrEngineHost host = context.getHost();
         // Find matching session keys.
@@ -198,37 +195,9 @@ final class StateEncrypted extends AbstractState {
             this.sessionKeyManager.rotateRemoteKeys(data.nextDH);
         }
 
-        // find the null TLV separator in the package, or just use the end value
-        int tlvIndex = dmc.length;
-        for (int i = 0; i < dmc.length; i++) {
-            if (dmc[i] == 0x00) {
-                tlvIndex = i;
-                break;
-            }
-        }
-
-        // get message body without trailing 0x00, expect UTF-8 bytes
-        final String decryptedMsgContent = new String(dmc, 0, tlvIndex, SerializationUtils.UTF8);
-
-        // if the null TLV separator is somewhere in the middle, there are TLVs
-        final LinkedList<TLV> tlvs = new LinkedList<>();
-        tlvIndex++;  // to ignore the null
-        if (tlvIndex < dmc.length) {
-            byte[] tlvsb = new byte[dmc.length - tlvIndex];
-            System.arraycopy(dmc, tlvIndex, tlvsb, 0, tlvsb.length);
-
-            final ByteArrayInputStream tin = new ByteArrayInputStream(tlvsb);
-            try (final OtrInputStream eois = new OtrInputStream(tin)) {
-                while (tin.available() > 0) {
-                    final int type = eois.readShort();
-                    final byte[] tdata = eois.readTlvData();
-                    tlvs.add(new TLV(type, tdata));
-                }
-            } catch (final IOException e) {
-                throw new OtrException(e);
-            }
-        }
-        for (final TLV tlv : tlvs) {
+        // Extract and process TLVs.
+        final SerializationUtils.Content content = SerializationUtils.extractContents(dmc);
+        for (final TLV tlv : content.tlvs) {
             logger.log(Level.FINE, "Received TLV type {0}", tlv.getType());
             switch (tlv.getType()) {
                 case TLV.PADDING: // TLV0
@@ -264,7 +233,7 @@ final class StateEncrypted extends AbstractState {
                     break;
             }
         }
-        return decryptedMsgContent;
+        return content.message;
     }
 
     @Override

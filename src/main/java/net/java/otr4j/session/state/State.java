@@ -7,6 +7,7 @@
 
 package net.java.otr4j.session.state;
 
+import java.io.IOException;
 import java.security.PublicKey;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -102,7 +103,7 @@ public interface State {
      * @throws OtrException In case an exception occurs.
      */
     @Nullable
-    String handleDataMessage(@Nonnull Context context, @Nonnull DataMessage message) throws OtrException;
+    String handleDataMessage(@Nonnull Context context, @Nonnull DataMessage message) throws IOException, OtrException;
 
     /**
      * Handle the received error message.

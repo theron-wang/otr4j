@@ -17,7 +17,9 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -44,6 +46,7 @@ import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.io.messages.SignatureX;
 import net.java.otr4j.session.Session.OTRv;
+import net.java.otr4j.session.TLV;
 
 /**
  * @author George Politis
@@ -516,5 +519,58 @@ public final class SerializationUtils {
     public static boolean otrEncoded(@Nonnull final String content) {
         return content.startsWith(SerializationConstants.HEAD
                 + SerializationConstants.HEAD_ENCODED);
+    }
+
+    /**
+     * Extract message contents from decrypted message bytes.
+     *
+     * @param messageBytes Bytes of the message (decrypted)
+     * @return Returns Content instances containing both the message content
+     * and any TLVs that are extracted.
+     * @throws IOException In case of incomplete or bad message bytes.
+     */
+    @Nonnull
+    public static Content extractContents(@Nonnull final byte[] messageBytes) throws IOException {
+
+        // find the null TLV separator in the package, or just use the end value
+        int tlvIndex = messageBytes.length;
+        for (int i = 0; i < messageBytes.length; i++) {
+            if (messageBytes[i] == 0x00) {
+                tlvIndex = i;
+                break;
+            }
+        }
+
+        // get message body without trailing 0x00, expect UTF-8 bytes
+        final String message = new String(messageBytes, 0, tlvIndex, SerializationUtils.UTF8);
+
+        // if the null TLV separator is somewhere in the middle, there are TLVs
+        final ArrayList<TLV> tlvs = new ArrayList<>();
+        tlvIndex++; // to ignore the null value that separates message from TLVs
+        if (tlvIndex < messageBytes.length) {
+            final byte[] tlvsb = new byte[messageBytes.length - tlvIndex];
+            System.arraycopy(messageBytes, tlvIndex, tlvsb, 0, tlvsb.length);
+
+            final ByteArrayInputStream tin = new ByteArrayInputStream(tlvsb);
+            try (final OtrInputStream eois = new OtrInputStream(tin)) {
+                while (tin.available() > 0) {
+                    final int type = eois.readShort();
+                    final byte[] tdata = eois.readTlvData();
+                    tlvs.add(new TLV(type, tdata));
+                }
+            }
+        }
+
+        return new Content(message, tlvs);
+    }
+
+    public static final class Content {
+        public final String message;
+        public final List<TLV> tlvs;
+
+        private Content(@Nonnull final String message, @Nonnull final List<TLV> tlvs) {
+            this.message = Objects.requireNonNull(message);
+            this.tlvs = Objects.requireNonNull(tlvs);
+        }
     }
 }
