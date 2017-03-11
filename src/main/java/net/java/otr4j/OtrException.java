@@ -7,7 +7,6 @@
 
 package net.java.otr4j;
 
-// TODO consider making OtrException abstract and have individual packages define exceptions based on OtrException.
 public class OtrException extends Exception {
 
     private static final long serialVersionUID = -6327624437614707245L;

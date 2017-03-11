@@ -853,8 +853,8 @@ final class SessionImpl implements Session, Context, AuthContext {
      */
     @Override
     @Nonnull
-    public List<Session> getInstances() {
-        final List<Session> result = new ArrayList<>();
+    public List<SessionImpl> getInstances() {
+        final List<SessionImpl> result = new ArrayList<>();
         result.add(this);
         result.addAll(slaveSessions.values());
         return result;
@@ -906,7 +906,7 @@ final class SessionImpl implements Session, Context, AuthContext {
         if (tag.equals(this.receiverTag)) {
             return this.sessionState.getStatus();
         } else {
-            final Session slave = slaveSessions.get(tag);
+            final SessionImpl slave = slaveSessions.get(tag);
             if (slave == null) {
                 throw new IllegalArgumentException("Unknown instance tag specified: " + tag.getValue());
             }
@@ -929,7 +929,7 @@ final class SessionImpl implements Session, Context, AuthContext {
         if (tag.equals(this.receiverTag)) {
             return this.sessionState.getRemotePublicKey();
         } else {
-            final Session slave = slaveSessions.get(tag);
+            final SessionImpl slave = slaveSessions.get(tag);
             if (slave == null) {
                 throw new IllegalArgumentException("Unknown tag specified: " + tag.getValue());
             }
@@ -945,7 +945,7 @@ final class SessionImpl implements Session, Context, AuthContext {
      */
     @Override
     @Nonnull
-    public Session getOutgoingSession() {
+    public SessionImpl getOutgoingSession() {
         return outgoingSession;
     }
 

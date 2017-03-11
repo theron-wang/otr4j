@@ -12,14 +12,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
 import net.java.otr4j.OtrEngineListener;
 import net.java.otr4j.OtrException;
 import net.java.otr4j.OtrPolicy;
-import net.java.otr4j.session.state.IncorrectStateException;
 
-// TODO consider getting rid of IncorrectStateException in interface definition for future move to 'api' package.
 public interface Session {
 
     interface OTRv {
@@ -102,22 +102,22 @@ public interface Session {
      * Get remote's long-term public key.
      *
      * @return Returns long-term public key.
-     * @throws IncorrectStateException Thrown in case message state is not
-     * ENCRYPTED, hence no long-term public key is known.
+     * @throws OtrException Thrown in case message state is not ENCRYPTED, hence
+     * no long-term public key is known.
      */
     @Nonnull
-    PublicKey getRemotePublicKey() throws IncorrectStateException;
+    PublicKey getRemotePublicKey() throws OtrException;
 
     /**
      * Get remote's long-term public key.
      *
      * @param tag receiver instance tag
      * @return Returns long-term public key.
-     * @throws IncorrectStateException Thrown in case message state is not
-     * ENCRYPTED, hence no long-term public key is known.
+     * @throws OtrException Thrown in case message state is not ENCRYPTED, hence
+     * no long-term public key is known.
      */
     @Nonnull
-    PublicKey getRemotePublicKey(@Nonnull InstanceTag tag) throws IncorrectStateException;
+    PublicKey getRemotePublicKey(@Nonnull InstanceTag tag) throws OtrException;
 
     /**
      * Get list of session instances.
@@ -125,7 +125,7 @@ public interface Session {
      * @return Returns list of session instances.
      */
     @Nonnull
-    List<Session> getInstances();
+    List<? extends Session> getInstances();
 
     /**
      * Get Extra Symmetric Key that is provided by OTRv3 based on the current Session Keys.
@@ -173,7 +173,7 @@ public interface Session {
      * @return Returns OTR-processed (possibly ENCRYPTED) message content in
      * suitable fragments according to host information on the transport
      * fragmentation.
-     * @throws OtrException
+     * @throws OtrException Thrown in case of problems during transformation.
      */
     @Nonnull
     String[] transformSending(@Nonnull final String msgText) throws OtrException;
@@ -187,7 +187,7 @@ public interface Session {
      * @return Returns OTR-processed (possibly ENCRYPTED) message content in
      * suitable fragments according to host information on the transport
      * fragmentation.
-     * @throws OtrException
+     * @throws OtrException Thrown in case of problems during transformation.
      */
     @Nonnull
     String[] transformSending(@Nonnull String msgText, @Nonnull List<TLV> tlvs) throws OtrException;
@@ -197,7 +197,7 @@ public interface Session {
      *
      * @param msgText the (possibly encrypted) raw message content
      * @return Returns the plaintext message content.
-     * @throws OtrException
+     * @throws OtrException Thrown in case of problems during transformation.
      */
     @Nullable
     String transformReceiving(@Nonnull String msgText) throws OtrException;

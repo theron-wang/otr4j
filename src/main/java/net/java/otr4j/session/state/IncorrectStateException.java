@@ -7,14 +7,15 @@
 
 package net.java.otr4j.session.state;
 
+import net.java.otr4j.OtrException;
+
 /**
  * Checked exception that is thrown for cases where the method call is not
  * appropriate. Given the nature of the protocol, state changes may happen at
  * any time. The nature of the checked exception can be used to handle
  * unexpected state transitions appropriately.
  */
-// TODO consider basing on OtrException to ensure only a single exception type in public api
-public final class IncorrectStateException extends Exception {
+public final class IncorrectStateException extends OtrException {
 
     private static final long serialVersionUID = -5335635776510194254L;
 
