@@ -300,6 +300,17 @@ final class SessionImpl implements Session, Context, AuthContext {
             throw new IllegalStateException("Session failed to transition to ENCRYPTED.");
         }
         logger.info("Session secured. Message state transitioned to ENCRYPTED.");
+        if (this.masterSession.outgoingSession.sessionState.getStatus() == SessionStatus.PLAINTEXT) {
+            // This behavior is adopted to preserve behavior between otr4j
+            // before refactoring and after. Originally, the master session
+            // would contain some fields that would indicate session status
+            // even though a slave session was created. Now we ensure that once
+            // we have secured the session, we also switch to that session such
+            // that subsequently sent messages are already encrypted, even if
+            // the client does not explicitly switch.
+            logger.finest("Switching to the just-secured session, as the previous state was a PLAINTEXT state.");
+            this.masterSession.setOutgoingInstance(this.receiverTag);
+        }
     }
 
     @Override
@@ -475,24 +486,8 @@ final class SessionImpl implements Session, Context, AuthContext {
                     session = slaveSessions.get(messageSenderInstance);
                 }
             }
-            final SessionStatus previousStatus = session.sessionState.getStatus();
             logger.log(Level.FINEST, "Delegating to slave session for instance tag {0}", messageSenderInstance.getValue());
-            try {
-                return session.transformReceiving(msgText);
-            } finally {
-                // In any case, after transformation ensure that we switch to
-                // the ENCRYPTED session if a state transition has taken place.
-                // FIXME is this work-around acceptable (for switching outgoing session)? (Alternatively we could NOT switch ever and leave it to the user, however that behavior is also different from the original behavior of the library.)
-                final SessionStatus currentStatus = session.sessionState.getStatus();
-                if (this.outgoingSession.sessionState.getStatus() == SessionStatus.PLAINTEXT
-                        && previousStatus == SessionStatus.PLAINTEXT
-                        && currentStatus == SessionStatus.ENCRYPTED) {
-                    // In case we have just established an ENCRYPTED session and
-                    // our current outgoing session is not encrypted, set new
-                    // outgoing session.
-                    setOutgoingInstance(messageSenderInstance);
-                }
-            }
+            return session.transformReceiving(msgText);
         }
 
         logger.log(Level.INFO, "Received message with type {0}", m.getType());
@@ -869,6 +864,7 @@ final class SessionImpl implements Session, Context, AuthContext {
      * @param tag The receiver instance tag.
      * @return Returns true upon successfully setting the outgoing instance.
      */
+    // FIXME to be renamed to setOutgoingSession.
     @Override
     public boolean setOutgoingInstance(@Nonnull final InstanceTag tag) {
         if (masterSession != this) {
