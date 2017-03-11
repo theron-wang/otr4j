@@ -46,7 +46,6 @@ public interface Session {
      *
      * @return Returns session status.
      */
-    // TODO consider getting rid of getSessionStatus w/o param in favor of always explicitly mentioning session status.
     @Nonnull
     SessionStatus getSessionStatus();
 

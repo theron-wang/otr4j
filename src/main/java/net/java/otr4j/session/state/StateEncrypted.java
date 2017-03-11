@@ -258,10 +258,11 @@ final class StateEncrypted extends AbstractState {
                     this.smpTlvHandler.processTlvSMP_ABORT(tlv);
                     break;
                 case TLV.USE_EXTRA_SYMMETRIC_KEY:
+                    final byte[] key = matchingKeys.extraSymmetricKey();
                     // FIXME extract extra symmetric key from same sessionkey as we used to decrypt the message content.
                     break;
                 default:
-                    logger.log(Level.WARNING, "Unsupported TLV #{0} received!", tlv.getType());
+                    logger.log(Level.INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.getType());
                     break;
             }
         }

@@ -19,6 +19,7 @@ import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SharedSecret;
 
 // TODO consider doing lazy evaluation of generating 's', 'receivingCtr' and 'sendingCtr'. (Would save some memory/computation in case this session key combination is not actually used.)
+// TODO Does it make sense to randomly generate the initial sending counter value to further avoid reuse?
 final class SessionKey {
 
     private static final Logger LOGGER = Logger.getLogger(SessionKey.class.getName());

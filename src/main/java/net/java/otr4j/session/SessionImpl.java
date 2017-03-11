@@ -330,7 +330,7 @@ final class SessionImpl implements Session, Context, AuthContext {
     @Override
     @Nonnull
     public SessionStatus getSessionStatus() {
-        return this.getSessionStatus(this.outgoingSession.receiverTag);
+        return this.outgoingSession.sessionState.getStatus();
     }
 
     @Override
