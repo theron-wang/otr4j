@@ -31,6 +31,8 @@ import javax.crypto.interfaces.DHPublicKey;
 
 import org.bouncycastle.util.encoders.Base64;
 
+import net.java.otr4j.api.Session.OTRv;
+import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
@@ -45,8 +47,6 @@ import net.java.otr4j.io.messages.RevealSignatureMessage;
 import net.java.otr4j.io.messages.SignatureM;
 import net.java.otr4j.io.messages.SignatureMessage;
 import net.java.otr4j.io.messages.SignatureX;
-import net.java.otr4j.session.Session.OTRv;
-import net.java.otr4j.session.TLV;
 
 /**
  * @author George Politis

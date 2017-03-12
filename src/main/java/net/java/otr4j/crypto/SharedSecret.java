@@ -11,7 +11,9 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
+
 import net.java.otr4j.io.SerializationUtils;
 
 /**

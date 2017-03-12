@@ -13,9 +13,10 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.java.otr4j.OtrEngineHost;
-import net.java.otr4j.OtrException;
-import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.api.OtrEngineHost;
+import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.OtrPolicy;
+import net.java.otr4j.api.*;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.session.*;
 

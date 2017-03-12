@@ -5,11 +5,15 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j;
+package net.java.otr4j.api;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.java.otr4j.session.SessionID;
+
+import net.java.otr4j.api.OtrEngineHost;
+import net.java.otr4j.api.OtrEngineHostUtil;
+import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.SessionID;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

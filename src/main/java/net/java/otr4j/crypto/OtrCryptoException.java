@@ -6,7 +6,7 @@
  */
 package net.java.otr4j.crypto;
 
-import net.java.otr4j.OtrException;
+import net.java.otr4j.api.OtrException;
 
 /**
  * Exception for issues w.r.t. crypto operations in otr4j.

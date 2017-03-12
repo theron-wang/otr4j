@@ -5,7 +5,7 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j.session;
+package net.java.otr4j.api;
 
 import java.security.SecureRandom;
 import javax.annotation.Nonnull;
@@ -111,7 +111,12 @@ public final class InstanceTag {
         this.value = (int)val;
     }
 
-    InstanceTag(final int value) {
+    /**
+     * Construct instance tag based on concrete value.
+     *
+     * @param value The instance tag value
+     */
+    public InstanceTag(final int value) {
         if (!isValidInstanceTag(value))
         {
             throw new IllegalArgumentException("Invalid tag value.");

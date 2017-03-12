@@ -10,8 +10,10 @@ package net.java.otr4j.session.ake;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Objects;
+
 import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
+
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SharedSecret;

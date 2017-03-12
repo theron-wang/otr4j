@@ -11,8 +11,10 @@ import java.util.LinkedList;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 
-import net.java.otr4j.OtrEngineHost;
-import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.api.OtrEngineHost;
+import net.java.otr4j.api.OtrPolicy;
+import net.java.otr4j.api.Session;
+import net.java.otr4j.api.SessionID;
 
 /**
  * OTR fragmenter.

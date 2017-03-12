@@ -4,7 +4,7 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
-package net.java.otr4j.session;
+package net.java.otr4j.api;
 
 import java.security.PublicKey;
 import java.util.Arrays;
@@ -15,10 +15,6 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import net.java.otr4j.OtrEngineListener;
-import net.java.otr4j.OtrException;
-import net.java.otr4j.OtrPolicy;
 
 public interface Session {
 

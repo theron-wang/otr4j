@@ -6,7 +6,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import net.java.otr4j.OtrException;
+import net.java.otr4j.api.OtrException;
 import net.java.otr4j.test.dummyclient.DummyClient;
 
 import org.apache.commons.lang3.RandomStringUtils;

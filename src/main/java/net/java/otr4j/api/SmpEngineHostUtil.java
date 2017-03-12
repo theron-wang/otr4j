@@ -5,21 +5,19 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j.session.state;
+package net.java.otr4j.api;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import net.java.otr4j.session.InstanceTag;
-import net.java.otr4j.session.SessionID;
 
 /**
  * Utilities for SmpEngineHost.
  *
  * @author Danny van Heumen
  */
-final class SmpEngineHostUtil {
+public final class SmpEngineHostUtil {
 
     private static final Logger LOGGER = Logger.getLogger(SmpEngineHostUtil.class.getName());
 
@@ -82,8 +80,8 @@ final class SmpEngineHostUtil {
      * cannot handle interruptions by exception and will result in incomplete
      * message processing.
      *
-     * @param host
-     * @param sessionID
+     * @param host The SMP engine host
+     * @param sessionID The session ID
      */
     public static void smpAborted(@Nonnull final SmpEngineHost host, @Nonnull final SessionID sessionID) {
         try {

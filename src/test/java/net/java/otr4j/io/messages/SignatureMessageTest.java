@@ -4,7 +4,7 @@ package net.java.otr4j.io.messages;
 import java.util.Arrays;
 import java.util.Random;
 import net.java.otr4j.io.SerializationConstants;
-import net.java.otr4j.session.Session.OTRv;
+import net.java.otr4j.api.Session.OTRv;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;

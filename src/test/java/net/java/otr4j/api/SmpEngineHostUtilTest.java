@@ -5,12 +5,14 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j.session.state;
+package net.java.otr4j.api;
 
 import java.security.SecureRandom;
-import net.java.otr4j.OtrException;
-import net.java.otr4j.session.InstanceTag;
-import net.java.otr4j.session.SessionID;
+import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.SmpEngineHost;
+import net.java.otr4j.api.SmpEngineHostUtil;
+import net.java.otr4j.api.InstanceTag;
+import net.java.otr4j.api.SessionID;
 import org.junit.Test;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;

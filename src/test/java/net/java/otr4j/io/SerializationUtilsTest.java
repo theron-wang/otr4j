@@ -8,8 +8,8 @@ import java.util.HashSet;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.messages.PlainTextMessage;
 import net.java.otr4j.io.messages.QueryMessage;
-import net.java.otr4j.session.Session;
-import net.java.otr4j.session.Session.OTRv;
+import net.java.otr4j.api.Session;
+import net.java.otr4j.api.Session.OTRv;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

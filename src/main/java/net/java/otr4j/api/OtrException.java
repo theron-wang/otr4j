@@ -5,8 +5,11 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j;
+package net.java.otr4j.api;
 
+/**
+ * General OTR exception type.
+ */
 public class OtrException extends Exception {
 
     private static final long serialVersionUID = -6327624437614707245L;

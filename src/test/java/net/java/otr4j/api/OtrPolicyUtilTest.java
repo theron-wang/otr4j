@@ -4,10 +4,13 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
-package net.java.otr4j;
+package net.java.otr4j.api;
 
 import java.util.Set;
-import net.java.otr4j.session.Session;
+
+import net.java.otr4j.api.OtrPolicy;
+import net.java.otr4j.api.OtrPolicyUtil;
+import net.java.otr4j.api.Session;
 import static org.junit.Assert.*;
 import org.junit.Test;
 

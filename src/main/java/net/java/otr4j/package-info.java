@@ -4,7 +4,6 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
-// TODO consider defining 'api' package, move net.java.otr4j.* to api package.
 // FUTURE could we create some kind of basic client such that we can perform cross-implementation testing and fuzzing?
 // FUTURE does it make sense to have some kind of plug-in system for OTR extensions?
 // FUTURE consider if it makes sense to have some kind of SecurityManager rule/policy that prevents code from inspecting any otr4j instances. (This can also be tackled by using otr4j as module, as you have to explicitly allow "opening up" to reflection.)

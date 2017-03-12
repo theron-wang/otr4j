@@ -5,12 +5,10 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j.session.state;
+package net.java.otr4j.api;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import net.java.otr4j.session.InstanceTag;
-import net.java.otr4j.session.SessionID;
 
 /**
  * SMP facilities of OTR engine host.

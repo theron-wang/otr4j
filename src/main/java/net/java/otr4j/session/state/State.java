@@ -12,14 +12,14 @@ import java.security.PublicKey;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import net.java.otr4j.OtrException;
+import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.SessionID;
+import net.java.otr4j.api.SessionStatus;
+import net.java.otr4j.api.TLV;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.Message;
 import net.java.otr4j.io.messages.PlainTextMessage;
-import net.java.otr4j.session.SessionID;
-import net.java.otr4j.session.SessionStatus;
-import net.java.otr4j.session.TLV;
 import net.java.otr4j.session.ake.SecurityParameters;
 
 public interface State {

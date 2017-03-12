@@ -8,13 +8,15 @@
 package net.java.otr4j.session.ake;
 
 import java.io.IOException;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.UnsupportedTypeException;
 import net.java.otr4j.io.messages.AbstractEncodedMessage;
 import net.java.otr4j.io.messages.DHCommitMessage;
-import net.java.otr4j.session.InstanceTag;
 
 /**
  * Interface for the AKE states.

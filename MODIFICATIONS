@@ -30,6 +30,22 @@ Backwards incompatibility / behavioral changes:
   * net.java.otr4j.crypto.Util: was unused and is now deleted.
 - Session#getOutgoingInstance --> Session#getOutgoingSession
 - Session#setOutgoingInstance --> Session#setOutgoingSession
+- Defined API package:
+  * OtrEngineHost --> api.OtrEngineHost
+  * OtrEngineHostUtil --> api.OtrEngineHostUtil
+  * OtrEngineListener --> api.OtrEngineListener
+  * OtrEngineListenerUtil --> api.OtrEngineListenerUtil
+  * OtrException --> api.OtrException
+  * OtrPolicy --> api.OtrPolicy
+  * OtrPolicyUtil --> api.OtrPolicyUtil
+  * session.InstanceTag --> api.InstanceTag
+  * session.OfferStatus --> api.OfferStatus
+  * session.Session --> api.Session
+  * session.SessionID --> api.SessionID
+  * session.SessionStatus --> api.SessionStatus
+  * session.TLV --> api.TLV
+  * session.state.SmpEngineHost --> api.SmpEngineHost
+  * session.state.SmpEngineHostUtil --> api.SmpEngineHostUtil
 
 
 Modifications in improvements branch:

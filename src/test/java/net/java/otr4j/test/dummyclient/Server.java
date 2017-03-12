@@ -1,7 +1,5 @@
 package net.java.otr4j.test.dummyclient;
 
-import net.java.otr4j.OtrException;
-
 /**
  * Created by gp on 2/6/14.
  */

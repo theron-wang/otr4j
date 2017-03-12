@@ -5,13 +5,10 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j;
+package net.java.otr4j.api;
 
 import java.security.KeyPair;
 import javax.annotation.Nonnull;
-
-import net.java.otr4j.session.SessionID;
-import net.java.otr4j.session.state.SmpEngineHost;
 
 /**
  * This interface should be implemented by the host application. It is required

@@ -10,9 +10,9 @@ import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import net.java.otr4j.OtrException;
+import net.java.otr4j.api.OtrException;
 import net.java.otr4j.io.SerializationUtils;
-import net.java.otr4j.session.Session;
+import net.java.otr4j.api.Session;
 import net.java.otr4j.test.dummyclient.DummyClient;
 
 import org.junit.Test;

@@ -4,11 +4,13 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
-package net.java.otr4j;
+package net.java.otr4j.session;
 
+import net.java.otr4j.api.OtrEngineHost;
+import net.java.otr4j.api.OtrEngineListener;
 import net.java.otr4j.session.OtrSessionManager;
-import net.java.otr4j.session.Session;
-import net.java.otr4j.session.SessionID;
+import net.java.otr4j.api.Session;
+import net.java.otr4j.api.SessionID;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;

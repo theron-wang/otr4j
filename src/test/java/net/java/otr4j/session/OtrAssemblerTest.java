@@ -8,6 +8,8 @@ package net.java.otr4j.session;
 
 import java.net.ProtocolException;
 import java.security.SecureRandom;
+
+import net.java.otr4j.api.InstanceTag;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

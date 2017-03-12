@@ -5,14 +5,16 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j;
+package net.java.otr4j.api;
 
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.java.otr4j.session.InstanceTag;
-import net.java.otr4j.session.SessionID;
+import net.java.otr4j.api.InstanceTag;
+import net.java.otr4j.api.OtrEngineListener;
+import net.java.otr4j.api.OtrEngineListenerUtil;
+import net.java.otr4j.api.SessionID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

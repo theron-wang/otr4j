@@ -5,7 +5,7 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j;
+package net.java.otr4j.api;
 
 import java.util.logging.Logger;
 

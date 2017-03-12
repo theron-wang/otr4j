@@ -8,8 +8,8 @@
 package net.java.otr4j.session.state;
 
 import javax.annotation.Nonnull;
-import net.java.otr4j.OtrEngineHostUtil;
-import net.java.otr4j.OtrException;
+import net.java.otr4j.api.OtrEngineHostUtil;
+import net.java.otr4j.api.OtrException;
 import net.java.otr4j.io.messages.ErrorMessage;
 
 /**

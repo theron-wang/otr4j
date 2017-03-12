@@ -9,13 +9,15 @@ package net.java.otr4j.session.ake;
 
 import java.security.KeyPair;
 import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
+
+import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.DHCommitMessage;
-import net.java.otr4j.session.InstanceTag;
 
 /**
  * Abstract AuthState implementation that provides authentication initiation

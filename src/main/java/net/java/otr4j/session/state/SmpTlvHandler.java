@@ -14,13 +14,15 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.java.otr4j.OtrException;
+import net.java.otr4j.api.InstanceTag;
+import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.SmpEngineHost;
+import net.java.otr4j.api.SmpEngineHostUtil;
+import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.io.SerializationUtils;
 import net.java.otr4j.io.messages.DataMessage;
-import net.java.otr4j.session.InstanceTag;
-import net.java.otr4j.session.TLV;
 import net.java.otr4j.session.smp.SM;
 import net.java.otr4j.session.smp.SMAbortedException;
 import net.java.otr4j.session.smp.SMException;

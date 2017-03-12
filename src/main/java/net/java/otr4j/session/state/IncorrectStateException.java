@@ -7,7 +7,7 @@
 
 package net.java.otr4j.session.state;
 
-import net.java.otr4j.OtrException;
+import net.java.otr4j.api.OtrException;
 
 /**
  * Checked exception that is thrown for cases where the method call is not

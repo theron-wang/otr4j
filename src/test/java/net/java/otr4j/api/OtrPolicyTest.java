@@ -1,5 +1,6 @@
-package net.java.otr4j;
+package net.java.otr4j.api;
 
+import net.java.otr4j.api.OtrPolicy;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

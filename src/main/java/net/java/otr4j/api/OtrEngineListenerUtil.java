@@ -4,16 +4,13 @@
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
  */
-package net.java.otr4j;
+package net.java.otr4j.api;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-
-import net.java.otr4j.session.InstanceTag;
-import net.java.otr4j.session.SessionID;
 
 /**
  * Utility class for safely handling the processing of OtrEngineListener

@@ -5,12 +5,11 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j;
+package net.java.otr4j.api;
 
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import net.java.otr4j.session.Session;
 
 /**
  * Utilities for OtrPolicy.

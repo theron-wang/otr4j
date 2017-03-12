@@ -14,9 +14,12 @@ import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 
-import net.java.otr4j.OtrEngineHost;
-import net.java.otr4j.OtrEngineListener;
-import net.java.otr4j.OtrEngineListenerUtil;
+import net.java.otr4j.api.OtrEngineHost;
+import net.java.otr4j.api.OtrEngineListener;
+import net.java.otr4j.api.OtrEngineListenerUtil;
+import net.java.otr4j.api.InstanceTag;
+import net.java.otr4j.api.Session;
+import net.java.otr4j.api.SessionID;
 
 /**
  * @author George Politis

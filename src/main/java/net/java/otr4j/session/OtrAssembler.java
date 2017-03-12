@@ -8,7 +8,10 @@ package net.java.otr4j.session;
 
 import java.math.BigInteger;
 import java.net.ProtocolException;
+
 import javax.annotation.Nonnull;
+
+import net.java.otr4j.api.InstanceTag;
 
 /**
  *

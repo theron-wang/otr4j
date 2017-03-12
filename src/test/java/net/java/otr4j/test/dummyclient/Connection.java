@@ -1,6 +1,6 @@
 package net.java.otr4j.test.dummyclient;
 
-import net.java.otr4j.OtrException;
+import net.java.otr4j.api.OtrException;
 
 /**
  * Created by gp on 2/6/14.

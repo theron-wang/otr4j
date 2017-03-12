@@ -5,12 +5,9 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j;
+package net.java.otr4j.api;
 
 import javax.annotation.Nonnull;
-
-import net.java.otr4j.session.InstanceTag;
-import net.java.otr4j.session.SessionID;
 
 /**
  * This interface should be implemented by the host application. It notifies

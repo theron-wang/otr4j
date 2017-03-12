@@ -9,8 +9,10 @@ package net.java.otr4j.session.ake;
 
 import java.security.KeyPair;
 import java.security.SecureRandom;
+
 import javax.annotation.Nonnull;
-import net.java.otr4j.session.InstanceTag;
+
+import net.java.otr4j.api.InstanceTag;
 
 /**
  * Context required for authentication state implementations.

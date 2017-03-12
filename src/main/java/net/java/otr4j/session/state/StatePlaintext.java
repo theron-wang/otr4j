@@ -12,21 +12,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import net.java.otr4j.OtrEngineHost;
-import net.java.otr4j.OtrEngineHostUtil;
-import net.java.otr4j.OtrException;
-import net.java.otr4j.OtrPolicy;
-import net.java.otr4j.OtrPolicyUtil;
+
+import net.java.otr4j.api.OfferStatus;
+import net.java.otr4j.api.OtrEngineHost;
+import net.java.otr4j.api.OtrEngineHostUtil;
+import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.OtrPolicy;
+import net.java.otr4j.api.OtrPolicyUtil;
+import net.java.otr4j.api.SessionID;
+import net.java.otr4j.api.SessionStatus;
+import net.java.otr4j.api.TLV;
 import net.java.otr4j.io.messages.DataMessage;
 import net.java.otr4j.io.messages.ErrorMessage;
 import net.java.otr4j.io.messages.Message;
 import net.java.otr4j.io.messages.PlainTextMessage;
-import net.java.otr4j.session.OfferStatus;
-import net.java.otr4j.session.SessionID;
-import net.java.otr4j.session.SessionStatus;
-import net.java.otr4j.session.TLV;
 import net.java.otr4j.session.ake.SecurityParameters;
 
 /**

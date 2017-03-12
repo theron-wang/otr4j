@@ -13,8 +13,11 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import net.java.otr4j.OtrEngineHost;
-import net.java.otr4j.OtrPolicy;
+import net.java.otr4j.api.OtrEngineHost;
+import net.java.otr4j.api.OtrPolicy;
+import net.java.otr4j.api.InstanceTag;
+import net.java.otr4j.api.Session;
+import net.java.otr4j.api.SessionID;
 import net.java.otr4j.io.SerializationUtils;
 
 import org.apache.commons.lang3.RandomStringUtils;

@@ -5,8 +5,9 @@
  * See terms of license at gnu.org.
  */
 
-package net.java.otr4j;
+package net.java.otr4j.api;
 
+import net.java.otr4j.api.OtrException;
 import org.junit.Test;
 
 public class OtrExceptionTest {

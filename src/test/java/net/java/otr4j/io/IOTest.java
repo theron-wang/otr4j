@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.io.messages.DHKeyMessage;
 import net.java.otr4j.io.messages.RevealSignatureMessage;
-import net.java.otr4j.session.Session.OTRv;
+import net.java.otr4j.api.Session.OTRv;
 
 public class IOTest {
 
