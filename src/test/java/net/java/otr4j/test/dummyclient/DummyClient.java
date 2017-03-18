@@ -384,6 +384,11 @@ public class DummyClient {
 
 		}
 
+		@Override
+		public void extraSymmetricKeyDiscovered(@Nonnull SessionID sessionID, @Nonnull String message, @Nonnull byte[] extraSymmetricKey, @Nonnull byte[] tlvData) {
+			throw new UnsupportedOperationException("This callback method was not implemented for testing purposes... Please implement if you want to use this in tests.");
+		}
+
 		public int getMaxFragmentSize(@Nonnull SessionID sessionID) {
 			return Integer.MAX_VALUE;
 		}

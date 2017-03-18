@@ -77,6 +77,11 @@ final class StateEncrypted extends AbstractState {
      */
     private final SessionKeyManager sessionKeyManager;
 
+    /**
+     * OTR engine host.
+     */
+    private final OtrEngineHost host;
+
     StateEncrypted(@Nonnull final Context context, @Nonnull final SecurityParameters params) throws OtrException {
         this.sessionId = context.getSessionID();
         this.logger = Logger.getLogger(sessionId.getAccountID() + "-->" + sessionId.getUserID());
@@ -88,6 +93,7 @@ final class StateEncrypted extends AbstractState {
         this.remotePublicKey = params.getRemoteLongTermPublicKey();
         this.sessionKeyManager = new SessionKeyManager(context.secureRandom(),
                 params.getLocalDHKeyPair(), params.getRemoteDHPublicKey());
+        this.host = context.getHost();
     }
 
     @Override
@@ -226,7 +232,8 @@ final class StateEncrypted extends AbstractState {
                     break;
                 case TLV.USE_EXTRA_SYMMETRIC_KEY:
                     final byte[] key = matchingKeys.extraSymmetricKey();
-                    // FIXME extract extra symmetric key from same sessionkey as we used to decrypt the message content.
+                    OtrEngineHostUtil.extraSymmetricKeyDiscovered(this.host,
+                            this.sessionId, content.message, key, tlv.getValue());
                     break;
                 default:
                     logger.log(Level.INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.getType());

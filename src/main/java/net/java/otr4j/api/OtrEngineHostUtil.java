@@ -57,7 +57,7 @@ public final class OtrEngineHostUtil {
             @Nonnull final SessionID sessionID) {
         try {
             host.messageFromAnotherInstanceReceived(sessionID);
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'messageFromAnotherInstanceReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
@@ -74,7 +74,7 @@ public final class OtrEngineHostUtil {
             @Nonnull final SessionID sessionID) {
         try {
             host.multipleInstancesDetected(sessionID);
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'multipleInstancesDetected' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
@@ -117,7 +117,7 @@ public final class OtrEngineHostUtil {
             @Nonnull final SessionID sessionID) {
         try {
             host.unreadableMessageReceived(sessionID);
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'unreadableMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
@@ -162,7 +162,7 @@ public final class OtrEngineHostUtil {
             @Nonnull final SessionID sessionID, @Nonnull final String error) {
         try {
             host.showError(sessionID, error);
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'showError' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
@@ -183,7 +183,7 @@ public final class OtrEngineHostUtil {
             @Nonnull final SessionID sessionID, @Nonnull final String msgText) {
         try {
             host.finishedSessionMessage(sessionID, msgText);
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'finishedSessionMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
@@ -204,7 +204,7 @@ public final class OtrEngineHostUtil {
             @Nonnull final SessionID sessionID, @Nonnull final String msgText) {
         try {
             host.requireEncryptedMessage(sessionID, msgText);
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'requireEncryptedMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
     }
@@ -222,9 +222,38 @@ public final class OtrEngineHostUtil {
             @Nonnull final SessionID sessionID, @Nonnull final String defaultMessage) {
         try {
             return host.getReplyForUnreadableMessage(sessionID);
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             LOGGER.log(Level.WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'getReplyForUnreadableMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
         return defaultMessage;
+    }
+
+    /**
+     * Callback in case the Extra Symmetric Key is discovered.
+     *
+     * The extra symmetric key itself is derived from the matching session key
+     * for the message that contains TLV 8. For convenience the user's message
+     * is also provided. However this message is also returned as it would be
+     * normally as a result of transforming a receiving message. The extra
+     * symmetric key is provided as a byte-array. Any data embedded in the TLV
+     * 8 record is provided.
+     *
+     * @param host The OTR engine host.
+     * @param sessionID The session ID.
+     * @param message The user's message (also returned after extraction from
+     * OTR encoded message).
+     * @param extraSymmetricKey The extra symmetric key as calculated from the
+     * session key.
+     * @param tlvData The data embedded in TLV 8 which typically gives a hint
+     * of how/where the extra symmetric key is used.
+     */
+    public static void extraSymmetricKeyDiscovered(@Nonnull final OtrEngineHost host,
+            @Nonnull final SessionID sessionID, @Nonnull final String message,
+            @Nonnull final byte[] extraSymmetricKey, @Nonnull final byte[] tlvData) {
+        try {
+            host.extraSymmetricKeyDiscovered(sessionID, message, extraSymmetricKey, tlvData);
+        } catch (final RuntimeException e) {
+            LOGGER.log(Level.WARNING, "Faulty OtrEngineHost: Runtime exception thrown while calling 'extraSymmetricKeyDiscovered' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
+        }
     }
 }

@@ -157,4 +157,17 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      */
     void multipleInstancesDetected(@Nonnull SessionID sessionID);
+
+    /**
+     * Report on discovery of extra symmetric key in message.
+     *
+     * @param sessionID The session ID
+     * @param message The message that contained TLV 8. (The signal that
+     * indicates use of the Extra Symmetric Key)
+     * @param extraSymmetricKey The extra symmetric key itself. The key is
+     * calculated from the session key matching that of the message that
+     * contained TLV 8.
+     * @param tlvData The data embedded in TLV 8.
+     */
+    void extraSymmetricKeyDiscovered(@Nonnull final SessionID sessionID, @Nonnull final String message, @Nonnull final byte[] extraSymmetricKey, @Nonnull final byte[] tlvData);
 }

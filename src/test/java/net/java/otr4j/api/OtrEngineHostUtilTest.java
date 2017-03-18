@@ -10,15 +10,13 @@ package net.java.otr4j.api;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.java.otr4j.api.OtrEngineHost;
-import net.java.otr4j.api.OtrEngineHostUtil;
-import net.java.otr4j.api.OtrException;
-import net.java.otr4j.api.SessionID;
+import net.java.otr4j.io.SerializationUtils;
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -210,5 +208,17 @@ public class OtrEngineHostUtilTest {
         doThrow(new IllegalArgumentException("programming error occurred")).when(host).getReplyForUnreadableMessage(sessionID);
         assertEquals(defaultMessage, OtrEngineHostUtil.getReplyForUnreadableMessage(host, sessionID, defaultMessage));
         verify(host).getReplyForUnreadableMessage(sessionID);
+    }
+
+    @Test
+    public void testExtraSymmetricKeyDiscoveredOnFaultyHost() throws OtrException {
+        final String message = "My message.";
+        final SessionID sessionID = new SessionID(null, null, null);
+        final byte[] key = "MyPassW0rd".getBytes(SerializationUtils.ASCII);
+        final byte[] tlvData = "Use in file transfer!".getBytes(SerializationUtils.UTF8);
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        doThrow(new IllegalArgumentException("programming error occurred")).when(host).getReplyForUnreadableMessage(sessionID);
+        OtrEngineHostUtil.extraSymmetricKeyDiscovered(host, sessionID, message, key, tlvData);
+        verify(host).extraSymmetricKeyDiscovered(sessionID, message, key, tlvData);
     }
 }
