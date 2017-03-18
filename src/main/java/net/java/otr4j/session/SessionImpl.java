@@ -92,7 +92,6 @@ import net.java.otr4j.session.state.StatePlaintext;
  * @author George Politis
  * @author Danny van Heumen
  */
-// TODO Consider brute-forcing/generating random strings for transformReceiving to make processing of message more robust.
 final class SessionImpl implements Session, Context, AuthContext {
 
     /**

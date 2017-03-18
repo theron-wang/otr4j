@@ -10,6 +10,7 @@
 // FUTURE what's the status on reproducible builds of Java programs?
 // FUTURE investigate usefulness of Java 9 module, maybe just as an experiment ...
 // FUTURE consider implementing OTRDATA (https://dev.guardianproject.info/projects/gibberbot/wiki/OTRDATA_Specifications)
+// FUTURE do something fuzzing-like to thoroughly test receiving user messages with various characters. Especially normal user messages that are picked up as OTR-encoded but then crash/fail processing because it's only a partially-valid OTR encoded message.
 /**
  * otr4j.
  */
