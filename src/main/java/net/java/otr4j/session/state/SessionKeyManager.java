@@ -137,6 +137,10 @@ final class SessionKeyManager {
                 sess4.getLocalKeyID(), sess4.getLocalKeyPair(),
                 sess2.getRemoteKeyID(), sess2.getRemotePublicKey()));
 
+        // Clear old session keys.
+        sess1.clear();
+        sess2.clear();
+
         // Generate new key for NEXT slots
         final KeyPair newKeyPair = OtrCryptoEngine.generateDHKeyPair(secureRandom);
         this.keys.get(Index.NEXT).put(Index.NEXT, new SessionKey(
@@ -176,6 +180,10 @@ final class SessionKeyManager {
         this.keys.get(Index.CURRENT).put(Index.CURRENT, new SessionKey(
                 sess2.getLocalKeyID(), sess2.getLocalKeyPair(),
                 sess4.getRemoteKeyID(), sess4.getRemotePublicKey()));
+
+        // Clear old session keys.
+        sess1.clear();
+        sess2.clear();
 
         // Place new key in NEXT slots
         this.keys.get(Index.NEXT).put(Index.NEXT, new SessionKey(

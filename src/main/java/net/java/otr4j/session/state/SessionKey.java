@@ -9,11 +9,14 @@ package net.java.otr4j.session.state;
 
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
+
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SharedSecret;
@@ -257,6 +260,16 @@ final class SessionKey {
     @Nonnull
     byte[] extraSymmetricKey() {
         return this.s.extraSymmetricKey();
+    }
+
+    /**
+     * Clear SessionKey instance. Everything will be zeroed, so user should
+     * make sure that the SessionKey isn't accidentally used afterwards.
+     */
+    void clear() {
+        this.s.clear();
+        Arrays.fill(this.receivingCtr, (byte) 0);
+        Arrays.fill(this.sendingCtr, (byte) 0);
     }
 
     /**

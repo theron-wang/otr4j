@@ -188,4 +188,13 @@ public final class SharedSecret {
     private byte[] h2(final byte b) {
         return OtrCryptoEngine.sha256Hash(new byte[]{b}, this.secbytes);
     }
+
+    /**
+     * Clear the shared secret. (This zeroes the secret, so if the SharedSecret
+     * instance is reused after clearing, you will end up with "invalid"
+     * (unexpected) results.
+     */
+    public void clear() {
+        Arrays.fill(this.secbytes, (byte) 0);
+    }
 }

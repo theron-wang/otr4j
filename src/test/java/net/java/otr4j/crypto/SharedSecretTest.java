@@ -1,5 +1,7 @@
 package net.java.otr4j.crypto;
 
+import java.nio.ByteBuffer;
+
 import static org.junit.Assert.assertArrayEquals;
 import org.junit.Test;
 
@@ -86,5 +88,22 @@ public class SharedSecretTest {
         assertArrayEquals(new byte[]{-19, 90, -108, -38, 119, 18, 108, -77, 4,
             121, -121, -2, -83, 13, -90, -21, 33, -17, -25, 120, 48, -88, -30,
             -24, 116, 93, 14, 65, 100, -12, -54, 107}, s.extraSymmetricKey());
+    }
+
+    @Test
+    public void testSecBytesCleared() {
+        final SharedSecret s = new SharedSecret(MY_SHARED_BYTES);
+        assertArrayEquals(new byte[]{-27, -30, -56, 57, -23, -12, -12, -30, 101,
+                43, 106, 41, 96, -23, 48, 15}, s.c());
+        s.clear();
+        final ByteBuffer expectedBuffer = ByteBuffer.wrap(
+                OtrCryptoEngine.sha256Hash(new byte[]{1}, new byte[MY_SHARED_BYTES.length + 4]));
+        final byte[] expectedC = new byte[16];
+        expectedBuffer.get(expectedC);
+        assertArrayEquals(expectedC, s.c());
+        final byte[] expectedCprime = new byte[16];
+        expectedBuffer.position(16);
+        expectedBuffer.get(expectedCprime);
+        assertArrayEquals(expectedCprime, s.cp());
     }
 }
