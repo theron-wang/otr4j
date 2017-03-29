@@ -70,6 +70,7 @@ public final class SM {
      * @param b The 2nd BigInteger to hash.
      * @return the BigInteger for the resulting hash value.
      */
+    @Nonnull
     static BigInteger hash(final int version, @Nonnull final BigInteger a,
             @Nullable final BigInteger b) {
         final MessageDigest sha256 = OtrCryptoEngine.createSHA256MessageDigest();
@@ -81,6 +82,7 @@ public final class SM {
         return new BigInteger(1, sha256.digest());
     }
 
+    @Nonnull
     static byte[] serialize(@Nonnull final BigInteger[] ints) throws SMException {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
@@ -94,6 +96,7 @@ public final class SM {
         }
     }
 
+    @Nonnull
     static BigInteger[] unserialize(@Nonnull final byte[] bytes) throws SMException {
         final ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         final OtrInputStream ois = new OtrInputStream(in);
@@ -178,6 +181,7 @@ public final class SM {
      * and then you can immediately make a subsequent call to initiate a new SMP
      * exchange.
      */
+    @Nonnull
     public byte[] step1(@Nonnull final byte[] secret) throws SMException
     {
         LOGGER.fine("Initiating SMP exchange.");
@@ -235,6 +239,7 @@ public final class SM {
      * @throws SMException Thrown in case of failure to process SMP message or
      * on abort.
      */
+    @Nonnull
     public byte[] step2b(@Nonnull final byte[] secret) throws SMException
     {
         LOGGER.fine("Continuing SMP exchange initiation reply after receiving data from OtrEngineHost.");
@@ -270,6 +275,7 @@ public final class SM {
      * @throws SMException Thrown in case of failure to process SMP message, or
      * in case of abort.
      */
+    @Nonnull
     public byte[] step3(@Nonnull final byte[] input) throws SMException
     {
         LOGGER.fine("Received reply to SMP exchange initiation request. Sending final message in SMP exchange.");
@@ -305,6 +311,7 @@ public final class SM {
      * @throws SMException Thrown in case of failure to process SMP message or
      * in case of abort.
      */
+    @Nonnull
     public byte[] step4(@Nonnull final byte[] input) throws SMException
     {
         LOGGER.fine("Received final SMP response. Concluding SMP exchange and sending final response.");
