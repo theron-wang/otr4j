@@ -73,7 +73,7 @@ final class OtrAssembler {
      * @throws UnknownInstanceException In case receiver instance tag in
      * message is unknown.
      */
-    String accumulate(@Nonnull String msgText) throws ProtocolException {
+    String accumulate(@Nonnull String msgText) throws ProtocolException, UnknownInstanceException {
         // if it's a fragment, remove everything before "k,n,piece-k"
         if (msgText.startsWith(HEAD_FRAGMENT_V2)) {
             // v2
@@ -91,7 +91,7 @@ final class OtrAssembler {
 
             if (instancePart.length != 2 || instances.length != 2) {
                 discard();
-                throw new ProtocolException();
+                throw new ProtocolException("Invalid instance format.");
             }
 
             // parse receiver instance tag
@@ -183,10 +183,22 @@ final class OtrAssembler {
     /**
      * Discard current fragment buffer and reset the counters.
      */
-    void discard() {
+    private void discard() {
         fragment = new StringBuffer();
         fragmentCur = 0;
         fragmentMax = 0;
     }
 
+    /**
+     * Unknown instance exception to indicate that we encounter an unknown
+     * instance tag.
+     */
+    final static class UnknownInstanceException extends Exception {
+
+        private static final long serialVersionUID = -9038076875471875721L;
+
+        private UnknownInstanceException(final String host) {
+            super(host);
+        }
+    }
 }

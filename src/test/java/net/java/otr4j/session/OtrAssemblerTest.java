@@ -23,7 +23,7 @@ public class OtrAssemblerTest {
     private static final SecureRandom RAND = new SecureRandom();
 
     @Test
-    public void testCorrectParsingOf32bitsInteger() throws ProtocolException {
+    public void testCorrectParsingOf32bitsInteger() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
         final String data = String.format("?OTR|ff123456|%08x,00001,00002,test,", tag.getValue());
         final OtrAssembler ass = new OtrAssembler(tag);
@@ -31,7 +31,7 @@ public class OtrAssemblerTest {
     }
 
     @Test(expected = ProtocolException.class)
-    public void testCorrectDisallowOf33bitsInteger() throws ProtocolException {
+    public void testCorrectDisallowOf33bitsInteger() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
         final String data = String.format("?OTR|ff123456|1%08x,00001,00002,test,", tag.getValue());
         final OtrAssembler ass = new OtrAssembler(tag);
@@ -39,7 +39,7 @@ public class OtrAssemblerTest {
     }
 
     @Test(expected = ProtocolException.class)
-    public void testCorrectDisallowEmptyPayload() throws ProtocolException {
+    public void testCorrectDisallowEmptyPayload() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
         final String data = String.format("?OTR|ff123456|%08x,00001,00002,,", tag.getValue());
         final OtrAssembler ass = new OtrAssembler(tag);
@@ -47,7 +47,7 @@ public class OtrAssemblerTest {
     }
 
     @Test(expected = ProtocolException.class)
-    public void testCorrectDisallowTrailingData() throws ProtocolException {
+    public void testCorrectDisallowTrailingData() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
         final String data = String.format("?OTR|ff123456|%08x,00001,00002,test,invalid", tag.getValue());
         final OtrAssembler ass = new OtrAssembler(tag);
@@ -55,7 +55,7 @@ public class OtrAssemblerTest {
     }
 
     @Test(expected = ProtocolException.class)
-    public void testCorrectDisallowNegativeK() throws ProtocolException {
+    public void testCorrectDisallowNegativeK() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
         final String data = String.format("?OTR|ff123456|%08x,-0001,00002,test,", tag.getValue());
         final OtrAssembler ass = new OtrAssembler(tag);
@@ -63,7 +63,7 @@ public class OtrAssemblerTest {
     }
 
     @Test(expected = ProtocolException.class)
-    public void testCorrectDisallowKLargerThanN() throws ProtocolException {
+    public void testCorrectDisallowKLargerThanN() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
         final String data = String.format("?OTR|ff123456|%08x,00003,00002,test,", tag.getValue());
         final OtrAssembler ass = new OtrAssembler(tag);
@@ -71,7 +71,7 @@ public class OtrAssemblerTest {
     }
 
     @Test(expected = ProtocolException.class)
-    public void testCorrectDisallowKOverUpperBound() throws ProtocolException {
+    public void testCorrectDisallowKOverUpperBound() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
         final String data = String.format("?OTR|ff123456|%08x,65536,65536,test,", tag.getValue());
         final OtrAssembler ass = new OtrAssembler(tag);
@@ -79,7 +79,7 @@ public class OtrAssemblerTest {
     }
 
     @Test
-    public void testCorrectMaximumNFragments() throws ProtocolException {
+    public void testCorrectMaximumNFragments() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
         final String data = String.format("?OTR|ff123456|%08x,00001,65535,test,", tag.getValue());
         final OtrAssembler ass = new OtrAssembler(tag);
@@ -87,7 +87,7 @@ public class OtrAssemblerTest {
     }
 
     @Test(expected = ProtocolException.class)
-    public void testCorrectDisallowNOverUpperBound() throws ProtocolException {
+    public void testCorrectDisallowNOverUpperBound() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
         final String data = String.format("?OTR|ff123456|%08x,00001,65536,test,", tag.getValue());
         final OtrAssembler ass = new OtrAssembler(tag);
@@ -95,7 +95,7 @@ public class OtrAssemblerTest {
     }
 
     @Test
-    public void testAssembleSinglePartMessage() throws ProtocolException {
+    public void testAssembleSinglePartMessage() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = InstanceTag.random(RAND);
         final String data = String.format("?OTR|ff123456|%08x,00001,00001,test,", tag.getValue());
         final OtrAssembler ass = new OtrAssembler(tag);
@@ -103,7 +103,7 @@ public class OtrAssemblerTest {
     }
 
     @Test
-    public void testAssembleTwoPartMessage() throws ProtocolException {
+    public void testAssembleTwoPartMessage() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = InstanceTag.random(RAND);
         final OtrAssembler ass = new OtrAssembler(tag);
         assertNull(ass.accumulate(String.format("?OTR|ff123456|%08x,00001,00002,abcdef,", tag.getValue())));
@@ -111,7 +111,7 @@ public class OtrAssemblerTest {
     }
 
     @Test
-    public void testAssembleFourPartMessage() throws ProtocolException {
+    public void testAssembleFourPartMessage() throws ProtocolException, OtrAssembler.UnknownInstanceException {
         final InstanceTag tag = InstanceTag.random(RAND);
         final OtrAssembler ass = new OtrAssembler(tag);
         assertNull(ass.accumulate(String.format("?OTR|ff123456|%08x,00001,00004,a,", tag.getValue())));

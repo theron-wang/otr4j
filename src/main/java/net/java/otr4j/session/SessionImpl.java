@@ -380,7 +380,7 @@ final class SessionImpl implements Session, Context, AuthContext {
             if (msgText == null) {
                 return null; // Not a complete message (yet).
             }
-        } catch (final UnknownInstanceException e) {
+        } catch (final OtrAssembler.UnknownInstanceException e) {
             // The fragment is not intended for us
             logger.finest(e.getMessage());
             OtrEngineHostUtil.messageFromAnotherInstanceReceived(this.host, this.sessionState.getSessionID());
