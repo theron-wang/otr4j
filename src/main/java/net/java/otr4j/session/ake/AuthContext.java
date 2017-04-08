@@ -37,7 +37,7 @@ public interface AuthContext {
      * @throws InteractionFailedException Thrown in case transition into
      * ENCRYPTED message state fails.
      */
-    void secure(SecurityParameters params) throws InteractionFailedException;
+    void secure(@Nonnull SecurityParameters params) throws InteractionFailedException;
 
     /**
      * Access to SecureRandom instance.

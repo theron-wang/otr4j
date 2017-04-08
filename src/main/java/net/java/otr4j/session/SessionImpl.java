@@ -328,6 +328,7 @@ final class SessionImpl implements Session, Context, AuthContext {
 
     @Override
     public void setState(@Nonnull final AuthState state) {
+        System.err.println("Updating state in session " + hashCode() + " from " + this.authState.getClass().getName() + " to " + state.getClass().getName());
         logger.log(Level.FINEST, "Updating state from {0} to {1}.", new Object[]{this.authState, state});
         this.authState = Objects.requireNonNull(state);
     }
@@ -467,7 +468,9 @@ final class SessionImpl implements Session, Context, AuthContext {
                 // as we may have sent a DH Commit message without
                 // specifying a receiver tag, hence multiple clients may be
                 // inclined to respond.
-                session.authState = this.authState;
+                // Ideally we would NOT copy the state if we sent a DH Commit
+                // message with receiver instance tag earlier.
+                session.setState(this.authState);
             } else {
                 // Handle other encoded messages. By now we expect the
                 // message sender's (receiver) tag to be known. If not we
@@ -656,6 +659,10 @@ final class SessionImpl implements Session, Context, AuthContext {
         // new protocol version corresponding to the message's intention.
         if (!(m instanceof DHCommitMessage)
                 && m.protocolVersion != this.authState.getVersion()) {
+            System.err.println("Currently in " + (this.masterSession == this ? "master" : "slave") + " session " + hashCode());
+            System.err.println("Currently in AKE state " + this.authState.getClass().getName() + ", received message: " + m.getClass().getName());
+            System.err.println("Expecting version: " + this.authState.getVersion());
+            System.err.println("Received version: " + m.protocolVersion);
             logger.log(Level.INFO, "AKE message containing unexpected protocol version encountered. ({0} instead of {1}.) Ignoring.",
                     new Object[]{m.protocolVersion, this.authState.getVersion()});
             return null;
@@ -782,6 +789,7 @@ final class SessionImpl implements Session, Context, AuthContext {
         if (version == 0) {
             startSession();
         } else {
+            System.err.println("Using intelligent refresh in " + (this.masterSession == this ? "master" : "slave") + " session " + hashCode());
             injectMessage(respondAuth(version, this.receiverTag));
         }
     }
@@ -969,8 +977,13 @@ final class SessionImpl implements Session, Context, AuthContext {
         if (!OTRv.ALL.contains(version)) {
             throw new OtrException("Only allowed versions are: 2, 3");
         }
+        // Ensure we initiate authentication state in master session, as we
+        // copy the master session's authentication state upon receiving a
+        // DHKey message. This is caused by the fact that we may get multiple
+        // D-H Key responses to a D-H Commit message without receiver instance
+        // tag. (This is due to the subtle workings of the implementation.)
         logger.finest("Responding to Query Message with D-H Commit message.");
-        return this.authState.initiate(this, version, receiverTag);
+        return this.masterSession.authState.initiate(this.masterSession, version, receiverTag);
     }
 
     /**
