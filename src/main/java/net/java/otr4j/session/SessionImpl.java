@@ -328,7 +328,6 @@ final class SessionImpl implements Session, Context, AuthContext {
 
     @Override
     public void setState(@Nonnull final AuthState state) {
-        System.err.println("Updating state in session " + hashCode() + " from " + this.authState.getClass().getName() + " to " + state.getClass().getName());
         logger.log(Level.FINEST, "Updating state from {0} to {1}.", new Object[]{this.authState, state});
         this.authState = Objects.requireNonNull(state);
     }
@@ -659,10 +658,6 @@ final class SessionImpl implements Session, Context, AuthContext {
         // new protocol version corresponding to the message's intention.
         if (!(m instanceof DHCommitMessage)
                 && m.protocolVersion != this.authState.getVersion()) {
-            System.err.println("Currently in " + (this.masterSession == this ? "master" : "slave") + " session " + hashCode());
-            System.err.println("Currently in AKE state " + this.authState.getClass().getName() + ", received message: " + m.getClass().getName());
-            System.err.println("Expecting version: " + this.authState.getVersion());
-            System.err.println("Received version: " + m.protocolVersion);
             logger.log(Level.INFO, "AKE message containing unexpected protocol version encountered. ({0} instead of {1}.) Ignoring.",
                     new Object[]{m.protocolVersion, this.authState.getVersion()});
             return null;
@@ -789,7 +784,6 @@ final class SessionImpl implements Session, Context, AuthContext {
         if (version == 0) {
             startSession();
         } else {
-            System.err.println("Using intelligent refresh in " + (this.masterSession == this ? "master" : "slave") + " session " + hashCode());
             injectMessage(respondAuth(version, this.receiverTag));
         }
     }
