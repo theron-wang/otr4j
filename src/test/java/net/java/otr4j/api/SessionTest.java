@@ -8,8 +8,6 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import net.java.otr4j.api.OtrPolicy;
-import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.test.TestStrings;
 import net.java.otr4j.test.dummyclient.DummyClient;
 import net.java.otr4j.test.dummyclient.PriorityServer;

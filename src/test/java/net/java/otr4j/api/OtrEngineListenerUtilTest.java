@@ -11,10 +11,6 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.OtrEngineListener;
-import net.java.otr4j.api.OtrEngineListenerUtil;
-import net.java.otr4j.api.SessionID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

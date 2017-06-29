@@ -8,7 +8,6 @@ package net.java.otr4j.session;
 
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrEngineListener;
-import net.java.otr4j.session.OtrSessionManager;
 import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
 import org.junit.Test;

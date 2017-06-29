@@ -8,9 +8,6 @@ package net.java.otr4j.api;
 
 import java.util.Set;
 
-import net.java.otr4j.api.OtrPolicy;
-import net.java.otr4j.api.OtrPolicyUtil;
-import net.java.otr4j.api.Session;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
