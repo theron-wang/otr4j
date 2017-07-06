@@ -89,7 +89,6 @@ public interface State {
      * @param plainTextMessage The received plaintext message.
      * @return Returns the cleaned plaintext message. (The message excluding
      * possible whitespace tags or other OTR artifacts.)
-     * @throws OtrException In case an exception occurs.
      */
     @Nonnull
     String handlePlainTextMessage(@Nonnull Context context, @Nonnull PlainTextMessage plainTextMessage);
@@ -100,6 +99,7 @@ public interface State {
      * @param context The session context.
      * @param message The received message.
      * @return Returns the decrypted message context.
+     * @throws java.io.IOException In case of I/O reading fails.
      * @throws OtrException In case an exception occurs.
      */
     @Nullable
