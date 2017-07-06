@@ -48,23 +48,17 @@ public class IOTest {
 		int source = 10;
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OtrOutputStream oos = new OtrOutputStream(out);
-		try {
+		try (OtrOutputStream oos = new OtrOutputStream(out)) {
 			oos.writeShort(source);
 
 			byte[] converted = out.toByteArray();
 
 			ByteArrayInputStream bin = new ByteArrayInputStream(converted);
-			OtrInputStream ois = new OtrInputStream(bin);
-			try {
+			try (OtrInputStream ois = new OtrInputStream(bin)) {
 				int result = ois.readShort();
 
 				assertEquals(source, result);
-			} finally {
-				ois.close();
 			}
-		} finally {
-			oos.close();
 		}
 	}
 
@@ -73,23 +67,17 @@ public class IOTest {
 		byte[] source = new byte[] { 1, 1, 1, 1 };
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OtrOutputStream oos = new OtrOutputStream(out);
-		try {
+		try (OtrOutputStream oos = new OtrOutputStream(out)) {
 			oos.writeData(source);
 
 			byte[] converted = out.toByteArray();
 
 			ByteArrayInputStream bin = new ByteArrayInputStream(converted);
-			OtrInputStream ois = new OtrInputStream(bin);
-			try {
+			try (OtrInputStream ois = new OtrInputStream(bin)) {
 				byte[] result = ois.readData();
 
 				assertTrue(java.util.Arrays.equals(source, result));
-			} finally {
-				ois.close();
 			}
-		} finally {
-			oos.close();
 		}
 	}
 
@@ -100,23 +88,17 @@ public class IOTest {
 		BigInteger source = ((DHPublicKey) pair.getPublic()).getY();
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OtrOutputStream oos = new OtrOutputStream(out);
-		try {
+		try (OtrOutputStream oos = new OtrOutputStream(out)) {
 			oos.writeBigInt(source);
 
 			byte[] converted = out.toByteArray();
 
 			ByteArrayInputStream bin = new ByteArrayInputStream(converted);
-			OtrInputStream ois = new OtrInputStream(bin);
-			try {
+			try (OtrInputStream ois = new OtrInputStream(bin)) {
 				BigInteger result = ois.readBigInt();
 
 				assertTrue(source.compareTo(result) == 0);
-			} finally {
-				ois.close();
 			}
-		} finally {
-			oos.close();
 		}
 	}
 
@@ -127,23 +109,17 @@ public class IOTest {
 		DHPublicKey source = (DHPublicKey) pair.getPublic();
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OtrOutputStream oos = new OtrOutputStream(out);
-		try {
+		try (OtrOutputStream oos = new OtrOutputStream(out)) {
 			oos.writeDHPublicKey(source);
 
 			byte[] converted = out.toByteArray();
 
 			ByteArrayInputStream bin = new ByteArrayInputStream(converted);
-			OtrInputStream ois = new OtrInputStream(bin);
-			try {
+			try (OtrInputStream ois = new OtrInputStream(bin)) {
 				DHPublicKey result = ois.readDHPublicKey();
 
 				assertTrue(source.getY().compareTo(result.getY()) == 0);
-			} finally {
-				ois.close();
 			}
-		} finally {
-			oos.close();
 		}
 	}
 

@@ -114,6 +114,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      * @return Returns the raw fingerprint bytes.
      */
+    @Override
     @Nonnull
     byte[] getLocalFingerprintRaw(@Nonnull SessionID sessionID);
 

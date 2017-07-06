@@ -78,7 +78,7 @@ public class SerializationUtilsTest {
     public void testPlaintextMessageNoNullMangling() throws IOException {
         final String data = "This is a test with \0 null \0 values.";
         final PlainTextMessage m = new PlainTextMessage(
-                new HashSet<Integer>(Arrays.asList(OTRv.TWO, OTRv.THREE)), data);
+                new HashSet<>(Arrays.asList(OTRv.TWO, OTRv.THREE)), data);
         assertTrue(SerializationUtils.toString(m).startsWith("This is a test with \0 null \0 values."));
     }
 
@@ -171,7 +171,7 @@ public class SerializationUtilsTest {
 
     @Test
     public void testCorrectQueryHeaderV2AndV3() throws IOException {
-        final QueryMessage msg = new QueryMessage(new HashSet<Integer>(Arrays.asList(Session.OTRv.TWO, Session.OTRv.THREE)));
+        final QueryMessage msg = new QueryMessage(new HashSet<>(Arrays.asList(Session.OTRv.TWO, Session.OTRv.THREE)));
         assertEquals("?OTRv23?", SerializationUtils.toString(msg));
     }
 

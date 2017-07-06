@@ -7,7 +7,8 @@
 package net.java.otr4j.io;
 
 /**
- * 
+ * Serialization constants.
+ *
  * @author George Politis
  */
 public interface SerializationConstants {

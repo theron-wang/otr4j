@@ -191,7 +191,7 @@ public class DummyClient {
 	}
 
 	class MessageProcessor implements Runnable {
-		private final Queue<TestMessage> messageQueue = new LinkedList<TestMessage>();
+		private final Queue<TestMessage> messageQueue = new LinkedList<>();
 		private boolean stopped;
         private boolean stopBeforeProcessingNextMessage;
         private TestMessage m;
@@ -209,6 +209,7 @@ public class DummyClient {
 			}
 		}
 
+        @Override
 		public void run() {
 			synchronized (messageQueue) {
 				while (true) {
@@ -277,8 +278,9 @@ public class DummyClient {
 
 	public class DummyOtrEngineHostImpl implements OtrEngineHost {
 
-	    private final HashMap<SessionID, KeyPair> keypairs = new HashMap<SessionID, KeyPair>();
+	    private final HashMap<SessionID, KeyPair> keypairs = new HashMap<>();
 
+        @Override
 		public void injectMessage(@Nonnull SessionID sessionID, @Nonnull String msg) {
 			connection.send(sessionID.getUserID(), msg);
 
@@ -287,40 +289,48 @@ public class DummyClient {
 			logger.finest("IM injects message: " + msgDisplay);
 		}
 
+        @Override
 		public void smpError(@Nonnull SessionID sessionID, int tlvType, boolean cheated) {
 			logger.severe("SM verification error with user: " + sessionID);
 			smpQuestions.remove(sessionID);
 		}
 
+        @Override
 		public void smpAborted(@Nonnull SessionID sessionID) {
 			logger.severe("SM verification has been aborted by user: "
 					+ sessionID);
 			smpQuestions.remove(sessionID);
 		}
 
+        @Override
 		public void finishedSessionMessage(@Nonnull SessionID sessionID, @Nonnull String msgText) {
 			logger.severe("SM session was finished. You shouldn't send messages to: "
 					+ sessionID);
 		}
 
+        @Override
 		public void requireEncryptedMessage(@Nonnull SessionID sessionID, @Nonnull String msgText) {
 			logger.severe("Message can't be sent while encrypted session is not established: "
 					+ sessionID);
 		}
 
+        @Override
 		public void unreadableMessageReceived(@Nonnull SessionID sessionID) {
 			logger.warning("Unreadable message received from: " + sessionID);
 		}
 
+        @Override
 		public void unencryptedMessageReceived(@Nonnull SessionID sessionID, @Nonnull String msg) {
 			logger.warning("Unencrypted message received: " + msg + " from "
 					+ sessionID);
 		}
 
+        @Override
 		public void showError(@Nonnull SessionID sessionID, @Nonnull String error) {
 			logger.severe("IM shows error to user: " + error);
 		}
 
+        @Override
         @Nonnull
 		public KeyPair getLocalKeyPair(@Nonnull SessionID paramSessionID) {
             KeyPair keypair = this.keypairs.get(paramSessionID);
@@ -336,16 +346,19 @@ public class DummyClient {
             return keypair;
         }
 
+        @Override
 		public OtrPolicy getSessionPolicy(@Nonnull SessionID ctx) {
 			return policy;
 		}
 
+        @Override
         @Nonnull
         public byte[] getLocalFingerprintRaw(@Nonnull SessionID sessionID) {
             return OtrCryptoEngine.getFingerprintRaw(getLocalKeyPair(sessionID)
                     .getPublic());
         }
 
+        @Override
 		public void askForSecret(@Nonnull SessionID sessionID, @Nonnull InstanceTag receiverTag, @Nullable String question) {
             logger.finer("Ask for secret from: " + sessionID
                     + ", instanceTag: " + receiverTag + ", question: " + question);
@@ -354,6 +367,7 @@ public class DummyClient {
                 lock.countDown();
 		}
 
+        @Override
 		public void verify(@Nonnull SessionID sessionID, @Nonnull String fingerprint) {
             logger.finer("Session was verified: " + sessionID);
             verified = VERIFIED;
@@ -361,6 +375,7 @@ public class DummyClient {
                 lock.countDown();
 		}
 
+        @Override
 		public void unverify(@Nonnull SessionID sessionID, @Nonnull String fingerprint) {
             logger.fine("Session was not verified: " + sessionID + "  fingerprint: " + fingerprint);
             verified = UNVERIFIED;
@@ -368,18 +383,22 @@ public class DummyClient {
                 lock.countDown();
 		}
 
+        @Override
 		public String getReplyForUnreadableMessage(@Nonnull SessionID sessionID) {
             return "You sent me an unreadable encrypted message.";
 		}
 
+        @Override
 		public String getFallbackMessage(@Nonnull SessionID sessionID) {
             return "Off-the-Record private conversation has been requested. However, you do not have a plugin to support that.";
 		}
 
+        @Override
 		public void messageFromAnotherInstanceReceived(@Nonnull SessionID sessionID) {
 
 		}
 
+        @Override
 		public void multipleInstancesDetected(@Nonnull SessionID sessionID) {
 
 		}
@@ -389,6 +408,7 @@ public class DummyClient {
 			throw new UnsupportedOperationException("This callback method was not implemented for testing purposes... Please implement if you want to use this in tests.");
 		}
 
+        @Override
 		public int getMaxFragmentSize(@Nonnull SessionID sessionID) {
 			return Integer.MAX_VALUE;
 		}
