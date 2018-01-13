@@ -22,27 +22,25 @@ final class OtrAssembler {
 
     private static final int MAX_FRAGMENTS = 65535;
 
-    OtrAssembler(@Nonnull final InstanceTag ownInstance) {
-        this.ownInstance = ownInstance;
-        discard();
-    }
+    private static final String HEAD_FRAGMENT_V2 = "?OTR,";
+    private static final String HEAD_FRAGMENT_V3 = "?OTR|";
 
     /**
      * Accumulated fragment thus far.
      */
-    private StringBuffer fragment;
+    private final StringBuilder fragment = new StringBuilder();
 
     /**
      * Number of last fragment received.
      * This variable must be able to store an unsigned short value.
      */
-    private int fragmentCur;
+    private int fragmentCur = 0;
 
     /**
      * Total number of fragments in message.
      * This variable must be able to store an unsigned short value.
      */
-    private int fragmentMax;
+    private int fragmentMax = 0;
 
     /**
      * Relevant instance tag.
@@ -50,8 +48,9 @@ final class OtrAssembler {
      */
     private final InstanceTag ownInstance;
 
-    private static final String HEAD_FRAGMENT_V2 = "?OTR,";
-    private static final String HEAD_FRAGMENT_V3 = "?OTR|";
+    OtrAssembler(@Nonnull final InstanceTag ownInstance) {
+        this.ownInstance = ownInstance;
+    }
 
     /**
      * Appends a message fragment to the internal buffer and returns
@@ -184,7 +183,7 @@ final class OtrAssembler {
      * Discard current fragment buffer and reset the counters.
      */
     private void discard() {
-        fragment = new StringBuffer();
+        fragment.delete(0, fragment.length());
         fragmentCur = 0;
         fragmentMax = 0;
     }
