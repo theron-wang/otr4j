@@ -564,6 +564,9 @@ public final class SerializationUtils {
         return new Content(message, tlvs);
     }
 
+    /**
+     * Content is an inner class that is used to return both message body and accompanying TLVs.
+     */
     public static final class Content {
         public final String message;
         public final List<TLV> tlvs;

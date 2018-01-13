@@ -116,7 +116,7 @@ final class StateExpect1 extends AbstractSMPState {
     @Nonnull
     byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SMException {
         if (status() != SMPStatus.INPROGRESS) {
-            // In case a question gets answered before the question is recieved,
+            // In case a question gets answered before the question is received,
             // this is considered bad order of messages. Abort protocol and
             // reset to default.
             bstate.setState(new StateExpect1(this.secureRandom()));

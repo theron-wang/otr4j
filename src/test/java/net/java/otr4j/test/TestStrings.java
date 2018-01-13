@@ -3,7 +3,7 @@ package net.java.otr4j.test;
 
 public class TestStrings {
 
-    public static String[] unicodes = {
+    public static final String[] unicodes = {
             "plainAscii",
             "",
             "བོད་རིགས་ཀྱི་བོད་སྐད་བརྗོད་པ་དང་ བོད་རིགས་མང་ཆེ་བ་ནི་ནང་ཆོས་བྱེད་པ་དང་",

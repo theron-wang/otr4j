@@ -51,7 +51,7 @@ public final class OtrOutputStream extends FilterOutputStream implements
     }
 
     public void writeData(@Nullable final byte[] b) throws IOException {
-        final int len = (b == null || b.length < 0) ? 0 : b.length;
+        final int len = b == null ? 0 : b.length;
         writeNumber(len, DATA_LEN);
         if (len > 0) {
             write(b);
@@ -112,7 +112,7 @@ public final class OtrOutputStream extends FilterOutputStream implements
     }
 
     public void writeTlvData(@Nullable final byte[] b) throws IOException {
-        final int len = (b == null || b.length < 0) ? 0 : b.length;
+        final int len = b == null ? 0 : b.length;
         writeNumber(len, TLV_LEN);
         if (len > 0) {
             write(b);

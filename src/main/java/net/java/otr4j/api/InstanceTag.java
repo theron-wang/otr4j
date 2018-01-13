@@ -117,8 +117,7 @@ public final class InstanceTag {
      * @param value The instance tag value
      */
     public InstanceTag(final int value) {
-        if (!isValidInstanceTag(value))
-        {
+        if (!isValidInstanceTag(value)) {
             throw new IllegalArgumentException("Invalid tag value.");
         }
         this.value = value;

@@ -33,6 +33,8 @@ import net.java.otr4j.io.messages.SignatureX;
 public final class OtrInputStream extends FilterInputStream implements
         SerializationConstants {
 
+    private static final byte[] ZERO_BYTES = new byte[0];
+
     /**
      * Constant indicating limit for data lengths that are accepted
      * unconditionally. Data lengths read from OtrInputStream that are smaller
@@ -63,7 +65,7 @@ public final class OtrInputStream extends FilterInputStream implements
      */
     private byte[] checkedRead(final int length) throws IOException {
         if (length == 0) {
-            return new byte[0];
+            return ZERO_BYTES;
         }
         final byte[] b = new byte[length];
         final int bytesRead = read(b);

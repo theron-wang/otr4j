@@ -171,7 +171,7 @@ final class OtrAssembler {
             throw new ProtocolException();
         }
 
-        if (n == k && n > 0) {
+        if (n == k) {
             final String result = fragment.toString();
             discard();
             return result;
