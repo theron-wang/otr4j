@@ -62,7 +62,7 @@ public class InstanceTagTest {
     public void testConstructLargestTag() {
         InstanceTag tag = new InstanceTag(InstanceTag.HIGHEST_VALUE);
         // Make sure that value gets preserved as is.
-        assertEquals(0xffffffff, InstanceTag.HIGHEST_VALUE & tag.getValue());
+        assertEquals(0xffffffff, tag.getValue());
     }
 
     @Test

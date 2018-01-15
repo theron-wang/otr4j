@@ -97,15 +97,15 @@ public final class SerializationUtils {
     }
 
     // Mysterious X IO.
+    @Nonnull
     public static SignatureX toMysteriousX(@Nonnull final byte[] b) throws IOException, OtrCryptoException, UnsupportedTypeException {
         final ByteArrayInputStream in = new ByteArrayInputStream(b);
-        final SignatureX x;
         try (final OtrInputStream ois = new OtrInputStream(in)) {
-            x = ois.readMysteriousX();
+            return ois.readMysteriousX();
         }
-        return x;
     }
 
+    @Nonnull
     public static byte[] toByteArray(@Nonnull final SignatureX x) {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
@@ -117,6 +117,7 @@ public final class SerializationUtils {
     }
 
     // Mysterious M IO.
+    @Nonnull
     public static byte[] toByteArray(@Nonnull final SignatureM m) {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
@@ -128,6 +129,7 @@ public final class SerializationUtils {
     }
 
     // Mysterious T IO.
+    @Nonnull
     public static byte[] toByteArray(@Nonnull final MysteriousT t) {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
@@ -139,6 +141,7 @@ public final class SerializationUtils {
     }
 
     // Basic IO.
+    @Nonnull
     public static byte[] writeData(@Nullable final byte[] b) {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
@@ -150,6 +153,7 @@ public final class SerializationUtils {
     }
 
     // BigInteger IO.
+    @Nonnull
     public static byte[] writeMpi(@Nonnull final BigInteger bigInt) {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
@@ -160,16 +164,16 @@ public final class SerializationUtils {
         return out.toByteArray();
     }
 
+    @Nonnull
     public static BigInteger readMpi(@Nonnull final byte[] b) throws IOException {
         final ByteArrayInputStream in = new ByteArrayInputStream(b);
-        final BigInteger bigint;
         try (final OtrInputStream ois = new OtrInputStream(in)) {
-            bigint = ois.readBigInt();
+            return ois.readBigInt();
         }
-        return bigint;
     }
 
     // Public Key IO.
+    @Nonnull
     public static byte[] writePublicKey(@Nonnull final PublicKey pubKey) {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (final OtrOutputStream oos = new OtrOutputStream(out)) {
@@ -181,6 +185,7 @@ public final class SerializationUtils {
     }
 
     // Message IO.
+    @Nonnull
     public static String toString(@Nonnull final Message m) {
         final StringWriter writer = new StringWriter();
         if (!(m instanceof PlainTextMessage) && !(m instanceof QueryMessage)) {
