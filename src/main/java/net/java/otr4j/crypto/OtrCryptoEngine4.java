@@ -88,4 +88,18 @@ public final class OtrCryptoEngine4 {
         digest.update(input, 0, input.length);
         digest.doFinal(dst, offset, KDF_2_LENGTH_BYTES);
     }
+
+    /**
+     * KDF key derivation function, for arbitrary-length results.
+     *
+     * @param dst         The destination byte array.
+     * @param offset      The offset position to start writing to the destination.
+     * @param lengthBytes The length in bytes of the result.
+     * @param input       The input data.
+     */
+    public static void kdf(@Nonnull final byte[] dst, final int offset, final int lengthBytes, @Nonnull final byte[] input) {
+        final SHAKEDigest digest = new SHAKEDigest(SHAKE_256_LENGTH_BITS);
+        digest.update(input, 0, input.length);
+        digest.doFinal(dst, offset, lengthBytes);
+    }
 }
