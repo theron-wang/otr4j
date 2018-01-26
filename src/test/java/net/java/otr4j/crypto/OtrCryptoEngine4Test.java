@@ -2,17 +2,21 @@ package net.java.otr4j.crypto;
 
 import org.junit.Test;
 
+import java.math.BigInteger;
+
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.FINGERPRINT_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDF_1_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDF_2_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.fingerprint;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.hashToScalar;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf1;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf2;
 import static nl.dannyvanheumen.joldilocks.Ed448.P;
 import static nl.dannyvanheumen.joldilocks.Points.identity;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 @SuppressWarnings("ConstantConditions")
 public class OtrCryptoEngine4Test {
@@ -200,5 +204,16 @@ public class OtrCryptoEngine4Test {
         final int length = 110;
         final byte[] dst = new byte[length];
         kdf(dst, 10, length, "helloworld".getBytes(US_ASCII));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testHashToScalarNullBytes() {
+        hashToScalar(null);
+    }
+
+    @Test
+    public void testHashToScalar() {
+        final BigInteger expected = new BigInteger("108333773018303190192353867271572301960068737188431703050860533711258012813512666371637687939410892877820478365505510629241778988407354", 10);
+        assertEquals(expected, hashToScalar("helloworld".getBytes(US_ASCII)));
     }
 }

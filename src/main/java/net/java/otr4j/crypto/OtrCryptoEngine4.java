@@ -4,8 +4,10 @@ import nl.dannyvanheumen.joldilocks.Point;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 
 import javax.annotation.Nonnull;
+import java.math.BigInteger;
 
 import static java.util.Objects.requireNonNull;
+import static nl.dannyvanheumen.joldilocks.Ed448.Q;
 
 /**
  * Crypto engine for OTRv4.
@@ -101,5 +103,18 @@ public final class OtrCryptoEngine4 {
         final SHAKEDigest digest = new SHAKEDigest(SHAKE_256_LENGTH_BITS);
         digest.update(input, 0, input.length);
         digest.doFinal(dst, offset, lengthBytes);
+    }
+
+    /**
+     * HashToScalar.
+     *
+     * @param d array of bytes
+     * @return Returns derived scalar value.
+     */
+    @Nonnull
+    public static BigInteger hashToScalar(@Nonnull final byte[] d) {
+        final byte[] hashedD = new byte[KDF_2_LENGTH_BYTES];
+        kdf2(hashedD, 0, d);
+        return new BigInteger(1, hashedD).mod(Q);
     }
 }
