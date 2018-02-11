@@ -4,6 +4,7 @@ digraph {
     otrv4_identifiers [label="OTRv4 protocol identifiers"]
     otrv4_message_parsing [label="Message parsing for OTRv4"]
     crypto_datatypes [label="Cryptographic data types"]
+    otrv4DH [label="DH (OTRv4 params)"]
     ed448_crypto_primitives [label="ED448-Goldilocks\ncryptographic primitives",style=filled,color=orange]
     serialization [label="Serialization of data types"]
     interactive_DAKE [label="Interactive DAKE"]
@@ -66,7 +67,7 @@ digraph {
     crypto_datatypes -> shared_prekeys
     crypto_datatypes -> fingerprints
     fingerprints -> shake256
-    ring_singatures -> ed448_crypto_primitives
+    ring_signatures -> ed448_crypto_primitives
     ring_signatures -> key_derivation_functions
     offline_support -> noninteractive_DAKE
     interactive_DAKE -> DAKE_message_identity
