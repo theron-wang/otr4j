@@ -66,6 +66,8 @@ digraph {
     crypto_datatypes -> shared_prekeys
     crypto_datatypes -> fingerprints
     fingerprints -> shake256
+    ring_singatures -> ed448_crypto_primitives
+    ring_signatures -> key_derivation_functions
     offline_support -> noninteractive_DAKE
     interactive_DAKE -> DAKE_message_identity
     interactive_DAKE -> DAKE_message_auth_r
