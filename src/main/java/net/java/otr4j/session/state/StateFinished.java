@@ -122,6 +122,7 @@ final class StateFinished extends AbstractCommonState {
     public Message transformSending(@Nonnull final Context context, @Nonnull final String msgText,
             @Nonnull final Iterable<TLV> tlvs, final byte flags) {
         finishedSessionMessage(context.getHost(), context.getSessionID(), msgText);
+        context.queueMessage(msgText);
         return null;
     }
 

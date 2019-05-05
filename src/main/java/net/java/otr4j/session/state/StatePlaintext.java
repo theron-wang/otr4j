@@ -133,6 +133,7 @@ public final class StatePlaintext extends AbstractCommonState {
             }
             context.startSession();
             requireEncryptedMessage(context.getHost(), context.getSessionID(), msgText);
+            context.queueMessage(msgText);
             return null;
         }
         if (!otrPolicy.isSendWhitespaceTag() || context.getOfferStatus() == OfferStatus.REJECTED) {

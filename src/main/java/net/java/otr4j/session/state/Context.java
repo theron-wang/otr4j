@@ -140,4 +140,11 @@ public interface Context extends AuthContext {
      * @throws OtrException Throws in case of problems during start.
      */
     void startSession() throws OtrException;
+
+    /**
+     * Queue the provided message to delay sending until a secure session is established.
+     *
+     * @param message the message to be queued.
+     */
+    void queueMessage(@Nonnull final String message);
 }
