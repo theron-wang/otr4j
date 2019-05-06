@@ -766,6 +766,7 @@ final class SessionImpl implements Session, Context {
      * @return Returns the (array of) messages to be sent over IM network.
      * @throws OtrException OtrException in case of exceptions.
      */
+    // FIXME report message queued to host application instead of error
     @Override
     @Nonnull
     public String[] transformSending(@Nonnull final String msgText, @Nonnull final Iterable<TLV> tlvs)

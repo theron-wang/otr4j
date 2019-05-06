@@ -21,3 +21,10 @@ The considerations for the _message queueing_ functionality as it needs to work 
     On-line client does not imply user is present at that location.
   - If we need to select one out of many instances, do we wait or pick the first instance that establishes an encrypted session? (Which in no way guarantees that it is the user's client.)
 2. If one instance session is in non-`PLAINTEXT` state, e.g. state `WAITING AUTH-R`, and another is in state `PLAINTEXT` (may be _master session_), then how do we determine from the master session whether we should _send message as plaintext_ or _queue message for later secure transmission_?
+
+# Solutions
+
+1. _Demand that for any message being sent, an outgoing instance is chosen explicitly._  
+   Fundamentally changes otr4j behavior up to now. Requires more state management by host application.
+2. _Limit message queueing to slave instances._  
+   Reduces complexity due to always having access to reliable, current session state status.
