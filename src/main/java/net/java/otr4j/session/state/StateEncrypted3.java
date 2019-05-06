@@ -156,11 +156,9 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         return this.sessionKeyManager.extraSymmetricKey();
     }
 
-    @Nullable
     @Override
-    AbstractEncodedMessage handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) {
-        logger.log(FINE, " Ignoring OTRv4 DAKE message as we are in OTRv3 encrypted message state.");
-        return null;
+    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) {
+        logger.log(FINE, "Ignoring OTRv4 DAKE message as we are in OTRv3 encrypted message state.");
     }
 
     @Override

@@ -13,8 +13,8 @@ import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.crypto.DHKeyPair;
-import net.java.otr4j.crypto.OtrCryptoEngine4.Sigma;
 import net.java.otr4j.crypto.MixedSharedSecret;
+import net.java.otr4j.crypto.OtrCryptoEngine4.Sigma;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
@@ -24,7 +24,6 @@ import net.java.otr4j.messages.AuthRMessage;
 import net.java.otr4j.messages.ClientProfilePayload;
 import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.IdentityMessage;
-import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 
 import javax.annotation.Nonnull;
@@ -75,10 +74,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
                 return handleDataMessage(context, (DataMessage4) encodedM);
             }
             // Anything that is not a Data message is some type of AKE message.
-            final AbstractEncodedMessage reply = handleAKEMessage(context, encodedM);
-            if (reply != null) {
-                context.injectMessage(reply);
-            }
+            handleAKEMessage(context, encodedM);
         } catch (final ProtocolException e) {
             LOGGER.log(Level.FINE, "An illegal message was received. Processing was aborted.", e);
             // TODO consider how we should signal unreadable message for illegal data messages and potentially show error to client. (Where we escape handling logic through ProtocolException.)
@@ -91,23 +87,22 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
      *
      * @param context the session context
      * @param message the AKE message
-     * @return Returns the reply for the provided AKE message.
+     * @throws net.java.otr4j.messages.ValidationException In case of failure to validate received message.
+     * @throws OtrException                                In case of failure to inject message into the network.
      */
     @ForOverride
-    @Nullable
-    abstract AbstractEncodedMessage handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message);
+    abstract void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
+            throws OtrException;
 
     /**
      * Common implementation for handling OTRv4 Identity message that is shared among states.
      *
      * @param context the session context
      * @param message the Identity message to be processed
-     * @return Returns reply to Identity message.
-     * @throws ValidationException In case of failing to validate received Identity message.
+     * @throws net.java.otr4j.messages.ValidationException In case of failure to validate received Identity message.
      */
-    @Nonnull
-    AbstractEncodedMessage handleIdentityMessage(@Nonnull final Context context, @Nonnull final IdentityMessage message)
-            throws ValidationException {
+    void handleIdentityMessage(@Nonnull final Context context, @Nonnull final IdentityMessage message)
+            throws OtrException {
         final ClientProfile theirClientProfile = message.clientProfile.validate();
         validate(message, theirClientProfile);
         final ClientProfilePayload profile = context.getClientProfilePayload();
@@ -133,13 +128,12 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         final Sigma sigma = ringSign(secureRandom, longTermKeyPair, theirClientProfile.getForgingKey(),
                 longTermKeyPair.getPublicKey(), message.y, t);
         // Generate response message and transition into next state.
-        final AuthRMessage authRMessage = new AuthRMessage(FOUR, context.getSenderInstanceTag(),
+        context.injectMessage(new AuthRMessage(FOUR, context.getSenderInstanceTag(),
                 context.getReceiverInstanceTag(), profile, x.getPublicKey(), a.getPublicKey(), sigma,
-                ourFirstECDHKeyPair.getPublicKey(), ourFirstDHKeyPair.getPublicKey());
+                ourFirstECDHKeyPair.getPublicKey(), ourFirstDHKeyPair.getPublicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), k, ssid, x, a, ourFirstECDHKeyPair,
                 ourFirstDHKeyPair, message.ourFirstECDHPublicKey, message.ourFirstDHPublicKey, message.y, message.b,
                 profile, message.clientProfile));
-        return authRMessage;
     }
 
     @Nonnull

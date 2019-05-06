@@ -168,20 +168,19 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         return message;
     }
 
-    @Nullable
     @Override
-    AbstractEncodedMessage handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) {
+    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
+            throws OtrException {
         if (message instanceof IdentityMessage) {
             try {
-                return handleIdentityMessage(context, (IdentityMessage) message);
+                handleIdentityMessage(context, (IdentityMessage) message);
             } catch (final ValidationException e) {
                 logger.log(INFO, "Failed to process Identity message.", e);
-                return null;
             }
+            return;
         }
         logger.log(INFO, "We only expect to receive an Identity message. Ignoring message with messagetype: {0}",
                 message.getType());
-        return null;
     }
 
     @Nullable

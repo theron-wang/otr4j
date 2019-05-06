@@ -138,6 +138,7 @@ public interface State {
      * @param receiverTag the receiver instance tag to be targeted, or {@link InstanceTag#ZERO_TAG} if unknown.
      * @return Returns the encoded message initiating the AKE, either DH-Commit (OTRv2/OTRv3) or Identity message (OTRv4).
      */
+    // FIXME consider calling 'injectMessage' inside the initiateAKE logic. Can we use the same mechanism as we changed the handleXXX method to.
     @Nonnull
     AbstractEncodedMessage initiateAKE(@Nonnull final Context context, int version, InstanceTag receiverTag);
 

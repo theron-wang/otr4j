@@ -86,22 +86,20 @@ public final class StatePlaintext extends AbstractCommonState {
         throw new IncorrectStateException("Extra symmetric key is not available in plaintext state.");
     }
 
-    @Nullable
     @Override
-    AbstractEncodedMessage handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) {
+    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) throws OtrException {
         if (!context.getSessionPolicy().isAllowV4()) {
             LOGGER.finest("ALLOW_V4 is not set, ignore this message.");
-            return null;
+            return;
         }
         if (!(message instanceof IdentityMessage)) {
             LOGGER.log(Level.FINE, "Ignoring unexpected DAKE message type: " + message.getType());
-            return null;
+            return;
         }
         try {
-            return handleIdentityMessage(context, (IdentityMessage) message);
+            handleIdentityMessage(context, (IdentityMessage) message);
         } catch (final ValidationException e) {
             LOGGER.log(INFO, "Failed to process Identity message.", e);
-            return null;
         }
     }
 

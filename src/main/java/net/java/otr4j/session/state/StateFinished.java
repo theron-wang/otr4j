@@ -86,20 +86,19 @@ final class StateFinished extends AbstractCommonState {
         return super.handlePlainTextMessage(context, plainTextMessage);
     }
 
-    @Nullable
     @Override
-    AbstractEncodedMessage handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) {
+    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
+            throws OtrException {
         if (message instanceof IdentityMessage) {
             try {
-                return handleIdentityMessage(context, (IdentityMessage) message);
+                handleIdentityMessage(context, (IdentityMessage) message);
             } catch (final ValidationException e) {
                 LOGGER.log(INFO, "Failed to process Identity message.", e);
-                return null;
             }
+            return;
         }
         LOGGER.log(INFO, "We only expect to receive an Identity message. Ignoring message with messagetype: {0}",
                 message.getType());
-        return null;
     }
 
     @Override

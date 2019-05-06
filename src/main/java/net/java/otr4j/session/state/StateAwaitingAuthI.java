@@ -143,30 +143,28 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         throw new IncorrectStateException("SMP negotiation is not available until encrypted session is fully established.");
     }
 
-    @Nullable
     @Override
-    AbstractEncodedMessage handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) {
+    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
+            throws OtrException {
         if (message instanceof IdentityMessage) {
             try {
-                return handleIdentityMessage(context, (IdentityMessage) message);
+                handleIdentityMessage(context, (IdentityMessage) message);
             } catch (final ValidationException e) {
                 LOGGER.log(INFO, "Failed to process Identity message.", e);
-                return null;
             }
+            return;
         }
         if (message instanceof AuthIMessage) {
             try {
                 handleAuthIMessage(context, (AuthIMessage) message);
-                return null;
             } catch (final ValidationException e) {
                 LOGGER.log(WARNING, "Failed to process Auth-I message.", e);
-                return null;
             }
+            return;
         }
         // OTR: "Ignore the message."
         LOGGER.log(INFO, "We only expect to receive an Identity message or an Auth-I message or its protocol version does not match expectations. Ignoring message with messagetype: {0}",
                 message.getType());
-        return null;
     }
 
     /**
@@ -176,14 +174,12 @@ final class StateAwaitingAuthI extends AbstractCommonState {
      * Effectively it is a short-hand, because we, the local user, does not have to start from scratch.
      *
      * @param message the identity message
-     * @return Returns the Auth-R message to send
      * @throws ValidationException In case of failure to validate other party's identity message or client profile.
      */
     // TODO eventually write a test case that demonstrates responses by multiple sessions, such that correct handling of ephemeral keys is mandatory or it will expose the bug.
-    @Nonnull
     @Override
-    AuthRMessage handleIdentityMessage(@Nonnull final Context context, @Nonnull final IdentityMessage message)
-            throws ValidationException {
+    void handleIdentityMessage(@Nonnull final Context context, @Nonnull final IdentityMessage message)
+            throws OtrException {
         final ClientProfile theirNewClientProfile = message.clientProfile.validate();
         IdentityMessages.validate(message, theirNewClientProfile);
         final SessionID sessionID = context.getSessionID();
@@ -210,14 +206,13 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         final OtrCryptoEngine4.Sigma sigma = ringSign(context.secureRandom(), longTermKeyPair,
                 theirNewClientProfile.getForgingKey(), longTermKeyPair.getPublicKey(), message.y, t);
         // Generate response message and transition into next state.
-        final AuthRMessage authRMessage = new AuthRMessage(FOUR, context.getSenderInstanceTag(),
+        context.injectMessage(new AuthRMessage(FOUR, context.getSenderInstanceTag(),
                 context.getReceiverInstanceTag(), profilePayload, this.ourECDHKeyPair.getPublicKey(),
                 this.ourDHKeyPair.getPublicKey(), sigma, this.ourFirstECDHKeyPair.getPublicKey(),
-                this.ourFirstDHKeyPair.getPublicKey());
+                this.ourFirstDHKeyPair.getPublicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), newK, newSSID, this.ourECDHKeyPair,
                 this.ourDHKeyPair, this.ourFirstECDHKeyPair, this.ourFirstDHKeyPair, message.ourFirstECDHPublicKey,
                 message.ourFirstDHPublicKey, message.y, message.b, ourProfile, message.clientProfile));
-        return authRMessage;
     }
 
     private void handleAuthIMessage(@Nonnull final Context context, @Nonnull final AuthIMessage message)

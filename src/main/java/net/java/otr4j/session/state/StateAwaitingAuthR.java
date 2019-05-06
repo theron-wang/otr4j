@@ -129,52 +129,49 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         throw new IncorrectStateException("SMP negotiation is not available until encrypted session is fully established.");
     }
 
-    @Nullable
     @Override
-    AbstractEncodedMessage handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) {
+    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) throws OtrException {
         if (message instanceof IdentityMessage) {
             try {
-                return handleIdentityMessage(context, (IdentityMessage) message);
+                handleIdentityMessage(context, (IdentityMessage) message);
             } catch (final ValidationException e) {
                 LOGGER.log(INFO, "Failed to process Identity message.", e);
-                return null;
             }
+            return;
         }
         if (message instanceof AuthRMessage) {
             try {
-                return handleAuthRMessage(context, (AuthRMessage) message);
+                handleAuthRMessage(context, (AuthRMessage) message);
             } catch (final ValidationException e) {
                 LOGGER.log(WARNING, "Failed to process Auth-R message.", e);
-                return null;
             }
+            return;
         }
         // OTR: "Ignore the message."
         LOGGER.log(INFO, "We only expect to receive an Identity message or an Auth-R message or its protocol version does not match expectations. Ignoring message with messagetype: {0}",
                 message.getType());
-        return null;
     }
 
-    @Nonnull
     @Override
-    AbstractEncodedMessage handleIdentityMessage(@Nonnull final Context context, @Nonnull final IdentityMessage message)
-            throws ValidationException {
+    void handleIdentityMessage(@Nonnull final Context context, @Nonnull final IdentityMessage message)
+            throws OtrException {
         final ClientProfile theirProfile = message.clientProfile.validate();
         IdentityMessages.validate(message, theirProfile);
         if (this.previousMessage.b.compareTo(message.b) > 0) {
             // No state change necessary, we assume that by resending other party will still follow existing protocol
             // execution.
-            return this.previousMessage;
+            context.injectMessage(this.previousMessage);
+            return;
         }
         // Clear old key material, then start a new DAKE from scratch with different keys.
         this.dhKeyPair.close();
         this.ecdhKeyPair.close();
         // Pretend we are still in initial state and handle Identity message accordingly.
-        return super.handleIdentityMessage(context, message);
+        super.handleIdentityMessage(context, message);
     }
 
-    @Nonnull
-    private AuthIMessage handleAuthRMessage(@Nonnull final Context context, @Nonnull final AuthRMessage message)
-            throws ValidationException {
+    private void handleAuthRMessage(@Nonnull final Context context, @Nonnull final AuthRMessage message)
+            throws OtrException {
         final SessionID sessionID = context.getSessionID();
         final EdDSAKeyPair ourLongTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
         // Validate received Auth-R message.
@@ -194,12 +191,12 @@ final class StateAwaitingAuthR extends AbstractCommonState {
                 sessionID.getAccountID(), sessionID.getUserID());
         final OtrCryptoEngine4.Sigma sigma = ringSign(secureRandom, ourLongTermKeyPair,
                 ourLongTermKeyPair.getPublicKey(), theirClientProfile.getForgingKey(), message.x, t);
-        final AuthIMessage reply = new AuthIMessage(FOUR, senderTag, receiverTag, sigma);
+        context.injectMessage(new AuthIMessage(FOUR, senderTag, receiverTag, sigma));
         // Calculate mixed shared secret and SSID.
         final byte[] k;
         final byte[] ssid;
-        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.dhKeyPair, this.ecdhKeyPair, message.a,
-                message.x)) {
+        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.dhKeyPair, this.ecdhKeyPair,
+                message.a, message.x)) {
             k = sharedSecret.getK();
             ssid = sharedSecret.generateSSID();
         }
@@ -208,7 +205,6 @@ final class StateAwaitingAuthR extends AbstractCommonState {
                 message.ourFirstDHPublicKey, message.ourFirstECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(firstRatchetSecret, kdf1(FIRST_ROOT_KEY, k, 64), BOB);
         secure(context, ssid, ratchet, ourClientProfile.getLongTermPublicKey(), theirClientProfile.getLongTermPublicKey());
-        return reply;
     }
 
     @Nullable
