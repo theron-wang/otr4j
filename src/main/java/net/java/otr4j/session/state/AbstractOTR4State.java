@@ -136,12 +136,12 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
                 profile, message.clientProfile));
     }
 
-    @Nonnull
     @Override
-    public AbstractEncodedMessage initiateAKE(@Nonnull final Context context, final int version,
-            @Nonnull final InstanceTag receiverInstanceTag) {
+    public void initiateAKE(@Nonnull final Context context, final int version,
+            @Nonnull final InstanceTag receiverInstanceTag) throws OtrException {
         if (version != FOUR) {
-            return super.initiateAKE(context, version, receiverInstanceTag);
+            super.initiateAKE(context, version, receiverInstanceTag);
+            return;
         }
         final SecureRandom secureRandom = context.secureRandom();
         final ECDHKeyPair ourECDHkeyPair = ECDHKeyPair.generate(secureRandom);
@@ -152,9 +152,9 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         final IdentityMessage message = new IdentityMessage(FOUR, context.getSenderInstanceTag(),
                 receiverInstanceTag, profilePayload, ourECDHkeyPair.getPublicKey(), ourDHkeyPair.getPublicKey(),
                 ourFirstECDHKeyPair.getPublicKey(), ourFirstDHKeyPair.getPublicKey());
+        context.injectMessage(message);
         context.transition(this, new StateAwaitingAuthR(getAuthState(), ourECDHkeyPair, ourDHkeyPair,
                 ourFirstECDHKeyPair, ourFirstDHKeyPair, profilePayload, message));
-        return message;
     }
 
     /**

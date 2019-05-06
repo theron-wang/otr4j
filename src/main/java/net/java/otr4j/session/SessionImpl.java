@@ -1031,7 +1031,7 @@ final class SessionImpl implements Session, Context {
         // implementation.)
         logger.finest("Responding to Query Message, acknowledging version " + version);
         synchronized (this.masterSession.masterSession) {
-            injectMessage(this.masterSession.sessionState.initiateAKE(this.masterSession, version, receiverTag));
+            this.masterSession.sessionState.initiateAKE(this.masterSession, version, receiverTag);
         }
     }
 

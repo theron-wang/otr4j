@@ -15,7 +15,6 @@ import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.io.PlainTextMessage;
-import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.api.SMPHandler;
 
@@ -136,11 +135,9 @@ public interface State {
      * @param context     The message state context.
      * @param version     the protocol version
      * @param receiverTag the receiver instance tag to be targeted, or {@link InstanceTag#ZERO_TAG} if unknown.
-     * @return Returns the encoded message initiating the AKE, either DH-Commit (OTRv2/OTRv3) or Identity message (OTRv4).
+     * @throws OtrException In case of failure to inject message into network.
      */
-    // FIXME consider calling 'injectMessage' inside the initiateAKE logic. Can we use the same mechanism as we changed the handleXXX method to.
-    @Nonnull
-    AbstractEncodedMessage initiateAKE(@Nonnull final Context context, int version, InstanceTag receiverTag);
+    void initiateAKE(@Nonnull final Context context, int version, InstanceTag receiverTag) throws OtrException;
 
     /**
      * Handle the received error message.

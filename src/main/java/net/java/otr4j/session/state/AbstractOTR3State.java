@@ -166,10 +166,10 @@ abstract class AbstractOTR3State implements State {
         LOGGER.info("Session secured. Message state transitioned to ENCRYPTED. (OTRv2/OTRv3)");
     }
 
-    @Nonnull
     @Override
-    public AbstractEncodedMessage initiateAKE(@Nonnull final Context context, final int version, final InstanceTag receiverTag) {
-        return this.authState.initiate(context, version, receiverTag);
+    public void initiateAKE(@Nonnull final Context context, final int version, final InstanceTag receiverTag)
+            throws OtrException {
+        context.injectMessage(this.authState.initiate(context, version, receiverTag));
     }
 
     /**
