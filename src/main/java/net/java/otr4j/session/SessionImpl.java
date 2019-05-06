@@ -255,8 +255,13 @@ final class SessionImpl implements Session, Context {
         }
     };
 
+    /**
+     * Message queue for messages queued until private messaging session is established.
+     * <p>
+     * The message queue is shared between master and slave sessions.
+     */
     @GuardedBy("masterSession")
-    private final ArrayList<String> messageQueue = new ArrayList<>();
+    private final ArrayList<String> messageQueue;
 
     /**
      * Constructor.
@@ -271,7 +276,7 @@ final class SessionImpl implements Session, Context {
      * @param host      The OTR engine host listener.
      */
     SessionImpl(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost host) {
-        this(null, sessionID, host, ZERO_TAG, new SecureRandom());
+        this(null, sessionID, host, ZERO_TAG, new SecureRandom(), new ArrayList<String>());
     }
 
     /**
@@ -289,7 +294,8 @@ final class SessionImpl implements Session, Context {
             @Nonnull final SessionID sessionID,
             @Nonnull final OtrEngineHost host,
             @Nonnull final InstanceTag receiverTag,
-            @Nonnull final SecureRandom secureRandom) {
+            @Nonnull final SecureRandom secureRandom,
+            @Nonnull final ArrayList<String> messageQueue) {
         this.masterSession = masterSession == null ? this : masterSession;
         assert this.masterSession.masterSession == this.masterSession : "BUG: expected master session to be its own master session. This is likely an illegal state.";
         this.secureRandom = requireNonNull(secureRandom);
@@ -297,6 +303,7 @@ final class SessionImpl implements Session, Context {
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.host = requireNonNull(host);
         this.receiverTag = requireNonNull(receiverTag);
+        this.messageQueue = requireNonNull(messageQueue);
         this.offerStatus = OfferStatus.IDLE;
         // Master session uses the map to manage slave sessions. Slave sessions do not use the map.
         if (this.masterSession == this) {
@@ -481,7 +488,7 @@ final class SessionImpl implements Session, Context {
 
                 if (!this.slaveSessions.containsKey(fragment.getSenderTag())) {
                     final SessionImpl newSlaveSession = new SessionImpl(this, sessionID, this.host,
-                            fragment.getSenderTag(), this.secureRandom);
+                            fragment.getSenderTag(), this.secureRandom, this.messageQueue);
                     newSlaveSession.addOtrEngineListener(this.slaveSessionsListener);
                     this.slaveSessions.put(fragment.getSenderTag(), newSlaveSession);
                 }
@@ -506,7 +513,7 @@ final class SessionImpl implements Session, Context {
 
                 if (!this.slaveSessions.containsKey(message.senderTag)) {
                     final SessionImpl newSlaveSession = new SessionImpl(this, sessionID, this.host,
-                            message.senderTag, this.secureRandom);
+                            message.senderTag, this.secureRandom, this.messageQueue);
                     newSlaveSession.addOtrEngineListener(this.slaveSessionsListener);
                     this.slaveSessions.put(message.senderTag, newSlaveSession);
                 }
