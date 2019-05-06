@@ -170,9 +170,8 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
      */
     final void secure(@Nonnull final Context context, @Nonnull final byte[] ssid, @Nonnull final DoubleRatchet ratchet,
             @Nonnull final Point ourLongTermPublicKey, @Nonnull final Point theirLongTermPublicKey) {
-        final StateEncrypted4 encrypted = new StateEncrypted4(context, ssid, ourLongTermPublicKey,
-                theirLongTermPublicKey, ratchet, getAuthState());
-        context.transition(this, encrypted);
+        context.transition(this, new StateEncrypted4(context, ssid, ourLongTermPublicKey, theirLongTermPublicKey,
+                ratchet, getAuthState()));
         if (context.getSessionStatus() != ENCRYPTED) {
             throw new IllegalStateException("Session failed to transition to ENCRYPTED (OTRv4).");
         }

@@ -103,7 +103,6 @@ final class DoubleRatchet implements AutoCloseable {
     private long lastRotation = System.nanoTime();
 
     DoubleRatchet(@Nonnull final MixedSharedSecret sharedSecret, @Nonnull final byte[] initialRootKey, @Nonnull final Role role) {
-        requireNonNull(role);
         this.sharedSecret = requireNonNull(sharedSecret);
         this.rootKey = requireLengthExactly(ROOT_KEY_LENGTH_BYTES, initialRootKey);
         assert !allZeroBytes(this.rootKey) : "Expected random data, instead of all zero-bytes. There might be something severely wrong.";

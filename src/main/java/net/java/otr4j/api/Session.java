@@ -148,6 +148,8 @@ public interface Session {
 
     /**
      * Get list of session instances.
+     * <p>
+     * Index {@code 0} is guaranteed to contain the master session. Any {@code index > 0} will contain slave instances.
      *
      * @return Returns list of session instances.
      */
