@@ -45,8 +45,11 @@ _a.k.a. "at least the bugs are symmetric in nature :-)"_
   - ☑ 'Interactive DAKE' implemented as Message states i.s.o. AKE states.
   - ☑ OTRv4 extension to OTR error messages
   - ☑ Periodic heartbeat messages
+  - [Queuing up messages](docs/message-queueing.md) while not in `ENCRYPTED_MESSAGES` state.
+    - ☑ Basic message queueing implemented. (Cannot fully work until Double Ratchet algorithm is implemented.)
+    - ☐ Message queueing configurable.  
+        _This may be important as queue is flushed onto instance with first established private messaging. This may not always be desirable._
   - ☐ OTRv4 operating modes (OTRv3-compatible, OTRv4-standalone, OTRv4-interactive-only).
-  - ☐ [Queuing up messages](docs/message-queueing.md) while not in `ENCRYPTED_MESSAGES` state.
   - ☐ Publishing of generated `ClientProfile` payloads through callback to `OtrEngineHost` (Affects _Deniability_-property.)
 - Cryptographic primitives:
   - Edd448-Goldilocks elliptic curve (temporary solution)
