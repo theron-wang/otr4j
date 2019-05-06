@@ -12,7 +12,6 @@ import net.java.otr4j.api.OfferStatus;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
-import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.io.Message;
@@ -134,14 +133,6 @@ public interface Context extends AuthContext {
      * Set offer status to sent.
      */
     void setOfferStatusSent();
-
-    /**
-     * Get the master session to which the instance belongs.
-     *
-     * @return Returns master session instance, may be itself ("{@code this}").
-     */
-    @Nonnull
-    Session getMasterSession();
 
     /**
      * Start OTR session.

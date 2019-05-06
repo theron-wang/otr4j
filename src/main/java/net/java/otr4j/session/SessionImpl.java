@@ -997,14 +997,6 @@ final class SessionImpl implements Session, Context {
         }
     }
 
-    @Override
-    @Nonnull
-    public SessionImpl getMasterSession() {
-        synchronized (this.masterSession) {
-            return this.masterSession;
-        }
-    }
-
     /**
      * Get the currently set outgoing instance. This instance is used for
      * outgoing traffic.
