@@ -1293,7 +1293,7 @@ final class SessionImpl implements Session, Context {
         }
     }
 
-    // TODO make queuing messages configurable.
+    // TODO evaluate what to do with situation where multiple instances establish private messaging session concurrently. One will be first, it will receive the queued messages. These might not go to the client instance that we want to.
     @Override
     public void queueMessage(@Nonnull final String message) {
         synchronized (this.masterSession) {

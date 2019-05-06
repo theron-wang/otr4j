@@ -132,8 +132,8 @@ public final class StatePlaintext extends AbstractCommonState {
                 throw new OtrException("OTR policy disallows all versions of the OTR protocol. We cannot initiate a new OTR session.");
             }
             context.startSession();
-            requireEncryptedMessage(context.getHost(), context.getSessionID(), msgText);
             context.queueMessage(msgText);
+            requireEncryptedMessage(context.getHost(), context.getSessionID(), msgText);
             return null;
         }
         if (!otrPolicy.isSendWhitespaceTag() || context.getOfferStatus() == OfferStatus.REJECTED) {
