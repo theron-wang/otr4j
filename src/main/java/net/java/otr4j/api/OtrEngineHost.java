@@ -146,6 +146,35 @@ public interface OtrEngineHost extends SmpEngineHost {
     ClientProfile getClientProfile(@Nonnull SessionID sessionID);
 
     /**
+     * Publish Client Profile payload.
+     * <p>
+     * In order to guarantee the deniability property in full, we require that any Client Profile in use is also
+     * published, i.e. made available to the public. This way, it is always possible to acquire the Client Profile
+     * without having to actually be in contact with the owner of the Client Profile.
+     * <p>
+     * Once a Client Profile payload is successfully published, otr4j expects to be able to re-acquire this payload
+     * on construction. otr4j will call {@link #publishClientProfilePayload(byte[])} to try and acquire the payload.
+     *
+     * @param payload the encoded Client Profile payload.
+     */
+    void publishClientProfilePayload(@Nonnull byte[] payload);
+
+    /**
+     * Restore a previously published Client Profile payload.
+     * <p>
+     * Initially, we restore the previous Client Profile payload. Once the payload expires, or the composition of the
+     * Client Profile changes, we will need to refresh the payload by acquiring a new client profile
+     * {@link #getClientProfile(SessionID)}.
+     * <p>
+     * Note: only payloads that are successfully published ({@link #publishClientProfilePayload(byte[])}) should be
+     * restored. otr4j assumes that the payload acquired through this method is already made public.
+     *
+     * @return Returns bytes of Client Profile payload, or zero-length array if unavailable.
+     */
+    @Nonnull
+    byte[] restoreClientProfilePayload();
+
+    /**
      * Request local fingerprint in raw byte form.
      *
      * @param sessionID the session ID

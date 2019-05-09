@@ -48,6 +48,7 @@ public final class SessionImplTest {
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
         when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
+        when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
         session.transition(null, mock(State.class));
     }
@@ -62,6 +63,7 @@ public final class SessionImplTest {
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
         when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
+        when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
         session.transition((State) Whitebox.getInternalState(session, "sessionState"), null);
     }
@@ -76,6 +78,7 @@ public final class SessionImplTest {
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
         when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
+        when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
         final State secondState = mock(State.class);
         session.transition((State) Whitebox.getInternalState(session, "sessionState"), secondState);
@@ -94,6 +97,7 @@ public final class SessionImplTest {
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
         when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
+        when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
         final OtrEngineListener listener = mock(OtrEngineListener.class);
         session.addOtrEngineListener(listener);
@@ -117,6 +121,7 @@ public final class SessionImplTest {
         when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
         when(host.getFallbackMessage(sessionID)).thenReturn("This is a super-long message that does not fit on the transport channel.");
         when(host.getMaxFragmentSize(sessionID)).thenReturn(51);
+        when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
         final HashSet<Integer> versions = new HashSet<>();
         versions.add(Version.THREE);

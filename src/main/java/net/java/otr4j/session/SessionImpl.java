@@ -23,14 +23,18 @@ import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.DSAKeyPair;
+import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.Fragment;
 import net.java.otr4j.io.Message;
+import net.java.otr4j.io.OtrInputStream;
+import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.io.QueryMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.ClientProfilePayload;
+import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.ake.StateInitial;
 import net.java.otr4j.session.state.Context;
@@ -188,7 +192,7 @@ final class SessionImpl implements Session, Context {
     // TODO refresh client profile payload after it is expired. (Maybe leave until after initial use, as expiration date is recommended for 2+ weeks.)
     // TODO consider keeping an internal class-level cache of signed payload per client profile, such that we do not keep constructing it again and again
     // TODO ability for user to specify amount of expiration time on a profile
-    // FIXME requirement to publish the same ClientProfilePayload as is in use, therefore we cannot generate on-the-fly on every execution.
+    // TODO ability to identify when a new Client Profile is composed such that we need to refresh and republish the Client Profile payload.
     private final ClientProfilePayload profilePayload;
 
     /**
@@ -312,16 +316,30 @@ final class SessionImpl implements Session, Context {
             this.slaveSessions = emptyMap();
         }
         outgoingSession = this;
-        // Initialize message fragmentation support.
-        this.profile = this.host.getClientProfile(sessionID);
-        if (this.profile.getInstanceTag().equals(ZERO_TAG)) {
-            throw new IllegalArgumentException("Only actual instance tags are allowed. The 'zero' tag is not valid.");
-        }
-        final Calendar expirationDate = Calendar.getInstance();
-        expirationDate.add(Calendar.DAY_OF_YEAR, 14);
-        this.profilePayload = ClientProfilePayload.sign(this.profile, expirationDate.getTimeInMillis() / 1000,
-                this.host.getLocalKeyPair(sessionID), this.host.getLongTermKeyPair(sessionID));
         this.sessionState = new StatePlaintext(StateInitial.instance());
+        // Initialize the Client Profile and payload.
+        ClientProfilePayload payload;
+        ClientProfile profile;
+        try {
+            // Try to restore previous Client Profile payload from host application.
+            payload = ClientProfilePayload.readFrom(new OtrInputStream(this.host.restoreClientProfilePayload()));
+            profile = payload.validate();
+        } catch (final OtrCryptoException | ProtocolException | ValidationException e) {
+            // We need to construct a new Client Profile payload based on the Client Profile received from the host
+            // application.
+            profile = this.host.getClientProfile(sessionID);
+            if (profile.getInstanceTag().equals(ZERO_TAG)) {
+                throw new IllegalArgumentException("Only actual instance tags are allowed. The 'zero' tag is not valid.");
+            }
+            final Calendar expirationDate = Calendar.getInstance();
+            expirationDate.add(Calendar.DAY_OF_YEAR, 14);
+            payload = ClientProfilePayload.sign(profile, expirationDate.getTimeInMillis() / 1000,
+                    this.host.getLocalKeyPair(sessionID), this.host.getLongTermKeyPair(sessionID));
+            this.host.publishClientProfilePayload(new OtrOutputStream().write(payload).toByteArray());
+        }
+        this.profile = profile;
+        this.profilePayload = payload;
+        // Initialize message fragmentation support.
         this.fragmenter = new OtrFragmenter(this.secureRandom, host, this.sessionID);
     }
 

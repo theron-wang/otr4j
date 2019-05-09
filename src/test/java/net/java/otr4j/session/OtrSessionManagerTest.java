@@ -51,6 +51,7 @@ public class OtrSessionManagerTest {
         when(host.getLocalKeyPair(any(SessionID.class))).thenReturn(DSA_KEY_PAIR);
         when(host.getLongTermKeyPair(any(SessionID.class))).thenReturn(EDDSA_KEY_PAIR);
         when(host.getClientProfile(any(SessionID.class))).thenReturn(PROFILE);
+        when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final OtrSessionManager mgr = new OtrSessionManager(host);
         final SessionID sid = new SessionID("user", "dude", "xmpp");
         final Session first = mgr.getSession(sid);

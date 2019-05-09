@@ -1543,5 +1543,16 @@ public class SessionTest {
         public void extraSymmetricKeyDiscovered(@Nonnull final SessionID sessionID, @Nonnull final String message, @Nonnull final byte[] extraSymmetricKey, @Nonnull final byte[] tlvData) {
             logger.finest("Extra symmetric key TLV discovered in encoded message. (Session: " + sessionID + ")");
         }
+
+        @Nonnull
+        @Override
+        public byte[] restoreClientProfilePayload() {
+            return new byte[0];
+        }
+
+        @Override
+        public void publishClientProfilePayload(@Nonnull final byte[] payload) {
+            // No need to do anything as we don't publish in this test dummy.
+        }
     }
 }

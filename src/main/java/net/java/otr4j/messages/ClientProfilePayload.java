@@ -138,7 +138,7 @@ public final class ClientProfilePayload implements OtrEncodable {
      */
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Nonnull
-    static ClientProfilePayload readFrom(@Nonnull final OtrInputStream in) throws OtrCryptoException, ProtocolException,
+    public static ClientProfilePayload readFrom(@Nonnull final OtrInputStream in) throws OtrCryptoException, ProtocolException,
             ValidationException {
         final int numFields = in.readInt();
         if (numFields <= 0) {

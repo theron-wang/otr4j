@@ -49,8 +49,10 @@ _a.k.a. "at least the bugs are symmetric in nature :-)"_
     - ☑ Basic message queueing implemented. (Cannot fully work until Double Ratchet algorithm is implemented.)
     - ☐ Message queueing configurable.  
         _This may be important as queue is flushed onto instance with first established private messaging. This may not always be desirable._
+  - Client profiles:
+    - ☑ Publishing of generated `ClientProfile` payloads through callback to `OtrEngineHost` (Affects _Deniability_-property.)
+    - ☐ Timely refreshing Client Profile payload (due to expiration / updated Client Profile parameters)
   - ☐ OTRv4 operating modes (OTRv3-compatible, OTRv4-standalone, OTRv4-interactive-only).
-  - ☐ Publishing of generated `ClientProfile` payloads through callback to `OtrEngineHost` (Affects _Deniability_-property.)
 - Cryptographic primitives:
   - Edd448-Goldilocks elliptic curve (temporary solution)
     - ☑ Temporary working solution
