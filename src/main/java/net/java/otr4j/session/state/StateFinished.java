@@ -40,7 +40,6 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
  * @author Danny van Heumen
  */
 // TODO currently `StateFinished` is shared among OTRv2/3/4. In OTRv4 spec, separate `FINISHED` states exist for OTRv3 and OTRv4. Consider separating as well.
-// FIXME write additional unit tests for StateFinished
 final class StateFinished extends AbstractCommonState {
 
     private static final Logger LOGGER = Logger.getLogger(StateFinished.class.getName());

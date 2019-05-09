@@ -73,6 +73,7 @@ public final class IdentityMessage extends AbstractEncodedMessage {
      * @param ourFirstECDHPublicKey the first ECDH public key to be used after DAKE completes
      * @param ourFirstDHPublicKey   the first DH public key to be used after DAKE completes
      */
+    // TODO check that y != ourFirstECDHPublicKey, b != ourFirstDHPublicKey.
     public IdentityMessage(final int protocolVersion, @Nonnull final InstanceTag senderInstance,
             @Nonnull final InstanceTag receiverInstance, @Nonnull final ClientProfilePayload clientProfile,
             @Nonnull final Point y, @Nonnull final BigInteger b, @Nonnull final Point ourFirstECDHPublicKey,
