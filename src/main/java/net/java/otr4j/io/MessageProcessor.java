@@ -82,6 +82,17 @@ public final class MessageProcessor {
      */
     @Nonnull
     public static Message parseMessage(@Nonnull final String text) throws ProtocolException {
+
+        if (text.startsWith(HEAD + " " + ERROR_PREFIX)) {
+            // Error tag found.
+            final String message = text.substring(HEAD.length() + 1 + ERROR_PREFIX.length()).trim();
+            final Matcher result = PATTERN_ERROR_FORMAT.matcher(message);
+            if (result.matches()) {
+                return new ErrorMessage(result.group(1), result.group(2));
+            }
+            return new ErrorMessage("", message);
+        }
+
         final int idxHead = text.indexOf(HEAD);
         if (idxHead > -1) {
             // Message **contains** the string "?OTR". Check to see if it is an error message, a query message or a data
@@ -91,16 +102,7 @@ public final class MessageProcessor {
             final int idxHeaderBody = idxHead + HEAD.length() + 1;
             final String content = text.substring(idxHeaderBody);
 
-            if (contentType == HEAD_ERROR && content.startsWith(ERROR_PREFIX)) {
-                // FIXME we require "?OTR Error:" string to be at the start of the message. Currently we search for starting point using indexOf which means we violate the OTRv4 spec.
-                // Error tag found.
-                final String message = content.substring(idxHead + ERROR_PREFIX.length()).trim();
-                final Matcher result = PATTERN_ERROR_FORMAT.matcher(message);
-                if (result.matches()) {
-                    return new ErrorMessage(result.group(1), result.group(2));
-                }
-                return new ErrorMessage("", message);
-            } else if (contentType == HEAD_QUERY_V || contentType == HEAD_QUERY_Q) {
+            if (contentType == HEAD_QUERY_V || contentType == HEAD_QUERY_Q) {
                 // TODO This code assumes the closing '?' for the query string exists. This may not always be the case.
                 // Query tag found.
                 final String versionString;

@@ -9,7 +9,6 @@ package net.java.otr4j.io;
 
 import net.java.otr4j.api.Session;
 import org.bouncycastle.util.encoders.Base64;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
@@ -164,7 +163,6 @@ public final class MessageProcessorTest {
         assertEquals("Hello world of errors!", msg.error);
     }
 
-    @Ignore("Currently still an issue. See FIXME in MessageProcessor.")
     @Test
     public void testParseOTRFakeError() throws ProtocolException {
         final PlainTextMessage msg = (PlainTextMessage) parseMessage("My message with injected ?OTR Error: Hello world of errors!");
@@ -178,7 +176,6 @@ public final class MessageProcessorTest {
         assertEquals("Hello world of errors!", msg.error);
     }
 
-    @Ignore("Currently still an issue. See FIXME in MessageProcessor.")
     @Test
     public void testParseOTR4FakeError() throws ProtocolException {
         final PlainTextMessage msg = (PlainTextMessage) parseMessage("My message with injected ?OTR Error: ERROR_1: Hello world of errors!");
