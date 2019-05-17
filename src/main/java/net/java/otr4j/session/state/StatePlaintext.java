@@ -7,7 +7,6 @@
 
 package net.java.otr4j.session.state;
 
-import net.java.otr4j.api.OfferStatus;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.SessionStatus;
@@ -27,12 +26,15 @@ import javax.annotation.Nullable;
 import java.security.interfaces.DSAPublicKey;
 import java.util.Collections;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
+import static net.java.otr4j.api.OfferStatus.REJECTED;
 import static net.java.otr4j.api.OtrEngineHosts.requireEncryptedMessage;
 import static net.java.otr4j.api.OtrPolicys.allowedVersions;
+import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
 import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 
@@ -65,7 +67,7 @@ public final class StatePlaintext extends AbstractCommonState {
     @Override
     @Nonnull
     public SessionStatus getStatus() {
-        return SessionStatus.PLAINTEXT;
+        return PLAINTEXT;
     }
 
     @Override
@@ -93,7 +95,7 @@ public final class StatePlaintext extends AbstractCommonState {
             return;
         }
         if (!(message instanceof IdentityMessage)) {
-            LOGGER.log(Level.FINE, "Ignoring unexpected DAKE message type: " + message.getType());
+            LOGGER.log(FINE, "Ignoring unexpected DAKE message type: " + message.getType());
             return;
         }
         try {
@@ -107,7 +109,7 @@ public final class StatePlaintext extends AbstractCommonState {
     @Nullable
     String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage message)
             throws OtrException {
-        LOGGER.log(Level.FINEST, "Received OTRv3 data message in PLAINTEXT state. Message cannot be read.");
+        LOGGER.log(FINEST, "Received OTRv3 data message in PLAINTEXT state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return null;
     }
@@ -116,7 +118,7 @@ public final class StatePlaintext extends AbstractCommonState {
     @Override
     String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage4 message)
             throws OtrException {
-        LOGGER.log(Level.FINEST, "Received OTRv4 data message in PLAINTEXT state. Message cannot be read.");
+        LOGGER.log(FINEST, "Received OTRv4 data message in PLAINTEXT state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return null;
     }
@@ -136,7 +138,7 @@ public final class StatePlaintext extends AbstractCommonState {
             requireEncryptedMessage(context.getHost(), context.getSessionID(), msgText);
             return null;
         }
-        if (!otrPolicy.isSendWhitespaceTag() || context.getOfferStatus() == OfferStatus.REJECTED) {
+        if (!otrPolicy.isSendWhitespaceTag() || context.getOfferStatus() == REJECTED) {
             // As we do not want to send a specially crafted whitespace tag
             // message, just return the original message text to be sent.
             return new PlainTextMessage(Collections.<Integer>emptySet(), msgText);

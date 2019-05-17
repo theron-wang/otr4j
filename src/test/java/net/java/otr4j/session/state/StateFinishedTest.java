@@ -36,6 +36,7 @@ import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.Session.Version.THREE;
 import static net.java.otr4j.api.SessionStatus.FINISHED;
+import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.anyString;
@@ -182,6 +183,24 @@ public class StateFinishedTest {
         verify(context).injectMessage(isA(ErrorMessage.class));
     }
 
+    @Test
+    public void testHandleDataMessageIgnoreUnreadable() throws OtrException {
+        final Context context = mock(Context.class);
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        when(context.getHost()).thenReturn(host);
+        final SessionID sessionID = new SessionID("alice", "bob", "network");
+        when(context.getSessionID()).thenReturn(sessionID);
+        when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
+
+        final DHKeyPairOTR3 keypair = DHKeyPairOTR3.generateDHKeyPair(RANDOM);
+        final StateFinished state = new StateFinished(StateInitial.instance());
+        final DataMessage message = new DataMessage(THREE, FLAG_IGNORE_UNREADABLE, 1, 1, keypair.getPublic(),
+                new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
+        assertNull(state.handleDataMessage(context, message));
+        verify(host, never()).unreadableMessageReceived(eq(sessionID));
+        verify(context, never()).injectMessage(isA(ErrorMessage.class));
+    }
+
     @Test(expected = NullPointerException.class)
     public void testHandleDataMessageNullContext() throws OtrException {
         final OtrEngineHost host = mock(OtrEngineHost.class);
@@ -225,6 +244,25 @@ public class StateFinishedTest {
         assertNull(state.handleDataMessage(context, message));
         verify(host).unreadableMessageReceived(eq(sessionID));
         verify(context).injectMessage(isA(ErrorMessage.class));
+    }
+
+    @Test
+    public void testHandleDataMessage4IgnoreUnreadable() throws OtrException {
+        final Context context = mock(Context.class);
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        when(context.getHost()).thenReturn(host);
+        final SessionID sessionID = new SessionID("alice", "bob", "network");
+        when(context.getSessionID()).thenReturn(sessionID);
+        when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
+
+        final StateFinished state = new StateFinished(StateInitial.instance());
+        final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
+        final DHKeyPair dh = DHKeyPair.generate(RANDOM);
+        final DataMessage4 message = new DataMessage4(FOUR, SMALLEST_TAG, HIGHEST_TAG, FLAG_IGNORE_UNREADABLE, 0, 0, 0,
+                ecdh.getPublicKey(), dh.getPublicKey(), new byte[80], new byte[64], new byte[0]);
+        assertNull(state.handleDataMessage(context, message));
+        verify(host, never()).unreadableMessageReceived(eq(sessionID));
+        verify(context, never()).injectMessage(isA(ErrorMessage.class));
     }
 
     @Test(expected = NullPointerException.class)
