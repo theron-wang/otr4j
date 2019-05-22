@@ -52,6 +52,7 @@ _a.k.a. "at least the bugs are symmetric in nature :-)"_
   - Client profiles:
     - ☑ Publishing of generated `ClientProfile` payloads through callback to `OtrEngineHost` (Affects _Deniability_-property.)
     - ☐ Timely refreshing Client Profile payload (due to expiration / updated Client Profile parameters)
+  - ☐ Strictly isolate OTRv3 and OTRv4 interactions: only accept OTRv2/3 messages in `START`, but not in any OTRv4 state, and vice versa. Separate `FINISH` states for OTRv2/3 and OTRv4.
   - ☐ OTRv4 operating modes (OTRv3-compatible, OTRv4-standalone, OTRv4-interactive-only).
 - Cryptographic primitives:
   - Edd448-Goldilocks elliptic curve (temporary solution)
@@ -188,7 +189,14 @@ Support for OTRv1 is removed, as is recommended by the OTR team.
 
 _Note: otr4j with OTRv4 support is not backwards-compatible with older releases. Although the API has not changed significantly, some restructuring has been performed and the interfaces extended to be able to support client requirements of OTRv4._
 
-`TODO: describe adoption information`
+The easiest way to start adoption of this new version given an earlier implementation of otr4j:
+
+1. Throw away existing imports and import types as _many of the existing types_ have moved to the `net.java.otr4j.api` package.
+1. Extend your implementation of `net.java.otr4j.api.OtrEngineHost` with the additional methods that are now required.
+1. Fix any other syntactic failures / build failures. The javadoc on the various methods should clearly describe the
+   method's API and expectations. If this is not the case, file a bug as this should be expected.  
+   _As there are new features and upgraded cryptographic primitives in OTRv4, upgrading will not be effortless. However
+   it should be possible to do a basic implementation in a reasonable amount of time._  
 
 # Contributing / Help needed
 
@@ -214,7 +222,6 @@ In addition to syntactic correctness checking, we enforce javadoc for anything t
 1. Load the otr4j pom.xml file as a maven module.
 1. Load `codecheck/checkstyle.xml` as the code style in IntelliJ (you will need to have the Checkstyle plug-in installed)
 1. ... (I'm not sure if anything else is needed, but I'll update when I find out.)
-
 
 # Limitations
 
