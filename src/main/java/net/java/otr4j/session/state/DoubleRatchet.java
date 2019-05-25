@@ -54,7 +54,7 @@ import static org.bouncycastle.util.Arrays.concatenate;
  * DoubleRatchet is NOT thread-safe.
  */
 // TODO DoubleRatchet currently does not keep history. Therefore it is not possible to decode out-of-order messages from previous ratchets. (Also needed to keep MessageKeys instances for messages failing verification.)
-// FIXME adopt second-redesigned Double Ratchet algorithm (removed `i` - ratchet ID)
+// FIXME adopt second-redesigned Double Ratchet algorithm
 final class DoubleRatchet implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(DoubleRatchet.class.getName());
@@ -384,7 +384,6 @@ final class DoubleRatchet implements AutoCloseable {
         requireNotClosed();
         LOGGER.log(FINEST, "Rotating root key and receiving chain key for ratchet {0} (nextDH = {1})",
                 new Object[]{this.i, nextDH != null});
-        // FIXME do we want to check DH and ECDH public keys individually and immediately decide to return early? (or check both and only then decide)
         if (nextECDH.equals(this.sharedSecret.getTheirECDHPublicKey())) {
             LOGGER.log(FINE, "Skipping rotating receiver keys as ECDH public key is already known.");
             return;

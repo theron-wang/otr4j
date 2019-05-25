@@ -42,6 +42,7 @@ import static net.java.otr4j.util.ByteArrays.requireLengthAtLeast;
 import static net.java.otr4j.util.Integers.requireAtLeast;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.bouncycastle.util.Arrays.clear;
+import static org.bouncycastle.util.Arrays.concatenate;
 
 /**
  * Crypto engine for OTRv4.
@@ -226,14 +227,12 @@ public final class OtrCryptoEngine4 {
     /**
      * Produce fingerprint for public key.
      *
-     * @param publicKey The public key to fingerprint.
+     * @param publicKey  The public key to use as part of the fingerprint.
+     * @param forgingKey The forging key to use as part of the fingerprint.
      * @return Returns the fingerprint derived from the provided public key.
      */
-    // FIXME review and update logic for fingerprinting (see https://github.com/otrv4/otrv4/commit/41a731f6069adcc88f4212591ebe0fb31efd405f)
-    public static byte[] fingerprint(@Nonnull final Point publicKey) {
-        final byte[] dst = new byte[FINGERPRINT_LENGTH_BYTES];
-        kdf1(dst, 0, FINGERPRINT, publicKey.encode(), FINGERPRINT_LENGTH_BYTES);
-        return dst;
+    public static byte[] fingerprint(@Nonnull final Point publicKey, @Nonnull final Point forgingKey) {
+        return kdf1(FINGERPRINT, concatenate(publicKey.encode(), forgingKey.encode()), FINGERPRINT_LENGTH_BYTES);
     }
 
     /**

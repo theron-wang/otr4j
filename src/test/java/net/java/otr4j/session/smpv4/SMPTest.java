@@ -62,7 +62,9 @@ public final class SMPTest {
     private final InstanceTag tagAlice = InstanceTag.random(RANDOM);
     private final InstanceTag tagBob = InstanceTag.random(RANDOM);
     private final Point publicKeyAlice = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+    private final Point forgingKeyAlice = EdDSAKeyPair.generate(RANDOM).getPublicKey();
     private final Point publicKeyBob = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+    private final Point forgingKeyBob = EdDSAKeyPair.generate(RANDOM).getPublicKey();
 
     @Test
     public void testSMPStraightforwardSuccessful() throws OtrCryptoException, ProtocolException {
@@ -70,8 +72,10 @@ public final class SMPTest {
         final byte[] answer = new byte[] {'a', 'l', 'i', 'c', 'e'};
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
         final SmpEngineHost hostBob = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
-        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, publicKeyAlice, tagAlice);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
+        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, forgingKeyBob, publicKeyAlice,
+                forgingKeyAlice, tagAlice);
         assertEquals(UNDECIDED, smpAlice.getStatus());
         assertEquals(UNDECIDED, smpBob.getStatus());
         final TLV smp1 = smpAlice.initiate(question, answer);
@@ -85,10 +89,10 @@ public final class SMPTest {
         final TLV smp4 = smpBob.process(smp3);
         assertNotNull(smp4);
         assertEquals(SUCCEEDED, smpBob.getStatus());
-        verify(hostBob).verify(sessionIDBob, toHexString(fingerprint(publicKeyAlice)));
+        verify(hostBob).verify(sessionIDBob, toHexString(fingerprint(publicKeyAlice, forgingKeyAlice)));
         assertNull(smpAlice.process(smp4));
         assertEquals(SUCCEEDED, smpAlice.getStatus());
-        verify(hostAlice).verify(sessionIDAlice, toHexString(fingerprint(publicKeyBob)));
+        verify(hostAlice).verify(sessionIDAlice, toHexString(fingerprint(publicKeyBob, forgingKeyBob)));
     }
 
     @Test
@@ -97,8 +101,10 @@ public final class SMPTest {
         final byte[] answer = randomBytes(RANDOM, new byte[16384]);
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
         final SmpEngineHost hostBob = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
-        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, publicKeyAlice, tagAlice);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
+        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, forgingKeyBob, publicKeyAlice,
+                forgingKeyAlice, tagAlice);
         assertEquals(UNDECIDED, smpAlice.getStatus());
         assertEquals(UNDECIDED, smpBob.getStatus());
         final TLV smp1 = smpAlice.initiate(question, answer);
@@ -112,10 +118,10 @@ public final class SMPTest {
         final TLV smp4 = smpBob.process(smp3);
         assertNotNull(smp4);
         assertEquals(SUCCEEDED, smpBob.getStatus());
-        verify(hostBob).verify(sessionIDBob, toHexString(fingerprint(publicKeyAlice)));
+        verify(hostBob).verify(sessionIDBob, toHexString(fingerprint(publicKeyAlice, forgingKeyAlice)));
         assertNull(smpAlice.process(smp4));
         assertEquals(SUCCEEDED, smpAlice.getStatus());
-        verify(hostAlice).verify(sessionIDAlice, toHexString(fingerprint(publicKeyBob)));
+        verify(hostAlice).verify(sessionIDAlice, toHexString(fingerprint(publicKeyBob, forgingKeyBob)));
     }
 
     @Test
@@ -123,8 +129,10 @@ public final class SMPTest {
         final byte[] answer = randomBytes(RANDOM, new byte[16384]);
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
         final SmpEngineHost hostBob = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
-        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, publicKeyAlice, tagAlice);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
+        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, forgingKeyBob, publicKeyAlice,
+                forgingKeyAlice, tagAlice);
         assertEquals(UNDECIDED, smpAlice.getStatus());
         assertEquals(UNDECIDED, smpBob.getStatus());
         final TLV smp1 = smpAlice.initiate("", answer);
@@ -138,10 +146,10 @@ public final class SMPTest {
         final TLV smp4 = smpBob.process(smp3);
         assertNotNull(smp4);
         assertEquals(SUCCEEDED, smpBob.getStatus());
-        verify(hostBob).verify(sessionIDBob, toHexString(fingerprint(publicKeyAlice)));
+        verify(hostBob).verify(sessionIDBob, toHexString(fingerprint(publicKeyAlice, forgingKeyAlice)));
         assertNull(smpAlice.process(smp4));
         assertEquals(SUCCEEDED, smpAlice.getStatus());
-        verify(hostAlice).verify(sessionIDAlice, toHexString(fingerprint(publicKeyBob)));
+        verify(hostAlice).verify(sessionIDAlice, toHexString(fingerprint(publicKeyBob, forgingKeyBob)));
     }
 
     @Test
@@ -149,8 +157,10 @@ public final class SMPTest {
         final String question = "Who am I? (I know it's a lousy question ...)";
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
         final SmpEngineHost hostBob = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
-        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, publicKeyAlice, tagAlice);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
+        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, forgingKeyBob, publicKeyAlice,
+                forgingKeyAlice, tagAlice);
         assertEquals(UNDECIDED, smpAlice.getStatus());
         assertEquals(UNDECIDED, smpBob.getStatus());
         final TLV smp1 = smpAlice.initiate(question, new byte[] {'a', 'l', 'i', 'c', 'e'});
@@ -164,10 +174,10 @@ public final class SMPTest {
         final TLV smp4 = smpBob.process(smp3);
         assertNotNull(smp4);
         assertEquals(FAILED, smpBob.getStatus());
-        verify(hostBob).unverify(sessionIDBob, toHexString(fingerprint(publicKeyAlice)));
+        verify(hostBob).unverify(sessionIDBob, toHexString(fingerprint(publicKeyAlice, forgingKeyAlice)));
         assertNull(smpAlice.process(smp4));
         assertEquals(FAILED, smpAlice.getStatus());
-        verify(hostAlice).unverify(sessionIDAlice, toHexString(fingerprint(publicKeyBob)));
+        verify(hostAlice).unverify(sessionIDAlice, toHexString(fingerprint(publicKeyBob, forgingKeyBob)));
     }
 
     @Test
@@ -180,8 +190,10 @@ public final class SMPTest {
                 !Arrays.equals(ssid1, ssid2));
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
         final SmpEngineHost hostBob = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid1, publicKeyAlice, publicKeyBob, tagBob);
-        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid2, publicKeyBob, publicKeyAlice, tagAlice);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid1, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
+        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid2, publicKeyBob, forgingKeyBob, publicKeyAlice,
+                forgingKeyAlice, tagAlice);
         assertEquals(UNDECIDED, smpAlice.getStatus());
         assertEquals(UNDECIDED, smpBob.getStatus());
         final TLV smp1 = smpAlice.initiate(question, answer);
@@ -195,10 +207,10 @@ public final class SMPTest {
         final TLV smp4 = smpBob.process(smp3);
         assertNotNull(smp4);
         assertEquals(FAILED, smpBob.getStatus());
-        verify(hostBob).unverify(sessionIDBob, toHexString(fingerprint(publicKeyAlice)));
+        verify(hostBob).unverify(sessionIDBob, toHexString(fingerprint(publicKeyAlice, forgingKeyAlice)));
         assertNull(smpAlice.process(smp4));
         assertEquals(FAILED, smpAlice.getStatus());
-        verify(hostAlice).unverify(sessionIDAlice, toHexString(fingerprint(publicKeyBob)));
+        verify(hostAlice).unverify(sessionIDAlice, toHexString(fingerprint(publicKeyBob, forgingKeyBob)));
     }
 
     @Test
@@ -207,8 +219,10 @@ public final class SMPTest {
         final byte[] answer = new byte[] {'a', 'l', 'i', 'c', 'e'};
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
         final SmpEngineHost hostBob = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
-        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, publicKeyAlice, tagAlice);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
+        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, forgingKeyBob, publicKeyAlice,
+                forgingKeyAlice, tagAlice);
         assertEquals(UNDECIDED, smpAlice.getStatus());
         assertEquals(UNDECIDED, smpBob.getStatus());
         final TLV smp1 = smpAlice.initiate(question, answer);
@@ -226,7 +240,8 @@ public final class SMPTest {
         final String question = "Who am I? (I know it's a lousy question ...)";
         final byte[] answer = new byte[] {'a', 'l', 'i', 'c', 'e'};
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
         assertEquals(UNDECIDED, smpAlice.getStatus());
         assertNull(smpAlice.respond(question, answer));
     }
@@ -237,8 +252,10 @@ public final class SMPTest {
         final byte[] answer = new byte[] {'a', 'l', 'i', 'c', 'e'};
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
         final SmpEngineHost hostBob = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
-        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, publicKeyAlice, tagAlice);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
+        final SMP smpBob = new SMP(RANDOM, hostBob, sessionIDBob, ssid, publicKeyBob, forgingKeyBob, publicKeyAlice,
+                forgingKeyAlice, tagAlice);
         assertEquals(UNDECIDED, smpAlice.getStatus());
         assertEquals(UNDECIDED, smpBob.getStatus());
         final TLV smp1 = smpAlice.initiate(question, answer);
@@ -251,7 +268,8 @@ public final class SMPTest {
     @Test
     public void testSMPProcessAbortTLV() throws OtrCryptoException, ProtocolException {
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
         assertEquals(UNDECIDED, smpAlice.getStatus());
         assertNull(smpAlice.process(new TLV(SMP_ABORT, new byte[0])));
     }
@@ -261,7 +279,8 @@ public final class SMPTest {
         final String question = "Who am I? (I know it's a lousy question ...)";
         final byte[] answer = new byte[] {'a', 'l', 'i', 'c', 'e'};
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
         assertEquals(UNDECIDED, smpAlice.getStatus());
         assertNotNull(smpAlice.initiate(question, answer));
         assertEquals(INPROGRESS, smpAlice.getStatus());
@@ -274,7 +293,8 @@ public final class SMPTest {
         final String question = "Who am I? (I know it's a lousy question ...)";
         final byte[] answer = new byte[] {'a', 'l', 'i', 'c', 'e'};
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
         assertEquals(UNDECIDED, smpAlice.getStatus());
         assertNotNull(smpAlice.initiate(question, answer));
         assertEquals(INPROGRESS, smpAlice.getStatus());
@@ -289,7 +309,8 @@ public final class SMPTest {
     public void testSMPUnexpectedSMPMessageProcessingResult() throws OtrCryptoException, ProtocolException, SMPAbortException {
         final String question = "Who am I? (I know it's a lousy question ...)";
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
         final SMPState badSMPState = mock(SMPState.class);
         final Point g2a = basePoint().multiply(fromBigInteger(valueOf(2L)));
         final Scalar c2 = generateRandomValueInZq(RANDOM);
@@ -309,7 +330,8 @@ public final class SMPTest {
     @Test
     public void testSMPRepeatedClosingAllowed() {
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
         smpAlice.close();
         smpAlice.close();
     }
@@ -317,7 +339,8 @@ public final class SMPTest {
     @Test
     public void testSmpAbortedTLVCheck() {
         final SmpEngineHost hostAlice = mock(SmpEngineHost.class);
-        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, publicKeyBob, tagBob);
+        final SMP smpAlice = new SMP(RANDOM, hostAlice, sessionIDAlice, ssid, publicKeyAlice, forgingKeyAlice,
+                publicKeyBob, forgingKeyBob, tagBob);
         final TLV initSMP = smpAlice.initiate("Hello world", new byte[10]);
         final TLV abortTLV = smpAlice.abort();
         assertFalse(smpAlice.smpAbortedTLV(initSMP));

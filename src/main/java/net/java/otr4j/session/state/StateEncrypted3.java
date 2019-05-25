@@ -60,7 +60,7 @@ import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
  *
  * @author Danny van Heumen
  */
-// FIXME write additional unit tests for StateEncrypted3
+// TODO write additional unit tests for StateEncrypted3
 final class StateEncrypted3 extends AbstractCommonState implements StateEncrypted {
 
     /**

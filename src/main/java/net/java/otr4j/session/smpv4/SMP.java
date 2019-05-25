@@ -72,7 +72,11 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
 
     private final Point ourLongTermPublicKey;
 
+    private final Point ourForgingKey;
+
     private final Point theirLongTermPublicKey;
+
+    private final Point theirForgingKey;
 
     private SMPState state;
 
@@ -84,12 +88,15 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
      * @param sessionID              the session ID
      * @param ssid                   the ssid for the established encrypted session
      * @param ourLongTermPublicKey   local user's long-term public key
+     * @param ourForgingKey          local user's forging key
      * @param theirLongTermPublicKey the remote party's long-term public key
+     * @param theirForgingKey        the remote party's forging key
      * @param receiverTag            receiver tag this SMP instance belongs to
      */
     public SMP(@Nonnull final SecureRandom random, @Nonnull final SmpEngineHost host, @Nonnull final SessionID sessionID,
-            @Nonnull final byte[] ssid, @Nonnull final Point ourLongTermPublicKey,
-            @Nonnull final Point theirLongTermPublicKey, @Nonnull final InstanceTag receiverTag) {
+            @Nonnull final byte[] ssid, @Nonnull final Point ourLongTermPublicKey, @Nonnull final Point ourForgingKey,
+            @Nonnull final Point theirLongTermPublicKey, @Nonnull final Point theirForgingKey,
+            @Nonnull final InstanceTag receiverTag) {
         this.random = requireNonNull(random);
         this.host = requireNonNull(host);
         this.sessionID = requireNonNull(sessionID);
@@ -97,7 +104,9 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
         assert !allZeroBytes(ssid) : "Expected SSID to contain non-zero bytes. All-zero SSID is a highly unlikely situation.";
         this.receiverTag = requireNonNull(receiverTag);
         this.ourLongTermPublicKey = requireNonNull(ourLongTermPublicKey);
+        this.ourForgingKey = requireNonNull(ourForgingKey);
         this.theirLongTermPublicKey = requireNonNull(theirLongTermPublicKey);
+        this.theirForgingKey = requireNonNull(theirForgingKey);
         this.state = new StateExpect1(random, UNDECIDED);
     }
 
@@ -138,7 +147,8 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
     @Override
     public TLV initiate(@Nonnull final String question, @Nonnull final byte[] answer) {
         try {
-            final Scalar secret = generateSecret(answer, this.ourLongTermPublicKey, this.theirLongTermPublicKey);
+            final Scalar secret = generateSecret(answer, this.ourLongTermPublicKey, this.ourForgingKey,
+                    this.theirLongTermPublicKey, this.theirForgingKey);
             final SMPMessage1 response = this.state.initiate(this, question, secret);
             return new TLV(SMP1, encode(response));
         } catch (final SMPAbortException e) {
@@ -156,7 +166,8 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
     @Nullable
     @Override
     public TLV respond(@Nonnull final String question, @Nonnull final byte[] answer) {
-        final Scalar secret = generateSecret(answer, this.theirLongTermPublicKey, this.ourLongTermPublicKey);
+        final Scalar secret = generateSecret(answer, this.theirLongTermPublicKey, this.theirForgingKey,
+                this.ourLongTermPublicKey, this.ourForgingKey);
         final SMPMessage2 response = this.state.respondWithSecret(this, question, secret);
         if (response == null) {
             // TODO decide if we want to throw an exception or silently ignore bad (or badly timed) SMP init responses.
@@ -166,10 +177,11 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
     }
 
     private Scalar generateSecret(@Nonnull final byte[] answer, @Nonnull final Point initiatorPublicKey,
-            @Nonnull final Point responderPublicKey) {
+            @Nonnull final Point initiatorForgingKey, @Nonnull final Point responderPublicKey,
+            @Nonnull final Point responderForgingKey) {
         final byte[] secretInputData = new OtrOutputStream().writeByte(VERSION)
-                .writeFingerprint(fingerprint(initiatorPublicKey))
-                .writeFingerprint(fingerprint(responderPublicKey))
+                .writeFingerprint(fingerprint(initiatorPublicKey, initiatorForgingKey))
+                .writeFingerprint(fingerprint(responderPublicKey, responderForgingKey))
                 .writeSSID(this.ssid).writeData(answer).toByteArray();
         return decodeScalar(kdf1(SMP_SECRET, secretInputData, SMP_SECRET_LENGTH_BYTES));
     }
@@ -202,10 +214,11 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
             smpAborted(this.host, this.sessionID);
             return new TLV(SMP_ABORT, new byte[0]);
         }
+        final byte[] theirFingerprint = fingerprint(this.theirLongTermPublicKey, this.theirForgingKey);
         if (this.state.getStatus() == SUCCEEDED) {
-            verify(this.host, this.sessionID, toHexString(fingerprint(this.theirLongTermPublicKey)));
+            verify(this.host, this.sessionID, toHexString(theirFingerprint));
         } else if (this.state.getStatus() == FAILED) {
-            unverify(this.host, this.sessionID, toHexString(fingerprint(this.theirLongTermPublicKey)));
+            unverify(this.host, this.sessionID, toHexString(theirFingerprint));
         }
         if (response == null) {
             return null;

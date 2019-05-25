@@ -53,14 +53,21 @@ public class OtrCryptoEngine4Test {
     private final ECDHKeyPair ephemeralKeyPair = ECDHKeyPair.generate(RANDOM);
 
     @Test(expected = NullPointerException.class)
-    public void testFingerprintNullPoint() {
-        fingerprint(null);
+    public void testFingerprintNullPublicKey() {
+        final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        fingerprint(null, forgingKey);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testFingerprintNullForgingKey() {
+        final Point publicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        fingerprint(publicKey, null);
     }
 
     @Test
     public void testFingerprint() {
-        final byte[] expected = new byte[] {50, -88, 40, -102, 20, -109, -8, 68, 71, 76, -23, -19, -66, -56, 94, 17, 27, -12, -68, -66, -49, -5, -62, -18, -79, 54, -80, 122, 121, 39, 10, 70, -63, 83, -60, -121, 51, 35, 124, -116, -68, 92, 100, 64, -47, 113, 38, 117, -75, 111, 74, 5, -6, 14, -91, 118};
-        final byte[] dst = fingerprint(basePoint());
+        final byte[] expected = new byte[] {-99, 52, -14, -68, -84, -20, 32, -108, 38, 62, 58, 115, 64, -115, -97, 114, 20, 125, 59, -105, 66, 29, -128, -127, 57, 119, 39, -124, 37, 125, 49, -104, 17, 102, 46, 117, -54, 127, 107, 23, 87, 105, 38, 81, -13, -55, 56, 88, -76, 33, 66, -35, -81, -66, -99, -31};
+        final byte[] dst = fingerprint(basePoint(), basePoint());
         assertArrayEquals(expected, dst);
     }
 

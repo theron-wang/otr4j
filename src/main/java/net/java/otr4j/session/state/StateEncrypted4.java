@@ -55,7 +55,7 @@ import static org.bouncycastle.util.Arrays.concatenate;
 /**
  * The OTRv4 ENCRYPTED_MESSAGES state.
  */
-// FIXME write additional unit tests for StateEncrypted4
+// TODO write additional unit tests for StateEncrypted4
 // TODO decide whether or not we can drop the AuthState instance. Relies on fact that we need to know up to what point we should handle OTRv2/3 AKE messages.
 final class StateEncrypted4 extends AbstractCommonState implements StateEncrypted {
 
@@ -71,14 +71,15 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     private long lastMessageSentTimestamp = System.nanoTime();
 
     StateEncrypted4(@Nonnull final Context context, @Nonnull final byte[] ssid,
-            @Nonnull final Point ourLongTermPublicKey, @Nonnull final Point theirLongTermPublicKey,
+            @Nonnull final Point ourLongTermPublicKey, @Nonnull final Point ourForgingKey,
+            @Nonnull final Point theirLongTermPublicKey, @Nonnull final Point theirForgingKey,
             @Nonnull final DoubleRatchet ratchet, @Nonnull final AuthState authState) {
         super(authState);
         final SessionID sessionID = context.getSessionID();
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.ratchet = requireNonNull(ratchet);
         this.smp = new SMP(context.secureRandom(), context.getHost(), sessionID, ssid, ourLongTermPublicKey,
-                theirLongTermPublicKey, context.getReceiverInstanceTag());
+                ourForgingKey, theirLongTermPublicKey, theirForgingKey, context.getReceiverInstanceTag());
     }
 
     @Nonnull

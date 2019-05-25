@@ -63,7 +63,9 @@ public final class StateEncrypted4Test {
         final byte[] ssid = randomBytes(RANDOM, new byte[8]);
         final byte[] rootKey = randomBytes(RANDOM, new byte[64]);
         final Point myPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point myForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -71,14 +73,17 @@ public final class StateEncrypted4Test {
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
-        new StateEncrypted4(CONTEXT, ssid, myPublicKey, theirPublicKey, ratchet, StateInitial.instance());
+        new StateEncrypted4(CONTEXT, ssid, myPublicKey, myForgingKey, theirPublicKey, theirForgingKey, ratchet,
+                StateInitial.instance());
     }
 
     @Test(expected = NullPointerException.class)
     public void testConstructStateEncrypted4NullParams() {
         final byte[] rootKey = randomBytes(RANDOM, new byte[64]);
         final Point myPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point myForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -86,14 +91,17 @@ public final class StateEncrypted4Test {
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
-        new StateEncrypted4(CONTEXT, null, myPublicKey, theirPublicKey, ratchet, StateInitial.instance());
+        new StateEncrypted4(CONTEXT, null, myPublicKey, myForgingKey, theirPublicKey, theirForgingKey, ratchet,
+                StateInitial.instance());
     }
 
     @Test(expected = NullPointerException.class)
     public void testConstructStateEncrypted4NullOurLongTermPublicKey() {
         final byte[] ssid = randomBytes(RANDOM, new byte[8]);
         final byte[] rootKey = randomBytes(RANDOM, new byte[64]);
+        final Point myForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -101,7 +109,26 @@ public final class StateEncrypted4Test {
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
-        new StateEncrypted4(CONTEXT, ssid, null, theirPublicKey, ratchet, StateInitial.instance());
+        new StateEncrypted4(CONTEXT, ssid, null, myForgingKey, theirPublicKey, theirForgingKey,
+                ratchet, StateInitial.instance());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testConstructStateEncrypted4NullOurForgingKey() {
+        final byte[] ssid = randomBytes(RANDOM, new byte[8]);
+        final byte[] rootKey = randomBytes(RANDOM, new byte[64]);
+        final Point myPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
+        final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
+                theirECDHPublicKey);
+        final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
+        new StateEncrypted4(CONTEXT, ssid, myPublicKey, null, theirPublicKey, theirForgingKey,
+                ratchet, StateInitial.instance());
     }
 
     @Test(expected = NullPointerException.class)
@@ -109,6 +136,8 @@ public final class StateEncrypted4Test {
         final byte[] ssid = randomBytes(RANDOM, new byte[8]);
         final byte[] rootKey = randomBytes(RANDOM, new byte[64]);
         final Point myPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point myForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -116,7 +145,26 @@ public final class StateEncrypted4Test {
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
-        new StateEncrypted4(CONTEXT, ssid, myPublicKey, null, ratchet, StateInitial.instance());
+        new StateEncrypted4(CONTEXT, ssid, myPublicKey, myForgingKey, null, theirForgingKey,
+                ratchet, StateInitial.instance());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testConstructStateEncrypted4NullTheirForgingKey() {
+        final byte[] ssid = randomBytes(RANDOM, new byte[8]);
+        final byte[] rootKey = randomBytes(RANDOM, new byte[64]);
+        final Point myPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point myForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
+        final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
+                theirECDHPublicKey);
+        final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
+        new StateEncrypted4(CONTEXT, ssid, myPublicKey, myForgingKey, theirPublicKey, null, ratchet,
+                StateInitial.instance());
     }
 
     @Test(expected = NullPointerException.class)
@@ -124,7 +172,9 @@ public final class StateEncrypted4Test {
         final byte[] ssid = randomBytes(RANDOM, new byte[8]);
         final byte[] rootKey = randomBytes(RANDOM, new byte[64]);
         final Point myPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point myForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -132,7 +182,8 @@ public final class StateEncrypted4Test {
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
-        new StateEncrypted4(null, ssid, myPublicKey, theirPublicKey, ratchet, StateInitial.instance());
+        new StateEncrypted4(null, ssid, myPublicKey, myForgingKey, theirPublicKey, theirForgingKey, ratchet,
+                StateInitial.instance());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -140,7 +191,9 @@ public final class StateEncrypted4Test {
         final byte[] ssid = randomBytes(RANDOM, new byte[8]);
         final byte[] rootKey = randomBytes(RANDOM, new byte[64]);
         final Point myPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point myForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -148,8 +201,8 @@ public final class StateEncrypted4Test {
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
-        final StateEncrypted4 state = new StateEncrypted4(CONTEXT, ssid, myPublicKey, theirPublicKey, ratchet,
-                StateInitial.instance());
+        final StateEncrypted4 state = new StateEncrypted4(CONTEXT, ssid, myPublicKey, myForgingKey, theirPublicKey,
+                theirForgingKey, ratchet, StateInitial.instance());
         state.handleDataMessage(CONTEXT, (DataMessage) null);
     }
 
@@ -158,7 +211,9 @@ public final class StateEncrypted4Test {
         final byte[] ssid = randomBytes(RANDOM, new byte[8]);
         final byte[] rootKey = randomBytes(RANDOM, new byte[64]);
         final Point myPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point myForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -166,8 +221,8 @@ public final class StateEncrypted4Test {
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
-        final StateEncrypted4 state = new StateEncrypted4(CONTEXT, ssid, myPublicKey, theirPublicKey, ratchet,
-                StateInitial.instance());
+        final StateEncrypted4 state = new StateEncrypted4(CONTEXT, ssid, myPublicKey, myForgingKey, theirPublicKey,
+                theirForgingKey, ratchet, StateInitial.instance());
         state.handleDataMessage(CONTEXT, (DataMessage4) null);
     }
 
@@ -185,7 +240,9 @@ public final class StateEncrypted4Test {
         when(context.getReceiverInstanceTag()).thenReturn(receiverTag);
         final byte[] ssid = randomBytes(RANDOM, new byte[8]);
         final Point myPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point myForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -199,8 +256,8 @@ public final class StateEncrypted4Test {
         final byte[] artificialMACsToReveal = randomBytes(RANDOM, new byte[120]);
         ((ByteArrayOutputStream) Whitebox.getInternalState(ratchet, "macsToReveal")).write(artificialMACsToReveal, 0,
                 artificialMACsToReveal.length);
-        final StateEncrypted4 state = new StateEncrypted4(context, ssid, myPublicKey, theirPublicKey, ratchet,
-                StateInitial.instance());
+        final StateEncrypted4 state = new StateEncrypted4(context, ssid, myPublicKey, myForgingKey, theirPublicKey,
+                theirForgingKey, ratchet, StateInitial.instance());
         state.expire(context);
 
         // Verify that state is correct after expiring.
@@ -224,7 +281,9 @@ public final class StateEncrypted4Test {
         final byte[] ssid = randomBytes(RANDOM, new byte[8]);
         final byte[] rootKey = randomBytes(RANDOM, new byte[64]);
         final Point myPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point myForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -232,7 +291,8 @@ public final class StateEncrypted4Test {
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
-        final StateEncrypted4 current = new StateEncrypted4(context, ssid, myPublicKey, theirPublicKey, ratchet, StateInitial.instance());
+        final StateEncrypted4 current = new StateEncrypted4(context, ssid, myPublicKey, myForgingKey, theirPublicKey,
+                theirForgingKey, ratchet, StateInitial.instance());
         current.expire(context);
         verify(context, times(1)).transition(eq(current), isA(StateFinished.class));
     }
