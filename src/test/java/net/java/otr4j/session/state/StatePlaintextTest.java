@@ -7,6 +7,7 @@
 
 package net.java.otr4j.session.state;
 
+import net.java.otr4j.api.ClientProfileTestUtils;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
@@ -16,13 +17,19 @@ import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
+import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.io.PlainTextMessage;
+import net.java.otr4j.messages.AbstractEncodedMessage;
+import net.java.otr4j.messages.AuthRMessage;
+import net.java.otr4j.messages.ClientProfilePayload;
 import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
+import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.session.ake.StateInitial;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -31,12 +38,14 @@ import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.math.BigInteger.ZERO;
 import static java.util.logging.Level.OFF;
 import static net.java.otr4j.api.InstanceTag.HIGHEST_TAG;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.api.OfferStatus.IDLE;
 import static net.java.otr4j.api.OfferStatus.REJECTED;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V3;
+import static net.java.otr4j.api.OtrPolicy.ALLOW_V4;
 import static net.java.otr4j.api.OtrPolicy.OPPORTUNISTIC;
 import static net.java.otr4j.api.OtrPolicy.REQUIRE_ENCRYPTION;
 import static net.java.otr4j.api.OtrPolicy.SEND_WHITESPACE_TAG;
@@ -54,6 +63,7 @@ import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,6 +71,8 @@ import static org.mockito.Mockito.when;
 public class StatePlaintextTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
+
+    private static final ClientProfileTestUtils PROFILE_UTILS = new ClientProfileTestUtils();
 
     @Test
     public void testTransformSendingEmbedWhitespaceTagWithViablePolicy() throws OtrException {
@@ -108,7 +120,6 @@ public class StatePlaintextTest {
         final Level original = logger.getLevel();
         try {
             logger.setLevel(OFF);
-            final PlainTextMessage expected = new PlainTextMessage(Collections.<Integer>emptySet(), "Hello world!");
             final Context context = mock(Context.class);
             final StatePlaintext state = new StatePlaintext(StateInitial.instance());
             final OtrPolicy policy = new OtrPolicy(SEND_WHITESPACE_TAG);
@@ -327,5 +338,91 @@ public class StatePlaintextTest {
         final DataMessage4 message = new DataMessage4(FOUR, SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
                 ecdh.getPublicKey(), dh.getPublicKey(), new byte[80], new byte[64], new byte[0]);
         state.handleDataMessage(null, message);
+    }
+
+    @Test
+    public void testHandleAKEMessageNonOTR4() throws OtrException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final Context context = mock(Context.class);
+        final OtrPolicy policy = new OtrPolicy(ALLOW_V3);
+        when(context.getSessionPolicy()).thenReturn(policy);
+        state.handleAKEMessage(context, null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testHandleAKEMessageNullContext() throws OtrException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final AbstractEncodedMessage message = mock(AbstractEncodedMessage.class);
+        state.handleAKEMessage(null, message);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testHandleAKEMessageNullMessage() throws OtrException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final Context context = mock(Context.class);
+        final OtrPolicy policy = new OtrPolicy(ALLOW_V4);
+        when(context.getSessionPolicy()).thenReturn(policy);
+        state.handleAKEMessage(context, null);
+    }
+
+    @Test
+    public void testHandleAKEMessageIdentityMessage() throws OtrException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final Context context = mock(Context.class);
+        when(context.secureRandom()).thenReturn(RANDOM);
+        when(context.getSenderInstanceTag()).thenReturn(HIGHEST_TAG);
+        when(context.getReceiverInstanceTag()).thenReturn(SMALLEST_TAG);
+        final SessionID sessionID = new SessionID("alice", "bob", "network");
+        when(context.getSessionID()).thenReturn(sessionID);
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        when(context.getHost()).thenReturn(host);
+        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(EdDSAKeyPair.generate(RANDOM));
+        final ClientProfilePayload hostProfile = PROFILE_UTILS.createUserProfile();
+        when(context.getClientProfilePayload()).thenReturn(hostProfile);
+        final OtrPolicy policy = new OtrPolicy(ALLOW_V4);
+        when(context.getSessionPolicy()).thenReturn(policy);
+        final ClientProfilePayload profile = PROFILE_UTILS.createUserProfile();
+        final ECDHKeyPair dakeECDH = ECDHKeyPair.generate(RANDOM);
+        final DHKeyPair dakeDH = DHKeyPair.generate(RANDOM);
+        final ECDHKeyPair firstECDH = ECDHKeyPair.generate(RANDOM);
+        final DHKeyPair firstDH = DHKeyPair.generate(RANDOM);
+        final IdentityMessage message = new IdentityMessage(FOUR, SMALLEST_TAG, HIGHEST_TAG, profile,
+                dakeECDH.getPublicKey(), dakeDH.getPublicKey(), firstECDH.getPublicKey(), firstDH.getPublicKey());
+
+        state.handleAKEMessage(context, message);
+
+        // Verify if correct return message was constructed, to a certain extent.
+        final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        verify(context, times(1)).injectMessage(captor.capture());
+        final AuthRMessage msg = (AuthRMessage) captor.getValue();
+        assertEquals(FOUR, msg.protocolVersion);
+        assertEquals(HIGHEST_TAG, msg.senderTag);
+        assertEquals(SMALLEST_TAG, msg.receiverTag);
+        assertEquals(hostProfile, msg.clientProfile);
+        verify(context, times(1)).transition(eq(state), isA(StateAwaitingAuthI.class));
+    }
+
+    @Test
+    public void testHandleAKEMessageInvalidIdentityMessage() throws OtrException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final Context context = mock(Context.class);
+        final OtrPolicy policy = new OtrPolicy(ALLOW_V4);
+        when(context.getSessionPolicy()).thenReturn(policy);
+        final ClientProfilePayload profile = PROFILE_UTILS.createUserProfile();
+        final ECDHKeyPair dakeECDH = ECDHKeyPair.generate(RANDOM);
+        final ECDHKeyPair firstECDH = ECDHKeyPair.generate(RANDOM);
+        final DHKeyPair firstDH = DHKeyPair.generate(RANDOM);
+        final IdentityMessage message = new IdentityMessage(FOUR, SMALLEST_TAG, HIGHEST_TAG, profile,
+                dakeECDH.getPublicKey(), ZERO, firstECDH.getPublicKey(), firstDH.getPublicKey());
+        state.handleAKEMessage(context, message);
+    }
+
+    @Test
+    public void testHandleAKEMessageInvalidMessageType() throws OtrException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final Context context = mock(Context.class);
+        final OtrPolicy policy = new OtrPolicy(ALLOW_V4);
+        when(context.getSessionPolicy()).thenReturn(policy);
+        state.handleAKEMessage(context, mock(AbstractEncodedMessage.class));
     }
 }

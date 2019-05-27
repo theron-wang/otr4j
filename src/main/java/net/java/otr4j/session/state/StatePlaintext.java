@@ -45,7 +45,6 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
  *
  * @author Danny van Heumen
  */
-// FIXME write additional unit tests for StatePlaintext
 public final class StatePlaintext extends AbstractCommonState {
 
     private static final Logger LOGGER = Logger.getLogger(StatePlaintext.class.getName());
