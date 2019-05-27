@@ -99,8 +99,6 @@ public class OtrPolicyTest {
         assertFalse(policy.isErrorStartAKE());
         policy.setErrorStartAKE(true);
         assertTrue(policy.isErrorStartAKE());
-        policy.setAllowV3(false);
-        assertFalse(policy.isErrorStartAKE());
     }
 
     @Test
@@ -109,8 +107,6 @@ public class OtrPolicyTest {
         assertFalse(policy.isSendWhitespaceTag());
         policy.setSendWhitespaceTag(true);
         assertTrue(policy.isSendWhitespaceTag());
-        policy.setAllowV3(false);
-        assertFalse(policy.isSendWhitespaceTag());
     }
 
     @Test
@@ -119,8 +115,6 @@ public class OtrPolicyTest {
         assertFalse(policy.isWhitespaceStartAKE());
         policy.setWhitespaceStartAKE(true);
         assertTrue(policy.isWhitespaceStartAKE());
-        policy.setAllowV3(false);
-        assertFalse(policy.isWhitespaceStartAKE());
     }
 
     @Test

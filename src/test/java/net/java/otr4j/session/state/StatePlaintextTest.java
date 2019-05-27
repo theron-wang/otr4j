@@ -102,7 +102,7 @@ public class StatePlaintextTest {
         verify(context, atLeastOnce()).setOfferStatusSent();
     }
 
-    @Test
+    @Test(expected = IllegalStateException.class)
     public void testTransformSendingEmbedWhitespaceTagWithNonViablePolicy() throws OtrException {
         final Logger logger = Logger.getLogger(OtrPolicy.class.getName());
         final Level original = logger.getLevel();
@@ -114,9 +114,7 @@ public class StatePlaintextTest {
             final OtrPolicy policy = new OtrPolicy(SEND_WHITESPACE_TAG);
             when(context.getSessionPolicy()).thenReturn(policy);
             when(context.getOfferStatus()).thenReturn(IDLE);
-            final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList(), FLAG_NONE);
-            assertEquals(expected, m);
-            verify(context, never()).setOfferStatusSent();
+            state.transformSending(context, "Hello world!", Collections.<TLV>emptyList(), FLAG_NONE);
         } finally {
             logger.setLevel(original);
         }

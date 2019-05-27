@@ -170,10 +170,6 @@ public final class OtrPolicy {
      * policy is set to false, or if no OTR protocol version is allowed.
      */
     public boolean isErrorStartAKE() {
-        if (!viable()) {
-            LOGGER.warning("Returning false to getErrorStartAKE as no OTR protocol version is allowed.");
-            return false;
-        }
         return (policy & OtrPolicy.ERROR_START_AKE) != 0;
     }
 
@@ -199,10 +195,6 @@ public final class OtrPolicy {
      * to false, or if no OTR protocol version is allowed.
      */
     public boolean isSendWhitespaceTag() {
-        if (!viable()) {
-            LOGGER.warning("Returning false to getSendWhitespaceTag as no OTR protocol version is allowed.");
-            return false;
-        }
         return (policy & OtrPolicy.SEND_WHITESPACE_TAG) != 0;
     }
 
@@ -218,10 +210,6 @@ public final class OtrPolicy {
      * is set to false, or if no OTR protocol version is allowed.
      */
     public boolean isWhitespaceStartAKE() {
-        if (!viable()) {
-            LOGGER.warning("Returning false to getWhitespaceStartAKE as no OTR protocol version is allowed.");
-            return false;
-        }
         return (policy & OtrPolicy.WHITESPACE_START_AKE) != 0;
     }
 

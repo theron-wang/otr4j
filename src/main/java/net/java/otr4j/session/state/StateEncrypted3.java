@@ -259,7 +259,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
             throws OtrException {
         super.handleErrorMessage(context, errorMessage);
         final OtrPolicy policy = context.getSessionPolicy();
-        if (!policy.isErrorStartAKE()) {
+        if (!policy.viable() || !policy.isErrorStartAKE()) {
             return;
         }
         // Re-negotiate if we got an error and we are in ENCRYPTED message state
