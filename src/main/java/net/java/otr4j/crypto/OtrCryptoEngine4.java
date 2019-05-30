@@ -60,6 +60,11 @@ public final class OtrCryptoEngine4 {
     private static final int FINGERPRINT_LENGTH_BYTES = 56;
 
     /**
+     * Length of a Root key in bytes.
+     */
+    public static final int ROOT_KEY_LENGTH_BYTES = 64;
+
+    /**
      * Length of HashToScalar array of bytes.
      */
     private static final int HASH_TO_SCALAR_LENGTH_BYTES = 57;

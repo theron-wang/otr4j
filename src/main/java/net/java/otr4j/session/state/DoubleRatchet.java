@@ -31,6 +31,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.MAC_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.MESSAGE_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.NEXT_CHAIN_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.ROOT_KEY;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf1;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
@@ -58,8 +59,6 @@ import static org.bouncycastle.util.Arrays.concatenate;
 final class DoubleRatchet implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(DoubleRatchet.class.getName());
-
-    private static final int ROOT_KEY_LENGTH_BYTES = 64;
 
     private final ByteArrayOutputStream macsToReveal = new ByteArrayOutputStream();
 
