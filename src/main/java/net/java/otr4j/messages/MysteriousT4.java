@@ -17,7 +17,7 @@ import javax.annotation.Nonnull;
 import java.math.BigInteger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf1;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.hwc;
 import static org.bouncycastle.util.Arrays.concatenate;
 
 /**
@@ -98,9 +98,9 @@ public final class MysteriousT4 {
         default:
             throw new UnsupportedOperationException("Unsupported purpose.");
         }
-        final byte[] bobsProfileEncoded = kdf1(bobsProfileUsage, OtrEncodables.encode(profileBob),
+        final byte[] bobsProfileEncoded = hwc(bobsProfileUsage, OtrEncodables.encode(profileBob),
                 USER_PROFILE_DERIVATIVE_LENGTH_BYTES);
-        final byte[] alicesProfileEncoded = kdf1(alicesProfileUsage, OtrEncodables.encode(profileAlice),
+        final byte[] alicesProfileEncoded = hwc(alicesProfileUsage, OtrEncodables.encode(profileAlice),
                 USER_PROFILE_DERIVATIVE_LENGTH_BYTES);
         final byte[] yEncoded = y.encode();
         final byte[] xEncoded = x.encode();
@@ -108,7 +108,7 @@ public final class MysteriousT4 {
         final byte[] aEncoded = new OtrOutputStream().writeBigInt(a).toByteArray();
         final byte[] phi = generatePhi(senderTag, receiverTag, senderFirstECDHPublicKey, senderFirstDHPublicKey,
                 receiverFirstECDHPublicKey, receiverFirstDHPublicKey, senderContactID, receiverContactID);
-        final byte[] sharedSessionDerivative = kdf1(phiUsage, phi, PHI_DERIVATIVE_LENGTH_BYTES);
+        final byte[] sharedSessionDerivative = hwc(phiUsage, phi, PHI_DERIVATIVE_LENGTH_BYTES);
         return concatenate(new byte[][] {prefix, bobsProfileEncoded, alicesProfileEncoded, yEncoded, xEncoded,
                 bEncoded, aEncoded, sharedSessionDerivative});
     }

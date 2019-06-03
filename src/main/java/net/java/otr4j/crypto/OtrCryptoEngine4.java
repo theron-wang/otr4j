@@ -7,6 +7,7 @@
 
 package net.java.otr4j.crypto;
 
+import com.google.errorprone.annotations.CheckReturnValue;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.crypto.ed448.Scalar;
@@ -237,21 +238,68 @@ public final class OtrCryptoEngine4 {
      * @return Returns the fingerprint derived from the provided public key.
      */
     public static byte[] fingerprint(@Nonnull final Point publicKey, @Nonnull final Point forgingKey) {
-        return kdf1(FINGERPRINT, concatenate(publicKey.encode(), forgingKey.encode()), FINGERPRINT_LENGTH_BYTES);
+        return hwc(FINGERPRINT, concatenate(publicKey.encode(), forgingKey.encode()), FINGERPRINT_LENGTH_BYTES);
     }
 
     /**
-     * KDF_1 key derivation function. ({@link #kdf1(byte[], int, KDFUsage, byte[], int)} for more details.)
+     * KDF function.
      *
-     * @param usageID    The usage ID to be mixed in the input to KDF1.
-     * @param input      Input data.
-     * @param outputSize Expected output size.
-     * @return Returns byte-array with KDF_1 result.
+     * @param usageID    the usage ID
+     * @param input      the input
+     * @param outputSize the output size in bytes
+     * @return Returns the resulting digest value.
      */
-    public static byte[] kdf1(@Nonnull final KDFUsage usageID, @Nonnull final byte[] input, final int outputSize) {
+    @CheckReturnValue
+    public static byte[] kdf(@Nonnull final KDFUsage usageID, @Nonnull final byte[] input, final int outputSize) {
+        requireAtLeast(0, outputSize);
+        final byte[] dst = new byte[outputSize];
+        kdf(dst, 0, usageID, input, outputSize);
+        return dst;
+    }
+
+    /**
+     * KDF function with result written to dst parameter.
+     *
+     * @param dst        the destination location for the resulting digest value
+     * @param offset     the offset in the destination
+     * @param usageID    the usage ID
+     * @param input      the input
+     * @param outputSize the output size in bytes
+     */
+    public static void kdf(@Nonnull final byte[] dst, final int offset, @Nonnull final KDFUsage usageID,
+            @Nonnull final byte[] input, final int outputSize) {
+        shake256(dst, offset, usageID, input, outputSize);
+    }
+
+    /**
+     * HWC function.
+     *
+     * @param usageID    the usage ID
+     * @param input      the input
+     * @param outputSize the output size in bytes
+     * @return Returns the resulting digest value.
+     */
+    @CheckReturnValue
+    public static byte[] hwc(@Nonnull final KDFUsage usageID, @Nonnull final byte[] input, final int outputSize) {
         requireAtLeast(0, outputSize);
         final byte[] result = new byte[outputSize];
-        kdf1(result, 0, usageID, input, outputSize);
+        shake256(result, 0, usageID, input, outputSize);
+        return result;
+    }
+
+    /**
+     * HCMAC function.
+     *
+     * @param usageID    the usage ID
+     * @param input      the input
+     * @param outputSize the output size in bytes
+     * @return Returns the resulting digest value.
+     */
+    @CheckReturnValue
+    public static byte[] hcmac(@Nonnull final KDFUsage usageID, @Nonnull final byte[] input, final int outputSize) {
+        requireAtLeast(0, outputSize);
+        final byte[] result = new byte[outputSize];
+        shake256(result, 0, usageID, input, outputSize);
         return result;
     }
 
@@ -266,8 +314,7 @@ public final class OtrCryptoEngine4 {
      * @param input      The input data to KDF_1.
      * @param outputSize The size of the derivative output.
      */
-    // FIXME https://github.com/otrv4/otrv4/blob/master/otrv4.md#key-derivation-function-hash-function-and-MAC-function
-    public static void kdf1(@Nonnull final byte[] dst, final int offset, @Nonnull final KDFUsage usageID,
+    private static void shake256(@Nonnull final byte[] dst, final int offset, @Nonnull final KDFUsage usageID,
             @Nonnull final byte[] input, final int outputSize) {
         requireNonNull(dst);
         requireAtLeast(0, outputSize);
@@ -308,7 +355,7 @@ public final class OtrCryptoEngine4 {
     public static Scalar hashToScalar(@Nonnull final KDFUsage usageID, @Nonnull final byte[] d) {
         assert !allZeroBytes(d) : "Expected non-zero bytes for input. This may indicate that a critical bug is present, or it may be a false warning.";
         // "Compute h = KDF_1(d, 64) as an unsigned value, little-endian."
-        final byte[] h = kdf1(usageID, d, HASH_TO_SCALAR_LENGTH_BYTES);
+        final byte[] h = hwc(usageID, d, HASH_TO_SCALAR_LENGTH_BYTES);
         try {
             // "Return h (mod q)"
             return decodeScalar(h);

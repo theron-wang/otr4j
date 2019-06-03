@@ -22,7 +22,8 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.BRACE_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.SHARED_SECRET;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.SSID;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.THIRD_BRACE_KEY;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf1;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.hwc;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.crypto.ed448.Ed448.containsPoint;
 import static org.bouncycastle.util.Arrays.clear;
 import static org.bouncycastle.util.Arrays.concatenate;
@@ -178,7 +179,7 @@ public final class MixedSharedSecret implements AutoCloseable {
     @Nonnull
     public byte[] generateSSID() {
         requireNotClosed();
-        return kdf1(SSID, this.k, SSID_LENGTH_BYTES);
+        return hwc(SSID, this.k, SSID_LENGTH_BYTES);
     }
 
     /**
@@ -241,13 +242,13 @@ public final class MixedSharedSecret implements AutoCloseable {
         }
         if (performDHRatchet) {
             final byte[] k_dh = asUnsignedByteArray(this.dhKeyPair.generateSharedSecret(this.theirDHPublicKey));
-            kdf1(this.braceKey, 0, THIRD_BRACE_KEY, k_dh, BRACE_KEY_LENGTH_BYTES);
+            kdf(this.braceKey, 0, THIRD_BRACE_KEY, k_dh, BRACE_KEY_LENGTH_BYTES);
             clear(k_dh);
         } else {
-            kdf1(this.braceKey, 0, BRACE_KEY, this.braceKey, BRACE_KEY_LENGTH_BYTES);
+            kdf(this.braceKey, 0, BRACE_KEY, this.braceKey, BRACE_KEY_LENGTH_BYTES);
         }
         final byte[] tempKecdhBraceKey = concatenate(k_ecdh, this.braceKey);
-        kdf1(this.k, 0, SHARED_SECRET, tempKecdhBraceKey, K_LENGTH_BYTES);
+        kdf(this.k, 0, SHARED_SECRET, tempKecdhBraceKey, K_LENGTH_BYTES);
         clear(tempKecdhBraceKey);
         clear(k_ecdh);
     }

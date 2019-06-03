@@ -32,7 +32,8 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.MESSAGE_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.NEXT_CHAIN_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.ROOT_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf1;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.hcmac;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
@@ -403,7 +404,7 @@ final class DoubleRatchet implements AutoCloseable {
         final byte[] previousRootKey = this.rootKey.clone();
         final byte[] newK = this.sharedSecret.getK();
         final byte[] concatPreviousRootKeyNewK = concatenate(previousRootKey, newK);
-        kdf1(this.rootKey, 0, ROOT_KEY, concatPreviousRootKeyNewK, ROOT_KEY_LENGTH_BYTES);
+        kdf(this.rootKey, 0, ROOT_KEY, concatPreviousRootKeyNewK, ROOT_KEY_LENGTH_BYTES);
         switch (purpose) {
         case SENDING:
             this.senderRatchet.rotateKeys(concatPreviousRootKeyNewK);
@@ -448,9 +449,9 @@ final class DoubleRatchet implements AutoCloseable {
     @MustBeClosed
     private MessageKeys generateMessageKeys(@Nonnull final byte[] chainkey) {
         assert !allZeroBytes(chainkey) : "Expected chainkey of random data instead of all zero-bytes.";
-        final byte[] encrypt = kdf1(MESSAGE_KEY, chainkey, MessageKeys.MK_ENC_LENGTH_BYTES);
+        final byte[] encrypt = kdf(MESSAGE_KEY, chainkey, MessageKeys.MK_ENC_LENGTH_BYTES);
         final byte[] concat0xffChainKey = concatenate(new byte[] {(byte) 0xff}, chainkey);
-        final byte[] extraSymmetricKey = kdf1(EXTRA_SYMMETRIC_KEY, concat0xffChainKey, MessageKeys.EXTRA_SYMMETRIC_KEY_LENGTH_BYTES);
+        final byte[] extraSymmetricKey = kdf(EXTRA_SYMMETRIC_KEY, concat0xffChainKey, MessageKeys.EXTRA_SYMMETRIC_KEY_LENGTH_BYTES);
         clear(concat0xffChainKey);
         return new MessageKeys(encrypt, extraSymmetricKey);
     }
@@ -532,7 +533,7 @@ final class DoubleRatchet implements AutoCloseable {
             requireNotClosed();
             requireRotationNotNeeded();
             this.messageID += 1;
-            kdf1(this.chainKey, 0, NEXT_CHAIN_KEY, this.chainKey, CHAIN_KEY_LENGTH_BYTES);
+            kdf(this.chainKey, 0, NEXT_CHAIN_KEY, this.chainKey, CHAIN_KEY_LENGTH_BYTES);
         }
 
         /**
@@ -541,7 +542,7 @@ final class DoubleRatchet implements AutoCloseable {
         void rotateKeys(@Nonnull final byte[] concatPreviousRootKeyNewK) {
             requireNotClosed();
             this.messageID = 0;
-            kdf1(this.chainKey, 0, CHAIN_KEY, concatPreviousRootKeyNewK, CHAIN_KEY_LENGTH_BYTES);
+            kdf(this.chainKey, 0, CHAIN_KEY, concatPreviousRootKeyNewK, CHAIN_KEY_LENGTH_BYTES);
             this.needsRotation = false;
         }
 
@@ -650,7 +651,7 @@ final class DoubleRatchet implements AutoCloseable {
         byte[] authenticate(@Nonnull final byte[] dataMessageSections) {
             final byte[] mac = generateMAC();
             final byte[] concatMacDataMessageSections = concatenate(mac, dataMessageSections);
-            final byte[] authenticator = kdf1(AUTHENTICATOR, concatMacDataMessageSections, AUTHENTICATOR_LENGTH_BYTES);
+            final byte[] authenticator = hcmac(AUTHENTICATOR, concatMacDataMessageSections, AUTHENTICATOR_LENGTH_BYTES);
             clear(concatMacDataMessageSections);
             clear(mac);
             return authenticator;
@@ -680,7 +681,7 @@ final class DoubleRatchet implements AutoCloseable {
         @Nonnull
         private byte[] generateMAC() {
             requireNotClosed();
-            return kdf1(MAC_KEY, this.encrypt, MK_MAC_LENGTH_BYTES);
+            return kdf(MAC_KEY, this.encrypt, MK_MAC_LENGTH_BYTES);
         }
 
         /**

@@ -43,7 +43,7 @@ import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.FIRST_ROOT_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf1;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ringSign;
 import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
@@ -204,7 +204,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         // Initialize Double Ratchet.
         final MixedSharedSecret firstRatchetSecret = new MixedSharedSecret(secureRandom, ourFirstDHKeyPair, ourFirstECDHKeyPair,
                 message.ourFirstDHPublicKey, message.ourFirstECDHPublicKey);
-        final DoubleRatchet ratchet = new DoubleRatchet(firstRatchetSecret, kdf1(FIRST_ROOT_KEY, k,
+        final DoubleRatchet ratchet = new DoubleRatchet(firstRatchetSecret, kdf(FIRST_ROOT_KEY, k,
                 ROOT_KEY_LENGTH_BYTES), BOB);
         secure(context, ssid, ratchet, ourClientProfile.getLongTermPublicKey(), ourClientProfile.getForgingKey(),
                 theirClientProfile.getLongTermPublicKey(), theirClientProfile.getForgingKey());

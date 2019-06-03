@@ -33,7 +33,7 @@ import static net.java.otr4j.api.SmpEngineHosts.verify;
 import static net.java.otr4j.api.TLV.EMPTY_BODY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.SMP_SECRET;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.fingerprint;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf1;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.hwc;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
 import static net.java.otr4j.io.OtrEncodables.encode;
 import static net.java.otr4j.session.api.SMPStatus.FAILED;
@@ -183,7 +183,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
                 .writeFingerprint(fingerprint(initiatorPublicKey, initiatorForgingKey))
                 .writeFingerprint(fingerprint(responderPublicKey, responderForgingKey))
                 .writeSSID(this.ssid).writeData(answer).toByteArray();
-        return decodeScalar(kdf1(SMP_SECRET, secretInputData, SMP_SECRET_LENGTH_BYTES));
+        return decodeScalar(hwc(SMP_SECRET, secretInputData, SMP_SECRET_LENGTH_BYTES));
     }
 
     @Nonnull

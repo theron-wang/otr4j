@@ -27,7 +27,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.encrypt;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.fingerprint;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.generateRandomValueInZq;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.hashToScalar;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf1;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ringSign;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ringVerify;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.verifyEdDSAPublicKey;
@@ -74,25 +74,25 @@ public class OtrCryptoEngine4Test {
     @Test(expected = NullPointerException.class)
     public void testKdf1NullDestination() {
         final byte[] input = "someinput".getBytes(US_ASCII);
-        kdf1(null, 0, FINGERPRINT, input, 32);
+        kdf(null, 0, FINGERPRINT, input, 32);
     }
 
     @Test(expected = NullPointerException.class)
     public void testKdf1NullKDFUsage() {
         final byte[] dst = new byte[100];
-        kdf1(dst, 0, null, new byte[] {(byte) 0xff}, 32);
+        kdf(dst, 0, null, new byte[] {(byte) 0xff}, 32);
     }
 
     @Test(expected = NullPointerException.class)
     public void testKdf1NullInput() {
         final byte[] dst = new byte[100];
-        kdf1(dst, 0, FINGERPRINT, null, 32);
+        kdf(dst, 0, FINGERPRINT, null, 32);
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void testKdf1DestinationTooSmall() {
         final byte[] input = "helloworld".getBytes(US_ASCII);
-        kdf1(new byte[1], 0, FINGERPRINT, input, 32);
+        kdf(new byte[1], 0, FINGERPRINT, input, 32);
     }
 
     @Test
@@ -100,7 +100,7 @@ public class OtrCryptoEngine4Test {
         final byte[] input = "helloworld".getBytes(US_ASCII);
         final byte[] expected = new byte[] {51, 79, -93, 96, 82, -80, -50, 81, 65, 106, -39, -43, 79, 58, 69, -26, -73, -52, -110, -48, -110, -66, -23, -26, 76, -43, 65, 120, 52, -65, -71, -50, 0};
         final byte[] dst = new byte[32 + 1];
-        kdf1(dst, 0, FINGERPRINT, input, 32);
+        kdf(dst, 0, FINGERPRINT, input, 32);
         assertArrayEquals(expected, dst);
     }
 
@@ -109,7 +109,7 @@ public class OtrCryptoEngine4Test {
         final byte[] input = "helloworld".getBytes(US_ASCII);
         final byte[] expected = new byte[] {0, 51, 79, -93, 96, 82, -80, -50, 81, 65, 106, -39, -43, 79, 58, 69, -26, -73, -52, -110, -48, -110, -66, -23, -26, 76, -43, 65, 120, 52, -65, -71, -50};
         final byte[] dst = new byte[32 + 1];
-        kdf1(dst, 1, FINGERPRINT, input, 32);
+        kdf(dst, 1, FINGERPRINT, input, 32);
         assertArrayEquals(expected, dst);
     }
 
@@ -118,7 +118,7 @@ public class OtrCryptoEngine4Test {
         final byte[] input = "helloworld".getBytes(US_ASCII);
         final byte[] expected = new byte[] {51, 79, -93, 96, 82, -80, -50, 81, 65, 106, -39, -43, 79, 58, 69, -26, -73, -52, -110, -48, -110, -66, -23, -26, 76, -43, 65, 120, 52, -65, -71, -50};
         final byte[] dst = new byte[32];
-        kdf1(dst, 0, FINGERPRINT, input, 32);
+        kdf(dst, 0, FINGERPRINT, input, 32);
         assertArrayEquals(expected, dst);
     }
 
@@ -126,37 +126,37 @@ public class OtrCryptoEngine4Test {
     public void testKdf1NegativeOutputSize() {
         final byte[] input = "helloworld".getBytes(US_ASCII);
         final byte[] dst = new byte[32];
-        kdf1(dst, 0, FINGERPRINT, input, -1);
+        kdf(dst, 0, FINGERPRINT, input, -1);
     }
 
     @Test
     public void testKdf1ReturnValue() {
         final byte[] input = "helloworld".getBytes(US_ASCII);
         final byte[] expected = new byte[32];
-        kdf1(expected, 0, FINGERPRINT, input, 32);
-        assertArrayEquals(expected, kdf1(FINGERPRINT, input, 32));
+        kdf(expected, 0, FINGERPRINT, input, 32);
+        assertArrayEquals(expected, kdf(FINGERPRINT, input, 32));
     }
 
     @Test(expected = NullPointerException.class)
     public void testKdf1ReturnValueNullUsageID() {
-        kdf1(null, new byte[] {1}, 32);
+        kdf(null, new byte[] {1}, 32);
     }
 
     @Test(expected = NullPointerException.class)
     public void testKdf1ReturnValueNullInput() {
-        kdf1(FINGERPRINT, null, 32);
+        kdf(FINGERPRINT, null, 32);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testKdf1ReturnValueBadOutputSize() {
-        kdf1(FINGERPRINT, "helloworld".getBytes(US_ASCII), -1);
+        kdf(FINGERPRINT, "helloworld".getBytes(US_ASCII), -1);
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void testKdf1WithOffsetTooSmall() {
         final byte[] input = "helloworld".getBytes(US_ASCII);
         final byte[] dst = new byte[32];
-        kdf1(dst, 1, FINGERPRINT, input, 32);
+        kdf(dst, 1, FINGERPRINT, input, 32);
     }
 
     @Test(expected = NullPointerException.class)
