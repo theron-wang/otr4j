@@ -43,6 +43,7 @@ import static org.bouncycastle.util.encoders.Base64.decode;
  * The processor for the general OTR message structure. The parser processes the text representation of an OTR message
  * and returns a message instance. The writer processes object representations to generate text representations.
  */
+// FIXME add test to verify that illegal query string "?OTRv?4?" is correctly ignored (https://github.com/otrv4/otrv4/commit/0f3da9c672d3ee32721ed753d9403a6c18b07f2e)
 public final class MessageProcessor {
 
     /**

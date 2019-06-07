@@ -118,6 +118,7 @@ import static net.java.otr4j.session.state.State.FLAG_NONE;
 // TODO *do* report an error if flag IGNORE_UNREADABLE is not set, i.e. check if this logic is in place. (unreadable message to OtrEngineHost)
 // TODO consider refining synchronization such that multiple session instances can operate concurrently
 // TODO I suspect a deadlock may occur between interactions with slave sessions accessing master, and master sessions accessing slave.
+// FIXME verify if we allow sending query messages in `ENCRYPTED_MESSAGES` state.
 @SuppressWarnings("PMD.TooManyFields")
 final class SessionImpl implements Session, Context {
 
