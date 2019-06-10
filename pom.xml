@@ -104,6 +104,16 @@
                         <!--<analysisCacheLocation>${project.build.directory}/pmd/pmd.cache</analysisCacheLocation> &lt;!&ndash; Optional: points to this location by default &ndash;&gt;-->
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin</artifactId>
+                    <version>3.1.10</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -282,7 +292,6 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>3.1.10</version>
                 <executions>
                     <execution>
                         <goals>
@@ -350,7 +359,6 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.2</version>
                 <executions>
                     <execution>
                         <id>pre-unit-test</id>
@@ -393,12 +401,10 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>3.1.7</version>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.1</version>
             </plugin>
             <!--<plugin>-->
             <!--<groupId>org.apache.maven.plugins</groupId>-->
