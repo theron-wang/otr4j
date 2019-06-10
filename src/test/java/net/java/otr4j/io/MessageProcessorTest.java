@@ -157,6 +157,12 @@ public final class MessageProcessorTest {
     }
 
     @Test
+    public void testEnsureIllegalVersionStringIsCorrectlyParsed() throws ProtocolException {
+        final QueryMessage msg = (QueryMessage) parseMessage("?OTRv?4?");
+        assertTrue(msg.getVersions().isEmpty());
+    }
+
+    @Test
     public void testParseOTRError() throws ProtocolException {
         final ErrorMessage msg = (ErrorMessage) parseMessage("?OTR Error:Hello world of errors!");
         assertEquals("", msg.identifier);
