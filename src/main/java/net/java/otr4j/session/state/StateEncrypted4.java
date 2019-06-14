@@ -139,6 +139,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             @Nonnull final Iterable<TLV> tlvs, final byte flags, @Nonnull final byte[] providedMACsToReveal) {
         assert providedMACsToReveal.length == 0 || !allZeroBytes(providedMACsToReveal)
                 : "BUG: expected providedMACsToReveal to contains some non-zero values.";
+        // Perform ratchet if necessary, possibly collecting MAC codes to reveal.
         final BigInteger dhPublicKey;
         final byte[] collectedMACs;
         if (this.ratchet.isNeedSenderKeyRotation()) {
@@ -152,6 +153,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             dhPublicKey = null;
             collectedMACs = providedMACsToReveal;
         }
+        // Construct data message.
         final byte[] msgBytes = new OtrOutputStream().writeMessage(msgText).writeByte(0).writeTLV(tlvs).toByteArray();
         final byte[] ciphertext = this.ratchet.encrypt(msgBytes);
         final int ratchetId = this.ratchet.getI();
