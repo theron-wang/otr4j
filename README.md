@@ -18,25 +18,26 @@ Development stages:
 _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bottom of README.md_
 
 - ✔ Minimal working encryption (Interactive DAKE, message encryption/decryption, self-serving)  
-_a.k.a. "at least the bugs are symmetric in nature :-)"_
+  _a.k.a. "at least the bugs are symmetric in nature :-)"_
 - ✔ Socialist Millionaire's Protocol for OTRv4.
 - ✔ Migrate OTRv4 DAKE state machine into OTRv4 Message state machine.
-- ⌛ Migrate Ed448-Goldilocks implementation to Bouncy Castle.
-  - ✔ EdDSA long-term keypair
-  - ECDH keypair  
+- ⌛ Redesigned Double Ratchet algorithm.
+- ⌛ Migrate Ed448-Goldilocks and EdDSA implementation to Bouncy Castle.  
   _Requires additions to the BouncyCastle API, as certain necessary operations are not currently supplied._
-  - Verify if implementation is still concise and simple, given recent modifications to Point and Scalar internals.
-- Support for skipped messages, keeping track of skipped message keys.
-- OTRv4 maintenance tasks
-- Full implementation of "OTRv3-compatible" + "OTRv4 Interactive" use-case (including all FIXMEs)
-  - Full review against the (finalized) OTRv4 spec.  
+  - ✔ EdDSA long-term keypair
+  - ⌛ ECDH keypair
+  - _ Ring Signatures
+  - _ SMP for OTRv4
+- _ Support for skipped messages, keeping track of skipped message keys.
+- _ OTRv4 maintenance tasks
+- _ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive" use cases (including all FIXMEs)
+  - _ Full review against the (finalized) OTRv4 spec.  
     _As the specification has been modified during implementation of support in otr4j, a full review against current spec is needed._
-  - Stabilize, fix and then guard the public API offered by otr4j.
-- Clean up remaining TODOs
-- ... (OTRv4 Non-interactive, ...)
-- Clean up logging statements that disclose secret information, used originally for debugging purposes.
-- Review comments to spot out-of-date quotes from the spec. (Probably better to ignore or generalize.)
-- Review the many logging statements and verify if log levels are reasonable.
+  - _ Stabilize, fix and then guard (AnimalSniffer) the public API offered by otr4j.
+- _ Clean up OTRv2 support.
+- _ Clean up remaining TODOs
+- _ Review comments to spot out-of-date quotes from the spec. (Probably better to ignore or generalize.)
+- _ Review and clean up logging statements. Ensure that no secret data is exposed through logging. Verify if log levels are reasonable.
 
 ## Functionality
 
@@ -62,7 +63,7 @@ _a.k.a. "at least the bugs are symmetric in nature :-)"_
   - 3072-bit Diffie-Hellman parameters
     - ☑ Temporary working solution
     - ☐ Verify if current solution is acceptable, otherwise migrate to JCA/BC
-  - ☑ XSalsa20 symmetric cipher
+  - ☑ ChaCha20 symmetric cipher
   - ☑ SHAKE-256
   - ☑ Ring signatures
 - Key Exchange:
@@ -161,30 +162,21 @@ _a.k.a. "at least the bugs are symmetric in nature :-)"_
   - ☑ Introduce checkstyle _ImportControl_ module to guard the design structure
   - ☑ Introduce [ErrorProne](https://errorprone.info/docs/installation).
   - ☐ Introduce [Animal sniffer](https://www.mojohaus.org/animal-sniffer/) build plug-in to verify that we do not break backwards-compatibility, once released.
-  - ☐ spotbugs-annotations to support managing clean-up of cryptographic key material
   - ☐ Experiment with features of [Checker Framework](https://checkerframework.org).
+  - ☒ spotbugs-annotations to support managing clean-up of cryptographic key material  
+    _Google Error-Prone annotations prove to be more interesting. Adoption of those annotations has started already._
 - ⌛ Issue: some tests fail on a rare occasion due to the `assert` checks that are embedded in the code. These tests should be updated to assume successful execution if input would trigger the assertion.
 - ☐ Significant amount of unit tests to accompany the library. (Currently: 1200+)
 - ☐ Interoperability testing with other OTRv4 implementations.
 
 ## Architectural considerations
 
-Architectural constraints that are taken into consideration for the design.
+Architectural constraints that are respected in the design.
 
 1. Correctness of protocol implementation.
 1. Encapsulation of cryptographic material to prevent mistakes, misuse, excessive exposure.
 1. Design that prevents or makes obvious programming errors.
 1. Simplicity: restricted implementation with only as much complexity and abstraction as needed.
-
-# Synopsis
-
-otr4j is an implementation of the [OTR (Off The Record) protocol][OTR]
-in Java. Its development started during the GSoC '09
-where the goal was to add support for OTR in [jitsi]. It currently
-supports [OTRv2] and [OTRv3]. Additionally, there is support for
-fragmenting outgoing messages.
-
-Support for OTRv1 is removed, as is recommended by the OTR team.
 
 # Using otr4j
 
@@ -204,8 +196,8 @@ The easiest way to start adoption of this new version given an earlier implement
 Please open an issue to discuss contributions early. As OTRv4 is still in draft and work on otr4j is active, things might change quickly.
 
 - Helping with implementation work:
-  - see the Functional/Operational/Developmental action points above.
-  - look for `FIXME`/`TODO` in the code. (there are plenty to find)
+  - See the Functional/Operational/Developmental action points above.
+  - Look for `FIXME`/`TODO` in the code.
 - Peer-reviewing (for correctness, security and improvements in general)  
   _Don't trust me. I have done most of the work, so you can contribute the fixes to make it trustworthy for you!_
 - Integration into chat clients
@@ -235,10 +227,10 @@ Due to initial lack of support for Ed448-Goldilocks, a _very_ basic, limited Jav
 
 
 
-  [OTR]: https://otr.cypherpunks.ca/
-  [jitsi]: https://jitsi.org/
-  [OTRv2]: https://otr.cypherpunks.ca/Protocol-v2-3.1.0.html
-  [OTRv3]: https://otr.cypherpunks.ca/Protocol-v3-4.1.1.html
-  [OTRv4]: https://github.com/otrv4/otrv4
-  [otr4j/otr4j]: https://github.com/otr4j/otr4j
-  [joldilocks]: https://github.com/otr4j/joldilocks
+[OTR]: https://otr.cypherpunks.ca/
+[jitsi]: https://jitsi.org/
+[OTRv2]: https://otr.cypherpunks.ca/Protocol-v2-3.1.0.html
+[OTRv3]: https://otr.cypherpunks.ca/Protocol-v3-4.1.1.html
+[OTRv4]: https://github.com/otrv4/otrv4
+[otr4j/otr4j]: https://github.com/otr4j/otr4j
+[joldilocks]: https://github.com/otr4j/joldilocks
