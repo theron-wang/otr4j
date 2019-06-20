@@ -27,7 +27,8 @@
     </licenses>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project-java-version>1.7</project-java-version>
+        <project-java-version>7</project-java-version>
+        <project-java-version-classic>1.7</project-java-version-classic>
     </properties>
     <!-- force HTTPS access for downloading jars -->
     <repositories>
@@ -190,6 +191,7 @@
                 <configuration>
                     <source>${project-java-version}</source>
                     <target>${project-java-version}</target>
+                    <release>${project-java-version}</release>
                     <showWarnings>true</showWarnings>
                     <failOnWarning>true</failOnWarning>
                     <annotationProcessorPaths>
@@ -281,7 +283,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <targetJdk>${project-java-version}</targetJdk>
+                    <targetJdk>${project-java-version-classic}</targetJdk>
                     <rulesets>
                         <ruleset>codecheck/pmd-rules.xml</ruleset>
                     </rulesets>
