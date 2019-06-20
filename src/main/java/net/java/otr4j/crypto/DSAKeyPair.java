@@ -39,7 +39,7 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
 public final class DSAKeyPair {
 
     private static final String ALGORITHM_DSA = "DSA";
-    private static final int DSA_KEY_SIZE_BITS = 1024;
+    private static final int DSA_KEY_LENGTH_BITS = 1024;
 
     /**
      * Length of DSA signature in bytes.
@@ -78,7 +78,7 @@ public final class DSAKeyPair {
     public static DSAKeyPair generateDSAKeyPair() {
         try {
             final KeyPairGenerator kg = KeyPairGenerator.getInstance(ALGORITHM_DSA);
-            kg.initialize(DSA_KEY_SIZE_BITS);
+            kg.initialize(DSA_KEY_LENGTH_BITS);
             final KeyPair keypair = kg.genKeyPair();
             return new DSAKeyPair((DSAPrivateKey) keypair.getPrivate(), (DSAPublicKey) keypair.getPublic());
         } catch (final NoSuchAlgorithmException e) {
