@@ -8,4 +8,4 @@
  * otr4j session management.
  */
 package net.java.otr4j.session;
-// TODO implement session expiration (and corresponding MAC revelation)
+//TODO consider reintroducing OtrKeyManager for standardised storage format for private + public key pairs. (Otherwise it is up to the OtrEngineHost to persist the data in the appropriate way.)

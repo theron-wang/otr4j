@@ -24,6 +24,8 @@ import java.security.interfaces.DSAPrivateKey;
 import java.security.interfaces.DSAPublicKey;
 import java.security.spec.DSAPublicKeySpec;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
@@ -34,7 +36,6 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
 /**
  * Key pair to keep DSA private and corresponding public key.
  */
-// FIXME check how we should restore the DSAKeyPair from the OtrEngineHost perspective. It needs to store and restore the DSAKeyPair on every execution session.
 // TODO we probably should implement AutoCloseable too, even though the destroy method is not implemented for DSAPrivateKey.
 public final class DSAKeyPair {
 
@@ -87,6 +88,30 @@ public final class DSAKeyPair {
     }
 
     /**
+     * Restore an existing encoded DSA key pair.
+     *
+     * @param encodedPrivateKey the encoded DSA private key.
+     * @param encodedPublicKey  the encoded DSA public key..
+     * @return Returns an instance of DSAKeyPair containing the encoded key pair.
+     * @throws OtrCryptoException Thrown in case of failure to reconstruct DSA public or private key.
+     */
+    public static DSAKeyPair restoreDSAKeyPair(@Nonnull final byte[] encodedPrivateKey,
+            @Nonnull final byte[] encodedPublicKey) throws OtrCryptoException {
+        final PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedPrivateKey);
+        final X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(encodedPublicKey);
+        try {
+            final KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM_DSA);
+            final DSAPublicKey publicKey = (DSAPublicKey) keyFactory.generatePublic(publicKeySpec);
+            final DSAPrivateKey privateKey = (DSAPrivateKey) keyFactory.generatePrivate(privateKeySpec);
+            return new DSAKeyPair(privateKey, publicKey);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Failed to acquire key factory for DSA algorithm.", e);
+        } catch (final InvalidKeySpecException e) {
+            throw new OtrCryptoException("Failed to load encoded DSA key pair.", e);
+        }
+    }
+
+    /**
      * (Re)Create DSA public key based on provided input parameters.
      *
      * @param y y
@@ -117,7 +142,60 @@ public final class DSAKeyPair {
      */
     @Nonnull
     public DSAPublicKey getPublic() {
-        return publicKey;
+        return this.publicKey;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final DSAKeyPair that = (DSAKeyPair) o;
+        return privateKey.equals(that.privateKey) && publicKey.equals(that.publicKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(privateKey, publicKey);
+    }
+
+    /**
+     * Encode the DSA key pair into a byte-array.
+     * <p>
+     * The public key is encoded using X509 format. The private key is encoded using PKCS8 format.
+     *
+     * @return Returns an encoded DSA key pair consisting of encoded private and public key.
+     */
+    @Nonnull
+    public EncodedDSAKeyPair encodeDSAKeyPair() {
+        final X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(this.publicKey.getEncoded());
+        final PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(this.privateKey.getEncoded());
+        return new EncodedDSAKeyPair(pkcs8EncodedKeySpec.getEncoded(), x509EncodedKeySpec.getEncoded());
+    }
+
+    /**
+     * Structure containing encoded DSA key pair.
+     */
+    public static final class EncodedDSAKeyPair {
+
+        /**
+         * PKCS8-encoded private key specification.
+         */
+        public final byte[] encodedPrivateKey;
+
+        /**
+         * X509-encoded public key specification.
+         */
+        public final byte[] encodedPublicKey;
+
+        // FIXME perform byte-array length checking before accepting encoded private and public keys.
+        private EncodedDSAKeyPair(@Nonnull final byte[] encodedPrivateKey, @Nonnull final byte[] encodedPublicKey) {
+            this.encodedPrivateKey = requireNonNull(encodedPrivateKey);
+            this.encodedPublicKey = requireNonNull(encodedPublicKey);
+        }
     }
 
     /**
