@@ -31,6 +31,10 @@ import static org.bouncycastle.util.Arrays.copyOfRange;
 // FIXME check how we should restore the EdDSAKeyPair from the OtrEngineHost perspective. It needs to store and restore the DSAKeyPair on every execution session.
 public final class EdDSAKeyPair implements AutoCloseable {
 
+    private static final int SECRET_KEY_LENGTH_BYTES = SECRET_KEY_SIZE;
+
+    private static final int PUBLIC_KEY_LENGTH_BYTES = PUBLIC_KEY_SIZE;
+
     /**
      * Context value as applied in OTRv4.
      */
@@ -42,9 +46,9 @@ public final class EdDSAKeyPair implements AutoCloseable {
 
     private EdDSAKeyPair(@Nonnull final byte[] symmetricKey, @Nonnull final byte[] publicKey) {
         assert !allZeroBytes(symmetricKey);
-        this.symmetricKey = requireLengthExactly(SECRET_KEY_SIZE, symmetricKey);
+        this.symmetricKey = requireLengthExactly(SECRET_KEY_LENGTH_BYTES, symmetricKey);
         assert !allZeroBytes(publicKey);
-        this.publicKey = requireLengthExactly(PUBLIC_KEY_SIZE, publicKey);
+        this.publicKey = requireLengthExactly(PUBLIC_KEY_LENGTH_BYTES, publicKey);
     }
 
     /**
@@ -56,8 +60,8 @@ public final class EdDSAKeyPair implements AutoCloseable {
      */
     @Nonnull
     public static EdDSAKeyPair generate(@Nonnull final SecureRandom random) {
-        final byte[] symmetricKey = randomBytes(random, new byte[SECRET_KEY_SIZE]);
-        final byte[] publicKey = new byte[PUBLIC_KEY_SIZE];
+        final byte[] symmetricKey = randomBytes(random, new byte[SECRET_KEY_LENGTH_BYTES]);
+        final byte[] publicKey = new byte[PUBLIC_KEY_LENGTH_BYTES];
         generatePublicKey(symmetricKey, 0, publicKey, 0);
         return new EdDSAKeyPair(symmetricKey, publicKey);
     }
@@ -116,8 +120,8 @@ public final class EdDSAKeyPair implements AutoCloseable {
     @Nonnull
     public Scalar getSecretKey() {
         requireNotCleared();
-        final byte[] h = shake256(this.symmetricKey, 2 * SECRET_KEY_SIZE);
-        final byte[] secretKey = copyOfRange(h, 0, SECRET_KEY_SIZE);
+        final byte[] h = shake256(this.symmetricKey, 2 * SECRET_KEY_LENGTH_BYTES);
+        final byte[] secretKey = copyOfRange(h, 0, SECRET_KEY_LENGTH_BYTES);
         clear(h);
         prune(secretKey);
         try {

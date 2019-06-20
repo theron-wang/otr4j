@@ -18,6 +18,7 @@ import static net.java.otr4j.crypto.ed448.Scalars.prune;
 import static net.java.otr4j.crypto.ed448.Shake256.shake256;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
+import static org.bouncycastle.math.ec.rfc8032.Ed448.SECRET_KEY_SIZE;
 import static org.bouncycastle.util.Arrays.clear;
 import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
 import static org.bouncycastle.util.Arrays.copyOfRange;
@@ -30,7 +31,7 @@ public final class ECDHKeyPair implements AutoCloseable {
     /**
      * Length of the secret key in bytes.
      */
-    private static final int SECRET_KEY_LENGTH_BYTES = 57;
+    private static final int SECRET_KEY_LENGTH_BYTES = SECRET_KEY_SIZE;
 
     private Scalar secretKey;
 
@@ -74,7 +75,7 @@ public final class ECDHKeyPair implements AutoCloseable {
         //    generating the public key.
         final byte[] h;
         {
-            final byte[] buffer = shake256(r, 114);
+            final byte[] buffer = shake256(r, 2 * SECRET_KEY_LENGTH_BYTES);
             h = copyOfRange(buffer, 0, SECRET_KEY_LENGTH_BYTES);
             clear(buffer);
         }
