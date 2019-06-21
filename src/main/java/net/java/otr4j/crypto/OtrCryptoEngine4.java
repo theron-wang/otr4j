@@ -411,7 +411,6 @@ public final class OtrCryptoEngine4 {
      * @param baseKey the extra symmetric key, acquired through the Double Ratchet algorithm.
      * @return Returns the derived extra symmetric key.
      */
-    // FIXME write unit tests
     @Nonnull
     public static byte[] deriveExtraSymmetricKey(final int index, @Nonnull final byte[] context, @Nonnull final byte[] baseKey) {
         final byte[] idx = new byte[] {(byte) (index & 0xff), (byte) ((index >>> 8) & 0xff)};

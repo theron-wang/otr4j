@@ -23,6 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.FINGERPRINT;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.decodePoint;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.decrypt;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.deriveExtraSymmetricKey;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.encrypt;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.fingerprint;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.generateRandomValueInZq;
@@ -35,6 +36,8 @@ import static net.java.otr4j.crypto.ed448.Ed448.basePoint;
 import static net.java.otr4j.crypto.ed448.Ed448.identity;
 import static net.java.otr4j.crypto.ed448.PointTestUtils.createPoint;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
+import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -435,5 +438,49 @@ public class OtrCryptoEngine4Test {
         assertNotEquals(v1, v2);
         assertNotEquals(v2, v3);
         assertNotEquals(v1, v3);
+    }
+
+    @Test
+    public void testDeriveExtraSymmetricKeys() {
+        final byte[] baseKey = randomBytes(RANDOM, new byte[64]);
+        final byte[] context = randomBytes(RANDOM, new byte[4]);
+        final byte[] derived = deriveExtraSymmetricKey(1, context, baseKey);
+        assertNotNull(derived);
+        assertFalse(allZeroBytes(derived));
+        assertFalse(Arrays.equals(baseKey, derived));
+    }
+
+    @Test
+    public void testDeriveExtraSymmetricKeysRepeatedly() {
+        final byte[] baseKey = randomBytes(RANDOM, new byte[64]);
+        final byte[] context = randomBytes(RANDOM, new byte[4]);
+        final byte[] derived1 = deriveExtraSymmetricKey(1, context, baseKey);
+        final byte[] derived2 = deriveExtraSymmetricKey(1, context, baseKey);
+        final byte[] derived3 = deriveExtraSymmetricKey(1, context, baseKey);
+        assertArrayEquals(derived1, derived2);
+        assertArrayEquals(derived2, derived3);
+    }
+
+    @Test
+    public void testDeriveExtraSymmetricKeysIncrementally() {
+        final byte[] baseKey = randomBytes(RANDOM, new byte[64]);
+        final byte[] context = randomBytes(RANDOM, new byte[4]);
+        final byte[] derived1 = deriveExtraSymmetricKey(1, context, baseKey);
+        final byte[] derived2 = deriveExtraSymmetricKey(2, context, baseKey);
+        final byte[] derived3 = deriveExtraSymmetricKey(3, context, baseKey);
+        assertFalse(Arrays.equals(derived1, derived2));
+        assertFalse(Arrays.equals(derived2, derived3));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testDeriveExtraSymmetricKeysNullContext() {
+        final byte[] baseKey = randomBytes(RANDOM, new byte[64]);
+        deriveExtraSymmetricKey(1, null, baseKey);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testDeriveExtraSymmetricKeysNullBaseKey() {
+        final byte[] context = randomBytes(RANDOM, new byte[4]);
+        deriveExtraSymmetricKey(1, context, null);
     }
 }

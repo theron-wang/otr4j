@@ -132,7 +132,6 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
      * <p>
      * {@inheritDoc}
      */
-    // FIXME write unit tests for acquisition and use of extra symmetric key
     @Nonnull
     @Override
     public byte[] getExtraSymmetricKey() {
