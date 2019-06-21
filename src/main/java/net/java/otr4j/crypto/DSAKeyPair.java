@@ -190,7 +190,6 @@ public final class DSAKeyPair {
          */
         public final byte[] encodedPublicKey;
 
-        // FIXME perform byte-array length checking before accepting encoded private and public keys.
         private EncodedDSAKeyPair(@Nonnull final byte[] encodedPrivateKey, @Nonnull final byte[] encodedPublicKey) {
             this.encodedPrivateKey = requireNonNull(encodedPrivateKey);
             this.encodedPublicKey = requireNonNull(encodedPublicKey);

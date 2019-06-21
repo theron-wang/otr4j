@@ -124,7 +124,6 @@ public final class MessageProcessor {
             } else if (otrFragmented(text)) {
                 return Fragment.parse(text);
             } else if (otrEncoded(text)) {
-                // TODO in case of slight errors in format, e.g. OTR-encoded message missing trailing '.', do we consider this incorrect message and return as plaintext or do we want to throw ProtocolException?
                 // Data message found.
                 /*
                  * BC 1.48 added a check to throw an exception if a non-base64 character is encountered.

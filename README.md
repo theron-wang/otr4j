@@ -74,7 +74,6 @@ _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bo
     - ☑ Generate next message keys (in-order messages)
     - ☑ Generate future message keys (skip over missing messages)
     - ☐ Implementation of Double Ratchet algorithm redesign.
-    - ☐ Store and recall skipped message keys (out-of-order messages)
   - Shared secrets management:
     - ☑ Ephemeral DH with 3072-bit parameters
     - ☑ Ephemeral ECDH based on Ed448-Goldilocks
@@ -210,14 +209,16 @@ In addition to syntactic correctness checking, we enforce javadoc for anything t
 
 ## Setting up your IDE: IntelliJ IDEA
 
-1. Load the otr4j pom.xml file as a maven module.
+1. Load the otr4j `pom.xml` file as a maven module.
 1. Load `codecheck/checkstyle.xml` as the code style in IntelliJ (you will need to have the Checkstyle plug-in installed)
 1. ... (I'm not sure if anything else is needed, but I'll update when I find out.)
 
 # Limitations
 
 * _otr4j supports message lengths up to 2^31._  
-Message sizes in OTR are defined as 4-byte _unsigned_. Due to Java's signed integer types, this implementation currently uses a signed integer. Therefore, the highest bit of the message length is interpreted as sign bit. Lengths over 2^31 are unsupported.
+  Message sizes in OTR are defined as 4-byte _unsigned_. Due to Java's signed integer types, this implementation currently uses a signed integer. Therefore, the highest bit of the message length is interpreted as sign bit. Lengths over 2^31 are unsupported.
+* _otr4j assumes message injections onto the (chat) network always succeed._  
+  It is expected that message injection always succeeds. There is no way to signal that it failed and otr4j does not have any countermeasures in case it fails. (This may be added as a feature, but is currently not under consideration.)
 
 # Dependency on [joldilocks][joldilocks]
 

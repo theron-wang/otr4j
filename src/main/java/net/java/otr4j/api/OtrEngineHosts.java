@@ -132,8 +132,7 @@ public final class OtrEngineHosts {
      *
      * @param host the engine host instance
      * @param sessionID the session ID
-     * @return Returns the engine host's customized fallback message or null if
-     * request failed with a runtime exception.
+     * @return Returns the engine host's customized fallback message or null if request failed with a runtime exception.
      */
     public static String getFallbackMessage(@Nonnull final OtrEngineHost host,
             @Nonnull final SessionID sessionID) {

@@ -22,8 +22,7 @@ import javax.annotation.Nonnull;
 public interface OtrEngineHost extends SmpEngineHost {
 
     /**
-     * Request host to inject a new message into the IM communication stream
-     * upon which the OTR session is built.
+     * Request host to inject a new message into the IM communication stream upon which the OTR session is built.
      * <p>
      * Calls to {@code injectMessage} are expected to always succeed, as there is no way to mitigate not being able to
      * send arbitrary messages in the protocol. On the side of the OtrEngineHost implementation, if it is possible to
@@ -33,7 +32,6 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID The session ID
      * @param msg       The message to inject
      */
-    // TODO Evaluate behavior of the implementation in case of failure to inject messages in transport network. (Will it leave the protocol in an inconsistent state? In which cases?)
     void injectMessage(@Nonnull SessionID sessionID, @Nonnull String msg);
 
     /**
