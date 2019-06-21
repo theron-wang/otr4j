@@ -162,7 +162,7 @@ final class SessionKey implements AutoCloseable {
     byte[] sendingAESKey() {
         final byte sendByte = high ? HIGH_SEND_BYTE : LOW_SEND_BYTE;
         final byte[] h1 = this.s.h1(sendByte);
-        final byte[] key = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
+        final byte[] key = new byte[OtrCryptoEngine.AES_KEY_LENGTH_BYTES];
         ByteBuffer.wrap(h1).get(key);
         LOGGER.finest("Calculated sending AES key.");
         return key;
@@ -188,7 +188,7 @@ final class SessionKey implements AutoCloseable {
     byte[] receivingAESKey() {
         final byte receiveByte = high ? HIGH_RECEIVE_BYTE : LOW_RECEIVE_BYTE;
         final byte[] h1 = this.s.h1(receiveByte);
-        final byte[] key = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
+        final byte[] key = new byte[OtrCryptoEngine.AES_KEY_LENGTH_BYTES];
         ByteBuffer.wrap(h1).get(key);
         LOGGER.finest("Calculated receiving AES key.");
         return key;

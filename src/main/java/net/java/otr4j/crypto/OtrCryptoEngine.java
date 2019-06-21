@@ -65,11 +65,14 @@ public final class OtrCryptoEngine {
      * Length of MAC in bytes.
      */
     private static final int MAC_LENGTH_BYTES = 20;
+
     /**
      * The AES key length in bytes.
      */
-    public static final int AES_KEY_BYTE_LENGTH = 16;
-
+    public static final int AES_KEY_LENGTH_BYTES = 16;
+    /**
+     * The length of the counter value using for AES-128 encryption/decryption.
+     */
     public static final int CTR_LENGTH_BYTES = 16;
 
     private OtrCryptoEngine() {

@@ -104,7 +104,7 @@ public final class SharedSecret implements AutoCloseable {
     @Nonnull
     public byte[] c() {
         LOGGER.finest("Requested c.");
-        final byte[] c = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
+        final byte[] c = new byte[OtrCryptoEngine.AES_KEY_LENGTH_BYTES];
         ByteBuffer.wrap(h2(C_START)).get(c);
         return c;
     }
@@ -117,9 +117,9 @@ public final class SharedSecret implements AutoCloseable {
     @Nonnull
     public byte[] cp() {
         LOGGER.finest("Requested c'.");
-        final byte[] cp = new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH];
+        final byte[] cp = new byte[OtrCryptoEngine.AES_KEY_LENGTH_BYTES];
         final ByteBuffer buffer = ByteBuffer.wrap(h2(C_START));
-        buffer.position(OtrCryptoEngine.AES_KEY_BYTE_LENGTH);
+        buffer.position(OtrCryptoEngine.AES_KEY_LENGTH_BYTES);
         buffer.get(cp);
         return cp;
     }

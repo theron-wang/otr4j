@@ -55,7 +55,7 @@ final class StateAwaitingDHKey extends AbstractAuthState {
         }
         this.version = version;
         this.keypair = Objects.requireNonNull(keypair);
-        if (r.length != OtrCryptoEngine.AES_KEY_BYTE_LENGTH) {
+        if (r.length != OtrCryptoEngine.AES_KEY_LENGTH_BYTES) {
             throw new IllegalArgumentException("Invalid random value: expected 128-bit random value.");
         }
         this.r = r;
