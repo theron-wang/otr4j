@@ -26,7 +26,6 @@ import static net.java.otr4j.session.api.SMPStatus.FAILED;
 import static net.java.otr4j.session.api.SMPStatus.INPROGRESS;
 import static net.java.otr4j.session.api.SMPStatus.SUCCEEDED;
 import static net.java.otr4j.session.api.SMPStatus.UNDECIDED;
-import static org.bouncycastle.util.Arrays.concatenate;
 
 final class StateExpect4 implements SMPState {
 
@@ -89,9 +88,8 @@ final class StateExpect4 implements SMPState {
         if (!containsPoint(smp4.rb)) {
             throw new SMPAbortException("Message validation failed.");
         }
-        if (!smp4.cr.equals(hashToScalar(SMP_VALUE_0X08, concatenate(
-                multiplyByBase(smp4.d7).add(this.g3b.multiply(smp4.cr)).encode(),
-                this.qa.add(this.qb.negate()).multiply(smp4.d7).add(smp4.rb.multiply(smp4.cr)).encode())))) {
+        if (!smp4.cr.equals(hashToScalar(SMP_VALUE_0X08, multiplyByBase(smp4.d7).add(this.g3b.multiply(smp4.cr)).encode(),
+                this.qa.add(this.qb.negate()).multiply(smp4.d7).add(smp4.rb.multiply(smp4.cr)).encode()))) {
             throw new SMPAbortException("Message validation failed.");
         }
         // Verify if the zero-knowledge proof succeeds on our end.

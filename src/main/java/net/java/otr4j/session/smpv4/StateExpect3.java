@@ -31,7 +31,6 @@ import static net.java.otr4j.session.api.SMPStatus.FAILED;
 import static net.java.otr4j.session.api.SMPStatus.INPROGRESS;
 import static net.java.otr4j.session.api.SMPStatus.SUCCEEDED;
 import static net.java.otr4j.session.api.SMPStatus.UNDECIDED;
-import static org.bouncycastle.util.Arrays.concatenate;
 
 final class StateExpect3 implements SMPState {
 
@@ -94,14 +93,12 @@ final class StateExpect3 implements SMPState {
         if (!containsPoint(smp3.pa) || !containsPoint(smp3.qa) || !containsPoint(smp3.ra)) {
             throw new SMPAbortException("Message failed verification.");
         }
-        if (!smp3.cp.equals(hashToScalar(SMP_VALUE_0X06, concatenate(
-                this.g3.multiply(smp3.d5).add(smp3.pa.multiply(smp3.cp)).encode(),
-                multiplyByBase(smp3.d5).add(g2.multiply(smp3.d6)).add(smp3.qa.multiply(smp3.cp)).encode())))) {
+        if (!smp3.cp.equals(hashToScalar(SMP_VALUE_0X06, this.g3.multiply(smp3.d5).add(smp3.pa.multiply(smp3.cp)).encode(),
+                multiplyByBase(smp3.d5).add(g2.multiply(smp3.d6)).add(smp3.qa.multiply(smp3.cp)).encode()))) {
             throw new SMPAbortException("Message failed verification.");
         }
-        if (!smp3.cr.equals(hashToScalar(SMP_VALUE_0X07, concatenate(
-                multiplyByBase(smp3.d7).add(g3a.multiply(smp3.cr)).encode(),
-                smp3.qa.add(this.qb.negate()).multiply(smp3.d7).add(smp3.ra.multiply(smp3.cr)).encode())))) {
+        if (!smp3.cr.equals(hashToScalar(SMP_VALUE_0X07, multiplyByBase(smp3.d7).add(g3a.multiply(smp3.cr)).encode(),
+                smp3.qa.add(this.qb.negate()).multiply(smp3.d7).add(smp3.ra.multiply(smp3.cr)).encode()))) {
             throw new SMPAbortException("Message failed verification.");
         }
         // Verify if the zero-knowledge proof succeeds on our end.
@@ -116,8 +113,8 @@ final class StateExpect3 implements SMPState {
         // Compose final message to other party.
         final Point rb = requireValidPoint(smp3.qa.add(this.qb.negate()).multiply(this.b3));
         final Scalar r7 = generateRandomValueInZq(this.random);
-        final Scalar cr = hashToScalar(SMP_VALUE_0X08, concatenate(multiplyByBase(r7).encode(),
-                smp3.qa.add(this.qb.negate()).multiply(r7).encode()));
+        final Scalar cr = hashToScalar(SMP_VALUE_0X08, multiplyByBase(r7).encode(),
+                smp3.qa.add(this.qb.negate()).multiply(r7).encode());
         final Scalar d7 = r7.subtract(this.b3.multiply(cr)).mod(primeOrder());
         return new SMPMessage4(rb, cr, d7);
     }

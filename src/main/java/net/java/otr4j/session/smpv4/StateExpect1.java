@@ -29,7 +29,6 @@ import static net.java.otr4j.crypto.ed448.Ed448.containsPoint;
 import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
 import static net.java.otr4j.crypto.ed448.Ed448.primeOrder;
 import static net.java.otr4j.crypto.ed448.Ed448.requireValidPoint;
-import static org.bouncycastle.util.Arrays.concatenate;
 
 /**
  * StateExpect1 is the initial state for SMP.
@@ -133,8 +132,8 @@ final class StateExpect1 implements SMPState {
         final Point g3 = requireValidPoint(this.message.g3a.multiply(b3));
         final Point pb = requireValidPoint(g3.multiply(r4));
         final Point qb = requireValidPoint(multiplyByBase(r4).add(g2.multiply(secret.mod(q))));
-        final Scalar cp = hashToScalar(SMP_VALUE_0X05, concatenate(g3.multiply(r5).encode(),
-                multiplyByBase(r5).add(g2.multiply(r6)).encode()));
+        final Scalar cp = hashToScalar(SMP_VALUE_0X05, g3.multiply(r5).encode(),
+                multiplyByBase(r5).add(g2.multiply(r6)).encode());
         final Scalar d5 = r5.subtract(r4.multiply(cp)).mod(q);
         final Scalar d6 = r6.subtract(secret.mod(q).multiply(cp)).mod(q);
         context.setState(new StateExpect3(this.random, pb, qb, b3, this.message.g3a, g2, g3));
