@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.crypto.DHKeyPairOTR3.generateDHKeyPair;
 import static net.java.otr4j.crypto.DHKeyPairOTR3.verifyDHPublicKey;
+import static net.java.otr4j.crypto.OtrCryptoEngine.CTR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine.aesDecrypt;
 import static net.java.otr4j.crypto.OtrCryptoEngine.checkEquals;
 import static net.java.otr4j.crypto.OtrCryptoEngine.sha256Hmac;
@@ -146,7 +147,7 @@ final class StateAwaitingSig extends AbstractAuthState {
             final byte[] xEncryptedMAC = sha256Hmac160(out.toByteArray(), s.m2p());
             checkEquals(xEncryptedMAC, message.xEncryptedMAC, "xEncryptedMAC failed verification.");
             // OTR: "Uses c' to decrypt AESc'(XA) to obtain XA = pubA, keyidA, sigA(MA)"
-            final byte[] remoteXBytes = aesDecrypt(s.cp(), null, message.xEncrypted);
+            final byte[] remoteXBytes = aesDecrypt(s.cp(), new byte[CTR_LENGTH_BYTES], message.xEncrypted);
             final SignatureX remoteX = readSignatureX(remoteXBytes);
             // OTR: "Computes MA = MACm1'(gy, gx, pubA, keyidA)"
             final SignatureM remoteM = new SignatureM(this.remoteDHPublicKey, this.localDHKeyPair.getPublic(),

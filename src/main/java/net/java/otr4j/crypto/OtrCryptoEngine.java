@@ -16,7 +16,6 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
@@ -27,6 +26,7 @@ import java.security.interfaces.DSAPublicKey;
 
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
+import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static net.java.otr4j.util.ByteArrays.toHexString;
 
 /**
@@ -69,7 +69,8 @@ public final class OtrCryptoEngine {
      * The AES key length in bytes.
      */
     public static final int AES_KEY_BYTE_LENGTH = 16;
-    private static final int CTR_LENGTH_BYTES = 16;
+
+    public static final int CTR_LENGTH_BYTES = 16;
 
     private OtrCryptoEngine() {
         // this class is never instantiated, it only has static methods
@@ -218,17 +219,15 @@ public final class OtrCryptoEngine {
      * @throws OtrCryptoException In case of illegal ciphertext.
      */
     @Nonnull
-    public static byte[] aesDecrypt(@Nonnull final byte[] key, @Nullable final byte[] ctr, @Nonnull final byte[] b)
+    public static byte[] aesDecrypt(@Nonnull final byte[] key, @Nonnull final byte[] ctr, @Nonnull final byte[] b)
             throws OtrCryptoException {
+        requireLengthExactly(CTR_LENGTH_BYTES, ctr);
         assert !allZeroBytes(key) : "Expected non-zero bytes for key. This may indicate that a critical bug is present, or it may be a false warning.";
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
         final AESEngine aesDec = new AESEngine();
         final SICBlockCipher sicAesDec = new SICBlockCipher(aesDec);
         final BufferedBlockCipher bufSicAesDec = new BufferedBlockCipher(sicAesDec);
-
-        // Either use existing ctr or create initial counter value 0.
-        final byte[] iv = ctr == null ? new byte[CTR_LENGTH_BYTES] : ctr;
-        bufSicAesDec.init(false, new ParametersWithIV(new KeyParameter(key), iv));
+        bufSicAesDec.init(false, new ParametersWithIV(new KeyParameter(key), ctr));
         final byte[] aesOutLwDec = new byte[b.length];
         final int done = bufSicAesDec.processBytes(b, 0, b.length, aesOutLwDec, 0);
         try {
@@ -244,21 +243,19 @@ public final class OtrCryptoEngine {
      * Encrypt payload using AES.
      *
      * @param key the encryption key
-     * @param ctr the counter value to use
+     * @param ctr the initial counter value to use
      * @param b   the plaintext content in bytes
      * @return Returns the encrypted content.
      */
     @Nonnull
-    public static byte[] aesEncrypt(@Nonnull final byte[] key, @Nullable final byte[] ctr, @Nonnull final byte[] b) {
+    public static byte[] aesEncrypt(@Nonnull final byte[] key, @Nonnull final byte[] ctr, @Nonnull final byte[] b) {
+        requireLengthExactly(CTR_LENGTH_BYTES, ctr);
         assert !allZeroBytes(key) : "Expected non-zero bytes for key. This may indicate that a critical bug is present, or it may be a false warning.";
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
         final AESEngine aesEnc = new AESEngine();
         final SICBlockCipher sicAesEnc = new SICBlockCipher(aesEnc);
         final BufferedBlockCipher bufSicAesEnc = new BufferedBlockCipher(sicAesEnc);
-
-        // Create initial counter value 0.
-        final byte[] iv = ctr == null ? new byte[CTR_LENGTH_BYTES] : ctr;
-        bufSicAesEnc.init(true, new ParametersWithIV(new KeyParameter(key), iv));
+        bufSicAesEnc.init(true, new ParametersWithIV(new KeyParameter(key), ctr));
         final byte[] aesOutLwEnc = new byte[b.length];
         final int done = bufSicAesEnc.processBytes(b, 0, b.length, aesOutLwEnc, 0);
         try {

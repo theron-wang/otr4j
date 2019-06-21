@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 
 import static net.java.otr4j.crypto.DHKeyPairOTR3.generateDHKeyPair;
 import static net.java.otr4j.crypto.DHKeyPairOTR3.verifyDHPublicKey;
+import static net.java.otr4j.crypto.OtrCryptoEngine.CTR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine.aesEncrypt;
 import static net.java.otr4j.crypto.OtrCryptoEngine.sha256Hash;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
@@ -68,7 +69,8 @@ abstract class AbstractAuthState implements AuthState {
         final byte[] publicKeyEncrypted;
         // OTR: "Choose a random value r (128 bits)"
         final byte[] r = randomBytes(context.secureRandom(), new byte[OtrCryptoEngine.AES_KEY_BYTE_LENGTH]);
-        publicKeyEncrypted = aesEncrypt(r, null, publicKeyBytes);
+        // use initial counter of all zero-bytes.
+        publicKeyEncrypted = aesEncrypt(r, new byte[CTR_LENGTH_BYTES], publicKeyBytes);
         // OTR: "This is the SHA256 hash of gxmpi."
         final byte[] publicKeyHash = sha256Hash(publicKeyBytes);
         // OTR: "Sends Alice AESr(gx), HASH(gx)"

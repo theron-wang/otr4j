@@ -53,7 +53,7 @@ public final class EdDSAKeyPair implements AutoCloseable {
 
     /**
      * Generate a EdDSA (long-term) key pair. The key pair itself will be requested from the Engine host. This method is
-     * there for convenience, to be used by Engine host implementations.
+     * there for convenience, to be used by host implementations.
      *
      * @param random Source of secure random data.
      * @return Returns the generated key pair.

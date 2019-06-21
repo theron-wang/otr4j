@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 
 import static net.java.otr4j.crypto.DHKeyPairOTR3.generateDHKeyPair;
 import static net.java.otr4j.crypto.DHKeyPairOTR3.verifyDHPublicKey;
+import static net.java.otr4j.crypto.OtrCryptoEngine.CTR_LENGTH_BYTES;
 import static net.java.otr4j.io.OtrEncodables.encode;
 
 /**
@@ -95,7 +96,7 @@ final class StateAwaitingDHKey extends AbstractAuthState {
         if (localKeyHashBigInt.compareTo(remoteKeyHashBigInt) > 0) {
             // OTR: "If yours is the higher hash value: Ignore the incoming D-H Commit message, but resend your D-H Commit message."
             LOGGER.finest("Ignored the incoming D-H Commit message, but resent our D-H Commit message.");
-            final byte[] publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(this.r, null, publicKeyBytes);
+            final byte[] publicKeyEncrypted = OtrCryptoEngine.aesEncrypt(this.r, new byte[CTR_LENGTH_BYTES], publicKeyBytes);
             // Special-case repeat of your D-H Commit message: instead of
             // resending D-H Commit message to every instance, now dedicate it
             // to the sender of the received D-H Commit message. That way, we do
@@ -134,7 +135,7 @@ final class StateAwaitingDHKey extends AbstractAuthState {
         final SignatureX mysteriousX = new SignatureX(longTermKeyPair.getPublic(), LOCAL_DH_PRIVATE_KEY_ID,
                 signature);
         // OTR: "Encrypt XB using AES128-CTR with key c and initial counter value 0."
-        final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(s.c(), null, encode(mysteriousX));
+        final byte[] xEncrypted = OtrCryptoEngine.aesEncrypt(s.c(), new byte[CTR_LENGTH_BYTES], encode(mysteriousX));
         // OTR: "This is the SHA256-HMAC-160 (that is, the first 160 bits of the SHA256-HMAC) of the encrypted signature field (including the four-byte length), using the key m2."
         final OtrOutputStream xEncryptedEncoded = new OtrOutputStream().writeData(xEncrypted);
         final byte[] xEncryptedHash = OtrCryptoEngine.sha256Hmac160(xEncryptedEncoded.toByteArray(), s.m2());

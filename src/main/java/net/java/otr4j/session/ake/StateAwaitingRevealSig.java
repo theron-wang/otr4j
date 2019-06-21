@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.crypto.DHKeyPairOTR3.verifyDHPublicKey;
+import static net.java.otr4j.crypto.OtrCryptoEngine.CTR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine.SHA256_DIGEST_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine.aesDecrypt;
 import static net.java.otr4j.crypto.OtrCryptoEngine.aesEncrypt;
@@ -137,7 +138,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
         try {
             // Start validation of Reveal Signature message.
             // OTR: "Uses r to decrypt the value of gx sent earlier"
-            final byte[] remotePublicKeyBytes = aesDecrypt(message.revealedKey, null, this.remotePublicKeyEncrypted);
+            final byte[] remotePublicKeyBytes = aesDecrypt(message.revealedKey, new byte[CTR_LENGTH_BYTES], this.remotePublicKeyEncrypted);
             // OTR: "Verifies that HASH(gx) matches the value sent earlier"
             final byte[] expectedRemotePublicKeyHash = sha256Hash(remotePublicKeyBytes);
             checkEquals(this.remotePublicKeyHash, expectedRemotePublicKeyHash, "Remote's public key hash failed validation.");
@@ -152,7 +153,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
             final byte[] expectedXEncryptedMAC = sha256Hmac160(xEncryptedEncoded.toByteArray(), s.m2());
             checkEquals(message.xEncryptedMAC, expectedXEncryptedMAC, "xEncryptedMAC failed validation.");
             // OTR: "Uses c to decrypt AESc(XB) to obtain XB = pubB, keyidB, sigB(MB)"
-            final byte[] remoteMysteriousXBytes = aesDecrypt(s.c(), null, message.xEncrypted);
+            final byte[] remoteMysteriousXBytes = aesDecrypt(s.c(), new byte[CTR_LENGTH_BYTES], message.xEncrypted);
             remoteMysteriousX = readSignatureX(remoteMysteriousXBytes);
             // OTR: "Computes MB = MACm1(gx, gy, pubB, keyidB)"
             final SignatureM expectedM = new SignatureM(remoteDHPublicKey, this.keypair.getPublic(),
@@ -185,7 +186,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
         final SignatureX mysteriousX = new SignatureX(localLongTermKeyPair.getPublic(), LOCAL_DH_PRIVATE_KEY_ID,
                 signature);
         // OTR: "Encrypt XA using AES128-CTR with key c' and initial counter value 0."
-        final byte[] xEncrypted = aesEncrypt(s.cp(), null, encode(mysteriousX));
+        final byte[] xEncrypted = aesEncrypt(s.cp(), new byte[CTR_LENGTH_BYTES], encode(mysteriousX));
         // OTR: "Encode this encrypted value as the DATA field."
         // OTR: "This is the SHA256-HMAC-160 (that is, the first 160 bits of the SHA256-HMAC) of the encrypted signature field (including the four-byte length), using the key m2'."
         final OtrOutputStream xEncryptedEncoded = new OtrOutputStream().writeData(xEncrypted);
