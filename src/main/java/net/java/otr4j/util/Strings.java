@@ -24,7 +24,8 @@ public final class Strings {
      * @param parts separated string parts
      * @return Joint string.
      */
-    public static String join(@Nonnull final String[] parts) {
+    @Nonnull
+    public static String join(@Nonnull final String... parts) {
         final StringBuilder builder = new StringBuilder();
         for (final String part : parts) {
             builder.append(part);

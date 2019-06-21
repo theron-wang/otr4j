@@ -17,31 +17,31 @@ public final class StringsTest {
 
     @Test(expected = NullPointerException.class)
     public void testJoinNull() {
-        join(null);
+        join((String[]) null);
     }
 
     @Test
     public void testJoinZeroStrings() {
-        assertEquals("", join(new String[0]));
+        assertEquals("", join());
     }
 
     @Test
     public void testJoinSingleString() {
-        assertEquals("Hello world", join(new String[]{"Hello world"}));
+        assertEquals("Hello world", join("Hello world"));
     }
 
     @Test
     public void testJoinTwoStrings() {
-        assertEquals("HelloWorld", join(new String[]{"Hello", "World"}));
+        assertEquals("HelloWorld", join("Hello", "World"));
     }
 
     @Test
     public void testJoinManyStrings() {
-        assertEquals("HelloWorldThisIsJohnDo", join(new String[]{"Hello", "World", "This", "Is", "John", "Do"}));
+        assertEquals("HelloWorldThisIsJohnDo", join("Hello", "World", "This", "Is", "John", "Do"));
     }
 
     @Test
     public void testJoiningManyEmptyStrings() {
-        assertEquals("", join(new String[]{"", "", "", ""}));
+        assertEquals("", join("", "", "", ""));
     }
 }
