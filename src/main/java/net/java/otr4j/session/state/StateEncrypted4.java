@@ -127,7 +127,8 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
      * Note: the user is responsible for cleaning up the extra symmetric key material after use.
      * <p>
      * Note: for receiving keys we currently automatically calculate the derived keys, so the sending user is expected
-     * to do the same.
+     * to do the same. You can use {@link net.java.otr4j.crypto.OtrCryptoEngine4#deriveExtraSymmetricKey(int, byte[], byte[])}
+     * for this.
      * <p>
      * {@inheritDoc}
      */

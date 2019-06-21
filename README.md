@@ -100,9 +100,7 @@ _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bo
   - ☐ PreKey Profile support
 - Extra Symmetric Key support:
   - ☑ OTRv3
-  - OTRv4
-    - ☐ Base "Extra Symmetric Key" available for use.
-    - ☐ Derived keys according to OTRv4 prescribed derivation
+  - ☑ OTRv4
 - API support:
   - ☐ Verify if API still fully suitable for clients to adopt.
   - ☐ Ability to import/export DSA and EdDSA key pairs, such that `ClientProfile`s can be persisted/restored.

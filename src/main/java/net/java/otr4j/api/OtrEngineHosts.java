@@ -235,7 +235,8 @@ public final class OtrEngineHosts {
      * Callback in case the Extra Symmetric Key is discovered.
      * <p>
      * The extra symmetric key that is provided here, is the base key. If multiple type 8 (OTRv3) or type 7 (OTRv4) TLVs
-     * are attached to the same Data Message, the same key will be provided repeatedly.
+     * are attached to the same Data Message, the same key will be provided repeatedly. Additional keys can be derived
+     * using {@link net.java.otr4j.crypto.OtrCryptoEngine4#deriveExtraSymmetricKey(int, byte[], byte[])}.
      * <p>
      * For convenience the user's message is also provided. However this message is also returned as it would be
      * normally as a result of transforming a receiving message. The extra symmetric key is provided as a byte-array.
