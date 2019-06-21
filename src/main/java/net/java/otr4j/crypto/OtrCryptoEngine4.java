@@ -48,6 +48,7 @@ import static org.bouncycastle.util.Arrays.concatenate;
 /**
  * Crypto engine for OTRv4.
  */
+// FIXME restructure kdf, hwc, hcmac methods to receive inputs last, such that we can use varargs
 public final class OtrCryptoEngine4 {
 
     /**

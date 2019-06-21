@@ -41,9 +41,11 @@ import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
+import static net.java.otr4j.api.OtrEngineHosts.extraSymmetricKeyDiscovered;
 import static net.java.otr4j.api.OtrEngineHosts.unencryptedMessageReceived;
 import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.TLV.DISCONNECTED;
+import static net.java.otr4j.api.TLV.PADDING;
 import static net.java.otr4j.io.EncryptedMessage.extractContents;
 import static net.java.otr4j.io.ErrorMessage.ERROR_1_MESSAGE_UNREADABLE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_UNREADABLE_MESSAGE;
@@ -60,6 +62,13 @@ import static org.bouncycastle.util.Arrays.concatenate;
 final class StateEncrypted4 extends AbstractCommonState implements StateEncrypted {
 
     private static final int VERSION = FOUR;
+
+    /**
+     * Note that in OTRv4 the TLV type for the extra symmetric key is 0x7.
+     */
+    private static final int EXTRA_SYMMETRIC_KEY = 0x7;
+
+    private static final int EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES = 4;
 
     @SuppressWarnings("PMD.LoggerIsNotStaticFinal")
     private final Logger logger;
@@ -109,22 +118,24 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     }
 
     /**
-     * The extra symmetric key is the "raw" key. It does not perform the additional multi-key-derivations that are
-     * described in the OTRv4 specification in case of multiple TLV 7 payloads using index and payload context (first 4
-     * bytes).
+     * The extra symmetric key is the "raw" key of the Sender. It does not perform the additional multi-key-derivations
+     * that are described in the OTRv4 specification in case of multiple TLV 7 payloads using index and payload context
+     * (first 4 bytes).
      * <p>
      * The acquired extra symmetric key is the key that corresponds to the next message that is sent.
      * <p>
      * Note: the user is responsible for cleaning up the extra symmetric key material after use.
      * <p>
+     * Note: for receiving keys we currently automatically calculate the derived keys, so the sending user is expected
+     * to do the same.
+     * <p>
      * {@inheritDoc}
      */
     // FIXME write unit tests for acquisition and use of extra symmetric key
-    // FIXME how to expose Extra Symmetric Key for receiving?
     @Nonnull
     @Override
     public byte[] getExtraSymmetricKey() {
-        return this.ratchet.extraSymmetricSendingKey();
+        return this.ratchet.extraSymmetricKeySender();
     }
 
     @Nonnull
@@ -203,10 +214,11 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 // Ratchet ID < our current ratchet ID. This is technically impossible, so should not be supported.
                 throw new ProtocolException("The double ratchet does not allow for first messages of previous ratchet ID to arrive at a later time. This is an illegal message.");
             }
-            // If a new ratchet key has been received, any message keys corresponding to skipped messages from the previous
-            // receiving ratchet are stored. A new DH ratchet is performed.
+            // If a new ratchet key has been received, any message keys corresponding to skipped messages from the
+            // previous receiving ratchet are stored. A new DH ratchet is performed.
             // TODO generate and store skipped message for previous chain key.
-            // The Double Ratchet prescribes alternate rotations, so after a single rotation for each we expect to reveal MAC codes.
+            // The Double Ratchet prescribes alternate rotations, so after a single rotation for each we expect to
+            // reveal MAC codes.
             if (message.i > 0 && message.revealedMacs.length == 0) {
                 assert false : "CHECK: Shouldn't there always be at least one MAC code to reveal?";
                 logger.warning("Expected other party to reveal recently used MAC codes, but no MAC codes are revealed! (This may be a bug in the other party's OTR implementation.)");
@@ -253,10 +265,10 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 continue;
             }
             switch (tlv.type) {
-            case TLV.PADDING: // TLV0
+            case PADDING:
                 // nothing to do here, just ignore the padding
                 break;
-            case DISCONNECTED: // TLV1
+            case DISCONNECTED:
                 if ((message.flags & FLAG_IGNORE_UNREADABLE) != FLAG_IGNORE_UNREADABLE) {
                     logger.log(WARNING, "Other party is using a faulty OTR client: DISCONNECT messages are expected to have the IGNORE_UNREADABLE flag set.");
                 }
@@ -265,6 +277,17 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 }
                 this.ratchet.forgetRemainingMACsToReveal();
                 context.transition(this, new StateFinished(getAuthState()));
+                break;
+            case EXTRA_SYMMETRIC_KEY:
+                if (tlv.value.length < EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES) {
+                    throw new OtrException("TLV value should contain at least 4 bytes of context identifier.");
+                }
+                try {
+                    extraSymmetricKeyDiscovered(context.getHost(), context.getSessionID(), content.message,
+                            this.ratchet.extraSymmetricKeyReceiver(message.i, message.j), tlv.value);
+                } catch (final RotationLimitationException e) {
+                    throw new IllegalStateException("BUG: Failed to acquire extra symmetric key for receiver even though message could be decrypted successfully.", e);
+                }
                 break;
             default:
                 logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);

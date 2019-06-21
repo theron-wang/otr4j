@@ -28,7 +28,7 @@ import static org.bouncycastle.util.Arrays.copyOfRange;
 /**
  * EdDSA key pair.
  */
-// FIXME check how we should restore the EdDSAKeyPair from the OtrEngineHost perspective. It needs to store and restore the DSAKeyPair on every execution session.
+// FIXME check how we should restore the EdDSAKeyPair from the OtrEngineHost perspective. It needs to store and restore the EdDSAKeyPair on every execution session.
 public final class EdDSAKeyPair implements AutoCloseable {
 
     private static final int SECRET_KEY_LENGTH_BYTES = SECRET_KEY_SIZE;

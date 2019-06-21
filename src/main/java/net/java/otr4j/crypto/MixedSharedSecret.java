@@ -111,7 +111,6 @@ public final class MixedSharedSecret implements AutoCloseable {
     public void close() {
         this.closed = true;
         clear(this.braceKey);
-        // FIXME at session expiration, OTRv4 spec does not document clearing 'K' value. Probably this was intended by 'brace keys' (plural) as there is only one of those.
         clear(this.k);
         this.ecdhKeyPair.close();
         this.dhKeyPair.close();
@@ -224,7 +223,6 @@ public final class MixedSharedSecret implements AutoCloseable {
             this.theirDHPublicKey = theirDHPublicKey;
         }
         regenerateK(performDHRatchet);
-        // FIXME check if this is sufficient to clear the key pairs in all cases, even if part of Double Ratchet initialization.
         this.ecdhKeyPair.close();
         if (performDHRatchet) {
             // Only clear the DH keypair after a DH ratchet has been performed thus a new brace key is available.

@@ -290,12 +290,12 @@ final class DoubleRatchet implements AutoCloseable {
      * Acquire the extra symmetric key that corresponds to the next message to be sent.
      * <p>
      * Note that this is the "raw" extra symmetric key. OTRv4 specifies how one can derive additional keys from this
-     * "raw" input data. These additional steps are not performed.
+     * "raw" input data. These derivation steps are not performed.
      *
      * @return The "raw" extra symmetric key. (User needs to clean up the byte-array after use.)
      */
     @Nonnull
-    byte[] extraSymmetricSendingKey() {
+    byte[] extraSymmetricKeySender() {
         requireNotClosed();
         LOGGER.log(FINEST, "Generating extra symmetric keys for encryption of ratchet {0}, message {1}.",
                 new Object[] {this.i - 1, this.senderRatchet.messageID});
@@ -310,7 +310,7 @@ final class DoubleRatchet implements AutoCloseable {
      * @return The "raw" extra symmetric key. (User needs to clean up the byte-array after use.)
      */
     @Nonnull
-    byte[] extraSymmetricReceivingKey(final int ratchetId, final int messageId) throws RotationLimitationException {
+    byte[] extraSymmetricKeyReceiver(final int ratchetId, final int messageId) throws RotationLimitationException {
         requireNotClosed();
         LOGGER.log(FINEST, "Generating extra symmetric keys for encryption of ratchet {0}, message {1}.",
                 new Object[] {this.i - 1, this.senderRatchet.messageID});
