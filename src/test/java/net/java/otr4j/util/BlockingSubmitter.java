@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.System.nanoTime;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -76,12 +77,15 @@ public final class BlockingSubmitter<E> {
     }
 
     public boolean offer(final E e, final long timeout, @Nonnull final TimeUnit unit) throws InterruptedException {
-        // TODO currently not applying timeout to over-all offer method execution time
         BlockingQueue<E> failedQueue = null;
+        final long start = nanoTime();
         for (final BlockingQueue<E> queue : this.queues) {
             if (!queue.offer(e, timeout, unit)) {
                 failedQueue = queue;
                 break;
+            }
+            if (nanoTime() - start > unit.toNanos(timeout)) {
+                throw new InterruptedException("Offering timed out while iterating over queues.");
             }
         }
         if (failedQueue == null) {
