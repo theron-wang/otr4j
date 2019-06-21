@@ -31,6 +31,13 @@
         <allow pkg="net.java.otr4j.api"/>
         <allow local-only="true" pkg="net.java.otr4j.crypto"/>
 
+        <!--
+        Do not allow logger in crypto package to avoid logging sensitive information. I'm open to discussing
+        about removing this rule. However, as most secret material is handled within the crypto package now, and we
+        try to keep classes as simple as possible, the need for logging at this level is not that big anymore.
+        -->
+        <disallow pkg="java.util.logging"/>
+
         <subpackage name="ed448">
             <allow pkg="nl.dannyvanheumen.joldilocks"/>
 

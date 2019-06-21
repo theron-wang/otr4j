@@ -13,7 +13,6 @@ import javax.annotation.Nonnull;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.logging.Logger;
 
 import static net.java.otr4j.crypto.OtrCryptoEngine.sha256Hash;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
@@ -28,8 +27,6 @@ import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
  * @author Danny van Heumen
  */
 public final class SharedSecret implements AutoCloseable {
-
-    private static final Logger LOGGER = Logger.getLogger(SharedSecret.class.getName());
 
     private static final byte SSID_START = (byte) 0x00;
     private static final byte C_START = (byte) 0x01;
@@ -49,7 +46,6 @@ public final class SharedSecret implements AutoCloseable {
         assert !allZeroBytes(secret) : "Expected non-zero byte-array for a secret. Something critical might be going wrong.";
         final BigInteger s = new BigInteger(1, secret);
         this.secbytes = new OtrOutputStream().writeBigInt(s).toByteArray();
-        LOGGER.finest("Generated shared secret s.");
     }
 
     @Override
@@ -89,7 +85,6 @@ public final class SharedSecret implements AutoCloseable {
      */
     @Nonnull
     public byte[] ssid() {
-        LOGGER.finest("Requested ssid.");
         final byte[] dst = new byte[8];
         ByteBuffer.wrap(h2(SSID_START)).get(dst);
         return dst;
@@ -103,7 +98,6 @@ public final class SharedSecret implements AutoCloseable {
     @SuppressWarnings("PMD.MethodNamingConventions")
     @Nonnull
     public byte[] c() {
-        LOGGER.finest("Requested c.");
         final byte[] c = new byte[OtrCryptoEngine.AES_KEY_LENGTH_BYTES];
         ByteBuffer.wrap(h2(C_START)).get(c);
         return c;
@@ -116,7 +110,6 @@ public final class SharedSecret implements AutoCloseable {
      */
     @Nonnull
     public byte[] cp() {
-        LOGGER.finest("Requested c'.");
         final byte[] cp = new byte[OtrCryptoEngine.AES_KEY_LENGTH_BYTES];
         final ByteBuffer buffer = ByteBuffer.wrap(h2(C_START));
         buffer.position(OtrCryptoEngine.AES_KEY_LENGTH_BYTES);
@@ -131,7 +124,6 @@ public final class SharedSecret implements AutoCloseable {
      */
     @Nonnull
     public byte[] m1() {
-        LOGGER.finest("Requested m1.");
         return h2(M1_START);
     }
 
@@ -142,7 +134,6 @@ public final class SharedSecret implements AutoCloseable {
      */
     @Nonnull
     public byte[] m1p() {
-        LOGGER.finest("Requested m1'.");
         return h2(M1P_START);
     }
 
@@ -153,7 +144,6 @@ public final class SharedSecret implements AutoCloseable {
      */
     @Nonnull
     public byte[] m2() {
-        LOGGER.finest("Requested m2.");
         return h2(M2_START);
     }
 
@@ -164,7 +154,6 @@ public final class SharedSecret implements AutoCloseable {
      */
     @Nonnull
     public byte[] m2p() {
-        LOGGER.finest("Requested m2'.");
         return h2(M2P_START);
     }
 
@@ -175,7 +164,6 @@ public final class SharedSecret implements AutoCloseable {
      */
     @Nonnull
     public byte[] extraSymmetricKey() {
-        LOGGER.finest("Requested extra symmetric key.");
         return h2(EXTRA_SYMMETRIC_KEY_START);
     }
 
