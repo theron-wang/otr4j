@@ -9,6 +9,9 @@
 
 package net.java.otr4j.crypto.ed448;
 
+import com.google.errorprone.annotations.CheckReturnValue;
+import net.java.otr4j.util.ConstantTimeEquality;
+
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,7 +33,7 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
  * implementation details.
  */
 // TODO implement arithmetic operations that operate directly on byte-arrays. ('toBigInteger' is workaround to make current implementation work.)
-public final class Scalar implements Comparable<Scalar>, AutoCloseable {
+public final class Scalar implements Comparable<Scalar>, AutoCloseable, ConstantTimeEquality<Scalar> {
 
     /**
      * Length of scalar byte-representation in bytes.
@@ -161,28 +164,27 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable {
         out.write(this.encoded, 0, SCALAR_LENGTH_BYTES);
     }
 
-    /**
-     * Constant-time Scalar equality.
-     *
-     * {@inheritDoc}
-     *
-     * @param o the other instance
-     * @return Returns true iff equal, or false otherwise.
-     */
     @Override
     public boolean equals(final Object o) {
-        // NOTE: equals has been modified to execute in constant time. That is also the reason we don't compare
-        // instances.
+        if (this == o) {
+            return true;
+        }
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
         final Scalar scalar = (Scalar) o;
-        return constantTimeAreEqual(this.encoded, scalar.encoded);
+        return Arrays.equals(encoded, scalar.encoded);
     }
 
     @Override
     public int hashCode() {
         return Arrays.hashCode(this.encoded);
+    }
+
+    @Override
+    @CheckReturnValue
+    public boolean constantTimeEquals(@Nonnull final Scalar o) {
+        return constantTimeAreEqual(this.encoded, o.encoded);
     }
 
     // TODO make Scalar.compareTo perform constant-time comparison

@@ -90,13 +90,14 @@ final class StateExpect4 implements SMPState {
         if (!containsPoint(smp4.rb)) {
             throw new SMPAbortException("Message validation failed.");
         }
-        if (!smp4.cr.equals(hashToScalar(SMP_VALUE_0X08, multiplyByBase(smp4.d7).add(this.g3b.multiply(smp4.cr)).encode(),
+        if (!smp4.cr.constantTimeEquals(hashToScalar(SMP_VALUE_0X08,
+                multiplyByBase(smp4.d7).add(this.g3b.multiply(smp4.cr)).encode(),
                 this.qa.add(this.qb.negate()).multiply(smp4.d7).add(smp4.rb.multiply(smp4.cr)).encode()))) {
             throw new SMPAbortException("Message validation failed.");
         }
         // Verify if the zero-knowledge proof succeeds on our end.
         final Point rab = smp4.rb.multiply(this.a3);
-        if (rab.equals(this.pa.add(this.pb.negate()))) {
+        if (rab.constantTimeEquals(this.pa.add(this.pb.negate()))) {
             LOGGER.log(Level.FINE, "Successful SMP verification.");
             context.setState(new StateExpect1(this.random, SUCCEEDED));
         } else {

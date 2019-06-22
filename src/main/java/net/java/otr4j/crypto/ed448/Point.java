@@ -9,6 +9,8 @@
 
 package net.java.otr4j.crypto.ed448;
 
+import com.google.errorprone.annotations.CheckReturnValue;
+import net.java.otr4j.util.ConstantTimeEquality;
 import nl.dannyvanheumen.joldilocks.Points;
 
 import javax.annotation.Nonnull;
@@ -24,7 +26,7 @@ import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
 /**
  * Point wrapper classed used to abstract away from the actual cryptographic implementation.
  */
-public final class Point implements AutoCloseable {
+public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
 
     private final byte[] encoded;
 
@@ -63,28 +65,27 @@ public final class Point implements AutoCloseable {
         }
     }
 
-    /**
-     * Constant-time Point equality.
-     *
-     * {@inheritDoc}
-     *
-     * @param o the other instance
-     * @return Returns true iff equal, or false otherwise.
-     */
     @Override
     public boolean equals(final Object o) {
-        // NOTE: equals has been modified to execute in constant time. That is also the reason we don't compare
-        // instances.
+        if (this == o) {
+            return true;
+        }
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final Point other = (Point) o;
-        return constantTimeAreEqual(this.encoded, other.encoded);
+        final Point point = (Point) o;
+        return Arrays.equals(encoded, point.encoded);
     }
 
     @Override
     public int hashCode() {
         return Arrays.hashCode(this.encoded);
+    }
+
+    @Override
+    @CheckReturnValue
+    public boolean constantTimeEquals(@Nonnull final Point o) {
+        return constantTimeAreEqual(this.encoded, o.encoded);
     }
 
     /**

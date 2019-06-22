@@ -115,8 +115,8 @@ public final class IdentityMessage extends AbstractEncodedMessage {
             return false;
         }
         final IdentityMessage that = (IdentityMessage) o;
-        return clientProfile.equals(that.clientProfile) && y.equals(that.y) && b.equals(that.b)
-                && ourFirstECDHPublicKey.equals(that.ourFirstECDHPublicKey)
+        return clientProfile.equals(that.clientProfile) && y.constantTimeEquals(that.y) && b.equals(that.b)
+                && ourFirstECDHPublicKey.constantTimeEquals(that.ourFirstECDHPublicKey)
                 && ourFirstDHPublicKey.equals(that.ourFirstDHPublicKey);
     }
 

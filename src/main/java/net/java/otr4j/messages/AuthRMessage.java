@@ -122,8 +122,8 @@ public final class AuthRMessage extends AbstractEncodedMessage {
             return false;
         }
         final AuthRMessage that = (AuthRMessage) o;
-        return clientProfile.equals(that.clientProfile) && x.equals(that.x) && a.equals(that.a)
-                && sigma.equals(that.sigma) && ourFirstECDHPublicKey.equals(that.ourFirstECDHPublicKey)
+        return clientProfile.equals(that.clientProfile) && x.constantTimeEquals(that.x) && a.equals(that.a)
+                && sigma.equals(that.sigma) && ourFirstECDHPublicKey.constantTimeEquals(that.ourFirstECDHPublicKey)
                 && ourFirstDHPublicKey.equals(that.ourFirstDHPublicKey);
     }
 

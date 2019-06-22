@@ -89,15 +89,15 @@ final class StateExpect2 implements SMPState {
         if (!containsPoint(smp2.g2b) || !containsPoint(smp2.g3b) || !containsPoint(smp2.pb) || !containsPoint(smp2.qb)) {
             throw new SMPAbortException("Message failed verification.");
         }
-        if (!smp2.c2.equals(hashToScalar(SMP_VALUE_0X03, multiplyByBase(smp2.d2).add(smp2.g2b.multiply(smp2.c2)).encode()))) {
+        if (!smp2.c2.constantTimeEquals(hashToScalar(SMP_VALUE_0X03, multiplyByBase(smp2.d2).add(smp2.g2b.multiply(smp2.c2)).encode()))) {
             throw new SMPAbortException("Message failed verification.");
         }
-        if (!smp2.c3.equals(hashToScalar(SMP_VALUE_0X04, multiplyByBase(smp2.d3).add(smp2.g3b.multiply(smp2.c3)).encode()))) {
+        if (!smp2.c3.constantTimeEquals(hashToScalar(SMP_VALUE_0X04, multiplyByBase(smp2.d3).add(smp2.g3b.multiply(smp2.c3)).encode()))) {
             throw new SMPAbortException("Message failed verification.");
         }
         final Point g2 = requireValidPoint(smp2.g2b.multiply(this.a2));
         final Point g3 = requireValidPoint(smp2.g3b.multiply(this.a3));
-        if (!smp2.cp.equals(hashToScalar(SMP_VALUE_0X05, g3.multiply(smp2.d5).add(smp2.pb.multiply(smp2.cp)).encode(),
+        if (!smp2.cp.constantTimeEquals(hashToScalar(SMP_VALUE_0X05, g3.multiply(smp2.d5).add(smp2.pb.multiply(smp2.cp)).encode(),
                 multiplyByBase(smp2.d5).add(g2.multiply(smp2.d6)).add(smp2.qb.multiply(smp2.cp)).encode()))) {
             throw new SMPAbortException("Message failed verification.");
         }

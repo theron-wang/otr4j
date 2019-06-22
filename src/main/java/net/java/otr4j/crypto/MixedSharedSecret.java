@@ -210,7 +210,8 @@ public final class MixedSharedSecret implements AutoCloseable {
         if (!containsPoint(requireNonNull(theirECDHPublicKey))) {
             throw new OtrCryptoException("ECDH public key failed verification.");
         }
-        if (this.ecdhKeyPair.getPublicKey().equals(theirECDHPublicKey) || this.theirECDHPublicKey.equals(theirECDHPublicKey)) {
+        if (this.ecdhKeyPair.getPublicKey().constantTimeEquals(theirECDHPublicKey)
+                || this.theirECDHPublicKey.constantTimeEquals(theirECDHPublicKey)) {
             throw new OtrCryptoException("A new, different ECDH public key is expected for initializing the new ratchet.");
         }
         if (this.dhKeyPair.getPublicKey().equals(theirDHPublicKey) || this.theirDHPublicKey.equals(theirDHPublicKey)) {

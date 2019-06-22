@@ -504,9 +504,9 @@ public final class OtrCryptoEngine4 {
         }
         final Point longTermPublicKey = longTermKeyPair.getPublicKey();
         // Calculate equality to each of the provided public keys.
-        final boolean eq1 = longTermPublicKey.equals(A1);
-        final boolean eq2 = longTermPublicKey.equals(A2);
-        final boolean eq3 = longTermPublicKey.equals(A3);
+        final boolean eq1 = longTermPublicKey.constantTimeEquals(A1);
+        final boolean eq2 = longTermPublicKey.constantTimeEquals(A2);
+        final boolean eq3 = longTermPublicKey.constantTimeEquals(A3);
         // "Pick random values t1, c2, c3, r2, r3 in q."
         try (Scalar ti = generateRandomValueInZq(random)) {
             final Scalar cj = generateRandomValueInZq(random);
@@ -615,7 +615,7 @@ public final class OtrCryptoEngine4 {
             throw new IllegalStateException("Failed to write point to buffer.", e);
         }
         // "Check if c ≟ c1 + c2 + c3 (mod q). If it is true, verification succeeds. If not, it fails."
-        if (!c.equals(sigma.c1.add(sigma.c2).add(sigma.c3).mod(q))) {
+        if (!c.constantTimeEquals(sigma.c1.add(sigma.c2).add(sigma.c3).mod(q))) {
             throw new OtrCryptoException("Ring signature failed verification.");
         }
     }
@@ -683,8 +683,8 @@ public final class OtrCryptoEngine4 {
                 return false;
             }
             final Sigma sigma = (Sigma) o;
-            return c1.equals(sigma.c1) & r1.equals(sigma.r1) & c2.equals(sigma.c2) & r2.equals(sigma.r2)
-                    & c3.equals(sigma.c3) & r3.equals(sigma.r3);
+            return c1.constantTimeEquals(sigma.c1) & r1.constantTimeEquals(sigma.r1) & c2.constantTimeEquals(sigma.c2)
+                    & r2.constantTimeEquals(sigma.r2) & c3.constantTimeEquals(sigma.c3) & r3.constantTimeEquals(sigma.r3);
         }
 
         @Override
