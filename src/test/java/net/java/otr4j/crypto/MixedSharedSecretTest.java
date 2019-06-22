@@ -31,7 +31,6 @@ import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
  * The MixedSharedSecret tests currently do not perform a test that binary-exactly verifies that the right values are
  * produced. For now we verify immutability of values and that values change after rotation.
  */
-// TODO add unit tests to verify correct clearing of fields
 @SuppressWarnings("ConstantConditions")
 public class MixedSharedSecretTest {
 
@@ -358,5 +357,18 @@ public class MixedSharedSecretTest {
                 theirDHPublicKey, theirECDHPublicKey);
         shared.close();
         shared.getK();
+    }
+
+    @Test
+    public void testCorrectClearingOfFieldsWhenClosed() {
+        final MixedSharedSecret secret = new MixedSharedSecret(RANDOM, DHKeyPair.generate(RANDOM),
+                ECDHKeyPair.generate(RANDOM), theirDHPublicKey, theirECDHPublicKey);
+        assertFalse(allZeroBytes((byte[]) getInternalState(secret, "k")));
+        assertFalse(allZeroBytes((byte[]) getInternalState(secret, "braceKey")));
+        assertFalse((Boolean) getInternalState(secret, "closed"));
+        secret.close();
+        assertTrue(allZeroBytes((byte[]) getInternalState(secret, "k")));
+        assertTrue(allZeroBytes((byte[]) getInternalState(secret, "braceKey")));
+        assertTrue((Boolean) getInternalState(secret, "closed"));
     }
 }
