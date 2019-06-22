@@ -19,7 +19,6 @@ package net.java.otr4j.api;
  * @author George Politis
  */
 // TODO consider implementing OTRv4 "Modes" by way of standard profiles based on OtrPolicy.
-// TODO consider reverting standard profiles "OPPORTUNISTIC" etc. back to OTRv3 style configuation. Introduce new modes for OTRv4.
 public final class OtrPolicy {
 
     /**

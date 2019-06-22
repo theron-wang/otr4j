@@ -161,11 +161,18 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable {
         out.write(this.encoded, 0, SCALAR_LENGTH_BYTES);
     }
 
+    /**
+     * Constant-time Scalar equality.
+     *
+     * {@inheritDoc}
+     *
+     * @param o the other instance
+     * @return Returns true iff equal, or false otherwise.
+     */
     @Override
     public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
+        // NOTE: equals has been modified to execute in constant time. That is also the reason we don't compare
+        // instances.
         if (o == null || getClass() != o.getClass()) {
             return false;
         }

@@ -34,7 +34,6 @@ public interface Session {
     /**
      * Constants for OTR versions.
      */
-    // TODO consider moving out of Session interface, converting to enum
     interface Version {
 
         /**

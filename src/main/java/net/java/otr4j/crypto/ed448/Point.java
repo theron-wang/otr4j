@@ -16,10 +16,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static org.bouncycastle.math.ec.rfc8032.Ed448.PUBLIC_KEY_SIZE;
 import static org.bouncycastle.util.Arrays.clear;
+import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
 
 /**
  * Point wrapper classed used to abstract away from the actual cryptographic implementation.
@@ -63,16 +63,23 @@ public final class Point implements AutoCloseable {
         }
     }
 
+    /**
+     * Constant-time Point equality.
+     *
+     * {@inheritDoc}
+     *
+     * @param o the other instance
+     * @return Returns true iff equal, or false otherwise.
+     */
     @Override
     public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
+        // NOTE: equals has been modified to execute in constant time. That is also the reason we don't compare
+        // instances.
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
         final Point other = (Point) o;
-        return constantTimeEquals(this.encoded, other.encoded);
+        return constantTimeAreEqual(this.encoded, other.encoded);
     }
 
     @Override
