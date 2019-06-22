@@ -7,8 +7,6 @@
 
 package net.java.otr4j.api;
 
-import java.util.logging.Logger;
-
 /**
  * OtrPolicy is an intelligent policy class that will return the current
  * policy's setting on various aspects. The policy object is intelligent enough
@@ -18,20 +16,10 @@ import java.util.logging.Logger;
  *
  * @author George Politis
  */
-// TODO consider removing OTRv1 methods altogether
 // TODO consider implementing OTRv4 "Modes" by way of standard profiles based on OtrPolicy.
 // TODO consider reverting standard profiles "OPPORTUNISTIC" etc. back to OTRv3 style configuation. Introduce new modes for OTRv4.
 public final class OtrPolicy {
 
-    private static final Logger LOGGER = Logger.getLogger(OtrPolicy.class.getName());
-
-    /**
-     * Flag for indicating otr V1 is allowed in this policy.
-     *
-     * @deprecated OTR v1 is no longer supported.
-     */
-    @Deprecated
-    public static final int ALLOW_V1 = 1;
     /**
      * Constant for flag indicating that OTR protocol version 2 is allowed.
      */
@@ -122,17 +110,6 @@ public final class OtrPolicy {
     }
 
     /**
-     * getAllowV1 is deprecated as OTR V1 is not supported anymore.
-     *
-     * @return Always returns false.
-     * @deprecated OTR V1 is not supported anymore.
-     */
-    @Deprecated
-    public boolean isAllowV1() {
-        return false;
-    }
-
-    /**
      * Get OTR v2 policy.
      *
      * @return Returns true if OTR version 2 is allowed.
@@ -211,17 +188,6 @@ public final class OtrPolicy {
      */
     public boolean isWhitespaceStartAKE() {
         return (policy & OtrPolicy.WHITESPACE_START_AKE) != 0;
-    }
-
-    /**
-     * OTR V1 is not supported anymore. Calling this method will not change the policy.
-     *
-     * @param value value is ignored
-     * @deprecated Support for OTR V1 is dropped.
-     */
-    @Deprecated
-    public void setAllowV1(final boolean value) {
-        // setAllowV1 is not supported anymore
     }
 
     /**
@@ -332,25 +298,6 @@ public final class OtrPolicy {
 
     /**
      * Set EnableAlways policy configuration.
-     *
-     * Pass in 'true' to enable 'EnableAlways' profile. 'false' does not have
-     * any effect.
-     *
-     * @param value 'true' to enable EnableAlways policy.
-     * @deprecated Deprecated. Please use {@link #setEnableAlways() } as passing
-     * in 'false' for value does not make sense.
-     */
-    @Deprecated
-    public void setEnableAlways(final boolean value) {
-        if (!value) {
-            LOGGER.warning("setEnableAlways(false) is not supported anymore. This action has no effect. Please switch to using the non-deprecated alternative in the future.");
-            return;
-        }
-        setEnableAlways();
-    }
-
-    /**
-     * Set EnableAlways policy configuration.
      */
     public void setEnableAlways() {
         setEnableManual();
@@ -366,21 +313,6 @@ public final class OtrPolicy {
      */
     public boolean isEnableManual() {
         return isAllowV2() && isAllowV3() && isAllowV4();
-    }
-
-    /**
-     * Set EnableManual profile.
-     *
-     * @param value true to enable profile, false has no effect.
-     * @deprecated This method is deprecated and replaced with {@link #setEnableManual() }.
-     */
-    @Deprecated
-    public void setEnableManual(final boolean value) {
-        if (!value) {
-            LOGGER.warning("setEnableManual(false) is not supported anymore. This action has no effect. Please switch to using the non-deprecated alternative in the future.");
-            return;
-        }
-        setEnableManual();
     }
 
     /**

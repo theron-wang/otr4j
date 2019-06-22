@@ -173,7 +173,7 @@
                         <phase>compile</phase>
                         <configuration>
                             <compilerArgs>
-                                <arg>-Xlint:all,-options,-deprecation</arg>
+                                <arg>-Xlint:all,-options</arg>
                                 <arg>-Xdoclint:all/protected</arg>
                                 <arg>-XDcompilePolicy=simple</arg>
                                 <arg>-Xplugin:ErrorProne</arg>

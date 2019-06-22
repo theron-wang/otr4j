@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Danny van Heumen
  */
+@SuppressWarnings("ConstantConditions")
 public class OtrPolicysTest {
 
     public OtrPolicysTest() {
@@ -60,12 +61,5 @@ public class OtrPolicysTest {
         assertEquals(2, versions.size());
         assertTrue(versions.contains(Session.Version.TWO));
         assertTrue(versions.contains(Session.Version.THREE));
-    }
-
-    @Test
-    public void testAllowedVersionOneHasNoEffect() {
-        final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V1);
-        final Set<Integer> versions = OtrPolicys.allowedVersions(policy);
-        assertEquals(0, versions.size());
     }
 }

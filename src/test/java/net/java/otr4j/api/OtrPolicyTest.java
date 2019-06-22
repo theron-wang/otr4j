@@ -70,12 +70,6 @@ public class OtrPolicyTest {
     }
 
     @Test
-    public void testV1NeverAllowed() {
-        final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V1);
-        assertFalse(policy.isAllowV1());
-    }
-
-    @Test
     public void testAllowV2Policy() {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V2);
         assertTrue(policy.isAllowV2());
@@ -124,26 +118,6 @@ public class OtrPolicyTest {
         policy.setAllowV3(false);
         policy.setAllowv4(false);
         assertTrue(policy.isRequireEncryption());
-    }
-
-    @Test
-    public void testSetEnableAlwaysDeprecated() {
-        final OtrPolicy policy = new OtrPolicy(OtrPolicy.NEVER);
-        assertFalse(policy.isAllowV2());
-        assertFalse(policy.isAllowV3());
-        assertFalse(policy.isAllowV4());
-        assertFalse(policy.isRequireEncryption());
-        assertFalse(policy.isWhitespaceStartAKE());
-        assertFalse(policy.isErrorStartAKE());
-        assertFalse(policy.isEnableAlways());
-        policy.setEnableAlways(true);
-        assertTrue(policy.isAllowV2());
-        assertTrue(policy.isAllowV3());
-        assertTrue(policy.isAllowV4());
-        assertTrue(policy.isRequireEncryption());
-        assertTrue(policy.isWhitespaceStartAKE());
-        assertTrue(policy.isErrorStartAKE());
-        assertTrue(policy.isEnableAlways());
     }
 
     @Test
