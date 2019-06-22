@@ -73,6 +73,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <!-- For now we stay with JUnit 4, given that Java 8 support on Android is still somewhat limited. -->
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>

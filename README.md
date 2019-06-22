@@ -147,6 +147,7 @@ _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bo
 
 ## Developmental
 
+- ☑ Support Java 7+ to be compatible with Android.
 - ☑ Encapsulate cryptographic material such that design facilitates appropriate use and maintenance.
 - ☑ States, such as Message states, isolated as to prevent mistakes in mixing up variables and state management for different states.
 - ☑ Strategically placed assertions to discover mistakes such as uninitialized/cleared byte-arrays.
