@@ -9,19 +9,20 @@
     <name>otr4j library</name>
     <url>https://github.com/otr4j/otr4j</url>
     <description>
-        otr4j is an implementation of the OTR (Off The Record) protocol in java.
-
-        Off-the-Record Messaging, is a cryptographic protocol that uses a combination of
-        the Advanced Encryption Standard (AES), the Diffie-Hellman key exchange, and the
-        SHA hash functions. In addition to authentication and encryption, OTR provides perfect
-        forward secrecy and malleable encryption.
-
-        The OTR protocol was designed by Ian Goldberg and the OTR Development Team.
+        otr4j is an implementation of the OTR (Off The Record) protocol in Java.
     </description>
+    <scm>
+        <url>https://github.com/otr4j/otr4j</url>
+        <connection>scm:git:https://github.com/otr4j/otr4j.git</connection>
+    </scm>
+    <issueManagement>
+        <system>Github</system>
+        <url>https://github.com/otr4j/otr4j/issues</url>
+    </issueManagement>
     <licenses>
         <license>
-            <name>GNU Lesser GPL</name>
-            <url>www.gnu.org/licenses/lgpl.html</url>
+            <name>GNU LESSER GENERAL PUBLIC LICENSE Version 3</name>
+            <url>https://www.gnu.org/licenses/lgpl-3.0.txt</url>
             <distribution>repo</distribution>
         </license>
     </licenses>

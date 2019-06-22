@@ -7,9 +7,6 @@
 // TODO verify that logging with parameters ('{}') works correctly.
 // TODO use @CleanupObligation to verify correct clean-up of cryptographically sensitive material.
 // TODO Review rule exclusions for maven-compiler-plugin, SpotBugs, pmd, ...
-// TODO Use maven-site-plugin (or similar) to generate a full report on the status of otr4j project.
-// TODO consistent naming of constants used in OTRv4 parts of implementation. (Sometimes LENGTH is at the start of the constant, sometimes at the end.)
-// TODO Verify that mitigation for OTRv2 MAC revelation bug is in place. (Refer to documentation about revealing MAC keys.)
 // TODO remove OTRv2 support to comply with OTRv4 spec.
 // TODO consider the effectiveness of clearing data as JVM might optimize the activity away due to data not being used afterwards.
 // NOTE OTRv3 does not document that SMP TLVs should have IGNORE_UNREADABLE flag set. So for now, we're not setting the flag for SMP TLVs.
