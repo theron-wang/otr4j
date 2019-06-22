@@ -3,6 +3,8 @@
  *
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
+ *
+ * SPDX-License-Identifier: LGPL-3.0-only
  */
 /**
  * Socialist Millionaires Protocol for OTR version 4.

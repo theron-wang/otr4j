@@ -3,6 +3,8 @@
  *
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
+ *
+ * SPDX-License-Identifier: LGPL-3.0-only
  */
 // TODO verify that logging with parameters ('{}') works correctly.
 // TODO use @CleanupObligation to verify correct clean-up of cryptographically sensitive material.

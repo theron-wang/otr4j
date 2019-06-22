@@ -3,6 +3,8 @@
  *
  * Distributable under LGPL license.
  * See terms of license at gnu.org.
+ *
+ * SPDX-License-Identifier: LGPL-3.0-only
  */
 /**
  * Package containing cryptographic support logic for otr4j.
