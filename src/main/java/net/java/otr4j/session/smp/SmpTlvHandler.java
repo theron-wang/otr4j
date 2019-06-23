@@ -45,7 +45,8 @@ import static net.java.otr4j.session.api.SMPStatus.SUCCEEDED;
  */
 public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
 
-    private static final byte[] VERSION_BYTE = new byte[] {1};
+    private static final byte[] VERSION_BYTE = {1};
+
     /**
      * The message contains a step in the Socialist Millionaires' Protocol.
      */

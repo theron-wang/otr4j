@@ -75,7 +75,7 @@ public final class OtrCryptoEngine4 {
     /**
      * Prefix used in key derivation functions.
      */
-    private static final byte[] OTR4_PREFIX = new byte[]{'O', 'T', 'R', 'v', '4'};
+    private static final byte[] OTR4_PREFIX = {'O', 'T', 'R', 'v', '4'};
 
     /**
      * Length of the ChaCha20 encryption/decryption key in bytes.
@@ -415,7 +415,7 @@ public final class OtrCryptoEngine4 {
      */
     @Nonnull
     public static byte[] deriveExtraSymmetricKey(final int index, @Nonnull final byte[] context, @Nonnull final byte[] baseKey) {
-        final byte[] idx = new byte[] {(byte) (index & 0xff), (byte) ((index >>> 8) & 0xff)};
+        final byte[] idx = {(byte) (index & 0xff), (byte) ((index >>> 8) & 0xff)};
         requireLengthExactly(EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES, context);
         requireLengthExactly(EXTRA_SYMMETRIC_KEY_LENGTH_BYTES, baseKey);
         final byte[] instanceKey = new byte[EXTRA_SYMMETRIC_KEY_LENGTH_BYTES];
