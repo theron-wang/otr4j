@@ -155,25 +155,16 @@ public final class MessageProcessor {
         final Matcher matcher = PATTERN_WHITESPACE.matcher(text);
 
         final HashSet<Integer> versions = new HashSet<>();
-        boolean v2 = false;
-        boolean v3 = false;
-        boolean v4 = false;
-        while (matcher.find()) {
+        if (matcher.find()) {
             // Ignore group 1 (OTRv1 tag) as V1 is not supported anymore.
-            if (!v2 && matcher.start(2) > -1) {
+            if (matcher.start(2) > -1) {
                 versions.add(Version.TWO);
-                v2 = true;
             }
-            if (!v3 && matcher.start(3) > -1) {
+            if (matcher.start(3) > -1) {
                 versions.add(Version.THREE);
-                v3 = true;
             }
-            if (!v4 && matcher.start(4) > -1) {
+            if (matcher.start(4) > -1) {
                 versions.add(Version.FOUR);
-                v4 = true;
-            }
-            if (v2 && v3 && v4) {
-                break;
             }
         }
 

@@ -460,6 +460,13 @@ public final class MessageProcessorTest {
     }
 
     @Test
+    public void testMultipleWhitespaceTagsRespectFirstOccurrenceOnly() throws ProtocolException {
+        final PlainTextMessage m = (PlainTextMessage) parseMessage("Hello \t  \t\t\t\t \t \t \t    \t\t \t  world \t  \t\t\t\t \t \t \t    \t\t  \t\t!");
+        assertEquals(1, m.getVersions().size());
+        assertTrue(m.getVersions().contains(Session.Version.FOUR));
+    }
+
+    @Test
     public void testWriteErrorMessage() {
         final ErrorMessage errorMessage = new ErrorMessage("", "Hello, you did something wrong, but I'm not gonna tell you what.");
         assertEquals("?OTR Error:Hello, you did something wrong, but I'm not gonna tell you what.",
