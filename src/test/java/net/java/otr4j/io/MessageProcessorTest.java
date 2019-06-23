@@ -223,6 +223,18 @@ public final class MessageProcessorTest {
     }
 
     @Test
+    public void testIncompleteOTRv1Header() throws ProtocolException {
+        final QueryMessage msg = (QueryMessage) parseMessage("?OTR?v34 abcde");
+        assertTrue(msg.getVersions().isEmpty());
+    }
+
+    @Test
+    public void testIncompleteOTRv3Header() throws ProtocolException {
+        final QueryMessage msg = (QueryMessage) parseMessage("?OTRv34 abcde");
+        assertTrue(msg.getVersions().isEmpty());
+    }
+
+    @Test
     public void testIncompleteMessageMissingEnding() throws ProtocolException {
         final String message = "?OTR:BADBASE64CODEMISSINGDOT";
         final PlainTextMessage msg = (PlainTextMessage) parseMessage(message);

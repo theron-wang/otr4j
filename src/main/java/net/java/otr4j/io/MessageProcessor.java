@@ -105,16 +105,14 @@ public final class MessageProcessor {
             final String content = text.substring(idxHeaderBody);
 
             if (contentType == HEAD_QUERY_V || contentType == HEAD_QUERY_Q) {
-                // TODO This code assumes the closing '?' for the query string exists. This may not always be the case.
                 // Query tag found.
                 final String versionString;
-                if (HEAD_QUERY_Q == contentType && content.length() > 0 && content.charAt(0) == 'v') {
-                    // OTR v1 + ... query tag format. However, we do not active
-                    // support OTRv1 anymore. Therefore the logic only supports
-                    // skipping over the OTRv1 tags in order to reach OTR v2 and
-                    // v3 version tags.
+                if (HEAD_QUERY_Q == contentType && content.length() > 0 && content.charAt(0) == 'v'
+                        && content.indexOf('?') > -1) {
+                    // OTR v1 + ... query tag format. However, we do not actively support OTRv1 anymore. Therefore the
+                    // logic only supports skipping over the OTRv1 tags in order to reach OTR v2 and v3 version tags.
                     versionString = content.substring(1, content.indexOf('?'));
-                } else if (HEAD_QUERY_V == contentType) {
+                } else if (HEAD_QUERY_V == contentType && content.length() > 0 && content.indexOf('?') > -1) {
                     // OTR v2+ query tag format.
                     versionString = content.substring(0, content.indexOf('?'));
                 } else {
