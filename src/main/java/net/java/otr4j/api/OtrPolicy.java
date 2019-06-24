@@ -222,7 +222,7 @@ public final class OtrPolicy {
      *
      * @param value True to set, false to unset.
      */
-    public void setAllowv4(final boolean value) {
+    public void setAllowV4(final boolean value) {
         if (value) {
             policy |= ALLOW_V4;
         } else {
@@ -322,7 +322,7 @@ public final class OtrPolicy {
     public void setEnableManual() {
         setAllowV2(true);
         setAllowV3(true);
-        setAllowv4(true);
+        setAllowV4(true);
     }
 
     /**
