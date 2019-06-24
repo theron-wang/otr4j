@@ -57,10 +57,10 @@ _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bo
   - ☐ Strictly isolate OTRv3 and OTRv4 interactions: only accept OTRv2/3 messages in `START`, but not in any OTRv4 state, and vice versa. Separate `FINISH` states for OTRv2/3 and OTRv4.
   - ☐ OTRv4 operating modes (OTRv3-compatible, OTRv4-standalone, OTRv4-interactive-only).
 - Cryptographic primitives:
-  - Edd448-Goldilocks elliptic curve (temporary solution)
+  - Edd448-Goldilocks elliptic curve
     - ☑ Temporary working solution
     - ⌛ Migrate to BouncyCastle 1.60.
-  - 3072-bit Diffie-Hellman parameters
+  - 3072-bit Diffie-Hellman
     - ☑ Temporary working solution
     - ☐ Verify if current solution is acceptable, otherwise migrate to JCA/BC
   - ☑ ChaCha20 symmetric cipher

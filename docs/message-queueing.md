@@ -1,6 +1,6 @@
 # Message queueing
 
-The considerations for the _message queueing_ functionality as it needs to work in _otr4j_.
+The considerations for the _message queuing_ functionality as it needs to work in _otr4j_.
 
 # General behavior
 

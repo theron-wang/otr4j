@@ -37,6 +37,12 @@
 //    NO: sending query messages is not allowed. But then, what do we do if we still receive a query message?
 //    - Expected behavior is to drop out of encrypted state and start new (D)AKE(?)
 //    - We need to do something to protect user from sending intended-as-secure-message as plaintext accidentally due to losing a race (condition).
+//  * What to do with queued messages? The obvious answer is: send them as soon as a private session has been
+//    established. However, in practice it isn't that simple. A session can be established with multiple clients at a
+//    time. Do we send the queued messages to the first established session instance? Or to all instances? If only to
+//    one instance, there is a risk that we send it to the wrong instance. That is, a client is on and happens to be
+//    first in establishing the connection, but it isn't the client that the user is currently working on. Then there is
+//    a risk of exposing information to the wrong computer.
 /**
  * otr4j.
  */
