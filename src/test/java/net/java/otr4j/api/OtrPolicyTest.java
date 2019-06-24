@@ -118,7 +118,7 @@ public class OtrPolicyTest {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.OTRL_POLICY_ALWAYS);
         policy.setAllowV2(false);
         policy.setAllowV3(false);
-        policy.setAllowv4(false);
+        policy.setAllowV4(false);
         assertTrue(policy.isRequireEncryption());
     }
 
