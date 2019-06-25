@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,6 +48,8 @@ import static org.bouncycastle.util.encoders.Base64.decode;
  */
 public final class MessageProcessor {
 
+    private static final Logger LOGGER = Logger.getLogger(MessageProcessor.class.getName());
+
     /**
      * Index of numbers such that we can easily translate from number character
      * to integer value. We use this index as we can use this also as an index
@@ -59,15 +62,12 @@ public final class MessageProcessor {
      * PATTERN_WHITESPACE recognizes OTR v1, v2, v3 and v4 whitespace tags. We will continue to recognize OTR v1
      * whitespace tag for compatibility purposes and to avoid bad interpretation.
      *
-     * Group 1: OTRv1 whitespace tag.
-     * Group 2: OTRv2 whitespace tag.
-     * Group 3: OTRv3 whitespace tag.
-     * Group 4: OTRv4 whitespace tag.
+     * Group 1: OTRv1 whitespace tag. (OTRv1 tag, if present, must always be first for legacy reasons.)
+     * Group 2: OTRv2/OTRv3/OTRv4 (0 or more) whitespace tags.
      */
-    // TODO whitespace detection is lacking, there is no guarantee that whitespace tags for OTR versions will be found in this predefined order.
     @SuppressWarnings("RegExpRepeatedSpace")
     private static final Pattern PATTERN_WHITESPACE = Pattern
-            .compile(" \\t  \\t\\t\\t\\t \\t \\t \\t  ( \\t \\t  \\t )?(  \\t\\t  \\t )?(  \\t\\t  \\t\\t)?(  \\t\\t \\t  )?");
+            .compile(" \\t  \\t\\t\\t\\t \\t \\t \\t  ( \\t \\t  \\t )?((?:  \\t\\t  \\t |  \\t\\t  \\t\\t|  \\t\\t \\t  )*)");
 
     private static final Pattern PATTERN_ERROR_FORMAT = Pattern.compile("(:?ERROR_\\d+):\\s(.*)");
 
@@ -153,18 +153,21 @@ public final class MessageProcessor {
 
         // Try to detect whitespace tag.
         final Matcher matcher = PATTERN_WHITESPACE.matcher(text);
-
         final HashSet<Integer> versions = new HashSet<>();
         if (matcher.find()) {
-            // Ignore group 1 (OTRv1 tag) as V1 is not supported anymore.
-            if (matcher.start(2) > -1) {
-                versions.add(Version.TWO);
-            }
-            if (matcher.start(3) > -1) {
-                versions.add(Version.THREE);
-            }
-            if (matcher.start(4) > -1) {
-                versions.add(Version.FOUR);
+            // Ignore group 1 (OTRv1 tag) as version 1 is not supported anymore.
+            String tags = matcher.group(2);
+            while (!tags.isEmpty() && tags.length() % 8 == 0) {
+                if (tags.startsWith("  \t\t  \t ")) {
+                    versions.add(Version.TWO);
+                } else if (tags.startsWith("  \t\t  \t\t")) {
+                    versions.add(Version.THREE);
+                } else if (tags.startsWith("  \t\t \t  ")) {
+                    versions.add(Version.FOUR);
+                } else {
+                    LOGGER.info("Skipping unrecognized whitespace version tag: " + tags.substring(0, 8));
+                }
+                tags = tags.substring(8);
             }
         }
 

@@ -138,6 +138,16 @@ public final class MessageProcessorTest {
     }
 
     @Test
+    public void testCorrectIdentificationOfWhitespaceTagV1V4V3V2() throws ProtocolException {
+        PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t \t    \t\t  \t\t  \t\t  \t ");
+        assertEquals(3, msg.getVersions().size());
+        assertTrue(msg.getVersions().contains(Session.Version.TWO));
+        assertTrue(msg.getVersions().contains(Session.Version.THREE));
+        assertTrue(msg.getVersions().contains(Session.Version.FOUR));
+        assertEquals("", msg.getCleanText());
+    }
+
+    @Test
     public void testCorrectWhitespaceErasure() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage("Hello \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t  \t\t world!");
         assertEquals(1, msg.getVersions().size());
