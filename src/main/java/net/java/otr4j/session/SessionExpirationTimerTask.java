@@ -22,7 +22,9 @@ import java.util.logging.Logger;
 
 import static java.util.Collections.synchronizedList;
 import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.WARNING;
+import static net.java.otr4j.api.Sessions.generateIdentifier;
 
 final class SessionExpirationTimerTask extends TimerTask {
 
@@ -75,10 +77,10 @@ final class SessionExpirationTimerTask extends TimerTask {
                 session.expireSession();
             }
         } catch (final IncorrectStateException e) {
-            // TODO add session identifier (and instance tag) to make clear which session is referenced
-            LOGGER.finest("Session instance's current state does not expire.");
+            LOGGER.log(FINEST, "Session instance '{}' current state does not expire.",
+                    generateIdentifier(session));
         } catch (final OtrException e) {
-            LOGGER.log(WARNING, "Failure while expiring session instance.", e);
+            LOGGER.log(WARNING, "Failure while expiring session instance " + generateIdentifier(session), e);
         }
     }
 }

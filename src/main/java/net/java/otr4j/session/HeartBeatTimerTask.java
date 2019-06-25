@@ -22,7 +22,9 @@ import java.util.logging.Logger;
 
 import static java.util.Collections.synchronizedList;
 import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.WARNING;
+import static net.java.otr4j.api.Sessions.generateIdentifier;
 
 final class HeartBeatTimerTask extends TimerTask {
 
@@ -74,10 +76,11 @@ final class HeartBeatTimerTask extends TimerTask {
                 session.sendHeartbeat();
             }
         } catch (final IncorrectStateException e) {
-            // TODO add session identifier (and instance tag) to make clear which session is referenced
-            LOGGER.finest("Session instance's current state is not a private messaging state.");
+            LOGGER.log(FINEST, "Session instance '{}' current state is not a private messaging state.",
+                    generateIdentifier(session));
         } catch (final OtrException e) {
-            LOGGER.log(WARNING, "Failure while sending heartbeat for session instance.", e);
+            LOGGER.log(WARNING, "Failure while sending heartbeat for session instance "
+                    + generateIdentifier(session), e);
         }
     }
 }
