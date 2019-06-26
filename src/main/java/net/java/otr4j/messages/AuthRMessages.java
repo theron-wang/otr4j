@@ -21,6 +21,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.ringVerify;
 import static net.java.otr4j.crypto.ed448.ECDHKeyPairs.verifyECDHPublicKey;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
 import static net.java.otr4j.messages.MysteriousT4.encode;
+import static net.java.otr4j.messages.Validators.validateEquals;
 
 /**
  * Utility class for AuthRMessage. (Auth-R messages)
@@ -61,9 +62,7 @@ public final class AuthRMessages {
         } catch (final net.java.otr4j.crypto.ed448.ValidationException | OtrCryptoException e) {
             throw new ValidationException("Illegal ephemeral public key.", e);
         }
-        if (!message.senderTag.equals(theirProfile.getInstanceTag())) {
-            throw new ValidationException("Sender instance tag does not match with owner instance tag in client profile.");
-        }
+        validateEquals(message.senderTag, theirProfile.getInstanceTag(), "Sender instance tag does not match with owner instance tag in client profile.");
         final byte[] t = encode(AUTH_R, message.clientProfile, ourClientProfilePayload, message.x,
                 receiverECDHPublicKey, message.a, receiverDHPublicKey, message.ourFirstECDHPublicKey,
                 message.ourFirstDHPublicKey, receiverFirstECDHPublicKey, receiverFirstDHPublicKey,

@@ -26,7 +26,6 @@ import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 /**
  * MysteriousT represents the T_a composite as described in "Exchanging Data" section.
  */
-// TODO Check if we can merge MysteriousT and DataMessage. MysteriousT is described in the "Exchanging Data" section as T_a. It's basically a DataMessage except without MAC as it still has to be calculated from serialized MysteriousT content.
 public final class MysteriousT implements OtrEncodable {
 
     /**

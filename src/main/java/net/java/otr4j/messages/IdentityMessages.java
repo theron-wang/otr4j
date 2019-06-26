@@ -16,6 +16,7 @@ import javax.annotation.Nonnull;
 
 import static net.java.otr4j.crypto.DHKeyPairs.verifyDHPublicKey;
 import static net.java.otr4j.crypto.ed448.ECDHKeyPairs.verifyECDHPublicKey;
+import static net.java.otr4j.messages.Validators.validateEquals;
 
 /**
  * Utilities for identity messages.
@@ -37,9 +38,7 @@ public final class IdentityMessages {
     // TODO verify that the forced order (validate client profile first) is not an issue according to the spec.
     public static void validate(@Nonnull final IdentityMessage message, @Nonnull final ClientProfile theirProfile)
             throws ValidationException {
-        if (!message.senderTag.equals(theirProfile.getInstanceTag())) {
-            throw new ValidationException("Sender instance tag does not match with owner instance tag in client profile.");
-        }
+        validateEquals(message.senderTag, theirProfile.getInstanceTag(), "Sender instance tag does not match with owner instance tag in client profile.");
         try {
             verifyECDHPublicKey(message.y);
             verifyDHPublicKey(message.b);

@@ -19,6 +19,7 @@ import java.math.BigInteger;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ringVerify;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_I;
 import static net.java.otr4j.messages.MysteriousT4.encode;
+import static net.java.otr4j.messages.Validators.validateEquals;
 
 /**
  * Utility class for AuthIMessage.
@@ -56,9 +57,7 @@ public final class AuthIMessages {
             @Nonnull final Point senderFirstECDHPublicKey, @Nonnull final BigInteger senderFirstDHPublicKey,
             @Nonnull final Point receiverFirstECDHPublicKey, @Nonnull final BigInteger receiverFirstDHPublicKey,
             @Nonnull final String senderAccountID, @Nonnull final String receiverAccountID) throws ValidationException {
-        if (!message.senderTag.equals(profileBob.getInstanceTag())) {
-            throw new ValidationException("Sender instance tag does not match with owner instance tag in client profile.");
-        }
+        validateEquals(message.senderTag, profileBob.getInstanceTag(), "Sender instance tag does not match with owner instance tag in client profile.");
         // We don't do extra verification of points here, as these have been verified upon receiving the Identity
         // message. This was the previous message that was sent. So we can assume points are trustworthy.
         final byte[] t = encode(AUTH_I, ourProfilePayload, profileBobPayload, x, y, a, b,

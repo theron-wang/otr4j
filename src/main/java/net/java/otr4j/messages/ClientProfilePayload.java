@@ -11,7 +11,7 @@ package net.java.otr4j.messages;
 
 import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session;
+import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.DSAKeyPair.DSASignature;
 import net.java.otr4j.crypto.OtrCryptoException;
@@ -45,6 +45,9 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.verifyEdDSAPublicKey;
 import static net.java.otr4j.io.MessageProcessor.encodeVersionString;
 import static net.java.otr4j.io.MessageProcessor.parseVersionString;
 import static net.java.otr4j.io.OtrEncodables.encode;
+import static net.java.otr4j.messages.Validators.validateAtMost;
+import static net.java.otr4j.messages.Validators.validateDateAfter;
+import static net.java.otr4j.messages.Validators.validateExactly;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.Iterables.findByType;
 import static org.bouncycastle.util.Arrays.concatenate;
@@ -294,7 +297,6 @@ public final class ClientProfilePayload implements OtrEncodable {
      */
     private static void validate(@Nonnull final List<Field> fields, @Nonnull final byte[] signature,
             @Nonnull final Date now) throws ValidationException {
-        // TODO not very elegant way of implementing. This can probably be done much nicer.
         final ArrayList<InstanceTagField> instanceTagFields = new ArrayList<>();
         final ArrayList<ED448PublicKeyField> publicKeyFields = new ArrayList<>();
         final ArrayList<ED448ForgingKeyField> forgingKeyFields = new ArrayList<>();
@@ -323,19 +325,15 @@ public final class ClientProfilePayload implements OtrEncodable {
                 // signature itself.
                 continue;
             } else {
-                throw new UnsupportedOperationException("BUG incomplete implementation: support for field type " + field.getClass() + " is not implemented yet.");
+                throw new UnsupportedOperationException("BUG: incomplete implementation: support for field type " + field.getClass() + " is not implemented yet.");
             }
             out.write(field);
         }
-        if (instanceTagFields.size() != 1) {
-            throw new ValidationException("Incorrect number of instance tag fields: " + instanceTagFields.size());
-        }
+        validateExactly(1, instanceTagFields.size(), "Incorrect number of instance tag fields. Expected exactly 1.");
         if (!isValidInstanceTag(instanceTagFields.get(0).instanceTag) || instanceTagFields.get(0).instanceTag == 0) {
             throw new ValidationException("Illegal instance tag.");
         }
-        if (publicKeyFields.size() != 1) {
-            throw new ValidationException("Incorrect number of public key fields: " + publicKeyFields.size());
-        }
+        validateExactly(1, publicKeyFields.size(), "Incorrect number of public key fields. Expected exactly 1.");
         final Point longTermPublicKey;
         try {
             verifyEdDSAPublicKey(publicKeyFields.get(0).publicKey);
@@ -343,35 +341,24 @@ public final class ClientProfilePayload implements OtrEncodable {
         } catch (final OtrCryptoException e) {
             throw new ValidationException("Illegal EdDSA long-term public key.", e);
         }
-        if (forgingKeyFields.size() != 1) {
-            throw new ValidationException("Incorrect number of forging key fields: " + forgingKeyFields.size());
-        }
+        validateExactly(1, forgingKeyFields.size(), "Incorrect number of forging key fields. Expected exactly 1.");
         try {
             verifyEdDSAPublicKey(forgingKeyFields.get(0).publicKey);
         } catch (final OtrCryptoException e) {
             throw new ValidationException("Illegal Ed448 forging key.", e);
         }
-        if (versionsFields.size() != 1) {
-            throw new ValidationException("Incorrect number of versions fields: " + versionsFields.size());
-        }
-        if (!versionsFields.get(0).versions.contains(Session.Version.FOUR)) {
+        validateExactly(1, versionsFields.size(), "Incorrect number of versions fields. Expected exactly 1.");
+        if (!versionsFields.get(0).versions.contains(Version.FOUR)) {
             throw new ValidationException("Expected at least OTR version 4 to be supported.");
         }
-        if (expirationDateFields.size() != 1) {
-            throw new ValidationException("Incorrect number of expiration date fields: " + expirationDateFields.size());
-        }
-        if (dsaPublicKeyFields.size() > 1) {
-            throw new ValidationException("Expect either no or single DSA public key field. Found more than one.");
-        }
+        validateExactly(1, expirationDateFields.size(), "Incorrect number of expiration date fields. Expected exactly 1.");
+        validateAtMost(1, dsaPublicKeyFields.size(), "Expected either no or single DSA public key field. Found more than one.");
         if (dsaPublicKeyFields.size() == 1 && transitionalSignatureFields.isEmpty()) {
             throw new ValidationException("DSA public key encountered without corresponding transitional signature.");
         }
-        if (!now.before(new Date(expirationDateFields.get(0).timestamp * 1000))) {
-            throw new ValidationException("Client Profile has expired.");
-        }
-        if (transitionalSignatureFields.size() > 1) {
-            throw new ValidationException("Expected at most one transitional signature, got: " + transitionalSignatureFields.size());
-        } else if (transitionalSignatureFields.size() == 1) {
+        validateDateAfter(now, new Date(expirationDateFields.get(0).timestamp * 1000), "Client Profile has expired.");
+        validateAtMost(1, transitionalSignatureFields.size(), "Expected at most one transitional signature, got more than one.");
+        if (transitionalSignatureFields.size() == 1) {
             if (dsaPublicKeyFields.size() == 1) {
                 // a DSA public key is available, hence we will validate the content with the transitional signature
                 try {

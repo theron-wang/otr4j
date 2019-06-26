@@ -11,10 +11,10 @@ package net.java.otr4j.messages;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrOutputStream;
+import org.bouncycastle.util.Arrays;
 
 import javax.annotation.Nonnull;
 import java.security.interfaces.DSAPublicKey;
-import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.crypto.DSAKeyPair.DSA_SIGNATURE_LENGTH_BYTES;
@@ -83,12 +83,8 @@ public final class SignatureX implements OtrEncodable {
         return result;
     }
 
-    // TODO consider if we really need 'equals', if so consider removing instance comparison
     @Override
     public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
         if (obj == null) {
             return false;
         }
