@@ -320,10 +320,11 @@ public class StateFinishedTest {
         final StateFinished state = new StateFinished(StateInitial.instance());
         final ECDHKeyPair ecdh1 = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh1 = DHKeyPair.generate(RANDOM);
+        final DHKeyPair dh2 = DHKeyPair.generate(RANDOM);
 
 
         state.handleAKEMessage(context, new IdentityMessage(FOUR, SMALLEST_TAG, HIGHEST_TAG, profile,
-                Ed448.identity(), dh1.getPublicKey(), ecdh1.getPublicKey(), dh1.getPublicKey()));
+                Ed448.identity(), dh1.getPublicKey(), ecdh1.getPublicKey(), dh2.getPublicKey()));
         verify(context, never()).injectMessage(isA(AuthRMessage.class));
         verify(context, never()).transition(eq(state), isA(StateAwaitingAuthI.class));
     }

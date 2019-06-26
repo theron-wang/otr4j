@@ -20,6 +20,7 @@ import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.Integers.requireInRange;
+import static net.java.otr4j.util.Objects.requireNotEquals;
 
 /**
  * OTRv4 Interactive DAKE Identity Message.
@@ -75,7 +76,6 @@ public final class IdentityMessage extends AbstractEncodedMessage {
      * @param ourFirstECDHPublicKey the first ECDH public key to be used after DAKE completes
      * @param ourFirstDHPublicKey   the first DH public key to be used after DAKE completes
      */
-    // TODO check that y != ourFirstECDHPublicKey, b != ourFirstDHPublicKey.
     public IdentityMessage(final int protocolVersion, @Nonnull final InstanceTag senderInstance,
             @Nonnull final InstanceTag receiverInstance, @Nonnull final ClientProfilePayload clientProfile,
             @Nonnull final Point y, @Nonnull final BigInteger b, @Nonnull final Point ourFirstECDHPublicKey,
@@ -86,6 +86,8 @@ public final class IdentityMessage extends AbstractEncodedMessage {
         this.b = requireNonNull(b);
         this.ourFirstECDHPublicKey = requireNonNull(ourFirstECDHPublicKey);
         this.ourFirstDHPublicKey = requireNonNull(ourFirstDHPublicKey);
+        requireNotEquals(this.y, this.ourFirstECDHPublicKey, "Y cannot be the same as first ECDH public key.");
+        requireNotEquals(this.b, this.ourFirstDHPublicKey, "B cannot be the same as first DH public key.");
     }
 
     @Override
