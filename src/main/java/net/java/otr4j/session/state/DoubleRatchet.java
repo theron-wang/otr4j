@@ -26,6 +26,8 @@ import static java.lang.Integer.MIN_VALUE;
 import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.EXTRA_SYMMETRIC_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.AUTHENTICATOR;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.CHAIN_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.EXTRA_SYMMETRIC_KEY;
@@ -33,6 +35,8 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.MAC_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.MESSAGE_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.NEXT_CHAIN_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.ROOT_KEY;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_ENC_LENGTH_BYTES;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.hcmac;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
@@ -451,8 +455,8 @@ final class DoubleRatchet implements AutoCloseable {
     @MustBeClosed
     private MessageKeys generateMessageKeys(@Nonnull final byte[] chainkey) {
         assert !allZeroBytes(chainkey) : "Expected chainkey of random data instead of all zero-bytes.";
-        final byte[] encrypt = kdf(MESSAGE_KEY, MessageKeys.MK_ENC_LENGTH_BYTES, chainkey);
-        final byte[] extraSymmetricKey = kdf(EXTRA_SYMMETRIC_KEY, MessageKeys.EXTRA_SYMMETRIC_KEY_LENGTH_BYTES,
+        final byte[] encrypt = kdf(MESSAGE_KEY, MK_ENC_LENGTH_BYTES, chainkey);
+        final byte[] extraSymmetricKey = kdf(EXTRA_SYMMETRIC_KEY, EXTRA_SYMMETRIC_KEY_LENGTH_BYTES,
                 new byte[] {(byte) 0xff}, chainkey);
         return new MessageKeys(encrypt, extraSymmetricKey);
     }
@@ -566,11 +570,6 @@ final class DoubleRatchet implements AutoCloseable {
      * NOTE: Please ensure that message keys are appropriately cleared by calling {@link #close()} after use.
      */
     private static final class MessageKeys implements AutoCloseable {
-
-        private static final int MK_ENC_LENGTH_BYTES = 64;
-        private static final int MK_MAC_LENGTH_BYTES = 64;
-        private static final int EXTRA_SYMMETRIC_KEY_LENGTH_BYTES = 64;
-        private static final int AUTHENTICATOR_LENGTH_BYTES = 64;
 
         /**
          * Flag to indicate when MessageKeys instanced has been cleaned up.

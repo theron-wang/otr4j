@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
@@ -29,12 +30,9 @@ import static net.java.otr4j.util.Integers.requireInRange;
 /**
  * The OTRv4 data message.
  */
-// TODO two constants defined in duplicate, due to value needed in multiple packages: MAC_LENGTH_BYTES
 public final class DataMessage4 extends AbstractEncodedMessage {
 
     static final int MESSAGE_DATA = 0x03;
-
-    private static final int MAC_LENGTH_BYTES = 64;
 
     /**
      * Message flags.
@@ -126,7 +124,7 @@ public final class DataMessage4 extends AbstractEncodedMessage {
         this.ecdhPublicKey = requireNonNull(ecdhPublicKey);
         this.dhPublicKey = dhPublicKey;
         this.ciphertext = requireNonNull(ciphertext);
-        this.authenticator = requireLengthExactly(MAC_LENGTH_BYTES, authenticator);
+        this.authenticator = requireLengthExactly(MK_MAC_LENGTH_BYTES, authenticator);
         this.revealedMacs = requireNonNull(revealedMacs);
     }
 

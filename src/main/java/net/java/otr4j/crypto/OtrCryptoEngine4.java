@@ -93,9 +93,24 @@ public final class OtrCryptoEngine4 {
     private static final byte[] IV = new byte[CHACHA20_IV_LENGTH_BYTES];
 
     /**
+     * Length of MessageKeys encryption key in bytes.
+     */
+    public static final int MK_ENC_LENGTH_BYTES = 64;
+
+    /**
+     * Length of the MessageKeys MAC code in bytes.
+     */
+    public static final int MK_MAC_LENGTH_BYTES = 64;
+
+    /**
+     * Length of the Authenticator code in bytes.
+     */
+    public static final int AUTHENTICATOR_LENGTH_BYTES = 64;
+
+    /**
      * Length of Extra Symmetric Key in bytes.
      */
-    private static final int EXTRA_SYMMETRIC_KEY_LENGTH_BYTES = 64;
+    public static final int EXTRA_SYMMETRIC_KEY_LENGTH_BYTES = 64;
 
     /**
      * Length of the context prefix in the Extra Symmetric Key TLV payload in bytes.
