@@ -565,7 +565,6 @@ final class DoubleRatchet implements AutoCloseable {
      * <p>
      * NOTE: Please ensure that message keys are appropriately cleared by calling {@link #close()} after use.
      */
-    // TODO write tests that inspect private fields to discover if cleaning was successful.
     private static final class MessageKeys implements AutoCloseable {
 
         private static final int MK_ENC_LENGTH_BYTES = 64;
@@ -650,7 +649,8 @@ final class DoubleRatchet implements AutoCloseable {
          */
         @Nonnull
         byte[] authenticate(@Nonnull final byte[] dataMessageSections) {
-            final byte[] mac = generateMAC();
+            requireNotClosed();
+            final byte[] mac = kdf(MAC_KEY, MK_MAC_LENGTH_BYTES, this.encrypt);
             final byte[] authenticator = hcmac(AUTHENTICATOR, AUTHENTICATOR_LENGTH_BYTES, mac, dataMessageSections);
             clear(mac);
             return authenticator;
@@ -675,12 +675,6 @@ final class DoubleRatchet implements AutoCloseable {
             } finally {
                 clear(expectedAuthenticator);
             }
-        }
-
-        @Nonnull
-        private byte[] generateMAC() {
-            requireNotClosed();
-            return kdf(MAC_KEY, MK_MAC_LENGTH_BYTES, this.encrypt);
         }
 
         /**
