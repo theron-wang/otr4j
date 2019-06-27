@@ -25,7 +25,6 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Danny van Heumen
  */
-// TODO keep limited history of used identifiers to ensure short-term uniqueness for identifiers used during fragmentation.
 final class OtrFragmenter {
 
     /**

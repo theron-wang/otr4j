@@ -28,10 +28,12 @@ import net.java.otr4j.session.ake.SecurityParameters;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.FINEST;
+import static java.util.logging.Level.INFO;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.api.Session.Version.THREE;
 import static net.java.otr4j.api.Session.Version.TWO;
@@ -48,7 +50,6 @@ import static net.java.otr4j.messages.EncodedMessageParser.parseEncodedMessage;
  */
 abstract class AbstractOTR3State implements State {
 
-    // TODO is this "anonymous" logging an issue? (I.e. no session information in the log message.)
     private static final Logger LOGGER = Logger.getLogger(AbstractOTR3State.class.getName());
 
     /**
@@ -92,7 +93,7 @@ abstract class AbstractOTR3State implements State {
         try {
             final SessionID sessionID = context.getSessionID();
             if (encodedM instanceof DataMessage) {
-                LOGGER.log(Level.FINEST, "{0} received a data message (OTRv2/OTRv3) from {1}, handling in state {2}.",
+                LOGGER.log(FINEST, "{0} received a data message (OTRv2/OTRv3) from {1}, handling in state {2}.",
                         new Object[]{sessionID.getAccountID(), sessionID.getUserID(), this.getClass().getName()});
                 return handleDataMessage(context, (DataMessage) encodedM);
             }
@@ -102,7 +103,7 @@ abstract class AbstractOTR3State implements State {
                 context.injectMessage(reply);
             }
         } catch (final ProtocolException e) {
-            LOGGER.log(Level.FINE, "An illegal message was received. Processing was aborted.", e);
+            LOGGER.log(FINE, "An illegal message was received. Processing was aborted.", e);
             // TODO consider how we should signal unreadable message for illegal data messages and potentially show error to client. (Where we escape handling logic through ProtocolException.)
         }
         return null;
@@ -117,7 +118,7 @@ abstract class AbstractOTR3State implements State {
         }
 
         final SessionID sessionID = context.getSessionID();
-        LOGGER.log(Level.FINEST, "{0} received an AKE message from {1} through {2}.",
+        LOGGER.log(FINEST, "{0} received an AKE message from {1} through {2}.",
                 new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
 
         // Verify that policy allows handling message according to protocol version.
@@ -136,12 +137,12 @@ abstract class AbstractOTR3State implements State {
         // version corresponding to the message's intention.
         if (!(message instanceof DHCommitMessage) && !(message instanceof DHKeyMessage)
                 && message.protocolVersion != this.authState.getVersion()) {
-            LOGGER.log(Level.INFO, "AKE message containing unexpected protocol version encountered. ({0} instead of {1}.) Ignoring.",
+            LOGGER.log(INFO, "AKE message containing unexpected protocol version encountered. ({0} instead of {1}.) Ignoring.",
                     new Object[]{message.protocolVersion, this.authState.getVersion()});
             return null;
         }
 
-        LOGGER.log(Level.FINEST, "Handling AKE message in state {0}", this.authState.getClass().getName());
+        LOGGER.log(FINEST, "Handling AKE message in state {0}", this.authState.getClass().getName());
         try {
             final AuthState.Result result = this.authState.handle(context, message);
             if (result.params != null) {
@@ -149,13 +150,13 @@ abstract class AbstractOTR3State implements State {
             }
             return result.response;
         } catch (final ProtocolException e) {
-            LOGGER.log(Level.FINEST, "Ignoring message. Bad message content / incomplete message received.", e);
+            LOGGER.log(FINEST, "Ignoring message. Bad message content / incomplete message received.", e);
             return null;
         } catch (final OtrCryptoException e) {
-            LOGGER.log(Level.FINEST, "Ignoring message. Exception while processing message due to cryptographic verification failure.", e);
+            LOGGER.log(FINEST, "Ignoring message. Exception while processing message due to cryptographic verification failure.", e);
             return null;
         } catch (final OtrException e) {
-            LOGGER.log(Level.FINEST, "Ignoring message. Exception while processing message due to non-cryptographic error.", e);
+            LOGGER.log(FINEST, "Ignoring message. Exception while processing message due to non-cryptographic error.", e);
             return null;
         }
     }

@@ -32,9 +32,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.FINEST;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
@@ -71,14 +72,14 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         try {
             final SessionID sessionID = context.getSessionID();
             if (encodedM instanceof DataMessage4) {
-                LOGGER.log(Level.FINEST, "{0} received a data message (OTRv4) from {1}, handling in state {2}.",
+                LOGGER.log(FINEST, "{0} received a data message (OTRv4) from {1}, handling in state {2}.",
                         new Object[]{sessionID.getAccountID(), sessionID.getUserID(), this.getClass().getName()});
                 return handleDataMessage(context, (DataMessage4) encodedM);
             }
             // Anything that is not a Data message is some type of AKE message.
             handleAKEMessage(context, encodedM);
         } catch (final ProtocolException e) {
-            LOGGER.log(Level.FINE, "An illegal message was received. Processing was aborted.", e);
+            LOGGER.log(FINE, "An illegal message was received. Processing was aborted.", e);
             // TODO consider how we should signal unreadable message for illegal data messages and potentially show error to client. (Where we escape handling logic through ProtocolException.)
         }
         return null;

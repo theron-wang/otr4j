@@ -133,7 +133,6 @@ final class OtrAssembler {
     /**
      * Out-of-order assembler, following OTRv4 specification.
      */
-    // TODO introduce some kind of clean-up such that fragments list does not grow infinitely. (Described in spec.)
     private static final class OutOfOrderAssembler {
 
         private static final Logger LOGGER = Logger.getLogger(OutOfOrderAssembler.class.getName());

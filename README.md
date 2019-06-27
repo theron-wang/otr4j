@@ -118,7 +118,7 @@ _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bo
   - ☑ MAC key comparison
   - ☑ Point and Scalar equality
   - ☐ Scalar value comparison
-  - ☐ Ring signatures implemented fully constant-time.
+  - ☐ Ring signatures
 - Cleaning up data:
   - ☑ Clearing byte-arrays containing sensitive material after use.
   - ☐ Clean up remaining message keys instances when transitioning away from encrypted message states.
