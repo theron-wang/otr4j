@@ -134,7 +134,6 @@ public final class MysteriousT4 {
      *                                   bare JID.)
      * @return Returns generate Phi value.
      */
-    // TODO generatePhi is package-private only for purpose of testing. Consider if we want to make this private and test only through MysteriousT4-encoding.
     @Nonnull
     static byte[] generatePhi(@Nonnull final InstanceTag senderTag, @Nonnull final InstanceTag receiverTag,
             @Nonnull final Point senderFirstECDHPublicKey, @Nonnull final BigInteger senderFirstDHPublicKey,

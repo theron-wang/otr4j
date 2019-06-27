@@ -18,7 +18,6 @@ package net.java.otr4j.api;
  *
  * @author George Politis
  */
-// TODO consider implementing OTRv4 "Modes" by way of standard profiles based on OtrPolicy.
 public final class OtrPolicy {
 
     /**
@@ -76,6 +75,18 @@ public final class OtrPolicy {
      */
     public static final int OTRL_POLICY_ALWAYS = ALLOW_V2 | ALLOW_V3 | ALLOW_V4
             | REQUIRE_ENCRYPTION | WHITESPACE_START_AKE | ERROR_START_AKE;
+
+    /**
+     * OTRv4 Mode indicating backwards-compatibility met OTRv3 is available.
+     */
+    public static final int OTRV3_COMPATIBLE_MODE = ALLOW_V3 | ALLOW_V4 | SEND_WHITESPACE_TAG | WHITESPACE_START_AKE
+            | ERROR_START_AKE;
+
+    /**
+     * OTRv4 Mode indicating on-line, interactive communication only. Do not allow backwards-compatibility with OTRv3.
+     * Do not allow sending plaintext messages.
+     */
+    public static final int OTRV4_INTERACTIVE_ONLY = ALLOW_V4 | REQUIRE_ENCRYPTION | ERROR_START_AKE;
 
     /**
      * Constant defining default OTR policy for otr4j.

@@ -141,7 +141,7 @@ public class SessionTest {
         c.clientAlice.setPolicy(new OtrPolicy(ALLOW_V2 | ALLOW_V3 | ALLOW_V4));
         c.clientBob.setPolicy(new OtrPolicy(ALLOW_V3 | ALLOW_V4));
         final LinkedBlockingQueue<String> bob2Channel = new LinkedBlockingQueue<>(2);
-        final Client bob2 = new Client("Bob 2", c.sessionIDBob, new OtrPolicy(ALLOW_V2 | ALLOW_V3), RANDOM, c.submitterAlice, bob2Channel);
+        final Client bob2 = new Client("Bob 2", c.sessionIDBob, new OtrPolicy(ALLOW_V2 | ALLOW_V3), c.submitterAlice, bob2Channel);
         c.submitterBob.addQueue(bob2Channel);
 
         // Start setting up an encrypted session.
@@ -196,7 +196,7 @@ public class SessionTest {
         c.clientAlice.setPolicy(new OtrPolicy(ALLOW_V2 | ALLOW_V3 | ALLOW_V4));
         c.clientBob.setPolicy(new OtrPolicy(ALLOW_V3 | ALLOW_V4));
         final LinkedBlockingQueue<String> bob2Channel = new LinkedBlockingQueue<>(MAX_VALUE);
-        final Client bob2 = new Client("Bob 2", c.sessionIDBob, new OtrPolicy(ALLOW_V2 | ALLOW_V3), RANDOM, c.submitterAlice, bob2Channel);
+        final Client bob2 = new Client("Bob 2", c.sessionIDBob, new OtrPolicy(ALLOW_V2 | ALLOW_V3), c.submitterAlice, bob2Channel);
         bob2.setMessageSize(150);
         c.submitterBob.addQueue(bob2Channel);
 
@@ -264,7 +264,7 @@ public class SessionTest {
         c.clientAlice.setPolicy(new OtrPolicy(ALLOW_V2 | ALLOW_V3 | ALLOW_V4));
         c.clientBob.setPolicy(new OtrPolicy(ALLOW_V2 | ALLOW_V3));
         final LinkedBlockingQueue<String> bob2Channel = new LinkedBlockingQueue<>(2);
-        final Client bob2 = new Client("Bob 2", c.sessionIDBob, new OtrPolicy(ALLOW_V3 | ALLOW_V4), RANDOM, c.submitterAlice, bob2Channel);
+        final Client bob2 = new Client("Bob 2", c.sessionIDBob, new OtrPolicy(ALLOW_V3 | ALLOW_V4), c.submitterAlice, bob2Channel);
         c.submitterBob.addQueue(bob2Channel);
 
         // Start setting up an encrypted session.
@@ -309,10 +309,10 @@ public class SessionTest {
         c.clientAlice.setPolicy(policy);
         c.clientBob.setPolicy(policy);
         final LinkedBlockingQueue<String> bob2Channel = new LinkedBlockingQueue<>(3);
-        final Client bob2 = new Client("Bob 2", c.sessionIDBob, policy, RANDOM, c.submitterAlice, bob2Channel);
+        final Client bob2 = new Client("Bob 2", c.sessionIDBob, policy, c.submitterAlice, bob2Channel);
         c.submitterBob.addQueue(bob2Channel);
         final LinkedBlockingQueue<String> bob3Channel = new LinkedBlockingQueue<>(3);
-        final Client bob3 = new Client("Bob 3", c.sessionIDBob, policy, RANDOM, c.submitterAlice, bob3Channel);
+        final Client bob3 = new Client("Bob 3", c.sessionIDBob, policy, c.submitterAlice, bob3Channel);
         c.submitterBob.addQueue(bob3Channel);
 
         // Start setting up an encrypted session.
@@ -1297,10 +1297,10 @@ public class SessionTest {
                     "InMemoryNetwork4");
             this.sessionIDAlice = new SessionID("alice@InMemoryNetwork4", "bob@InMemoryNetwork4",
                     "InMemoryNetwork4");
-            this.clientBob = new Client("Bob", sessionIDBob, new OtrPolicy(OTRL_POLICY_MANUAL), RANDOM,
-                    submitterAlice, directChannelBob);
-            this.clientAlice = new Client("Alice", sessionIDAlice, new OtrPolicy(OTRL_POLICY_MANUAL),
-                    RANDOM, submitterBob, directChannelAlice);
+            this.clientBob = new Client("Bob", sessionIDBob, new OtrPolicy(OTRL_POLICY_MANUAL), submitterAlice,
+                    directChannelBob);
+            this.clientAlice = new Client("Alice", sessionIDAlice, new OtrPolicy(OTRL_POLICY_MANUAL), submitterBob,
+                    directChannelAlice);
         }
 
         /**
@@ -1324,11 +1324,11 @@ public class SessionTest {
                     "InMemoryNetwork4");
             this.sessionIDAlice = new SessionID("alice@InMemoryNetwork4", "bob@InMemoryNetwork4",
                     "InMemoryNetwork4");
-            this.clientBob = new Client("Bob", sessionIDBob, new OtrPolicy(OTRL_POLICY_MANUAL), RANDOM,
-                    submitterAlice, directChannelBob);
+            this.clientBob = new Client("Bob", sessionIDBob, new OtrPolicy(OTRL_POLICY_MANUAL), submitterAlice,
+                    directChannelBob);
             this.clientBob.setMessageSize(maxMessageSize);
-            this.clientAlice = new Client("Alice", sessionIDAlice, new OtrPolicy(OTRL_POLICY_MANUAL),
-                    RANDOM, submitterBob, directChannelAlice);
+            this.clientAlice = new Client("Alice", sessionIDAlice, new OtrPolicy(OTRL_POLICY_MANUAL), submitterBob,
+                    directChannelAlice);
             this.clientAlice.setMessageSize(maxMessageSize);
         }
     }
@@ -1360,11 +1360,11 @@ public class SessionTest {
 
         private final InstanceTag instanceTag = InstanceTag.random(RANDOM);
 
-        private final DSAKeyPair dsaKeyPair;
+        private final DSAKeyPair dsaKeyPair = generateDSAKeyPair();
 
-        private final EdDSAKeyPair ed448KeyPair;
+        private final EdDSAKeyPair ed448KeyPair = EdDSAKeyPair.generate(RANDOM);
 
-        private final Point forgingPublicKey;
+        private final Point forgingPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
 
         private final BlockingSubmitter<String> sendChannel;
 
@@ -1379,12 +1379,8 @@ public class SessionTest {
         private int messageSize = MAX_VALUE;
 
         private Client(@Nonnull final String id, @Nonnull final SessionID sessionID, @Nonnull final OtrPolicy policy,
-                @Nonnull final SecureRandom random, @Nonnull final BlockingSubmitter<String> sendChannel,
-                @Nonnull final BlockingQueue<String> receiptChannel) {
+                @Nonnull final BlockingSubmitter<String> sendChannel, @Nonnull final BlockingQueue<String> receiptChannel) {
             this.logger = Logger.getLogger(Client.class.getName() + ":" + id);
-            this.ed448KeyPair = EdDSAKeyPair.generate(random);
-            this.dsaKeyPair = generateDSAKeyPair();
-            this.forgingPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
             this.receiptChannel = requireNonNull(receiptChannel);
             this.sendChannel = requireNonNull(sendChannel);
             this.policy = requireNonNull(policy);
