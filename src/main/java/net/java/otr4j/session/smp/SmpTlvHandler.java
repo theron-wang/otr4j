@@ -154,7 +154,6 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
             // As prescribed by OTR, we must always be allowed to initiate a new SMP exchange. In case another SMP
             // exchange is in progress, an abort is signaled. We honor the abort exception and send the abort signal
             // to the counter party. Then we immediately initiate a new SMP exchange as requested.
-            // TODO check if we really also need to abort when responding to SMP1(Q). I suspect that this is an error, and we should only allow aborting when *initiating* a new SMP.
             smpAborted(this.host, this.sessionID);
             return new TLV(SMP_ABORT, TLV.EMPTY_BODY);
         } catch (final SMException e) {

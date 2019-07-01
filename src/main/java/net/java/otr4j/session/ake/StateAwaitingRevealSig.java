@@ -71,7 +71,6 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
         this.version = requireInRange(Version.TWO, Version.THREE, version);
         this.keypair = requireNonNull(keypair);
         this.remotePublicKeyHash = requireLengthExactly(SHA256_DIGEST_LENGTH_BYTES, remotePublicKeyHash);
-        // TODO can we make this argument verification more strict/accurate?
         this.remotePublicKeyEncrypted = requireLengthAtLeast(1, remotePublicKeyEncrypted);
     }
 

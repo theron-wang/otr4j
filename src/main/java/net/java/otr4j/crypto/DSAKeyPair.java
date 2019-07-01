@@ -65,7 +65,6 @@ public final class DSAKeyPair {
      * @param privateKey the private key
      * @param publicKey  the corresponding public key
      */
-    // TODO consider what the nicest option is to let a client reconstruct a DSAKeyPair such that keypairs can be stored and loaded. (Should constructor remain public?)
     public DSAKeyPair(@Nonnull final DSAPrivateKey privateKey, @Nonnull final DSAPublicKey publicKey) {
         this.privateKey = requireNonNull(privateKey);
         this.publicKey = requireNonNull(publicKey);
@@ -353,7 +352,6 @@ public final class DSAKeyPair {
                 return false;
             }
             final DSASignature that = (DSASignature) o;
-            // TODO should this be constant-time?
             return Objects.equals(r, that.r) && Objects.equals(s, that.s);
         }
 

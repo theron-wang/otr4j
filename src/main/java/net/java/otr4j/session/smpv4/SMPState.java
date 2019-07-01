@@ -53,7 +53,8 @@ interface SMPState {
      * @param context  the SMP context
      * @param question the question posed by the other party to which we are providing the answer.
      * @param secret   the secret MPI derived from the user-supplied answer
-     * @return Returns SMP response message to be included as TLV payload in a data message.
+     * @return Returns SMP response message to be included as TLV payload in a data message. In case no SMP init is
+     * active, or the response is not for the current one, then return {@code null}.
      */
     @Nullable
     SMPMessage2 respondWithSecret(@Nonnull SMPContext context, @Nonnull String question, @Nonnull Scalar secret);

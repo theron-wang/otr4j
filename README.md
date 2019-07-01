@@ -164,7 +164,7 @@ _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bo
   - ☒ spotbugs-annotations to support managing clean-up of cryptographic key material  
     _Google Error-Prone annotations prove to be more interesting. Adoption of those annotations has started already._
 - ⌛ Issue: some tests fail on a rare occasion due to the `assert` checks that are embedded in the code. These tests should be updated to assume successful execution if input would trigger the assertion.
-- ☐ Significant amount of unit tests to accompany the library. (Currently: 1200+)
+- ⌛ Significant amount of unit tests to accompany the library. (Currently: 1200+)
 - ☐ Interoperability testing with other OTRv4 implementations.
 
 ## Architectural considerations

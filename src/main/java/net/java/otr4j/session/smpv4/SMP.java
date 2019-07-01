@@ -172,7 +172,6 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
                 this.ourLongTermPublicKey, this.ourForgingKey);
         final SMPMessage2 response = this.state.respondWithSecret(this, question, secret);
         if (response == null) {
-            // TODO decide if we want to throw an exception or silently ignore bad (or badly timed) SMP init responses.
             return null;
         }
         return new TLV(SMP2, encode(response));
@@ -238,7 +237,6 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
     @Nonnull
     @Override
     public TLV abort() {
-        // TODO consider not doing an unconditional state change, but instead check if "abort" has impact. (see OTRv3 implementation)
         setState(new StateExpect1(this.random, UNDECIDED));
         smpAborted(this.host, this.sessionID);
         return new TLV(SMP_ABORT, EMPTY_BODY);
