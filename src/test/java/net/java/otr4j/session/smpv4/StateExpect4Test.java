@@ -28,7 +28,7 @@ import static net.java.otr4j.session.api.SMPStatus.INPROGRESS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -105,7 +105,7 @@ public final class StateExpect4Test {
             state.initiate(context, "test", fromBigInteger(valueOf(1L)));
             fail("Expected SMP initiation to fail.");
         } catch (final SMPAbortException e) {
-            verify(context).setState(any(StateExpect1.class));
+            verify(context).setState(isA(StateExpect1.class));
             throw e;
         }
     }
@@ -136,8 +136,7 @@ public final class StateExpect4Test {
         final SMPContext context = mock(SMPContext.class);
         final SMPMessage4 message = new SMPMessage4(rb, cr, d7);
         assertNull(state.process(context, message));
-        // TODO investigate if following verification statement works. There seem to be some unexpected results.
-        verify(context).setState(any(StateExpect1.class));
+        verify(context).setState(isA(StateExpect1.class));
     }
 
     @Test
@@ -146,8 +145,7 @@ public final class StateExpect4Test {
         final SMPContext context = mock(SMPContext.class);
         final SMPMessage4 message = new SMPMessage4(rb, cr, d7);
         assertNull(state.process(context, message));
-        // TODO investigate if following verification statement works. There seem to be some unexpected results.
-        verify(context).setState(any(StateExpect1.class));
+        verify(context).setState(isA(StateExpect1.class));
     }
 
     @Test(expected = SMPAbortException.class)

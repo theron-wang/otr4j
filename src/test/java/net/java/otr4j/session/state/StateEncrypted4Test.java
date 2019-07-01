@@ -37,7 +37,6 @@ import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
@@ -264,7 +263,7 @@ public final class StateEncrypted4Test {
 
         // Verify that state is correct after expiring.
         verify(context, times(1)).injectMessage(captor.capture());
-        verify(context, times(1)).transition(eq(state), any(StatePlaintext.class));
+        verify(context, times(1)).transition(eq(state), isA(StateFinished.class));
         final DataMessage4 disconnectMessage = (DataMessage4) captor.getValue();
         assertEquals(FLAG_IGNORE_UNREADABLE, disconnectMessage.flags & FLAG_IGNORE_UNREADABLE);
         assertTrue(disconnectMessage.ciphertext.length > 1);

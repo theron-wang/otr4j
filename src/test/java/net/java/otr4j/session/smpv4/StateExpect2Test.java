@@ -30,7 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -98,7 +98,7 @@ public final class StateExpect2Test {
             state.initiate(context, "test", fromBigInteger(valueOf(1L)));
             fail("Expected SMP initiation to fail.");
         } catch (final SMPAbortException e) {
-            verify(context).setState(any(StateExpect1.class));
+            verify(context).setState(isA(StateExpect1.class));
             throw e;
         }
     }
@@ -149,8 +149,7 @@ public final class StateExpect2Test {
         assertEquals(ra, response.ra);
         assertEquals(cr, response.cr);
         assertEquals(d7, response.d7);
-        // TODO investigate if following verification statement works. There seem to be some unexpected results.
-        verify(context).setState(any(StateExpect1.class));
+        verify(context).setState(isA(StateExpect4.class));
     }
 
     @Test

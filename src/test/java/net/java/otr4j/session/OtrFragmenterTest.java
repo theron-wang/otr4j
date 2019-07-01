@@ -24,7 +24,8 @@ import static org.bouncycastle.util.encoders.Base64.toBase64String;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -104,7 +105,7 @@ public class OtrFragmenterTest {
         final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         final int number = fragmenter.numberOfFragments(version, message);
         assertEquals(1, number);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -115,7 +116,7 @@ public class OtrFragmenterTest {
         final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         final String[] fragments = fragmenter.fragment(3, senderTagOTRv3, receiverTagOTRv3, message);
         assertArrayEquals(new String[] {message}, fragments);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -125,7 +126,7 @@ public class OtrFragmenterTest {
         OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(3, senderTagOTRv3, receiverTagOTRv3, specV3MessageFull);
         assertArrayEquals(new String[] {specV3MessageFull}, msg);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -135,7 +136,7 @@ public class OtrFragmenterTest {
         OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(2, ZERO_VALUE, ZERO_VALUE, specV2MessageFull);
         assertArrayEquals(new String[] {specV2MessageFull}, msg);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -145,7 +146,7 @@ public class OtrFragmenterTest {
         OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(3, senderTagOTRv3, receiverTagOTRv3, specV3MessageFull);
         assertArrayEquals(new String[] {specV3MessageFull}, msg);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -155,7 +156,7 @@ public class OtrFragmenterTest {
         OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(2, ZERO_VALUE, ZERO_VALUE, specV2MessageFull);
         assertArrayEquals(new String[] {specV2MessageFull}, msg);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -165,7 +166,7 @@ public class OtrFragmenterTest {
         OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         int num = fragmenter.numberOfFragments(3, specV3MessageFull);
         assertEquals(1, num);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -175,7 +176,7 @@ public class OtrFragmenterTest {
         OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         int num = fragmenter.numberOfFragments(3, specV3MessageFull);
         assertEquals(1, num);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -185,7 +186,7 @@ public class OtrFragmenterTest {
         OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         int num = fragmenter.numberOfFragments(3, specV3MessageFull);
         assertEquals(3, num);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -195,7 +196,7 @@ public class OtrFragmenterTest {
         OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         int num = fragmenter.numberOfFragments(3, specV3MessageFull);
         assertEquals(9, num);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test(expected = ProtocolException.class)
@@ -219,7 +220,7 @@ public class OtrFragmenterTest {
         OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(3, senderTagOTRv3, receiverTagOTRv3, specV3MessageFull);
         assertArrayEquals(specV3MessageParts199, msg);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -229,7 +230,7 @@ public class OtrFragmenterTest {
         OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(2, ZERO_VALUE, ZERO_VALUE, specV2MessageFull);
         assertArrayEquals(specV2MessageParts318, msg);
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -266,7 +267,7 @@ public class OtrFragmenterTest {
             assertEquals(count, partNumber);
             count++;
         }
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test
@@ -285,7 +286,7 @@ public class OtrFragmenterTest {
             assertEquals(count, partNumber);
             count++;
         }
-        verify(host, times(1)).getMaxFragmentSize(any(SessionID.class));
+        verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
     }
 
     @Test

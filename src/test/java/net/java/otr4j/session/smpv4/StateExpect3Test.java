@@ -30,7 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -109,7 +109,7 @@ public final class StateExpect3Test {
             state.initiate(context, "test", fromBigInteger(valueOf(1L)));
             fail("Expected SMP initiation to fail.");
         } catch (final SMPAbortException e) {
-            verify(context).setState(any(StateExpect1.class));
+            verify(context).setState(isA(StateExpect1.class));
             throw e;
         }
     }
@@ -146,7 +146,7 @@ public final class StateExpect3Test {
         assertEquals(rb, response.rb);
         assertEquals(expectedCr, response.cr);
         assertEquals(expectedD7, response.d7);
-        verify(context).setState(any(StateExpect4.class));
+        verify(context).setState(isA(StateExpect1.class));
     }
 
     @Test
@@ -161,8 +161,7 @@ public final class StateExpect3Test {
         assertEquals(rb, response.rb);
         assertEquals(expectedCr, response.cr);
         assertEquals(expectedD7, response.d7);
-        // TODO investigate if following verification statement works. There seem to be some unexpected results.
-        verify(context).setState(any(StateExpect1.class));
+        verify(context).setState(isA(StateExpect1.class));
     }
 
     @Test(expected = SMPAbortException.class)
@@ -186,8 +185,7 @@ public final class StateExpect3Test {
         assertNotEquals(rb, response.rb);
         assertEquals(expectedCr, response.cr);
         assertNotEquals(expectedD7, response.d7);
-        // TODO investigate if following verification statement works. There seem to be some unexpected results.
-        verify(context).setState(any(StateExpect1.class));
+        verify(context).setState(isA(StateExpect1.class));
     }
 
     @Test(expected = SMPAbortException.class)

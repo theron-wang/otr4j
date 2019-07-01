@@ -58,7 +58,6 @@ import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
 import static net.java.otr4j.session.state.State.FLAG_NONE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
@@ -188,7 +187,7 @@ public class StatePlaintextTest {
         final Context context = mock(Context.class);
         final StatePlaintext state = new StatePlaintext(StateInitial.instance());
         state.end(context);
-        verify(context, never()).transition(any(State.class), any(State.class));
+        verify(context, never()).transition(isA(State.class), isA(State.class));
     }
 
     @Test
