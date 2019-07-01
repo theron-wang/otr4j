@@ -40,7 +40,7 @@ public final class SessionImplTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void testTransitionFromNullState() {
         final EdDSAKeyPair longTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();

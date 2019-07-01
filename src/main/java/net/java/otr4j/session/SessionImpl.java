@@ -84,6 +84,8 @@ import static net.java.otr4j.messages.EncodedMessageParser.checkDHKeyMessage;
 import static net.java.otr4j.session.api.SMPStatus.INPROGRESS;
 import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
 import static net.java.otr4j.session.state.State.FLAG_NONE;
+import static net.java.otr4j.util.Objects.requireEquals;
+import static net.java.otr4j.util.Objects.requireNotEquals;
 
 /**
  * Implementation of the OTR session.
@@ -119,9 +121,6 @@ import static net.java.otr4j.session.state.State.FLAG_NONE;
  * @author George Politis
  * @author Danny van Heumen
  */
-// TODO *do* report an error if flag IGNORE_UNREADABLE is not set, i.e. check if this logic is in place. (unreadable message to OtrEngineHost)
-// TODO consider refining synchronization such that multiple session instances can operate concurrently
-// TODO I suspect a deadlock may occur between interactions with slave sessions accessing master, and master sessions accessing slave.
 @SuppressWarnings("PMD.TooManyFields")
 final class SessionImpl implements Session, Context {
 
@@ -332,9 +331,7 @@ final class SessionImpl implements Session, Context {
             // We need to construct a new Client Profile payload based on the Client Profile received from the host
             // application.
             profile = this.host.getClientProfile(sessionID);
-            if (profile.getInstanceTag().equals(ZERO_TAG)) {
-                throw new IllegalArgumentException("Only actual instance tags are allowed. The 'zero' tag is not valid.");
-            }
+            requireNotEquals(ZERO_TAG, profile.getInstanceTag(), "Only actual instance tags are allowed. The 'zero' tag is not valid.");
             final Calendar expirationDate = Calendar.getInstance();
             expirationDate.add(Calendar.DAY_OF_YEAR, 14);
             payload = ClientProfilePayload.sign(profile, expirationDate.getTimeInMillis() / 1000,
@@ -380,10 +377,8 @@ final class SessionImpl implements Session, Context {
     @GuardedBy("masterSession")
     @Override
     public void transition(@Nonnull final State fromState, @Nonnull final State toState) {
-        if (this.sessionState != fromState) {
-            throw new IllegalArgumentException("BUG: provided \"from\" state is not the current state. Expected "
-                    + this.sessionState + ", but got " + fromState);
-        }
+        requireEquals(this.sessionState, fromState,
+                "BUG: provided \"from\" state is not the current state. Expected " + this.sessionState + ", but got " + fromState);
         if (toState instanceof StateEncrypted) {
             sendQueuedMessages((StateEncrypted) toState);
         }
