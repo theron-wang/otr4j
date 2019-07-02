@@ -116,7 +116,12 @@ import static net.java.otr4j.util.Objects.requireNotEquals;
  * case - we copy AKE state to the (possibly newly created) slave sessions and
  * continue AKE message handling there.
  *
- * SessionImpl is thread-safe. Thread-safety is achieved by serializing method calls of a session instance.
+ * <p>
+ * SessionImpl is thread-safe. Thread-safety is achieved by serializing method calls of a session instance to the
+ * corresponding master session. As the master session contains itself as master session, we can serialize both master
+ * and slave sessions without concerns. Given that both synchronize to the master, we cannot use two slaves at the same
+ * time. On the other hand, there are no complications with potential dead-locks, given that there is only one lock to
+ * take.
  *
  * @author George Politis
  * @author Danny van Heumen
@@ -271,7 +276,7 @@ final class SessionImpl implements Session, Context {
     private final ArrayList<String> messageQueue;
 
     /**
-     * Constructor.
+     * Constructor for setting up a master session.
      * <p>
      * Package-private constructor for creating new sessions. To create a sessions without using the OTR session
      * manager, we offer a static method that (indirectly) provides access to the session implementation. See
@@ -287,7 +292,7 @@ final class SessionImpl implements Session, Context {
     }
 
     /**
-     * Constructor.
+     * Constructor for setting up either a master or a slave session. (Only masters construct a slave session.)
      *
      * @param masterSession The master session instance. The provided instance is set as the master session. In case of
      *                      the master session, null can be provided to indicate that this session instance is the
@@ -1158,18 +1163,13 @@ final class SessionImpl implements Session, Context {
      *
      * @param question (Optional) question
      * @param answer   answer of which we verify common knowledge
-     * @throws OtrException In case of failure to send, message state different
-     *                      from ENCRYPTED, issues with SMP processing.
+     * @throws OtrException In case of failure to send, message state different from ENCRYPTED, issues with SMP
+     *                      processing.
      */
     @GuardedBy("masterSession")
     private void sendResponseSmp(@Nullable final String question, @Nonnull final String answer) throws OtrException {
         final State session = this.sessionState;
-        final TLV tlv;
-        try {
-            tlv = session.getSmpHandler().respond(question == null ? "" : question, answer.getBytes(UTF_8));
-        } catch (final IncorrectStateException e) {
-            throw new OtrException("Responding to SMP request failed, because current session is not encrypted.", e);
-        }
+        final TLV tlv = session.getSmpHandler().respond(question == null ? "" : question, answer.getBytes(UTF_8));
         final Message m = session.transformSending(this, "", singletonList(tlv), FLAG_IGNORE_UNREADABLE);
         if (m != null) {
             injectMessage(m);
@@ -1189,12 +1189,7 @@ final class SessionImpl implements Session, Context {
                 return;
             }
             final State session = this.sessionState;
-            final TLV tlv;
-            try {
-                tlv = session.getSmpHandler().abort();
-            } catch (final IncorrectStateException e) {
-                throw new OtrException("Aborting SMP is not possible, because current session is not encrypted.", e);
-            }
+            final TLV tlv = session.getSmpHandler().abort();
             final Message m = session.transformSending(this, "", singletonList(tlv), FLAG_IGNORE_UNREADABLE);
             if (m != null) {
                 injectMessage(m);
@@ -1206,8 +1201,7 @@ final class SessionImpl implements Session, Context {
      * Check if SMP is in progress.
      *
      * @return Returns true if SMP is in progress, or false if not in progress.
-     * Note that false will also be returned in case message state is not
-     * ENCRYPTED.
+     * Note that false will also be returned in case message state is not ENCRYPTED.
      */
     @Override
     public boolean isSmpInProgress() {
@@ -1241,11 +1235,7 @@ final class SessionImpl implements Session, Context {
     @Nonnull
     public byte[] getExtraSymmetricKey() throws OtrException {
         synchronized (this.masterSession) {
-            try {
-                return this.sessionState.getExtraSymmetricKey();
-            } catch (final IncorrectStateException e) {
-                throw new OtrException("Cannot acquire Extra Symmetric Key, because current session is not encrypted.", e);
-            }
+            return this.sessionState.getExtraSymmetricKey();
         }
     }
 
