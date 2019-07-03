@@ -474,8 +474,7 @@ final class SessionImpl implements Session, Context {
             try {
                 m = parseMessage(msgText);
             } catch (final ProtocolException e) {
-                // TODO we probably want to just drop the message, i.s.o. throwing exception.
-                throw new OtrException("Invalid message.", e);
+                throw new OtrException("Invalid message received.", e);
             }
 
             if (m instanceof PlainTextMessage) {
@@ -605,7 +604,6 @@ final class SessionImpl implements Session, Context {
         // There is no good reason why the reassembled message should have any other protocol version, sender
         // instance tag or receiver instance tag than the fragments themselves. For now, be safe and drop any
         // inconsistencies to ensure that the inconsistencies cannot be exploited.
-        // TODO write unit test for fragment payload containing different metadata from fragment's metadata.
         if (message.version != fragment.getVersion() || !message.senderTag.equals(fragment.getSenderTag())
                 || !message.receiverTag.equals(fragment.getReceiverTag())) {
             logger.log(INFO, "Inconsistent OTR-encoded message: message contains different protocol version, sender tag or receiver tag than last received fragment. Message is ignored.");

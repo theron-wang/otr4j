@@ -21,6 +21,7 @@ import static java.util.Collections.singleton;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.crypto.DSAKeyPair.generateDSAKeyPair;
 
+// FIXME rename methods due to previous name change.
 public final class ClientProfileTestUtils {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -37,6 +38,10 @@ public final class ClientProfileTestUtils {
      * Construct user profile test utils with default parameters.
      */
     public ClientProfileTestUtils() {
+    }
+
+    public EdDSAKeyPair getEddsaLongTermKeyPair() {
+        return eddsaLongTermKeyPair;
     }
 
     public ClientProfilePayload createUserProfile() {

@@ -10,10 +10,15 @@
 package net.java.otr4j.api;
 
 import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.OtrCryptoEngine;
+import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
+import net.java.otr4j.io.MessageProcessor;
+import net.java.otr4j.messages.ClientProfilePayload;
+import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.util.BlockingSubmitter;
 import net.java.otr4j.util.ConditionalBlockingQueue;
 import net.java.otr4j.util.ConditionalBlockingQueue.Predicate;
@@ -23,6 +28,7 @@ import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -42,6 +48,8 @@ import static net.java.otr4j.api.OtrPolicy.ALLOW_V3;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V4;
 import static net.java.otr4j.api.OtrPolicy.OPPORTUNISTIC;
 import static net.java.otr4j.api.OtrPolicy.OTRL_POLICY_MANUAL;
+import static net.java.otr4j.api.OtrPolicy.OTRV4_INTERACTIVE_ONLY;
+import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static net.java.otr4j.api.SessionStatus.FINISHED;
 import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
@@ -59,6 +67,9 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 // TODO handle case where we store skipped message keys such that we can decrypt message that is received out-of-order, i.e. later than it was supposed to arrive.
 // FIXME add test to prove that we can start new (D)AKE in encrypted/finished Message state.
@@ -155,7 +166,7 @@ public class SessionTest {
         // Expecting Auth-R message, DH-Key message from Alice.
         assertNull(c.clientBob.receiveMessage());
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
-        assertEquals(Version.FOUR, c.clientBob.session.getOutgoingSession().getProtocolVersion());
+        assertEquals(FOUR, c.clientBob.session.getOutgoingSession().getProtocolVersion());
         assertNull(c.clientBob.receiveMessage());
         assertNull(bob2.receiveMessage());
         assertNull(bob2.receiveMessage());
@@ -214,7 +225,7 @@ public class SessionTest {
         rearrangeFragments(c.clientBob.receiptChannel, RANDOM);
         assertArrayEquals(new String[0], c.clientBob.receiveAllMessages(true));
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
-        assertEquals(Session.Version.FOUR, c.clientBob.session.getOutgoingSession().getProtocolVersion());
+        assertEquals(FOUR, c.clientBob.session.getOutgoingSession().getProtocolVersion());
         rearrangeFragments(bob2.receiptChannel, RANDOM);
         assertArrayEquals(new String[0], bob2.receiveAllMessages(true));
         // Expecting Auth-I message from Bob, Signature message from Bob 2.
@@ -1251,6 +1262,80 @@ public class SessionTest {
         assertEquals(0, c.clientAlice.receiptChannel.size());
     }
 
+    @Test
+    public void testFragmentWithIllegalMetadataMismatchedSenderTag() throws OtrException {
+        final SessionID sessionID = new SessionID("bob", "alice", "network");
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
+        when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OTRV4_INTERACTIVE_ONLY));
+        final ClientProfileTestUtils utils = new ClientProfileTestUtils();
+        final ClientProfilePayload clientProfilePayload = utils.createUserProfile();
+        final ClientProfile clientProfile = clientProfilePayload.validate();
+        when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
+        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());
+        final Session session = createSession(sessionID, host);
+        final Point y = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger b = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point firstECDH = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger firstDH = DHKeyPair.generate(RANDOM).getPublicKey();
+        final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(0xffffffff),
+                clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
+
+        // Using incorrect sender tag.
+        final String illegalFragment = "?OTR|00000001|00000100|"
+                + Integer.toHexString(clientProfile.getInstanceTag().getValue()) + ",1,1," + message + ",";
+        assertNull(session.transformReceiving(illegalFragment));
+    }
+
+    @Test
+    public void testFragmentWithIllegalMetadataMismatchedReceiverTag() throws OtrException {
+        final SessionID sessionID = new SessionID("bob", "alice", "network");
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
+        when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OTRV4_INTERACTIVE_ONLY));
+        final ClientProfileTestUtils utils = new ClientProfileTestUtils();
+        final ClientProfilePayload clientProfilePayload = utils.createUserProfile();
+        final ClientProfile clientProfile = clientProfilePayload.validate();
+        when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
+        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());
+        final Session session = createSession(sessionID, host);
+        final Point y = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger b = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point firstECDH = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger firstDH = DHKeyPair.generate(RANDOM).getPublicKey();
+        final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(256),
+                clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
+
+        // Using incorrect receiver tag.
+        final String illegalFragment = "?OTR|00000001|00000100|fffffffe,1,1," + message + ",";
+        assertNull(session.transformReceiving(illegalFragment));
+    }
+
+    @Test
+    public void testFragmentWithIllegalMetadataMismatchedProtocolVersion() throws OtrException {
+        final SessionID sessionID = new SessionID("bob", "alice", "network");
+        final OtrEngineHost host = mock(OtrEngineHost.class);
+        when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
+        when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OTRV4_INTERACTIVE_ONLY));
+        final ClientProfileTestUtils utils = new ClientProfileTestUtils();
+        final ClientProfilePayload clientProfilePayload = utils.createUserProfile();
+        final ClientProfile clientProfile = clientProfilePayload.validate();
+        when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
+        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());
+        final Session session = createSession(sessionID, host);
+        final Point y = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger b = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point firstECDH = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger firstDH = DHKeyPair.generate(RANDOM).getPublicKey();
+        final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(256),
+                clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
+
+        // Using OTRv3 protocol format, hence protocol version mismatches with OTRv4 Identity message.
+        final String illegalFragment = "?OTR|00000100|" + Integer.toHexString(clientProfile.getInstanceTag().getValue())
+                + ",1,1," + message + ",";
+        assertNull(session.transformReceiving(illegalFragment));
+    }
+
     private static void assertMessage(final String message, final String expected, final String actual) {
         if (expected.length() == 0) {
             assertNull(message, actual);
@@ -1387,7 +1472,7 @@ public class SessionTest {
             final Calendar expirationCalendar = Calendar.getInstance();
             expirationCalendar.add(Calendar.DAY_OF_YEAR, 7);
             this.profile = new ClientProfile(this.instanceTag, this.ed448KeyPair.getPublicKey(), this.forgingPublicKey,
-                    Collections.singleton(Session.Version.FOUR), null);
+                    Collections.singleton(FOUR), null);
             this.session = createSession(sessionID, this);
         }
 
