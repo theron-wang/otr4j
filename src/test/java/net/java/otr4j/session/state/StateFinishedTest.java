@@ -315,7 +315,7 @@ public class StateFinishedTest {
         when(context.getSessionID()).thenReturn(sessionID);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(EdDSAKeyPair.generate(RANDOM));
-        final ClientProfilePayload profile = UTILS.createUserProfile();
+        final ClientProfilePayload profile = UTILS.createClientProfile();
         when(context.getClientProfilePayload()).thenReturn(profile);
         final StateFinished state = new StateFinished(StateInitial.instance());
         final ECDHKeyPair ecdh1 = ECDHKeyPair.generate(RANDOM);

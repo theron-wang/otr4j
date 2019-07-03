@@ -44,13 +44,13 @@ public final class ClientProfileTestUtils {
         return eddsaLongTermKeyPair;
     }
 
-    public ClientProfilePayload createUserProfile() {
+    public ClientProfilePayload createClientProfile() {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, this.eddsaLongTermKeyPair.getPublicKey(),
                 this.forgingKey, singleton(Session.Version.FOUR), null);
         return ClientProfilePayload.sign(profile, this.expirationTime, null, this.eddsaLongTermKeyPair);
     }
 
-    public ClientProfilePayload createTransitionalUserProfile() {
+    public ClientProfilePayload createTransitionalClientProfile() {
         final TreeSet<Integer> versions = new TreeSet<>();
         versions.add(Session.Version.THREE);
         versions.add(Session.Version.FOUR);

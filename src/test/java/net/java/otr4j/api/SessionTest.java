@@ -1269,7 +1269,7 @@ public class SessionTest {
         when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OTRV4_INTERACTIVE_ONLY));
         final ClientProfileTestUtils utils = new ClientProfileTestUtils();
-        final ClientProfilePayload clientProfilePayload = utils.createUserProfile();
+        final ClientProfilePayload clientProfilePayload = utils.createClientProfile();
         final ClientProfile clientProfile = clientProfilePayload.validate();
         when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());
@@ -1294,7 +1294,7 @@ public class SessionTest {
         when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OTRV4_INTERACTIVE_ONLY));
         final ClientProfileTestUtils utils = new ClientProfileTestUtils();
-        final ClientProfilePayload clientProfilePayload = utils.createUserProfile();
+        final ClientProfilePayload clientProfilePayload = utils.createClientProfile();
         final ClientProfile clientProfile = clientProfilePayload.validate();
         when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());
@@ -1318,7 +1318,7 @@ public class SessionTest {
         when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OTRV4_INTERACTIVE_ONLY));
         final ClientProfileTestUtils utils = new ClientProfileTestUtils();
-        final ClientProfilePayload clientProfilePayload = utils.createUserProfile();
+        final ClientProfilePayload clientProfilePayload = utils.createClientProfile();
         final ClientProfile clientProfile = clientProfilePayload.validate();
         when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());

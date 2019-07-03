@@ -29,7 +29,7 @@ public final class IdentityMessageTest {
 
     @Test
     public void testConstructIdentityMessage() {
-        final ClientProfilePayload clientProfile = profileTestUtils.createTransitionalUserProfile();
+        final ClientProfilePayload clientProfile = profileTestUtils.createTransitionalClientProfile();
         final Point y = basePoint();
         final BigInteger b = BigInteger.TEN;
         final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
@@ -48,7 +48,7 @@ public final class IdentityMessageTest {
 
     @Test(expected = NullPointerException.class)
     public void testConstructIdentityMessageNullY() {
-        final ClientProfilePayload clientProfile = profileTestUtils.createUserProfile();
+        final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final BigInteger b = BigInteger.TEN;
         final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -57,7 +57,7 @@ public final class IdentityMessageTest {
 
     @Test(expected = NullPointerException.class)
     public void testConstructIdentityMessageNullB() {
-        final ClientProfilePayload clientProfile = profileTestUtils.createUserProfile();
+        final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final Point y = basePoint();
         final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -66,7 +66,7 @@ public final class IdentityMessageTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructTooLowProtocolVersion() {
-        final ClientProfilePayload clientProfile = profileTestUtils.createUserProfile();
+        final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final Point y = basePoint();
         final BigInteger b = BigInteger.TEN;
         final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
@@ -76,7 +76,7 @@ public final class IdentityMessageTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructNullFirstECDHPublicKey() {
-        final ClientProfilePayload clientProfile = profileTestUtils.createUserProfile();
+        final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final Point y = basePoint();
         final BigInteger b = BigInteger.TEN;
         final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -85,7 +85,7 @@ public final class IdentityMessageTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructNullFirstDHPublicKey() {
-        final ClientProfilePayload clientProfile = profileTestUtils.createUserProfile();
+        final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final Point y = basePoint();
         final BigInteger b = BigInteger.TEN;
         final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();

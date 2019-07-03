@@ -378,11 +378,11 @@ public class StatePlaintextTest {
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(context.getHost()).thenReturn(host);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(EdDSAKeyPair.generate(RANDOM));
-        final ClientProfilePayload hostProfile = PROFILE_UTILS.createUserProfile();
+        final ClientProfilePayload hostProfile = PROFILE_UTILS.createClientProfile();
         when(context.getClientProfilePayload()).thenReturn(hostProfile);
         final OtrPolicy policy = new OtrPolicy(ALLOW_V4);
         when(context.getSessionPolicy()).thenReturn(policy);
-        final ClientProfilePayload profile = PROFILE_UTILS.createUserProfile();
+        final ClientProfilePayload profile = PROFILE_UTILS.createClientProfile();
         final ECDHKeyPair dakeECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dakeDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair firstECDH = ECDHKeyPair.generate(RANDOM);
@@ -409,7 +409,7 @@ public class StatePlaintextTest {
         final Context context = mock(Context.class);
         final OtrPolicy policy = new OtrPolicy(ALLOW_V4);
         when(context.getSessionPolicy()).thenReturn(policy);
-        final ClientProfilePayload profile = PROFILE_UTILS.createUserProfile();
+        final ClientProfilePayload profile = PROFILE_UTILS.createClientProfile();
         final ECDHKeyPair dakeECDH = ECDHKeyPair.generate(RANDOM);
         final ECDHKeyPair firstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair firstDH = DHKeyPair.generate(RANDOM);
