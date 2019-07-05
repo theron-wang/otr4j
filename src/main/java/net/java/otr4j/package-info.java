@@ -12,12 +12,6 @@
 // TODO remove OTRv2 support to comply with OTRv4 spec.
 // TODO consider the effectiveness of clearing data as JVM might optimize the activity away due to data not being used afterwards.
 // NOTE OTRv3 does not document that SMP TLVs should have IGNORE_UNREADABLE flag set. So for now, we're not setting the flag for SMP TLVs.
-// FUTURE could we create some kind of basic client such that we can perform cross-implementation testing and fuzzing?
-// FUTURE does it make sense to have some kind of plug-in system for OTR extensions?
-// FUTURE consider if it makes sense to have some kind of SecurityManager rule/policy that prevents code from inspecting any otr4j instances. (This can also be tackled by using otr4j as module, as you have to explicitly allow "opening up" to reflection.)
-// FUTURE what's the status on reproducible builds of Java programs?
-// FUTURE investigate usefulness of Java 9 module, maybe just as an experiment ...
-// FUTURE consider implementing OTRDATA (https://dev.guardianproject.info/projects/gibberbot/wiki/OTRDATA_Specifications)
 // FUTURE do something fuzzing-like to thoroughly test receiving user messages with various characters. Especially normal user messages that are picked up as OTR-encoded but then crash/fail processing because it's only a partially-valid OTR encoded message.
 // FIXME verify that description of process in https://github.com/otrv4/otrv4/blob/master/otrv4.md#receiving-an-identity-message - state=WAITING_AUTH_I is still accurate. Seems to talk about maintaining original message which cannot be because we deleted secure keys for our_ecdh_first and our_dh_first.
 // TODO General questions on way-of-working for OTRv4:
