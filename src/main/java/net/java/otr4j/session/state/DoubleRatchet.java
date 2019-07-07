@@ -436,7 +436,6 @@ final class DoubleRatchet implements AutoCloseable {
      */
     byte[] collectRemainingMACsToReveal() {
         requireNotClosed();
-        // FIXME also generate MAC keys for skipped message keys once this is implemented.
         final byte[] revealed = this.macsToReveal.toByteArray();
         this.macsToReveal.reset();
         return revealed;
@@ -446,7 +445,6 @@ final class DoubleRatchet implements AutoCloseable {
      * Forget the remaining MAC-keys-to-be-revealed. (This is called whenever remaining MAC keys need not be revealed
      * before actually closing.)
      */
-    // TODO why can't we simply reveal the remaining MACs in a message with flag IGNORE_UNREADABLE. That way, everything is revealed.
     void forgetRemainingMACsToReveal() {
         requireNotClosed();
         this.macsToReveal.reset();

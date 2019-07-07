@@ -19,6 +19,7 @@ import net.java.otr4j.session.state.DoubleRatchet.RotationResult;
 import net.java.otr4j.session.state.DoubleRatchet.VerificationException;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -36,8 +37,8 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
-// TODO add unit tests to verify correct clearing of fields
 @SuppressWarnings("ConstantConditions")
 public class DoubleRatchetTest {
 
@@ -218,6 +219,40 @@ public class DoubleRatchetTest {
         bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), rotation.dhPublicKey);
         bobRatchet.decrypt(0, 0, message, authenticator, ciphertext);
         bobRatchet.close();
+    }
+
+    @Test
+    public void testDoubleRatchetClosingClearsSensitiveData() throws VerificationException, RotationLimitationException, OtrCryptoException {
+        final byte[] message = "Hello Alice!".getBytes(UTF_8);
+        // Prepare ratchets for Alice and Bob
+        final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
+        final DHKeyPair aliceFirstDH = DHKeyPair.generate(RANDOM);
+        final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
+        final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
+        final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
+        final DoubleRatchet bobRatchet = new DoubleRatchet(
+                new MixedSharedSecret(RANDOM, bobFirstDH, bobFirstECDH, aliceFirstDH.getPublicKey(),
+                        aliceFirstECDH.getPublicKey()), initialRootKey.clone(), ALICE);
+        final DoubleRatchet aliceRatchet = new DoubleRatchet(
+                new MixedSharedSecret(RANDOM, aliceFirstDH, aliceFirstECDH, bobFirstDH.getPublicKey(),
+                        bobFirstECDH.getPublicKey()), initialRootKey.clone(), BOB);
+
+        // Start encrypting and authenticating using Bob's double ratchet.
+        final RotationResult rotation = aliceRatchet.rotateSenderKeys();
+        final byte[] authenticator = aliceRatchet.authenticate(message);
+        final byte[] ciphertext = aliceRatchet.encrypt(message);
+        // Start decrypting and verifying using Alice's double ratchet.
+        bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), rotation.dhPublicKey);
+        bobRatchet.decrypt(0, 0, message, authenticator, ciphertext);
+        bobRatchet.forgetRemainingMACsToReveal();
+        assertFalse(allZeroBytes((byte[]) getInternalState(bobRatchet, "rootKey")));
+        assertFalse(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "senderRatchet"), "chainKey")));
+        assertFalse(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "receiverRatchet"), "chainKey")));
+        bobRatchet.close();
+        assertEquals(0, ((ByteArrayOutputStream) getInternalState(bobRatchet, "macsToReveal")).size());
+        assertTrue(allZeroBytes((byte[]) getInternalState(bobRatchet, "rootKey")));
+        assertTrue(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "senderRatchet"), "chainKey")));
+        assertTrue(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "receiverRatchet"), "chainKey")));
     }
 
     @Test
