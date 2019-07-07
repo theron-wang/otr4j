@@ -54,6 +54,8 @@ import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static net.java.otr4j.api.SessionStatus.FINISHED;
 import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
 import static net.java.otr4j.crypto.DSAKeyPair.generateDSAKeyPair;
+import static net.java.otr4j.io.MessageProcessor.otrEncoded;
+import static net.java.otr4j.io.MessageProcessor.otrFragmented;
 import static net.java.otr4j.session.OtrSessionManager.createSession;
 import static net.java.otr4j.util.Arrays.contains;
 import static net.java.otr4j.util.BlockingQueuesTestUtils.drop;
@@ -73,7 +75,6 @@ import static org.mockito.Mockito.when;
 
 // TODO handle case where we store skipped message keys such that we can decrypt message that is received out-of-order, i.e. later than it was supposed to arrive.
 // TODO add test to prove that we can start new (D)AKE in encrypted/finished Message state.
-// TODO add method to assert OTR-encoded data (and Fragment data) over communication channel as opposed to "not equals to original message".
 public class SessionTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -184,13 +185,17 @@ public class SessionTest {
         final String msg1 = "Hello Bob, this new IM software you installed on my PC the other day says we are talking Off-the-Record, what's that supposed to mean?";
         c.clientAlice.sendMessage(msg1);
         assertNotEquals(msg1, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg1, bob2.receiptChannel.peek());
+        assertTrue(otrEncoded(bob2.receiptChannel.peek()));
         assertEquals(msg1, c.clientBob.receiveMessage());
         assertNull(bob2.receiveMessage());
         c.clientAlice.session.setOutgoingSession(bob2.session.getSenderInstanceTag());
         c.clientAlice.sendMessage(msg1);
         assertNotEquals(msg1, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg1, bob2.receiptChannel.peek());
+        assertTrue(otrEncoded(bob2.receiptChannel.peek()));
         assertEquals(msg1, bob2.receiveMessage());
         assertNull(c.clientBob.receiveMessage());
 
@@ -248,7 +253,9 @@ public class SessionTest {
         final String msg1 = "Hello Bob, this new IM software you installed on my PC the other day says we are talking Off-the-Record, what's that supposed to mean?";
         c.clientAlice.sendMessage(msg1);
         assertNotEquals(msg1, c.clientBob.receiptChannel.peek());
+        assertTrue(otrFragmented(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg1, bob2.receiptChannel.peek());
+        assertTrue(otrFragmented(bob2.receiptChannel.peek()));
         rearrangeFragments(c.clientBob.receiptChannel, RANDOM);
         assertArrayEquals(new String[] {msg1}, c.clientBob.receiveAllMessages(true));
         rearrangeFragments(bob2.receiptChannel, RANDOM);
@@ -256,7 +263,9 @@ public class SessionTest {
         c.clientAlice.session.setOutgoingSession(bob2.session.getSenderInstanceTag());
         c.clientAlice.sendMessage(msg1);
         assertNotEquals(msg1, c.clientBob.receiptChannel.peek());
+        assertTrue(otrFragmented(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg1, bob2.receiptChannel.peek());
+        assertTrue(otrFragmented(bob2.receiptChannel.peek()));
         rearrangeFragments(bob2.receiptChannel, RANDOM);
         assertArrayEquals(new String[] {msg1}, bob2.receiveAllMessages(true));
         rearrangeFragments(c.clientBob.receiptChannel, RANDOM);
@@ -306,7 +315,9 @@ public class SessionTest {
         final String msg1 = "Hello Bob, this new IM software you installed on my PC the other day says we are talking Off-the-Record, what's that supposed to mean?";
         c.clientAlice.sendMessage(msg1);
         assertNotEquals(msg1, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg1, bob2.receiptChannel.peek());
+        assertTrue(otrEncoded(bob2.receiptChannel.peek()));
         assertEquals(msg1, c.clientBob.receiveMessage());
         assertNull(bob2.receiveMessage());
     }
@@ -361,8 +372,11 @@ public class SessionTest {
         final String msg1 = "Hello Bob, this new IM software you installed on my PC the other day says we are talking Off-the-Record, what's that supposed to mean?";
         c.clientAlice.sendMessage(msg1);
         assertNotEquals(msg1, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg1, bob2.receiptChannel.peek());
+        assertTrue(otrEncoded(bob2.receiptChannel.peek()));
         assertNotEquals(msg1, bob3.receiptChannel.peek());
+        assertTrue(otrEncoded(bob3.receiptChannel.peek()));
         assertEquals(msg1, c.clientBob.receiveMessage());
         assertNull(bob2.receiveMessage());
         assertNull(bob3.receiveMessage());
@@ -371,13 +385,17 @@ public class SessionTest {
         final String msg2 = "Hey Alice, it means that our communication is encrypted and authenticated.";
         c.clientBob.sendMessage(msg2);
         assertNotEquals(msg2, c.clientAlice.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
         assertEquals(msg2, c.clientAlice.receiveMessage());
 
         final String msg3 = "Oh, is that all?";
         c.clientAlice.sendMessage(msg3);
         assertNotEquals(msg3, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg3, bob2.receiptChannel.peek());
+        assertTrue(otrEncoded(bob2.receiptChannel.peek()));
         assertNotEquals(msg3, bob3.receiptChannel.peek());
+        assertTrue(otrEncoded(bob3.receiptChannel.peek()));
         assertEquals(msg3, c.clientBob.receiveMessage());
         assertNull(bob2.receiveMessage());
         assertNull(bob3.receiveMessage());
@@ -385,13 +403,17 @@ public class SessionTest {
         final String msg4 = "Actually no, our communication has the properties of perfect forward secrecy and deniable authentication.";
         c.clientBob.sendMessage(msg4);
         assertNotEquals(msg4, c.clientAlice.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
         assertEquals(msg4, c.clientAlice.receiveMessage());
 
         final String msg5 = "Oh really?! pouvons-nous parler en français?";
         c.clientAlice.sendMessage(msg5);
         assertNotEquals(msg5, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg5, bob2.receiptChannel.peek());
+        assertTrue(otrEncoded(bob2.receiptChannel.peek()));
         assertNotEquals(msg5, bob3.receiptChannel.peek());
+        assertTrue(otrEncoded(bob3.receiptChannel.peek()));
         assertEquals(msg5, c.clientBob.receiveMessage());
         assertNull(bob2.receiveMessage());
         assertNull(bob3.receiveMessage());
@@ -434,22 +456,27 @@ public class SessionTest {
         final String msg1 = "Hello Bob, this new IM software you installed on my PC the other day says we are talking Off-the-Record, what's that supposed to mean?";
         c.clientAlice.sendMessage(msg1);
         assertNotEquals(msg1, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertEquals(msg1, c.clientBob.receiveMessage());
         final String msg2 = "Hey Alice, it means that our communication is encrypted and authenticated.";
         c.clientBob.sendMessage(msg2);
         assertNotEquals(msg2, c.clientAlice.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
         assertEquals(msg2, c.clientAlice.receiveMessage());
         final String msg3 = "Oh, is that all?";
         c.clientAlice.sendMessage(msg3);
         assertNotEquals(msg3, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertEquals(msg3, c.clientBob.receiveMessage());
         final String msg4 = "Actually no, our communication has the properties of perfect forward secrecy and deniable authentication.";
         c.clientBob.sendMessage(msg4);
         assertNotEquals(msg4, c.clientAlice.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
         assertEquals(msg4, c.clientAlice.receiveMessage());
         final String msg5 = "Oh really?! pouvons-nous parler en français?";
         c.clientAlice.sendMessage(msg5);
         assertNotEquals(msg5, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertEquals(msg5, c.clientBob.receiveMessage());
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
@@ -485,22 +512,27 @@ public class SessionTest {
         final String msg1 = "Hello Bob, this new IM software you installed on my PC the other day says we are talking Off-the-Record, what's that supposed to mean?";
         c.clientAlice.sendMessage(msg1);
         assertNotEquals(msg1, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertEquals(msg1, c.clientBob.receiveMessage());
         final String msg2 = "Hey Alice, it means that our communication is encrypted and authenticated.";
         c.clientBob.sendMessage(msg2);
         assertNotEquals(msg2, c.clientAlice.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
         assertEquals(msg2, c.clientAlice.receiveMessage());
         final String msg3 = "Oh, is that all?";
         c.clientAlice.sendMessage(msg3);
         assertNotEquals(msg3, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertEquals(msg3, c.clientBob.receiveMessage());
         final String msg4 = "Actually no, our communication has the properties of perfect forward secrecy and deniable authentication.";
         c.clientBob.sendMessage(msg4);
         assertNotEquals(msg4, c.clientAlice.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
         assertEquals(msg4, c.clientAlice.receiveMessage());
         final String msg5 = "Oh really?! pouvons-nous parler en français?";
         c.clientAlice.sendMessage(msg5);
         assertNotEquals(msg5, c.clientBob.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertEquals(msg5, c.clientBob.receiveMessage());
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
@@ -612,12 +644,14 @@ public class SessionTest {
             c.clientAlice.sendMessage(line);
             final String sanitizedLine = line.replace('\0', '?');
             assertNotEquals(sanitizedLine, c.clientBob.receiptChannel.peek());
+            assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
             final String receivedBob = c.clientBob.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientBob.session.getSessionStatus());
             assertEquals(sanitizedLine, receivedBob);
 
             c.clientBob.sendMessage(line);
             assertNotEquals(sanitizedLine, c.clientAlice.receiptChannel.peek());
+            assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
             final String receivedAlice = c.clientAlice.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientAlice.session.getSessionStatus());
             assertEquals(sanitizedLine, receivedAlice);
@@ -639,6 +673,7 @@ public class SessionTest {
         for (final String message : UNICODE_LINES) {
             c.clientAlice.sendMessage(message);
             assertNotEquals(message, c.clientBob.receiptChannel.peek());
+            assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
             final String receivedBob = c.clientBob.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientBob.session.getSessionStatus());
             assertEquals(message, receivedBob);
@@ -646,6 +681,7 @@ public class SessionTest {
             assertEquals(SessionStatus.ENCRYPTED, c.clientBob.session.getSessionStatus());
             c.clientBob.sendMessage(message);
             assertNotEquals(message, c.clientAlice.receiptChannel.peek());
+            assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
             final String receivedAlice = c.clientAlice.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientAlice.session.getSessionStatus());
             assertEquals(message, receivedAlice);
@@ -677,6 +713,7 @@ public class SessionTest {
         // Start sending messages
         c.clientBob.sendMessage("Hello Alice!");
         assertNotEquals("Hello Alice!", c.clientAlice.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
         assertEquals("Hello Alice!", c.clientAlice.receiveMessage());
         c.clientAlice.session.endSession();
         assertEquals(PLAINTEXT, c.clientAlice.session.getSessionStatus());
@@ -783,6 +820,7 @@ public class SessionTest {
         // Start sending messages
         c.clientBob.sendMessage("Hello Alice!");
         assertNotEquals("Hello Alice!", c.clientAlice.receiptChannel.peek());
+        assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
         assertEquals("Hello Alice!", c.clientAlice.receiveMessage());
         // Even though encrypted now, start a new session. This should not follow through.
         c.clientBob.session.startSession();
@@ -834,6 +872,7 @@ public class SessionTest {
         assertTrue(c.clientBob.receiptChannel.isEmpty());
         c.clientAlice.sendMessage("Hello Bob!");
         assertNotEquals("Hello Bob!", c.clientBob.receiptChannel.peek());
+        assertTrue(otrFragmented(c.clientBob.receiptChannel.peek()));
         assertArrayEquals(new String[] {"Hello Bob!"}, c.clientBob.receiveAllMessages(true));
         c.clientAlice.sendMessage("Hello Bob - this messages gets partially dropped ............................");
         drop(new int[] {RANDOM.nextInt(4)}, c.clientBob.receiptChannel);

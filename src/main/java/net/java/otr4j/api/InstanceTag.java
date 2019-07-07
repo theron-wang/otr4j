@@ -71,12 +71,10 @@ public final class InstanceTag {
      */
     @CheckReturnValue
     public static boolean isValidInstanceTag(final int tagValue) {
-        // Note that the decimal representation of Java's int is always
-        // signed, that means that any value over 0x7fffffff will be
-        // interpreted as a negative value. So, instead we verify that
-        // the tag value is not in the "forbidden range".
-        // Other than the forbidden range, every possible value of the
-        // 32 bits of memory is acceptable.
+        // Note that the decimal representation of Java's int is always signed, that means that any value over
+        // 0x7fffffff will be interpreted as a negative value. So, instead we verify that the tag value is not in the
+        // "forbidden range". Other than the forbidden range, every possible value of the 32 bits of memory is
+        // acceptable.
         return !(0 < tagValue && tagValue < SMALLEST_VALUE);
     }
 
@@ -118,12 +116,10 @@ public final class InstanceTag {
             throw new IllegalArgumentException("ratio should be a value between 0 and 1");
         }
         final long val = (long) (ratio * RANGE) + SMALLEST_VALUE;
-        // Because 0xffffffff is the maximum value for both the tag and
-        // the 32 bit integer range, we are able to cast to int without
-        // loss. The (decimal) interpretation changes, though, because
-        // Java's int interprets the last bit as the sign bit. This does
-        // not matter, however, since we do not need to do value
-        // comparisons / ordering. We only care about equal/not equal.
+        // Because 0xffffffff is the maximum value for both the tag and the 32 bit integer range, we are able to cast to
+        // int without loss. The (decimal) interpretation changes, though, because Java's int interprets the last bit as
+        // the sign bit. This does not matter, however, since we do not need to do value comparisons / ordering. We only
+        // care about equal/not equal.
         this.value = (int) val;
     }
 

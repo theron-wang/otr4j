@@ -284,7 +284,7 @@ public final class MessageProcessor {
      * @return Returns true if content is OTR encoded, or false otherwise.
      */
     @CheckReturnValue
-    private static boolean otrEncoded(@Nonnull final String content) {
+    public static boolean otrEncoded(@Nonnull final String content) {
         return content.startsWith(HEAD + HEAD_ENCODED) && content.endsWith(".");
     }
 
@@ -295,7 +295,7 @@ public final class MessageProcessor {
      * @return Returns true if content is OTR fragment, or false otherwise.
      */
     @CheckReturnValue
-    private static boolean otrFragmented(@Nonnull final String content) {
+    public static boolean otrFragmented(@Nonnull final String content) {
         return (content.startsWith(HEAD + HEAD_FRAGMENTED_V2) || content.startsWith(HEAD + HEAD_FRAGMENTED_V3))
             && content.endsWith(String.valueOf(TAIL_FRAGMENTED));
     }
