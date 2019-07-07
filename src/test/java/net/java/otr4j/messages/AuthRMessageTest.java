@@ -54,7 +54,7 @@ public final class AuthRMessageTest {
 
     private static final BigInteger FIRST_DH_PUBLIC_KEY = DHKeyPair.generate(RANDOM).getPublicKey();
 
-    private static final ClientProfilePayload PAYLOAD = ClientProfilePayload.sign(
+    private static final ClientProfilePayload PAYLOAD = ClientProfilePayload.signClientProfile(
             new ClientProfile(SMALLEST_TAG, ED_DSA_KEYPAIR.getPublicKey(), FORGING_KEY,
                     Collections.singleton(Version.FOUR), DSA_KEYPAIR.getPublic()),
             Long.MAX_VALUE / 1000, DSA_KEYPAIR, ED_DSA_KEYPAIR);

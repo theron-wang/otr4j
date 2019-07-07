@@ -79,6 +79,7 @@ import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
 import static net.java.otr4j.io.MessageProcessor.parseMessage;
 import static net.java.otr4j.io.MessageProcessor.writeMessage;
+import static net.java.otr4j.messages.ClientProfilePayload.signClientProfile;
 import static net.java.otr4j.messages.EncodedMessageParser.checkAuthRMessage;
 import static net.java.otr4j.messages.EncodedMessageParser.checkDHKeyMessage;
 import static net.java.otr4j.session.api.SMPStatus.INPROGRESS;
@@ -339,7 +340,7 @@ final class SessionImpl implements Session, Context {
             requireNotEquals(ZERO_TAG, profile.getInstanceTag(), "Only actual instance tags are allowed. The 'zero' tag is not valid.");
             final Calendar expirationDate = Calendar.getInstance();
             expirationDate.add(Calendar.DAY_OF_YEAR, 14);
-            payload = ClientProfilePayload.sign(profile, expirationDate.getTimeInMillis() / 1000,
+            payload = signClientProfile(profile, expirationDate.getTimeInMillis() / 1000,
                     this.host.getLocalKeyPair(sessionID), this.host.getLongTermKeyPair(sessionID));
             this.host.publishClientProfilePayload(new OtrOutputStream().write(payload).toByteArray());
         }
@@ -627,7 +628,7 @@ final class SessionImpl implements Session, Context {
         // TODO We've started replicating current (auth)State in *all* cases where a new slave session is created. Is this indeed correct? Probably is, but needs focused verification.
         if (message.version == THREE && checkDHKeyMessage(message)) {
             // Copy state to slave session, as this is the earliest moment that we know the instance tag of the other party.
-            // FIXME this screws things up in case we *do* know the receiver instance tag in advance, as we would be copying an outdated authentication-state instance.
+            // FIXME this screws things up in case we *do* know the receiver instance tag in advance, as we would be copying an outdated authentication-state instance. (Consider keeping a timestamp and choose instance with newest timestamp.)
             synchronized (this.masterSession.masterSession) {
                 this.sessionState.setAuthState(this.masterSession.sessionState.getAuthState());
             }

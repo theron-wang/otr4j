@@ -19,6 +19,7 @@ import java.util.Arrays;
 import static net.java.otr4j.crypto.OtrCryptoEngine.sha256Hash;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
+import static org.bouncycastle.util.Arrays.clear;
 
 /**
  * Container for the shared secret as defined by otr.
@@ -187,6 +188,6 @@ public final class SharedSecret implements AutoCloseable {
      */
     @Override
     public void close() {
-        Arrays.fill(this.secbytes, (byte) 0);
+        clear(this.secbytes);
     }
 }

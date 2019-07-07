@@ -95,7 +95,7 @@ public final class ClientProfilePayload implements OtrEncodable {
      * @return Returns a Client Profile payload that can be serialized to an OTR-encoded data stream.
      */
     @Nonnull
-    public static ClientProfilePayload sign(@Nonnull final ClientProfile profile, final long expirationUnixTimeSeconds,
+    public static ClientProfilePayload signClientProfile(@Nonnull final ClientProfile profile, final long expirationUnixTimeSeconds,
             @Nullable final DSAKeyPair dsaKeyPair, @Nonnull final EdDSAKeyPair eddsaKeyPair) {
         final ArrayList<Field> fields = new ArrayList<>();
         fields.add(new InstanceTagField(profile.getInstanceTag().getValue()));

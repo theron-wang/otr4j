@@ -20,6 +20,7 @@ import java.util.TreeSet;
 import static java.util.Collections.singleton;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.crypto.DSAKeyPair.generateDSAKeyPair;
+import static net.java.otr4j.messages.ClientProfilePayload.signClientProfile;
 
 public final class ClientProfileTestUtils {
 
@@ -46,7 +47,7 @@ public final class ClientProfileTestUtils {
     public ClientProfilePayload createClientProfile() {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, this.eddsaLongTermKeyPair.getPublicKey(),
                 this.forgingKey, singleton(Session.Version.FOUR), null);
-        return ClientProfilePayload.sign(profile, this.expirationTime, null, this.eddsaLongTermKeyPair);
+        return signClientProfile(profile, this.expirationTime, null, this.eddsaLongTermKeyPair);
     }
 
     public ClientProfilePayload createTransitionalClientProfile() {
@@ -55,6 +56,6 @@ public final class ClientProfileTestUtils {
         versions.add(Session.Version.FOUR);
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, this.eddsaLongTermKeyPair.getPublicKey(),
                 this.forgingKey, versions, this.dsaKeyPair.getPublic());
-        return ClientProfilePayload.sign(profile, this.expirationTime, this.dsaKeyPair, this.eddsaLongTermKeyPair);
+        return signClientProfile(profile, this.expirationTime, this.dsaKeyPair, this.eddsaLongTermKeyPair);
     }
 }

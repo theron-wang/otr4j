@@ -17,7 +17,6 @@ import net.java.otr4j.crypto.SharedSecret;
 import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,6 +24,7 @@ import java.util.logging.Logger;
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.crypto.OtrCryptoEngine.sha1Hash;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static org.bouncycastle.util.Arrays.clear;
 
 // TODO consider doing lazy evaluation of generating 's', 'receivingCtr' and 'sendingCtr'. (Would save some memory/computation in case this session key combination is not actually used.)
 // TODO Does it make sense to randomly generate the initial sending counter value to further avoid reuse?
@@ -55,15 +55,13 @@ final class SessionKey implements AutoCloseable {
     private final SharedSecret s;
 
     /**
-     * Indicates whether or not our key is the high key compared to the remote
-     * DH public key. This data is used to break the symmetry and decide on
-     * which bytes to use when generating encryption and MAC keys.
+     * Indicates whether or not our key is the high key compared to the remote DH public key. This data is used to break
+     * the symmetry and decide on which bytes to use when generating encryption and MAC keys.
      */
     private final boolean high;
 
     /**
-     * Indicates whether the receiving key is used, thus if it needs to be
-     * published.
+     * Indicates whether the receiving key is used, thus if it needs to be published.
      */
     private boolean used;
 
@@ -197,15 +195,13 @@ final class SessionKey implements AutoCloseable {
     }
 
     /**
-     * Acquire sending counter.The provided CTR value will be 16-byte in length.
-     * The OTR spec defines that only the top-half must be used and incremented.
+     * Acquire sending counter.The provided CTR value will be 16-byte in length. The OTR spec defines that only the
+     * top-half must be used and incremented.
      *
-     * NOTE that the sending ctr of all zeroes should never be used. The current
-     * implementation prevents this by incrementing first and returning ctr
-     * value after.
+     * NOTE that the sending ctr of all zeroes should never be used. The current implementation prevents this by
+     * incrementing first and returning ctr value after.
      *
-     * @return Returns 16-byte CTR value of which the top half is sending
-     * counter value and bottom half is zeroed.
+     * @return Returns 16-byte CTR value of which the top half is sending counter value and bottom half is zeroed.
      */
     @Nonnull
     byte[] acquireSendingCtr() {
@@ -222,14 +218,14 @@ final class SessionKey implements AutoCloseable {
     }
 
     /**
-     * Verify counter based on the previous counters that have been verified. We
-     * require counter to be strictly larger then the previous counter.
+     * Verify counter based on the previous counters that have been verified. We require counter to be strictly larger
+     * then the previous counter.
      *
      * @param receivingCtr Counter to verify.
-     * @return Returns extended counter that is extended to 16 bytes of which
-     * the first 8 bytes is pristine provided receiving ctr value.
+     * @return Returns extended counter that is extended to 16 bytes of which the first 8 bytes is pristine provided
+     * receiving ctr value.
      * @throws SessionKey.ReceivingCounterValidationFailed In case of validation
-     * failure.
+     *                                                     failure.
      */
     @Nonnull
     byte[] verifyReceivingCtr(@Nonnull final byte[] receivingCtr) throws ReceivingCounterValidationFailed {
@@ -269,8 +265,8 @@ final class SessionKey implements AutoCloseable {
     @Override
     public void close() {
         this.s.close();
-        Arrays.fill(this.receivingCtr, (byte) 0);
-        Arrays.fill(this.sendingCtr, (byte) 0);
+        clear(this.receivingCtr);
+        clear(this.sendingCtr);
     }
 
     /**
