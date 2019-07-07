@@ -21,6 +21,7 @@ import java.util.HashSet;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.copyOfRange;
+import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.io.MessageProcessor.encodeVersionString;
 import static net.java.otr4j.io.MessageProcessor.parseMessage;
@@ -315,6 +316,11 @@ public final class MessageProcessorTest {
     @Test(expected = NullPointerException.class)
     public void testParseVersionsStringNull() {
         parseVersionString(null);
+    }
+
+    @Test
+    public void testParseVersionsStringZero() {
+        assertEquals(emptySet(), parseVersionString("0"));
     }
 
     @Test

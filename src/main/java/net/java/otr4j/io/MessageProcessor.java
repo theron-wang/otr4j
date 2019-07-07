@@ -270,7 +270,7 @@ public final class MessageProcessor {
         final TreeSet<Integer> versions = new TreeSet<>();
         for (final char c : versionString.toCharArray()) {
             final int idx = NUMBERINDEX.indexOf(c);
-            if (idx > -1) {
+            if (idx > 0) {
                 versions.add(idx);
             }
         }
