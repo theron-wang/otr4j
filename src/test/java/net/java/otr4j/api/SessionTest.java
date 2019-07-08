@@ -75,6 +75,7 @@ import static org.mockito.Mockito.when;
 
 // TODO handle case where we store skipped message keys such that we can decrypt message that is received out-of-order, i.e. later than it was supposed to arrive.
 // TODO add test to prove that we can start new (D)AKE in encrypted/finished Message state.
+@SuppressWarnings("ConstantConditions")
 public class SessionTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();

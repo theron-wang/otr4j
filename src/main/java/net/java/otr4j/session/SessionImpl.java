@@ -492,7 +492,7 @@ final class SessionImpl implements Session, Context {
                 final Fragment fragment = (Fragment) m;
 
                 if (ZERO_TAG.equals(fragment.getSenderTag())) {
-                    logger.log(INFO, "Message fragment contains 0 sender tag. Ignoring message. (Message ID: {}, index: {}, total: {})",
+                    logger.log(INFO, "Message fragment contains 0 sender tag. Ignoring message. (Message ID: {0}, index: {1}, total: {2})",
                             new Object[] {fragment.getIdentifier(), fragment.getIndex(), fragment.getTotal()});
                     return null;
                 }

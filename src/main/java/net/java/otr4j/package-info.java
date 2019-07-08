@@ -6,7 +6,6 @@
  *
  * SPDX-License-Identifier: LGPL-3.0-only
  */
-// TODO verify that logging with parameters ('{}') works correctly.
 // TODO Review rule exclusions for maven-compiler-plugin, SpotBugs, pmd, ...
 // TODO remove OTRv2 support to comply with OTRv4 spec.
 // TODO consider the effectiveness of clearing data as JVM might optimize the activity away due to data not being used afterwards.

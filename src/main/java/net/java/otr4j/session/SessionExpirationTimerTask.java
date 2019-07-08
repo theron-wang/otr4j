@@ -77,7 +77,7 @@ final class SessionExpirationTimerTask extends TimerTask {
                 session.expireSession();
             }
         } catch (final IncorrectStateException e) {
-            LOGGER.log(FINEST, "Session instance '{}' current state does not expire.",
+            LOGGER.log(FINEST, "Session instance '{0}' current state does not expire.",
                     generateIdentifier(session));
         } catch (final OtrException e) {
             LOGGER.log(WARNING, "Failure while expiring session instance " + generateIdentifier(session), e);

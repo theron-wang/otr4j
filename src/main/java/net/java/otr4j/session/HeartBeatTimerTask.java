@@ -76,7 +76,7 @@ final class HeartBeatTimerTask extends TimerTask {
                 session.sendHeartbeat();
             }
         } catch (final IncorrectStateException e) {
-            LOGGER.log(FINEST, "Session instance '{}' current state is not a private messaging state.",
+            LOGGER.log(FINEST, "Session instance '{0}' current state is not a private messaging state.",
                     generateIdentifier(session));
         } catch (final OtrException e) {
             LOGGER.log(WARNING, "Failure while sending heartbeat for session instance "
