@@ -36,6 +36,7 @@
 //    first in establishing the connection, but it isn't the client that the user is currently working on. Then there is
 //    a risk of exposing information to the wrong computer.
 //  * Should we also reveal already gathered MAC codes upon ending encrypted session? Now it says to just forget about them, which seems unnecessary given that all the mechanisms are in place to reveal the remaining MAC codes. (https://github.com/otrv4/otrv4/blob/master/otrv4.md#revealing-mac-keys, https://github.com/otrv4/otrv4/issues/182)
+//  * Should we (automatically) extend trust to the OTRv4 identity if we successfully establish a connection that contains a trusted (transitional) DSA long-term identity.
 /**
  * otr4j.
  */
