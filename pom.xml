@@ -92,6 +92,12 @@
             <version>3.3.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>edu.berkeley.cs.jqf</groupId>
+            <artifactId>jqf-fuzz</artifactId>
+            <version>1.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <pluginManagement>
@@ -341,7 +347,7 @@
                     <encoding>UTF-8</encoding>
                     <failOnViolation>true</failOnViolation>
                     <configLocation>${project.basedir}/codecheck/checkstyle.xml</configLocation>
-		    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
                 </configuration>
             </plugin>
             <plugin>

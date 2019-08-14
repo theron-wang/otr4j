@@ -1,0 +1,38 @@
+/*
+ * otr4j, the open source java otr library.
+ *
+ * Distributable under LGPL license.
+ * See terms of license at gnu.org.
+ *
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
+package net.java.otrfuzz;
+
+import edu.berkeley.cs.jqf.fuzz.Fuzz;
+import edu.berkeley.cs.jqf.fuzz.JQF;
+import org.junit.runner.RunWith;
+
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static net.java.otr4j.io.MessageProcessor.parseMessage;
+import static org.junit.Assume.assumeNoException;
+import static org.junit.Assume.assumeNotNull;
+
+@RunWith(JQF.class)
+public class MessageParserDriver {
+
+    @Fuzz
+    public void fuzzMessage(@Nonnull final InputStream input) throws IOException {
+        final byte[] data = new byte[4096];
+        final int count = input.read(data);
+        try {
+            assumeNotNull(parseMessage(new String(data, 0, count, UTF_8)));
+        } catch (final Throwable e) {
+            assumeNoException(e);
+        }
+    }
+}

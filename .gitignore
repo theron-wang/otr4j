@@ -23,3 +23,7 @@ gen/
 build.xml
 local.properties
 proguard-project.txt
+
+# afl fuzzer and JQF
+/fuzz-results
+/jqf.log
