@@ -16,11 +16,12 @@ import org.junit.runner.RunWith;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ProtocolException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.java.otr4j.io.MessageProcessor.parseMessage;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeNoException;
-import static org.junit.Assume.assumeNotNull;
 
 @RunWith(JQF.class)
 public class MessageParserDriver {
@@ -30,8 +31,8 @@ public class MessageParserDriver {
         final byte[] data = new byte[4096];
         final int count = input.read(data);
         try {
-            assumeNotNull(parseMessage(new String(data, 0, count, UTF_8)));
-        } catch (final Throwable e) {
+            assertNotNull(parseMessage(new String(data, 0, count, UTF_8)));
+        } catch (final ProtocolException e) {
             assumeNoException(e);
         }
     }

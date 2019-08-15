@@ -13,6 +13,7 @@ import com.google.errorprone.annotations.CheckReturnValue;
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.Session.Version;
 import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.encoders.DecoderException;
 
 import javax.annotation.Nonnull;
 import java.io.StringWriter;
@@ -125,13 +126,12 @@ public final class MessageProcessor {
                 return Fragment.parse(text);
             } else if (otrEncoded(text)) {
                 // Data message found.
-                /*
-                 * BC 1.48 added a check to throw an exception if a non-base64 character is encountered.
-                 * An OTR message consists of ?OTR:AbcDefFe. (note the terminating point).
-                 * Otr4j doesn't strip this point before passing the content to the base64 decoder.
-                 * So in order to decode the content string we have to get rid of the '.' first.
-                 */
-                final byte[] contentBytes = decode(content.substring(0, content.length() - 1).getBytes(US_ASCII));
+                final byte[] contentBytes;
+                try {
+                    contentBytes = decode(content.substring(0, content.length() - 1).getBytes(US_ASCII));
+                } catch (final DecoderException e) {
+                    throw new ProtocolException("OTR encoded payload contains invalid characters. Cannot decode Base64-encoded content.");
+                }
                 final OtrInputStream input = new OtrInputStream(contentBytes);
                 final int protocolVersion = input.readShort();
                 if (!SUPPORTED.contains(protocolVersion)) {
