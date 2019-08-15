@@ -202,6 +202,12 @@ public final class MessageProcessorTest {
     }
 
     @Test
+    public void testEnsureOTRv1VersionStringIncomplete() throws ProtocolException {
+        final PlainTextMessage msg = (PlainTextMessage) parseMessage("?OTR");
+        assertEquals("?OTR", msg.getCleanText());
+    }
+
+    @Test
     public void testEnsureOTRv1VersionStringIsIgnored() throws ProtocolException {
         final QueryMessage msg = (QueryMessage) parseMessage("?OTR?");
         assertTrue(msg.getVersions().isEmpty());

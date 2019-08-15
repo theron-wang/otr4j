@@ -97,9 +97,8 @@ public final class MessageProcessor {
         }
 
         final int idxHead = text.indexOf(HEAD);
-        if (idxHead > -1) {
-            // Message **contains** the string "?OTR". Check to see if it is an error message, a query message or a data
-            // message.
+        if (idxHead > -1 && text.substring(idxHead).length() > HEAD.length()) {
+            // Message contains the string "?OTR". Check to see if it is a query message or a data message.
 
             final char contentType = text.charAt(idxHead + HEAD.length());
             final int idxHeaderBody = idxHead + HEAD.length() + 1;
@@ -107,18 +106,21 @@ public final class MessageProcessor {
 
             if (contentType == HEAD_QUERY_V || contentType == HEAD_QUERY_Q) {
                 // Query tag found.
+                if (HEAD_QUERY_Q == contentType && (content.isEmpty() || content.charAt(0) != 'v')) {
+                    // OTR v1 ONLY query tags will be caught in this else clause and is unsupported.
+                    return new QueryMessage(Collections.<Integer>emptySet());
+                }
                 final String versionString;
-                if (HEAD_QUERY_Q == contentType && content.length() > 0 && content.charAt(0) == 'v'
-                        && content.indexOf('?') > -1) {
+                if (HEAD_QUERY_Q == contentType && content.charAt(0) == 'v' && content.indexOf('?') > -1) {
                     // OTR v1 + ... query tag format. However, we do not actively support OTRv1 anymore. Therefore the
                     // logic only supports skipping over the OTRv1 tags in order to reach OTR v2 and v3 version tags.
                     versionString = content.substring(1, content.indexOf('?'));
-                } else if (HEAD_QUERY_V == contentType && content.length() > 0 && content.indexOf('?') > -1) {
+                } else if (HEAD_QUERY_V == contentType && content.indexOf('?') > -1) {
                     // OTR v2+ query tag format.
                     versionString = content.substring(0, content.indexOf('?'));
                 } else {
-                    // OTR v1 ONLY query tags will be caught in this else clause and is unsupported.
-                    return new QueryMessage(Collections.<Integer>emptySet());
+                    // Illegal OTR query string. Return as plaintext message instead and do not do further processing.
+                    return new PlainTextMessage(Collections.<Integer>emptySet(), content);
                 }
                 final Set<Integer> versions = parseVersionString(versionString);
                 return new QueryMessage(versions);
