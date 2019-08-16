@@ -6,10 +6,12 @@ help:
 	@echo "Goals:"
 	@echo "  run-afl: run afl fuzzer"
 
-target/otr4j-0.60-SNAPSHOT-jar-with-dependencies.jar: $(wildcard src/main/java/**/*.java)
+SOURCE_FILES := $(shell find src/main/java -type f -name '*.java')
+target/otr4j-0.60-SNAPSHOT-jar-with-dependencies.jar: $(SOURCE_FILES)
 	mvn clean install -DskipTests
 
-target/test-classes: target/otr4j-0.60-SNAPSHOT-jar-with-dependencies.jar $(wildcard src/test/java/**/*.java)
+TEST_FILES = $(shell find src/test/java -type f -name '*.java')
+target/test-classes: target/otr4j-0.60-SNAPSHOT-jar-with-dependencies.jar $(TEST_FILES)
 	mvn test-compile
 	touch target/test-classes
 
