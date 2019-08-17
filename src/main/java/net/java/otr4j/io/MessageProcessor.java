@@ -39,6 +39,7 @@ import static net.java.otr4j.io.EncodingConstants.HEAD_FRAGMENTED_V3;
 import static net.java.otr4j.io.EncodingConstants.HEAD_QUERY_Q;
 import static net.java.otr4j.io.EncodingConstants.HEAD_QUERY_V;
 import static net.java.otr4j.io.EncodingConstants.TAIL_FRAGMENTED;
+import static net.java.otr4j.io.Fragment.parseFragment;
 import static org.bouncycastle.util.encoders.Base64.decode;
 
 /**
@@ -125,7 +126,7 @@ public final class MessageProcessor {
                 final Set<Integer> versions = parseVersionString(versionString);
                 return new QueryMessage(versions);
             } else if (otrFragmented(text)) {
-                return Fragment.parse(text);
+                return parseFragment(text);
             } else if (otrEncoded(text)) {
                 // Data message found.
                 final byte[] contentBytes;

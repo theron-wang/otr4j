@@ -1,3 +1,12 @@
+/*
+ * otr4j, the open source java otr library.
+ *
+ * Distributable under LGPL license.
+ * See terms of license at gnu.org.
+ *
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package net.java.otrfuzz;
 
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
@@ -10,7 +19,7 @@ import java.io.InputStream;
 import java.net.ProtocolException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static net.java.otr4j.io.Fragment.parse;
+import static net.java.otr4j.io.Fragment.parseFragment;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeNoException;
 
@@ -22,7 +31,7 @@ public class FragmentParserDriver {
         final byte[] data = new byte[4096];
         final int count = input.read(data);
         try {
-            assertNotNull(parse(new String(data, 0, count, UTF_8)));
+            assertNotNull(parseFragment(new String(data, 0, count, UTF_8)));
         } catch (final ProtocolException e) {
             assumeNoException(e);
         }

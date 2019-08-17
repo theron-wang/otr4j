@@ -98,7 +98,7 @@ public final class Fragment implements Message {
      */
     @SuppressWarnings({"PMD.AssignmentInOperand"})
     @Nonnull
-    public static Fragment parse(@Nonnull final String message) throws ProtocolException {
+    public static Fragment parseFragment(@Nonnull final String message) throws ProtocolException {
         final int version;
         final int identifier;
         final int sendertagValue;

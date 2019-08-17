@@ -17,7 +17,7 @@ import java.net.ProtocolException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
-import static net.java.otr4j.io.Fragment.parse;
+import static net.java.otr4j.io.Fragment.parseFragment;
 import static org.bouncycastle.util.encoders.Base64.toBase64String;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -32,40 +32,40 @@ public final class FragmentTest {
 
     @Test(expected = NullPointerException.class)
     public void testParseNullMessage() throws ProtocolException {
-        parse(null);
+        parseFragment(null);
     }
 
     @Test(expected = ProtocolException.class)
     public void testParseEmptyMessage() throws ProtocolException {
-        parse("");
+        parseFragment("");
     }
 
     @Test(expected = ProtocolException.class)
     public void testParseArbitraryTextMessage() throws ProtocolException {
-        parse("This is an arbitrary message that is definitely not a fragment.");
+        parseFragment("This is an arbitrary message that is definitely not a fragment.");
     }
 
     @Test
     public void testCorrectParsingOf32bitsInteger() throws ProtocolException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
-        assertNotNull(parse(String.format("?OTR|ff123456|%08x,00001,00002,test,", tag.getValue())));
+        assertNotNull(parseFragment(String.format("?OTR|ff123456|%08x,00001,00002,test,", tag.getValue())));
     }
 
     @Test(expected = ProtocolException.class)
     public void testCorrectDisallowOf33bitsInteger() throws ProtocolException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
-        parse(String.format("?OTR|ff123456|1%08x,00001,00002,test,", tag.getValue()));
+        parseFragment(String.format("?OTR|ff123456|1%08x,00001,00002,test,", tag.getValue()));
     }
 
     @Test
     public void testCorrectDisallowEmptyPayload() throws ProtocolException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
-        assertEquals("", parse(String.format("?OTR|ff123456|%08x,00001,00002,,", tag.getValue())).getContent());
+        assertEquals("", parseFragment(String.format("?OTR|ff123456|%08x,00001,00002,,", tag.getValue())).getContent());
     }
 
     @Test
     public void testParseSingleFragmentOTRv4() throws ProtocolException {
-        final Fragment fragment = parse(String.format(formatVersion4, helloWorldBase64));
+        final Fragment fragment = parseFragment(String.format(formatVersion4, helloWorldBase64));
         assertEquals(4, fragment.getVersion());
         assertEquals(0x3c5b5f03, fragment.getIdentifier());
         assertEquals(new InstanceTag(0x5a73a599), fragment.getSenderTag());
@@ -77,7 +77,7 @@ public final class FragmentTest {
 
     @Test
     public void testParseSingleFragmentOTRv3() throws ProtocolException {
-        final Fragment fragment = parse(String.format("?OTR|5a73a599|27e31597,00001,00001,%s,", helloWorldBase64));
+        final Fragment fragment = parseFragment(String.format("?OTR|5a73a599|27e31597,00001,00001,%s,", helloWorldBase64));
         assertEquals(3, fragment.getVersion());
         assertEquals(0, fragment.getIdentifier());
         assertEquals(new InstanceTag(0x5a73a599), fragment.getSenderTag());
@@ -89,7 +89,7 @@ public final class FragmentTest {
 
     @Test
     public void testParseSingleFragmentOTRv2() throws ProtocolException {
-        final Fragment fragment = parse("?OTR,1,3,?OTR:AAEDAAAAAQAAAAEAAADAVf3Ei72ZgFeKqWvLMnuVPVCwxktsOZ1QdjeLp6jn62mCVtlY9nS6sRkecpjuLYHRxyTdRu2iEVtSsjZqK55ovZ35SfkOPHeFYa9BIuxWi9djHMVKQ8KOVGAVLibjZ6P8LreDSKtWDv9YQjIEnkwFVGCPfpBq2SX4VTQfJAQXHggR8izKxPvluXUdG9rIPh4cac98++VLdIuFMiEXjUIoTX2rEzunaCLMy0VIfowlRsgsKGrwhCCv7hBWyglbzwz+AAAAAAAAAAQAAAF2SOr,");
+        final Fragment fragment = parseFragment("?OTR,1,3,?OTR:AAEDAAAAAQAAAAEAAADAVf3Ei72ZgFeKqWvLMnuVPVCwxktsOZ1QdjeLp6jn62mCVtlY9nS6sRkecpjuLYHRxyTdRu2iEVtSsjZqK55ovZ35SfkOPHeFYa9BIuxWi9djHMVKQ8KOVGAVLibjZ6P8LreDSKtWDv9YQjIEnkwFVGCPfpBq2SX4VTQfJAQXHggR8izKxPvluXUdG9rIPh4cac98++VLdIuFMiEXjUIoTX2rEzunaCLMy0VIfowlRsgsKGrwhCCv7hBWyglbzwz+AAAAAAAAAAQAAAF2SOr,");
         assertEquals(2, fragment.getVersion());
         assertEquals(0, fragment.getIdentifier());
         assertEquals(ZERO_TAG, fragment.getSenderTag());
@@ -102,109 +102,109 @@ public final class FragmentTest {
 
     @Test
     public void testParseSingleFragmentOTRv4HighBitIdentifier() throws ProtocolException {
-        final Fragment fragment = parse(String.format("?OTR|ffffffff|5a73a599|27e31597,00001,00001,%s,", helloWorldBase64));
+        final Fragment fragment = parseFragment(String.format("?OTR|ffffffff|5a73a599|27e31597,00001,00001,%s,", helloWorldBase64));
         assertEquals(Version.FOUR, fragment.getVersion());
         assertEquals(0xffffffff, fragment.getIdentifier());
     }
 
     @Test
     public void testParseSingleFragmentOTRv4HighBitSenderTag() throws ProtocolException {
-        final Fragment fragment = parse(String.format("?OTR|3c5b5f03|ffffffff|27e31597,00001,00001,%s,", helloWorldBase64));
+        final Fragment fragment = parseFragment(String.format("?OTR|3c5b5f03|ffffffff|27e31597,00001,00001,%s,", helloWorldBase64));
         assertEquals(Version.FOUR, fragment.getVersion());
         assertEquals(new InstanceTag(0xffffffff), fragment.getSenderTag());
     }
 
     @Test
     public void testParseSingleFragmentOTRv4HighBitReceiverTag() throws ProtocolException {
-        final Fragment fragment = parse(String.format("?OTR|3c5b5f03|5a73a599|ffffffff,00001,00001,%s,", helloWorldBase64));
+        final Fragment fragment = parseFragment(String.format("?OTR|3c5b5f03|5a73a599|ffffffff,00001,00001,%s,", helloWorldBase64));
         assertEquals(Version.FOUR, fragment.getVersion());
         assertEquals(new InstanceTag(0xffffffff), fragment.getReceiverTag());
     }
 
     @Test
     public void testParseSingleFragmentOTRv3HighBitSenderTag() throws ProtocolException {
-        final Fragment fragment = parse(String.format("?OTR|ffffffff|27e31597,00001,00001,%s,", helloWorldBase64));
+        final Fragment fragment = parseFragment(String.format("?OTR|ffffffff|27e31597,00001,00001,%s,", helloWorldBase64));
         assertEquals(Version.THREE, fragment.getVersion());
         assertEquals(new InstanceTag(0xffffffff), fragment.getSenderTag());
     }
 
     @Test
     public void testParseSingleFragmentOTRv3HighBitReceiverTag() throws ProtocolException {
-        final Fragment fragment = parse(String.format("?OTR|5a73a599|ffffffff,00001,00001,%s,", helloWorldBase64));
+        final Fragment fragment = parseFragment(String.format("?OTR|5a73a599|ffffffff,00001,00001,%s,", helloWorldBase64));
         assertEquals(Version.THREE, fragment.getVersion());
         assertEquals(new InstanceTag(0xffffffff), fragment.getReceiverTag());
     }
 
     @Test(expected = ProtocolException.class)
     public void testParseSingleFragmentIllegalSenderTag() throws ProtocolException {
-        parse(String.format("?OTR|3c5b5f03|00000001|27e31597,00001,00001,%s,", helloWorldBase64));
+        parseFragment(String.format("?OTR|3c5b5f03|00000001|27e31597,00001,00001,%s,", helloWorldBase64));
     }
 
     @Test(expected = ProtocolException.class)
     public void testParseSingleFragmentIllegalReceiverTag() throws ProtocolException {
-        parse(String.format("?OTR|3c5b5f03|5a73a599|00000001,00001,00001,%s,", helloWorldBase64));
+        parseFragment(String.format("?OTR|3c5b5f03|5a73a599|00000001,00001,00001,%s,", helloWorldBase64));
     }
 
     @Test(expected = ProtocolException.class)
     public void testParseSingleFragmentIllegalIndexZero() throws ProtocolException {
-        parse(String.format("?OTR|3c5b5f03|5a73a599|27e31597,00000,00001,%s,", helloWorldBase64));
+        parseFragment(String.format("?OTR|3c5b5f03|5a73a599|27e31597,00000,00001,%s,", helloWorldBase64));
     }
 
     @Test(expected = ProtocolException.class)
     public void testParseSingleFragmentIllegalIndexOverMaximum() throws ProtocolException {
-        parse(String.format("?OTR|3c5b5f03|5a73a599|27e31597,65536,65536,%s,", helloWorldBase64));
+        parseFragment(String.format("?OTR|3c5b5f03|5a73a599|27e31597,65536,65536,%s,", helloWorldBase64));
     }
 
     @Test(expected = ProtocolException.class)
     public void testParseSingleFragmentIllegalTotalBelowIndex() throws ProtocolException {
-        parse(String.format("?OTR|3c5b5f03|5a73a599|27e31597,00001,00000,%s,", helloWorldBase64));
+        parseFragment(String.format("?OTR|3c5b5f03|5a73a599|27e31597,00001,00000,%s,", helloWorldBase64));
     }
 
     @Test(expected = ProtocolException.class)
     public void testParseSingleFragmentIllegalTotalOverMaximum() throws ProtocolException {
-        parse(String.format("?OTR|3c5b5f03|5a73a599|27e31597,00001,65536,%s,", helloWorldBase64));
+        parseFragment(String.format("?OTR|3c5b5f03|5a73a599|27e31597,00001,65536,%s,", helloWorldBase64));
     }
 
     @Test(expected = ProtocolException.class)
     public void testCorrectDisallowTrailingData() throws ProtocolException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
-        parse(String.format("?OTR|ff123456|%08x,00001,00002,test,invalid", tag.getValue()));
+        parseFragment(String.format("?OTR|ff123456|%08x,00001,00002,test,invalid", tag.getValue()));
     }
 
     @Test(expected = ProtocolException.class)
     public void testCorrectDisallowNegativeK() throws ProtocolException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
-        parse(String.format("?OTR|ff123456|%08x,-0001,00002,test,", tag.getValue()));
+        parseFragment(String.format("?OTR|ff123456|%08x,-0001,00002,test,", tag.getValue()));
     }
 
     @Test(expected = ProtocolException.class)
     public void testCorrectDisallowKLargerThanN() throws ProtocolException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
-        parse(String.format("?OTR|ff123456|%08x,00003,00002,test,", tag.getValue()));
+        parseFragment(String.format("?OTR|ff123456|%08x,00003,00002,test,", tag.getValue()));
     }
 
     @Test(expected = ProtocolException.class)
     public void testCorrectDisallowKOverUpperBound() throws ProtocolException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
-        parse(String.format("?OTR|ff123456|%08x,65536,65536,test,", tag.getValue()));
+        parseFragment(String.format("?OTR|ff123456|%08x,65536,65536,test,", tag.getValue()));
     }
 
     @Test
     public void testCorrectMaximumNFragments() throws ProtocolException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
-        final Fragment fragment = parse(String.format("?OTR|ff123456|%08x,00001,65535,test,", tag.getValue()));
+        final Fragment fragment = parseFragment(String.format("?OTR|ff123456|%08x,00001,65535,test,", tag.getValue()));
         assertEquals(65535, fragment.getTotal());
     }
 
     @Test(expected = ProtocolException.class)
     public void testCorrectDisallowNOverUpperBound() throws ProtocolException {
         final InstanceTag tag = new InstanceTag(0.99999645d);
-        parse(String.format("?OTR|ff123456|%08x,00001,65536,test,", tag.getValue()));
+        parseFragment(String.format("?OTR|ff123456|%08x,00001,65536,test,", tag.getValue()));
     }
 
     @Test
     public void testOTRv3FormattedFragment() throws ProtocolException {
-        final Fragment fragment = parse(String.format("?OTR|5a73a599|27e31597,00001,00001,%s,", helloWorldBase64));
+        final Fragment fragment = parseFragment(String.format("?OTR|5a73a599|27e31597,00001,00001,%s,", helloWorldBase64));
         assertEquals(Version.THREE, fragment.getVersion());
     }
 
@@ -213,13 +213,13 @@ public final class FragmentTest {
         final String source = String.format("?OTR|3c5b5f03|5a73a599|27e31597,00001,00001,%s,", helloWorldBase64);
         for (int i = 0; i < source.length() - 1; i++) {
             try {
-                parse(source.substring(0, i));
+                parseFragment(source.substring(0, i));
                 fail("Did not expect incomplete fragment to be processed successfully.");
             } catch (final ProtocolException expected) {
                 // expected failure, continue
             }
         }
-        assertEquals(helloWorldBase64, parse(source).getContent());
+        assertEquals(helloWorldBase64, parseFragment(source).getContent());
     }
 
     @Test
@@ -257,7 +257,7 @@ public final class FragmentTest {
                 "?OTR|3c5b5f03|5a73a599|27e31597,00001,1,%s,",
         };
         for (final String variant : variants) {
-            assertNotNull(parse(String.format(variant, helloWorldBase64)));
+            assertNotNull(parseFragment(String.format(variant, helloWorldBase64)));
         }
     }
 
@@ -297,7 +297,7 @@ public final class FragmentTest {
         };
         for (final String variant : variants) {
             try {
-                parse(String.format(variant, helloWorldBase64));
+                parseFragment(String.format(variant, helloWorldBase64));
                 fail("Did not expect to successfully parse an illegal variant of fragment.");
             } catch (final ProtocolException expected) {
                 // failure expected, continue
@@ -307,31 +307,31 @@ public final class FragmentTest {
 
     @Test(expected = ProtocolException.class)
     public void testFragmentIndexZero() throws ProtocolException {
-        parse("?OTR|3c5b5f03|5a73a599|27e31597,00000,00001,,");
+        parseFragment("?OTR|3c5b5f03|5a73a599|27e31597,00000,00001,,");
     }
 
     @Test(expected = ProtocolException.class)
     public void testFragmentTotalZero() throws ProtocolException {
-        parse("?OTR|3c5b5f03|5a73a599|27e31597,00001,00000,,");
+        parseFragment("?OTR|3c5b5f03|5a73a599|27e31597,00001,00000,,");
     }
 
     @Test(expected = ProtocolException.class)
     public void testFragmentIndexLargerThanTotal() throws ProtocolException {
-        parse("?OTR|3c5b5f03|5a73a599|27e31597,00002,00001,,");
+        parseFragment("?OTR|3c5b5f03|5a73a599|27e31597,00002,00001,,");
     }
 
     @Test(expected = ProtocolException.class)
     public void testFragmentIndexMuchLargerThanTotal() throws ProtocolException {
-        parse("?OTR|3c5b5f03|5a73a599|27e31597,11111,00001,,");
+        parseFragment("?OTR|3c5b5f03|5a73a599|27e31597,11111,00001,,");
     }
 
     @Test(expected = ProtocolException.class)
     public void testFragmentIndexOverMaximum() throws ProtocolException {
-        parse("?OTR|3c5b5f03|5a73a599|27e31597,65536,00001,,");
+        parseFragment("?OTR|3c5b5f03|5a73a599|27e31597,65536,00001,,");
     }
 
     @Test(expected = ProtocolException.class)
     public void testFragmentTotalOverMaximum() throws ProtocolException {
-        parse("?OTR|3c5b5f03|5a73a599|27e31597,00001,65536,,");
+        parseFragment("?OTR|3c5b5f03|5a73a599|27e31597,00001,65536,,");
     }
 }
