@@ -60,8 +60,8 @@ public final class EncodedMessageParser {
      *                                    message do not result in a valid composition.
      */
     @Nonnull
-    public static AbstractEncodedMessage parseEncodedMessage(final EncodedMessage message) throws OtrCryptoException, ProtocolException,
-            UnsupportedLengthException, ValidationException {
+    public static AbstractEncodedMessage parseEncodedMessage(final EncodedMessage message) throws OtrCryptoException,
+            ProtocolException, UnsupportedLengthException, ValidationException {
         switch (message.type) {
         case MESSAGE_DATA: {
             switch (message.version) {
