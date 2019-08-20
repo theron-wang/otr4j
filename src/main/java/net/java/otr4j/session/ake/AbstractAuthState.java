@@ -39,6 +39,13 @@ abstract class AbstractAuthState implements AuthState {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractAuthState.class.getName());
 
+    private final long timestamp = System.nanoTime();
+
+    @Override
+    public long getTimestamp() {
+        return this.timestamp;
+    }
+
     @Nonnull
     @Override
     public AbstractEncodedMessage initiate(@Nonnull final AuthContext context, final int version,

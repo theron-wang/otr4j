@@ -379,6 +379,9 @@ final class SessionImpl implements Session, Context {
     @GuardedBy("masterSession")
     @Override
     public void setAuthState(@Nonnull final AuthState state) {
+        if (this.sessionState.getAuthState().getTimestamp() > state.getTimestamp()) {
+            throw new IllegalArgumentException("BUG: we always expect to replace a state instance with a more recent state.");
+        }
         this.sessionState.setAuthState(state);
     }
 
@@ -627,12 +630,14 @@ final class SessionImpl implements Session, Context {
     private String handleEncodedMessage(@Nonnull final EncodedMessage message) throws OtrException {
         assert this.masterSession != this || message.version == TWO : "BUG: We should not process encoded message in master session for protocol version 3 or higher.";
         assert !ZERO_TAG.equals(message.senderTag) : "BUG: No encoded message without sender instance tag should reach this point.";
-        // TODO We've started replicating current (auth)State in *all* cases where a new slave session is created. Is this indeed correct? Probably is, but needs focused verification.
         if (message.version == THREE && checkDHKeyMessage(message)) {
             // Copy state to slave session, as this is the earliest moment that we know the instance tag of the other party.
-            // FIXME this screws things up in case we *do* know the receiver instance tag in advance, as we would be copying an outdated authentication-state instance. (Consider keeping a timestamp and choose instance with newest timestamp.)
             synchronized (this.masterSession.masterSession) {
-                this.sessionState.setAuthState(this.masterSession.sessionState.getAuthState());
+                final AuthState slaveAuthState = this.sessionState.getAuthState();
+                final AuthState masterAuthState = this.masterSession.sessionState.getAuthState();
+                if (slaveAuthState.getTimestamp() < masterAuthState.getTimestamp()) {
+                    this.sessionState.setAuthState(masterAuthState);
+                }
             }
         } else if (checkAuthRMessage(message)) {
             assert this != this.masterSession : "We expected to be working inside a slave session instead of a master session.";

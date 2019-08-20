@@ -25,8 +25,7 @@ import static net.java.otr4j.crypto.DHKeyPairOTR3.generateDHKeyPair;
 /**
  * Initial AKE state, a.k.a. NONE.
  * <p>
- * StateInitial can be initialized with a query tag in case such a tag was sent. Initially one would probably want to
- * use {@link #INSTANCE} instance as no tag was sent yet.
+ * StateInitial can be initialized with a query tag in case such a tag was sent.
  *
  * @author Danny van Heumen
  */
@@ -40,14 +39,7 @@ public final class StateInitial extends AbstractAuthState {
     private static final StateInitial INSTANCE = new StateInitial();
 
     /**
-     * Constructor for initial state.
-     */
-    private StateInitial() {
-        super();
-    }
-
-    /**
-     * Acquire the Singleton instance for StateInitial.
+     * Acquire the original instance of StateInitial.
      *
      * @return Returns the singleton instance.
      */

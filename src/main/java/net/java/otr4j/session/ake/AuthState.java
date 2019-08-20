@@ -32,6 +32,16 @@ import java.net.ProtocolException;
 public interface AuthState {
 
     /**
+     * Creation timestamp for the instance.
+     *
+     * The timestamp indicates when the instance was created. As we should always work with the most recent state, we
+     * can determine, based on the timestamp information, which is the most recent instance of AuthState.
+     *
+     * @return Returns the creation timestamp.
+     */
+    long getTimestamp();
+
+    /**
      * Initiate a new AKE. Caller needs to send
      *
      * @param context        Context.
