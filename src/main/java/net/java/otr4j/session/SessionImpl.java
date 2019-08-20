@@ -166,8 +166,10 @@ final class SessionImpl implements Session, Context {
     private SessionImpl outgoingSession;
 
     /**
-     * Flag indicating whether this instance is a master session or a slave
-     * session.
+     * Flag indicating whether this instance is a master session or a slave session.
+     * <p>
+     * This field will contain the master session instance for all slaves. It will self-reference in case of the master
+     * session instance. Therefore, the master session need never be null.
      */
     @GuardedBy("itself")
     @Nonnull
