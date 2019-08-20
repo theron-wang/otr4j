@@ -138,8 +138,11 @@ _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bo
   _If critical situations occur, for instance `OutOfMemoryError`, then all bets are off._
   - ☑ otr4j protects itself against `RuntimeException`s caused by callbacks into the host application.
   _Any occurrence of a `RuntimeException` is considered a bug on the host application side, and is caught and logged by otr4j._
+- Concurrency:
+  - ☑ Thread-safety with granularity of single master with its slave sessions.  
+      Messages from different contacts can be processed concurrently. Messages from same contact different clients, are forced to sequential processing.
 - Stability
-  - ☐ Profile library in execution.
+  - ☐ Library in execution performance profiling.
   - ☐ Measure memory usage changes under long-term use/heavy load.
 - OTRv3 - catching up:
   - ☐ In-memory representation for OTRv3.
@@ -159,6 +162,7 @@ _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bo
   - ☑ Introduce checkstyle at build-time to guard formatting/style
   - ☑ Introduce checkstyle _ImportControl_ module to guard the design structure
   - ☑ Introduce [ErrorProne](https://errorprone.info/docs/installation).
+  - ☑ Introduce thread-safety verified by static analysis. ([ErrorProne: @GuardedBy annotation](https://github.com/google/error-prone/blob/master/annotations/src/main/java/com/google/errorprone/annotations/concurrent/GuardedBy.java))
   - ☐ Introduce [Animal sniffer](https://www.mojohaus.org/animal-sniffer/) build plug-in to verify that we do not break backwards-compatibility, once released.
   - ☐ Experiment with features of [Checker Framework](https://checkerframework.org).
   - ☒ spotbugs-annotations to support managing clean-up of cryptographic key material  
