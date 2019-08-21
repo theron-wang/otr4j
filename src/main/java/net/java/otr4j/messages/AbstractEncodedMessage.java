@@ -63,9 +63,6 @@ public abstract class AbstractEncodedMessage implements Message, OtrEncodable {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
-            return false;
-        }
         if (!(obj instanceof AbstractEncodedMessage)) {
             return false;
         }

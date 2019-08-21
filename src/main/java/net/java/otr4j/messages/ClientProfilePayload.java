@@ -214,11 +214,11 @@ public final class ClientProfilePayload implements OtrEncodable {
     }
 
     @Override
-    public boolean equals(@Nullable final Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (getClass() != o.getClass()) {
             return false;
         }
         final ClientProfilePayload that = (ClientProfilePayload) o;
@@ -467,11 +467,11 @@ public final class ClientProfilePayload implements OtrEncodable {
         }
 
         @Override
-        public boolean equals(@Nullable final Object o) {
+        public boolean equals(final Object o) {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (getClass() != o.getClass()) {
                 return false;
             }
             final InstanceTagField that = (InstanceTagField) o;
@@ -506,11 +506,11 @@ public final class ClientProfilePayload implements OtrEncodable {
         }
 
         @Override
-        public boolean equals(@Nullable final Object o) {
+        public boolean equals(final Object o) {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (getClass() != o.getClass()) {
                 return false;
             }
             final ED448PublicKeyField that = (ED448PublicKeyField) o;
@@ -545,11 +545,11 @@ public final class ClientProfilePayload implements OtrEncodable {
         }
 
         @Override
-        public boolean equals(@Nullable final Object o) {
+        public boolean equals(final Object o) {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (getClass() != o.getClass()) {
                 return false;
             }
             final ED448ForgingKeyField that = (ED448ForgingKeyField) o;
@@ -582,11 +582,11 @@ public final class ClientProfilePayload implements OtrEncodable {
         }
 
         @Override
-        public boolean equals(@Nullable final Object o) {
+        public boolean equals(final Object o) {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (getClass() != o.getClass()) {
                 return false;
             }
             final VersionsField that = (VersionsField) o;
@@ -624,11 +624,11 @@ public final class ClientProfilePayload implements OtrEncodable {
         }
 
         @Override
-        public boolean equals(@Nullable final Object o) {
+        public boolean equals(final Object o) {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (getClass() != o.getClass()) {
                 return false;
             }
             final ExpirationDateField that = (ExpirationDateField) o;
@@ -661,11 +661,11 @@ public final class ClientProfilePayload implements OtrEncodable {
         }
 
         @Override
-        public boolean equals(@Nullable final Object o) {
+        public boolean equals(final Object o) {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (getClass() != o.getClass()) {
                 return false;
             }
             final DSAPublicKeyField that = (DSAPublicKeyField) o;
@@ -699,11 +699,11 @@ public final class ClientProfilePayload implements OtrEncodable {
         }
 
         @Override
-        public boolean equals(@Nullable final Object o) {
+        public boolean equals(final Object o) {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (getClass() != o.getClass()) {
                 return false;
             }
             final TransitionalSignatureField that = (TransitionalSignatureField) o;

@@ -64,7 +64,7 @@ public final class AuthIMessage extends AbstractEncodedMessage {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (getClass() != o.getClass()) {
             return false;
         }
         if (!super.equals(o)) {
