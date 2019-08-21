@@ -32,7 +32,7 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
 
     private boolean cleared = false;
 
-    Point(@Nonnull final byte[] encoded) {
+    Point(final byte[] encoded) {
         this.encoded = requireLengthExactly(PUBLIC_KEY_SIZE, encoded);
     }
 
@@ -57,7 +57,7 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
      * @throws ValidationException In case of an illegal point representation.
      */
     @Nonnull
-    public static Point decodePoint(@Nonnull final byte[] encodedPoint) throws ValidationException {
+    public static Point decodePoint(final byte[] encodedPoint) throws ValidationException {
         try {
             return new Point(Points.decode(encodedPoint).encode());
         } catch (final Points.InvalidDataException e) {
@@ -70,7 +70,7 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (getClass() != o.getClass()) {
             return false;
         }
         final Point point = (Point) o;
@@ -84,7 +84,7 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
 
     @Override
     @CheckReturnValue
-    public boolean constantTimeEquals(@Nonnull final Point o) {
+    public boolean constantTimeEquals(final Point o) {
         return constantTimeAreEqual(this.encoded, o.encoded);
     }
 
@@ -110,7 +110,7 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
      * @return Returns new point resulting from multiplication.
      */
     @Nonnull
-    public Point multiply(@Nonnull final Scalar scalar) {
+    public Point multiply(final Scalar scalar) {
         requireNotCleared();
         try {
             return new Point(Points.decode(this.encoded).multiply(scalar.toBigInteger()).encode());
@@ -126,7 +126,7 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
      * @return Returns the result of adding the two points together.
      */
     @Nonnull
-    public Point add(@Nonnull final Point point) {
+    public Point add(final Point point) {
         this.requireNotCleared();
         point.requireNotCleared();
         try {
@@ -153,7 +153,7 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
      * @param out the destination output stream
      * @throws IOException In case of failure in the output stream during encoding.
      */
-    public void encodeTo(@Nonnull final OutputStream out) throws IOException {
+    public void encodeTo(final OutputStream out) throws IOException {
         requireNotCleared();
         out.write(this.encoded, 0, PUBLIC_KEY_SIZE);
     }

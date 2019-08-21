@@ -94,9 +94,8 @@ public final class MixedSharedSecret implements AutoCloseable {
      * @param theirDHPublicKey   their DH public key
      * @param theirECDHPublicKey their ECDH public key
      */
-    public MixedSharedSecret(@Nonnull final SecureRandom random, @Nonnull final DHKeyPair ourDHKeyPair,
-            @Nonnull final ECDHKeyPair ourECDHKeyPair, @Nonnull final BigInteger theirDHPublicKey,
-            @Nonnull final Point theirECDHPublicKey) {
+    public MixedSharedSecret(final SecureRandom random, final DHKeyPair ourDHKeyPair, final ECDHKeyPair ourECDHKeyPair,
+            final BigInteger theirDHPublicKey, final Point theirECDHPublicKey) {
         this.random = requireNonNull(random);
         this.ecdhKeyPair = requireNonNull(ourECDHKeyPair);
         this.theirECDHPublicKey = requireNonNull(theirECDHPublicKey);
@@ -204,7 +203,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      * @param theirDHPublicKey   Their DH public key. (Optional)
      * @throws OtrCryptoException In case of failure to rotate the public keys.
      */
-    public void rotateTheirKeys(final boolean performDHRatchet, @Nonnull final Point theirECDHPublicKey,
+    public void rotateTheirKeys(final boolean performDHRatchet, final Point theirECDHPublicKey,
             @Nullable final BigInteger theirDHPublicKey) throws OtrCryptoException {
         requireNotClosed();
         if (!containsPoint(requireNonNull(theirECDHPublicKey))) {

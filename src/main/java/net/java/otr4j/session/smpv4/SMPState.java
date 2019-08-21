@@ -40,8 +40,7 @@ interface SMPState {
      * @throws SMPAbortException Indicates that a running SMP negotiation is aborted.
      */
     @Nonnull
-    SMPMessage1 initiate(@Nonnull SMPContext context, @Nonnull String question, @Nonnull Scalar secret)
-            throws SMPAbortException;
+    SMPMessage1 initiate(SMPContext context, String question, Scalar secret) throws SMPAbortException;
 
     /**
      * Respond to SMP initiation request with response based on our own secret answer.
@@ -57,7 +56,7 @@ interface SMPState {
      * active, or the response is not for the current one, then return {@code null}.
      */
     @Nullable
-    SMPMessage2 respondWithSecret(@Nonnull SMPContext context, @Nonnull String question, @Nonnull Scalar secret);
+    SMPMessage2 respondWithSecret(SMPContext context, String question, Scalar secret);
 
     /**
      * Process a (non-initial) SMP message.
@@ -68,5 +67,5 @@ interface SMPState {
      * @throws SMPAbortException In case of an unexpected message, the protocol gets reset to the initial state.
      */
     @Nullable
-    SMPMessage process(@Nonnull SMPContext context, @Nonnull SMPMessage message) throws SMPAbortException;
+    SMPMessage process(SMPContext context, SMPMessage message) throws SMPAbortException;
 }

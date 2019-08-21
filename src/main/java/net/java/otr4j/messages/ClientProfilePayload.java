@@ -80,7 +80,7 @@ public final class ClientProfilePayload implements OtrEncodable {
      * @param signature The signature by the long-term public key.
      */
     @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    private ClientProfilePayload(@Nonnull final List<Field> fields, @Nonnull final byte[] signature) {
+    private ClientProfilePayload(final List<Field> fields, final byte[] signature) {
         this.fields = requireNonNull(fields);
         this.signature = requireNonNull(signature);
     }
@@ -95,8 +95,8 @@ public final class ClientProfilePayload implements OtrEncodable {
      * @return Returns a Client Profile payload that can be serialized to an OTR-encoded data stream.
      */
     @Nonnull
-    public static ClientProfilePayload signClientProfile(@Nonnull final ClientProfile profile, final long expirationUnixTimeSeconds,
-            @Nullable final DSAKeyPair dsaKeyPair, @Nonnull final EdDSAKeyPair eddsaKeyPair) {
+    public static ClientProfilePayload signClientProfile(final ClientProfile profile, final long expirationUnixTimeSeconds,
+            @Nullable final DSAKeyPair dsaKeyPair, final EdDSAKeyPair eddsaKeyPair) {
         final ArrayList<Field> fields = new ArrayList<>();
         fields.add(new InstanceTagField(profile.getInstanceTag().getValue()));
         fields.add(new ED448PublicKeyField(profile.getLongTermPublicKey()));
@@ -143,7 +143,7 @@ public final class ClientProfilePayload implements OtrEncodable {
      */
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Nonnull
-    public static ClientProfilePayload readFrom(@Nonnull final OtrInputStream in) throws OtrCryptoException, ProtocolException,
+    public static ClientProfilePayload readFrom(final OtrInputStream in) throws OtrCryptoException, ProtocolException,
             ValidationException {
         final int numFields = in.readInt();
         if (numFields <= 0) {
@@ -214,7 +214,7 @@ public final class ClientProfilePayload implements OtrEncodable {
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(@Nullable final Object o) {
         if (this == o) {
             return true;
         }
@@ -233,7 +233,7 @@ public final class ClientProfilePayload implements OtrEncodable {
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream out) {
+    public void writeTo(final OtrOutputStream out) {
         out.writeInt(this.fields.size());
         for (final Field field : this.fields) {
             out.write(field);
@@ -277,8 +277,7 @@ public final class ClientProfilePayload implements OtrEncodable {
      *
      * @return true iff validated successfully
      */
-    private static boolean testValidate(@Nonnull final List<Field> fields, @Nonnull final byte[] signature,
-            @Nonnull final Date now) {
+    private static boolean testValidate(final List<Field> fields, final byte[] signature, final Date now) {
         try {
             validate(fields, signature, now);
             return true;
@@ -295,8 +294,8 @@ public final class ClientProfilePayload implements OtrEncodable {
      * @param signature The OTRv4 signature for the fields contained in the client profile.
      * @throws ValidationException In case ClientProfilePayload contents are not inconsistent or signature is invalid.
      */
-    private static void validate(@Nonnull final List<Field> fields, @Nonnull final byte[] signature,
-            @Nonnull final Date now) throws ValidationException {
+    private static void validate(final List<Field> fields, final byte[] signature, final Date now)
+            throws ValidationException {
         final ArrayList<InstanceTagField> instanceTagFields = new ArrayList<>();
         final ArrayList<ED448PublicKeyField> publicKeyFields = new ArrayList<>();
         final ArrayList<ED448ForgingKeyField> forgingKeyFields = new ArrayList<>();
@@ -462,13 +461,13 @@ public final class ClientProfilePayload implements OtrEncodable {
         }
 
         @Override
-        public void writeTo(@Nonnull final OtrOutputStream out) {
+        public void writeTo(final OtrOutputStream out) {
             out.writeShort(TYPE.type);
             out.writeInt(this.instanceTag);
         }
 
         @Override
-        public boolean equals(final Object o) {
+        public boolean equals(@Nullable final Object o) {
             if (this == o) {
                 return true;
             }
@@ -495,19 +494,19 @@ public final class ClientProfilePayload implements OtrEncodable {
 
         private final Point publicKey;
 
-        private ED448PublicKeyField(@Nonnull final Point publicKey) {
+        private ED448PublicKeyField(final Point publicKey) {
             this.publicKey = requireNonNull(publicKey);
         }
 
         @Override
-        public void writeTo(@Nonnull final OtrOutputStream out) {
+        public void writeTo(final OtrOutputStream out) {
             out.writeShort(TYPE.type);
             out.writeShort(ED448_PUBLIC_KEY_TYPE);
             out.writePoint(this.publicKey);
         }
 
         @Override
-        public boolean equals(final Object o) {
+        public boolean equals(@Nullable final Object o) {
             if (this == o) {
                 return true;
             }
@@ -534,19 +533,19 @@ public final class ClientProfilePayload implements OtrEncodable {
 
         private final Point publicKey;
 
-        private ED448ForgingKeyField(@Nonnull final Point publicKey) {
+        private ED448ForgingKeyField(final Point publicKey) {
             this.publicKey = requireNonNull(publicKey);
         }
 
         @Override
-        public void writeTo(@Nonnull final OtrOutputStream out) {
+        public void writeTo(final OtrOutputStream out) {
             out.writeShort(TYPE.type);
             out.writeShort(ED448_FORGING_KEY_TYPE);
             out.writePoint(this.publicKey);
         }
 
         @Override
-        public boolean equals(final Object o) {
+        public boolean equals(@Nullable final Object o) {
             if (this == o) {
                 return true;
             }
@@ -572,18 +571,18 @@ public final class ClientProfilePayload implements OtrEncodable {
 
         private final Set<Integer> versions;
 
-        private VersionsField(@Nonnull final Set<Integer> versions) {
+        private VersionsField(final Set<Integer> versions) {
             this.versions = requireNonNull(versions);
         }
 
         @Override
-        public void writeTo(@Nonnull final OtrOutputStream out) {
+        public void writeTo(final OtrOutputStream out) {
             out.writeShort(TYPE.type);
             out.writeData(encodeVersionString(versions).getBytes(US_ASCII));
         }
 
         @Override
-        public boolean equals(final Object o) {
+        public boolean equals(@Nullable final Object o) {
             if (this == o) {
                 return true;
             }
@@ -619,13 +618,13 @@ public final class ClientProfilePayload implements OtrEncodable {
         }
 
         @Override
-        public void writeTo(@Nonnull final OtrOutputStream out) {
+        public void writeTo(final OtrOutputStream out) {
             out.writeShort(TYPE.type);
             out.writeLong(this.timestamp);
         }
 
         @Override
-        public boolean equals(final Object o) {
+        public boolean equals(@Nullable final Object o) {
             if (this == o) {
                 return true;
             }
@@ -651,18 +650,18 @@ public final class ClientProfilePayload implements OtrEncodable {
 
         private final DSAPublicKey publicKey;
 
-        private DSAPublicKeyField(@Nonnull final DSAPublicKey publicKey) {
+        private DSAPublicKeyField(final DSAPublicKey publicKey) {
             this.publicKey = requireNonNull(publicKey);
         }
 
         @Override
-        public void writeTo(@Nonnull final OtrOutputStream out) {
+        public void writeTo(final OtrOutputStream out) {
             out.writeShort(TYPE.type);
             out.writePublicKey(this.publicKey);
         }
 
         @Override
-        public boolean equals(final Object o) {
+        public boolean equals(@Nullable final Object o) {
             if (this == o) {
                 return true;
             }
@@ -688,19 +687,19 @@ public final class ClientProfilePayload implements OtrEncodable {
 
         private final DSASignature signature;
 
-        private TransitionalSignatureField(@Nonnull final DSASignature signature) {
+        private TransitionalSignatureField(final DSASignature signature) {
             this.signature = requireNonNull(signature);
         }
 
         @Override
-        public void writeTo(@Nonnull final OtrOutputStream out) {
+        public void writeTo(final OtrOutputStream out) {
             out.writeShort(TYPE.type);
             out.writeBigInt(this.signature.r);
             out.writeBigInt(this.signature.s);
         }
 
         @Override
-        public boolean equals(final Object o) {
+        public boolean equals(@Nullable final Object o) {
             if (this == o) {
                 return true;
             }

@@ -73,9 +73,8 @@ public final class ClientProfile {
      * @param dsaPublicKey      The DSA public key. This is the public key of the key pair provided at
      *                          {@link OtrEngineHost#getLocalKeyPair(SessionID)}.
      */
-    public ClientProfile(@Nonnull final InstanceTag instanceTag, @Nonnull final Point longTermPublicKey,
-            @Nonnull final Point forgingKey, @Nonnull final Set<Integer> versions,
-            @Nullable final DSAPublicKey dsaPublicKey) {
+    public ClientProfile(final InstanceTag instanceTag, final Point longTermPublicKey, final Point forgingKey,
+            final Set<Integer> versions, @Nullable final DSAPublicKey dsaPublicKey) {
         this.instanceTag = requireNonNull(instanceTag);
         this.longTermPublicKey = requireNonNull(longTermPublicKey);
         this.forgingKey = requireNonNull(forgingKey);
@@ -135,7 +134,7 @@ public final class ClientProfile {
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(@Nullable final Object o) {
         if (this == o) {
             return true;
         }

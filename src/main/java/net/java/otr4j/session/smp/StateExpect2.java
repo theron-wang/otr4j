@@ -28,8 +28,7 @@ final class StateExpect2 extends AbstractSMPState {
     private final BigInteger x2;
     final BigInteger x3;
 
-    StateExpect2(@Nonnull final SecureRandom sr, @Nonnull final BigInteger secret, @Nonnull final BigInteger x2,
-            @Nonnull final BigInteger x3) {
+    StateExpect2(final SecureRandom sr, final BigInteger secret, final BigInteger x2, final BigInteger x3) {
         super(sr);
         this.secret = secret;
         this.x2 = x2;
@@ -49,7 +48,7 @@ final class StateExpect2 extends AbstractSMPState {
 
     @Override
     @Nonnull
-    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SMException {
+    byte[] smpMessage2(final SM astate, final byte[] input) throws SMException {
         /* Read from input to find the mpis */
 
         final BigInteger[] msg2 = SM.deserialize(input);

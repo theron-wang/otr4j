@@ -11,8 +11,6 @@ package net.java.otr4j.util;
 
 import com.google.errorprone.annotations.CheckReturnValue;
 
-import javax.annotation.Nonnull;
-
 /**
  * Interface to define constant-time equality method.
  *
@@ -31,5 +29,5 @@ public interface ConstantTimeEquality<T> {
      * @return Returns true iff equal, or false otherwise.
      */
     @CheckReturnValue
-    boolean constantTimeEquals(@Nonnull T o);
+    boolean constantTimeEquals(T o);
 }

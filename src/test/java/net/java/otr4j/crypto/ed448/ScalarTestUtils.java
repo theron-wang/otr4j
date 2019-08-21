@@ -19,7 +19,7 @@ public final class ScalarTestUtils {
     }
 
     @Nonnull
-    public static Scalar fromBigInteger(@Nonnull final BigInteger value) {
+    public static Scalar fromBigInteger(final BigInteger value) {
         return Scalar.fromBigInteger(value);
     }
 }

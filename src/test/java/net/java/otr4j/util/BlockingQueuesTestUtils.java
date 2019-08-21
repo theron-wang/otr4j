@@ -27,13 +27,13 @@ import static net.java.otr4j.util.Arrays.contains;
 
 public final class BlockingQueuesTestUtils {
 
-    public static void rearrangeFragments(@Nonnull final BlockingQueue<String> queue, @Nonnull final SecureRandom random)
+    public static void rearrangeFragments(final BlockingQueue<String> queue, final SecureRandom random)
             throws ProtocolException {
         shuffle(queue, random);
         reorderOTRv3Fragments(queue);
     }
 
-    public static <T> void drop(@Nonnull final int[] drops, @Nonnull final BlockingQueue<T> queue) {
+    public static <T> void drop(final int[] drops, final BlockingQueue<T> queue) {
         java.util.Arrays.sort(drops);
         final ArrayList<T> list = new ArrayList<>();
         queue.drainTo(list);
@@ -52,14 +52,14 @@ public final class BlockingQueuesTestUtils {
      * @param random the SecureRandom instance
      * @param <T>    the type of the content in the blocking queue
      */
-    public static <T> void shuffle(@Nonnull final BlockingQueue<T> queue, @Nonnull final SecureRandom random) {
+    public static <T> void shuffle(final BlockingQueue<T> queue, final SecureRandom random) {
         final ArrayList<T> list = new ArrayList<>();
         queue.drainTo(list);
         java.util.Collections.shuffle(list, random);
         queue.addAll(list);
     }
 
-    public static void reorderOTRv3Fragments(@Nonnull final BlockingQueue<String> queue) throws ProtocolException {
+    public static void reorderOTRv3Fragments(final BlockingQueue<String> queue) throws ProtocolException {
         final ArrayList<String> messages = new ArrayList<>();
         queue.drainTo(messages);
         final ArrayList<FragmentEntry> fragments = new ArrayList<>();
@@ -87,7 +87,7 @@ public final class BlockingQueuesTestUtils {
         queue.addAll(messages);
     }
 
-    private static boolean containsFragment(@Nonnull final Iterable<FragmentEntry> entries, final int position) {
+    private static boolean containsFragment(final Iterable<FragmentEntry> entries, final int position) {
         for (final FragmentEntry entry : entries) {
             if (entry.position == position) {
                 return true;
@@ -102,7 +102,7 @@ public final class BlockingQueuesTestUtils {
         private final int index;
         private final String raw;
 
-        private FragmentEntry(final int position, final int index, @Nonnull final String raw) {
+        private FragmentEntry(final int position, final int index, final String raw) {
             this.position = position;
             this.index = index;
             this.raw = requireNonNull(raw);

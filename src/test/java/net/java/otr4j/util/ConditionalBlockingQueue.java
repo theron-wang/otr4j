@@ -9,7 +9,6 @@
 
 package net.java.otr4j.util;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
@@ -27,19 +26,19 @@ public final class ConditionalBlockingQueue<E> implements BlockingQueue<E> {
     private final BlockingQueue<E> queue;
     private final Predicate<E> condition;
 
-    public ConditionalBlockingQueue(@Nonnull final Predicate<E> condition, @Nonnull final BlockingQueue<E> queue) {
+    public ConditionalBlockingQueue(final Predicate<E> condition, final BlockingQueue<E> queue) {
         this.queue = requireNonNull(queue);
         this.condition = requireNonNull(condition);
     }
 
     @Override
-    public boolean add(@Nonnull final E e) {
+    public boolean add(final E e) {
         verifyCondition(e);
         return this.queue.add(e);
     }
 
     @Override
-    public boolean offer(@Nonnull final E e) {
+    public boolean offer(final E e) {
         verifyCondition(e);
         return this.queue.offer(e);
     }
@@ -65,13 +64,13 @@ public final class ConditionalBlockingQueue<E> implements BlockingQueue<E> {
     }
 
     @Override
-    public void put(@Nonnull final E e) throws InterruptedException {
+    public void put(final E e) throws InterruptedException {
         verifyCondition(e);
         this.queue.put(e);
     }
 
     @Override
-    public boolean offer(final E e, final long timeout, @Nonnull final TimeUnit unit) throws InterruptedException {
+    public boolean offer(final E e, final long timeout, final TimeUnit unit) throws InterruptedException {
         verifyCondition(e);
         return this.queue.offer(e, timeout, unit);
     }
@@ -82,7 +81,7 @@ public final class ConditionalBlockingQueue<E> implements BlockingQueue<E> {
     }
 
     @Override
-    public E poll(final long timeout, @Nonnull final TimeUnit unit) throws InterruptedException {
+    public E poll(final long timeout, final TimeUnit unit) throws InterruptedException {
         return this.queue.poll(timeout, unit);
     }
 
@@ -97,23 +96,23 @@ public final class ConditionalBlockingQueue<E> implements BlockingQueue<E> {
     }
 
     @Override
-    public boolean containsAll(@Nonnull final Collection<?> c) {
+    public boolean containsAll(final Collection<?> c) {
         return this.queue.containsAll(c);
     }
 
     @Override
-    public boolean addAll(@Nonnull final Collection<? extends E> c) {
+    public boolean addAll(final Collection<? extends E> c) {
         verifyCondition(c);
         return this.queue.addAll(c);
     }
 
     @Override
-    public boolean removeAll(@Nonnull final Collection<?> c) {
+    public boolean removeAll(final Collection<?> c) {
         return this.queue.removeAll(c);
     }
 
     @Override
-    public boolean retainAll(@Nonnull final Collection<?> c) {
+    public boolean retainAll(final Collection<?> c) {
         return this.queue.retainAll(c);
     }
 
@@ -149,33 +148,33 @@ public final class ConditionalBlockingQueue<E> implements BlockingQueue<E> {
 
     @SuppressWarnings("SuspiciousToArrayCall")
     @Override
-    public <T> T[] toArray(@Nonnull final T[] a) {
+    public <T> T[] toArray(final T[] a) {
         return this.queue.toArray(a);
     }
 
     @Override
-    public int drainTo(@Nonnull final Collection<? super E> c) {
+    public int drainTo(final Collection<? super E> c) {
         return this.queue.drainTo(c);
     }
 
     @Override
-    public int drainTo(@Nonnull final Collection<? super E> c, final int maxElements) {
+    public int drainTo(final Collection<? super E> c, final int maxElements) {
         return this.queue.drainTo(c, maxElements);
     }
 
-    private void verifyCondition(@Nonnull final Iterable<? extends E> c) {
+    private void verifyCondition(final Iterable<? extends E> c) {
         for (final E e : c) {
             verifyCondition(e);
         }
     }
 
-    private void verifyCondition(@Nonnull final E e) {
+    private void verifyCondition(final E e) {
         if (!this.condition.test(e)) {
             throw new IllegalArgumentException("Illegal element. Element does not satisfy condition.");
         }
     }
 
     public interface Predicate<E> {
-        boolean test(@Nonnull E e);
+        boolean test(E e);
     }
 }

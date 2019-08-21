@@ -35,7 +35,7 @@ abstract class AbstractSMPState implements AutoCloseable {
 
     private final SecureRandom sr;
 
-    AbstractSMPState(@Nonnull final SecureRandom sr) {
+    AbstractSMPState(final SecureRandom sr) {
         this.sr = Objects.requireNonNull(sr);
     }
 
@@ -69,7 +69,7 @@ abstract class AbstractSMPState implements AutoCloseable {
      * @param secret SMP secret that is commonly known by both parties, to test counter party.
      */
     @Nonnull
-    byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secret) throws SMException {
+    byte[] startSMP(final SM astate, final byte[] secret) throws SMException {
         final boolean inprogress = status() == SMPStatus.INPROGRESS;
         astate.setState(new StateExpect1(this.sr));
         throw new SMAbortedException(inprogress, "Received start SMP request at incorrect state of the protocol. ("
@@ -87,7 +87,7 @@ abstract class AbstractSMPState implements AutoCloseable {
      * @return Returns true if SMP was originally in progress, or false for SMP
      * that was already in the initial/final state.
      */
-    boolean smpAbort(@Nonnull final SM state) {
+    boolean smpAbort(final SM state) {
         final boolean inprogress = status() == SMPStatus.INPROGRESS;
         state.setState(new StateExpect1(this.sr));
         return inprogress;
@@ -100,7 +100,7 @@ abstract class AbstractSMPState implements AutoCloseable {
      * @param bstate State of SM exchange (Bob)
      * @param input Input of initiation message.
      */
-    void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SMException {
+    void smpMessage1a(final SM bstate, final byte[] input) throws SMException {
         final boolean inprogress = status() == SMPStatus.INPROGRESS;
         bstate.setState(new StateExpect1(this.sr));
         throw new SMAbortedException(inprogress, "Received SMP message 1 at incorrect state of the protocol. ("
@@ -116,7 +116,7 @@ abstract class AbstractSMPState implements AutoCloseable {
      * @return Returns reply to initiation message.
      */
     @Nonnull
-    byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secret) throws SMException {
+    byte[] smpMessage1b(final SM bstate, final byte[] secret) throws SMException {
         final boolean inprogress = status() == SMPStatus.INPROGRESS;
         bstate.setState(new StateExpect1(this.sr));
         throw new SMAbortedException(inprogress,
@@ -133,7 +133,7 @@ abstract class AbstractSMPState implements AutoCloseable {
      * @return Returns reply.
      */
     @Nonnull
-    byte[] smpMessage2(@Nonnull final SM astate, @Nonnull final byte[] input) throws SMException {
+    byte[] smpMessage2(final SM astate, final byte[] input) throws SMException {
         final boolean inprogress = status() == SMPStatus.INPROGRESS;
         astate.setState(new StateExpect1(this.sr));
         throw new SMAbortedException(inprogress, "Received SMP message 2 at incorrect state of the protocol. ("
@@ -149,7 +149,7 @@ abstract class AbstractSMPState implements AutoCloseable {
      * @return Returns the final message of SMP exchange to Alice.
      */
     @Nonnull
-    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SMException {
+    byte[] smpMessage3(final SM bstate, final byte[] input) throws SMException {
         final boolean inprogress = status() == SMPStatus.INPROGRESS;
         bstate.setState(new StateExpect1(this.sr));
         throw new SMAbortedException(inprogress, "Received SMP message 3 at incorrect state of the protocol. ("
@@ -163,7 +163,7 @@ abstract class AbstractSMPState implements AutoCloseable {
      * @param astate State of SM exchange (Alice)
      * @param input Final reply from Bob with last parameters of SMP exchange.
      */
-    void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SMException {
+    void smpMessage4(final SM astate, final byte[] input) throws SMException {
         final boolean inprogress = status() == SMPStatus.INPROGRESS;
         astate.setState(new StateExpect1(this.sr));
         throw new SMAbortedException(inprogress,
@@ -201,7 +201,7 @@ abstract class AbstractSMPState implements AutoCloseable {
      * @return c and d.
      */
     @Nonnull
-    final BigInteger[] proofKnowLog(@Nonnull final BigInteger x, final int version) {
+    final BigInteger[] proofKnowLog(final BigInteger x, final int version) {
         final BigInteger r = randomExponent();
         BigInteger temp = G1.modPow(r, DHKeyPairOTR3.MODULUS);
         final BigInteger c = SM.hash(version, temp);
@@ -219,8 +219,8 @@ abstract class AbstractSMPState implements AutoCloseable {
      * @param version the prefix to use
      * @throws SMException when proof check fails
      */
-    final void checkKnowLog(@Nonnull final BigInteger c, @Nonnull final BigInteger d, @Nonnull final BigInteger x,
-            final int version) throws SMException {
+    final void checkKnowLog(final BigInteger c, final BigInteger d, final BigInteger x, final int version)
+            throws SMException {
         final BigInteger gd = G1.modPow(d, DHKeyPairOTR3.MODULUS);
         final BigInteger xc = x.modPow(c, DHKeyPairOTR3.MODULUS);
         final BigInteger gdxc = gd.multiply(xc).mod(DHKeyPairOTR3.MODULUS);
@@ -235,8 +235,8 @@ abstract class AbstractSMPState implements AutoCloseable {
      * Proof of knowledge of coordinates with first components being equal
      */
     @Nonnull
-    final BigInteger[] proofEqualCoords(@Nonnull final BigInteger g2, @Nonnull final BigInteger g3,
-            @Nonnull final BigInteger secret, @Nonnull final BigInteger r, final int version) {
+    final BigInteger[] proofEqualCoords(final BigInteger g2, final BigInteger g3, final BigInteger secret,
+            final BigInteger r, final int version) {
         final BigInteger r1 = randomExponent();
         final BigInteger r2 = randomExponent();
 
@@ -260,9 +260,8 @@ abstract class AbstractSMPState implements AutoCloseable {
     /**
      * Verify a proof of knowledge of coordinates with first components being equal
      */
-    final void checkEqualCoords(@Nonnull final BigInteger c, @Nonnull final BigInteger d1, @Nonnull final BigInteger d2,
-            @Nonnull final BigInteger p, @Nonnull final BigInteger q, @Nonnull final BigInteger g2,
-            @Nonnull final BigInteger g3, final int version) throws SMException {
+    final void checkEqualCoords(final BigInteger c, final BigInteger d1, final BigInteger d2, final BigInteger p,
+            final BigInteger q, final BigInteger g2, final BigInteger g3, final int version) throws SMException {
         /* To verify, we test that hash(g3^d1 * p^c, g1^d1 * g2^d2 * q^c) = c
          * If indeed c = hash(g3^r1, g1^r1 g2^r2), d1 = r1 - r*c,
          * d2 = r2 - secret*c.  And if indeed p = g3^r, q = g1^r * g2^secret
@@ -294,7 +293,7 @@ abstract class AbstractSMPState implements AutoCloseable {
      * Proof of knowledge of logs with exponents being equal
      */
     @Nonnull
-    final BigInteger[] proofEqualLogs(@Nonnull final BigInteger qab, @Nonnull final BigInteger x3, final int version) {
+    final BigInteger[] proofEqualLogs(final BigInteger qab, final BigInteger x3, final int version) {
         final BigInteger r = randomExponent();
 
         /* Compute the value of c, as c = h(g1^r, (Qa/Qb)^r) */
@@ -312,8 +311,8 @@ abstract class AbstractSMPState implements AutoCloseable {
     /**
      * Verify a proof of knowledge of logs with exponents being equal
      */
-    final void checkEqualLogs(@Nonnull final BigInteger c, @Nonnull final BigInteger d, @Nonnull final BigInteger r,
-            @Nonnull final BigInteger g3o, @Nonnull final BigInteger qab, final int version) throws SMException {
+    final void checkEqualLogs(final BigInteger c, final BigInteger d, final BigInteger r, final BigInteger g3o,
+            final BigInteger qab, final int version) throws SMException {
         /* Here, we recall the exponents used to create g3.
          * If we have previously seen g3o = g1^x where x is unknown
          * during the DH exchange to produce g3, then we may proceed with:
@@ -350,7 +349,7 @@ abstract class AbstractSMPState implements AutoCloseable {
      * @param g the BigInteger to check.
      * @throws SMException Throws SMException if check fails.
      */
-    static void checkGroupElem(@Nonnull final BigInteger g) throws SMException {
+    static void checkGroupElem(final BigInteger g) throws SMException {
         if (g.compareTo(BigInteger.valueOf(2)) < 0 || g.compareTo(DHKeyPairOTR3.MODULUS_MINUS_TWO) > 0) {
             throw new SMException("Invalid parameter");
         }
@@ -363,7 +362,7 @@ abstract class AbstractSMPState implements AutoCloseable {
      * @param x The BigInteger to check.
      * @throws SMException Throws SMException if check fails.
      */
-    static void checkExpon(@Nonnull final BigInteger x) throws SMException {
+    static void checkExpon(final BigInteger x) throws SMException {
         if (x.compareTo(BigInteger.ONE) < 0 || x.compareTo(ORDER_S) >= 0) {
             throw new SMException("Invalid parameter");
         }

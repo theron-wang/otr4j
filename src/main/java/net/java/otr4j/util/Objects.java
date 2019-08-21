@@ -31,7 +31,7 @@ public final class Objects {
      * @param message the error message in case they are not equal, violating the requirement.
      * @param <T>     The expected type of the objects, such that syntactic type verification can be performed.
      */
-    public static <T> void requireEquals(@Nonnull final T o1, @Nonnull final T o2, @Nonnull final String message) {
+    public static <T> void requireEquals(final T o1, final T o2, final String message) {
         if (java.util.Objects.equals(requireNonNull(o1), requireNonNull(o2))) {
             return;
         }
@@ -48,7 +48,7 @@ public final class Objects {
      * @param message the error message in case they are equal, violating the requirement.
      * @param <T>     The expected type of the objects, such that syntactic type verification can be performed.
      */
-    public static <T> void requireNotEquals(@Nonnull final T o1, @Nonnull final T o2, @Nonnull final String message) {
+    public static <T> void requireNotEquals(final T o1, final T o2, final String message) {
         if (java.util.Objects.equals(requireNonNull(o1), requireNonNull(o2))) {
             throw new IllegalArgumentException(message);
         }

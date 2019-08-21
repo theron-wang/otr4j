@@ -51,8 +51,8 @@ final class SessionKeyManager implements AutoCloseable {
      */
     private final List<byte[]> oldMacKeys = synchronizedList(new ArrayList<byte[]>(0));
 
-    SessionKeyManager(@Nonnull final SecureRandom secureRandom, @Nonnull final DHKeyPairOTR3 localKeyPair,
-            @Nonnull final DHPublicKey remotePublicKey) throws OtrCryptoException {
+    SessionKeyManager(final SecureRandom secureRandom, final DHKeyPairOTR3 localKeyPair,
+            final DHPublicKey remotePublicKey) throws OtrCryptoException {
         this.secureRandom = Objects.requireNonNull(secureRandom);
         // Prepare current set of session keys.
         final EnumMap<Index, SessionKey> current = new EnumMap<>(Index.class);
@@ -169,7 +169,7 @@ final class SessionKeyManager implements AutoCloseable {
      * @throws OtrCryptoException Exception in case of invalid session key
      * components.
      */
-    void rotateRemoteKeys(@Nonnull final DHPublicKey nextRemoteDH) throws OtrCryptoException {
+    void rotateRemoteKeys(final DHPublicKey nextRemoteDH) throws OtrCryptoException {
         LOGGER.finest("Rotating remote keys.");
         final SessionKey sess1 = this.keys.get(Index.NEXT).get(Index.CURRENT);
         if (sess1.isUsed()) {

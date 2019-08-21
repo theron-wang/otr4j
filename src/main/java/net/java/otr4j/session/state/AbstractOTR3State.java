@@ -58,7 +58,7 @@ abstract class AbstractOTR3State implements State {
     @Nonnull
     private AuthState authState;
 
-    AbstractOTR3State(@Nonnull final AuthState authState) {
+    AbstractOTR3State(final AuthState authState) {
         this.authState = requireNonNull(authState);
     }
 
@@ -69,15 +69,14 @@ abstract class AbstractOTR3State implements State {
     }
 
     @Override
-    public void setAuthState(@Nonnull final AuthState state) {
+    public void setAuthState(final AuthState state) {
         LOGGER.fine("Transitioning authentication state to " + state);
         this.authState = requireNonNull(state);
     }
 
     @Nullable
     @Override
-    public String handleEncodedMessage(@Nonnull final Context context, @Nonnull final EncodedMessage message)
-            throws OtrException {
+    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws OtrException {
         final AbstractEncodedMessage encodedM;
         try {
             encodedM = parseEncodedMessage(message);
@@ -110,7 +109,7 @@ abstract class AbstractOTR3State implements State {
     }
 
     @Nullable
-    private AbstractEncodedMessage handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) {
+    private AbstractEncodedMessage handleAKEMessage(final Context context, final AbstractEncodedMessage message) {
 
         if (!(message instanceof DHCommitMessage || message instanceof DHKeyMessage
                 || message instanceof SignatureMessage || message instanceof RevealSignatureMessage)) {
@@ -161,7 +160,7 @@ abstract class AbstractOTR3State implements State {
         }
     }
 
-    private void secure(@Nonnull final Context context, @Nonnull final SecurityParameters params) throws OtrCryptoException {
+    private void secure(final Context context, final SecurityParameters params) throws OtrCryptoException {
         context.transition(this, new StateEncrypted3(context, this.authState, params));
         if (context.getSessionStatus() != ENCRYPTED) {
             throw new IllegalStateException("Session failed to transition to ENCRYPTED. (OTRv2/OTRv3)");
@@ -170,8 +169,7 @@ abstract class AbstractOTR3State implements State {
     }
 
     @Override
-    public void initiateAKE(@Nonnull final Context context, final int version, final InstanceTag receiverTag)
-            throws OtrException {
+    public void initiateAKE(final Context context, final int version, final InstanceTag receiverTag) throws OtrException {
         context.injectMessage(this.authState.initiate(context, version, receiverTag));
     }
 
@@ -185,6 +183,5 @@ abstract class AbstractOTR3State implements State {
      */
     @ForOverride
     @Nullable
-    abstract String handleDataMessage(@Nonnull final Context context, @Nonnull DataMessage message)
-            throws ProtocolException, OtrException;
+    abstract String handleDataMessage(final Context context, DataMessage message) throws ProtocolException, OtrException;
 }

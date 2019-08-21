@@ -29,7 +29,7 @@ public final class DataMessage4s {
      * @return Returns the byte-encoded representation of the data message sections of the message.
      */
     @Nonnull
-    public static byte[] encodeDataMessageSections(@Nonnull final DataMessage4 message) {
+    public static byte[] encodeDataMessageSections(final DataMessage4 message) {
         final OtrOutputStream out = new OtrOutputStream();
         message.writeDataMessageSections(out);
         return out.toByteArray();

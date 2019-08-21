@@ -56,7 +56,7 @@ public final class StatePlaintext extends AbstractCommonState {
      *
      * @param authState the initial authentication (AKE) state instance.
      */
-    public StatePlaintext(@Nonnull final AuthState authState) {
+    public StatePlaintext(final AuthState authState) {
         super(authState);
     }
 
@@ -90,7 +90,7 @@ public final class StatePlaintext extends AbstractCommonState {
     }
 
     @Override
-    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) throws OtrException {
+    void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException {
         if (!context.getSessionPolicy().isAllowV4()) {
             LOGGER.finest("ALLOW_V4 is not set, ignore this message.");
             return;
@@ -108,8 +108,7 @@ public final class StatePlaintext extends AbstractCommonState {
 
     @Override
     @Nullable
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage message)
-            throws OtrException {
+    String handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv3 data message in PLAINTEXT state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return null;
@@ -117,8 +116,7 @@ public final class StatePlaintext extends AbstractCommonState {
 
     @Nullable
     @Override
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage4 message)
-            throws OtrException {
+    String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv4 data message in PLAINTEXT state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return null;
@@ -126,8 +124,8 @@ public final class StatePlaintext extends AbstractCommonState {
 
     @Override
     @Nullable
-    public Message transformSending(@Nonnull final Context context, @Nonnull final String msgText,
-            @Nonnull final Iterable<TLV> tlvs, final byte flags) throws OtrException {
+    public Message transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
+            final byte flags) throws OtrException {
         final OtrPolicy otrPolicy = context.getSessionPolicy();
         if (otrPolicy.isRequireEncryption()) {
             // Prevent original message from being sent. Start AKE.
@@ -157,7 +155,7 @@ public final class StatePlaintext extends AbstractCommonState {
     }
 
     @Override
-    public void end(@Nonnull final Context context) {
+    public void end(final Context context) {
         // already in "ended" state
     }
 

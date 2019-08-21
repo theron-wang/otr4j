@@ -84,7 +84,7 @@ public interface Session {
      * @return Returns session status.
      */
     @Nonnull
-    SessionStatus getSessionStatus(@Nonnull InstanceTag tag);
+    SessionStatus getSessionStatus(InstanceTag tag);
 
     /**
      * Get session policy.
@@ -145,7 +145,7 @@ public interface Session {
      * no long-term public key is known.
      */
     @Nonnull
-    DSAPublicKey getRemotePublicKey(@Nonnull InstanceTag tag) throws OtrException;
+    DSAPublicKey getRemotePublicKey(InstanceTag tag) throws OtrException;
 
     /**
      * Get list of session instances.
@@ -191,7 +191,7 @@ public interface Session {
      * @param tag receiver instance tag
      * @throws java.util.NoSuchElementException In case instance tag cannot be found.
      */
-    void setOutgoingSession(@Nonnull final InstanceTag tag);
+    void setOutgoingSession(final InstanceTag tag);
 
     /**
      * Transform message text to prepare for sending which includes possible
@@ -204,7 +204,7 @@ public interface Session {
      * @throws OtrException Thrown in case of problems during transformation.
      */
     @Nonnull
-    String[] transformSending(@Nonnull final String msgText) throws OtrException;
+    String[] transformSending(final String msgText) throws OtrException;
 
     /**
      * Transform message text to prepare for sending which includes possible
@@ -218,7 +218,7 @@ public interface Session {
      * @throws OtrException Thrown in case of problems during transformation.
      */
     @Nonnull
-    String[] transformSending(@Nonnull String msgText, @Nonnull Iterable<TLV> tlvs) throws OtrException;
+    String[] transformSending(String msgText, Iterable<TLV> tlvs) throws OtrException;
 
     /**
      * Transform (OTR encoded) message to plain text message.
@@ -228,7 +228,7 @@ public interface Session {
      * @throws OtrException Thrown in case of problems during transformation.
      */
     @Nullable
-    String transformReceiving(@Nonnull String msgText) throws OtrException;
+    String transformReceiving(String msgText) throws OtrException;
 
     /**
      * Refresh an existing OTR session, i.e. perform new AKE. If sufficient
@@ -259,7 +259,7 @@ public interface Session {
      * @param secret   The secret that we should verify the other side knows about.
      * @throws OtrException In case of failure during initiation.
      */
-    void initSmp(@Nullable String question, @Nonnull String secret) throws OtrException;
+    void initSmp(@Nullable String question, String secret) throws OtrException;
 
     /**
      * Respond to an SMP request for a specific receiver instance tag.
@@ -269,7 +269,7 @@ public interface Session {
      * @param secret      The secret
      * @throws OtrException In case of failure during response.
      */
-    void respondSmp(@Nonnull InstanceTag receiverTag, @Nullable String question, @Nonnull String secret) throws OtrException;
+    void respondSmp(InstanceTag receiverTag, @Nullable String question, String secret) throws OtrException;
 
     /**
      * Respond to an SMP request for a specific receiver instance tag.
@@ -278,7 +278,7 @@ public interface Session {
      * @param secret      The secret
      * @throws OtrException In case of failure during response.
      */
-    void respondSmp(@Nullable String question, @Nonnull String secret) throws OtrException;
+    void respondSmp(@Nullable String question, String secret) throws OtrException;
 
     /**
      * Abort a running SMP negotiation.
@@ -301,12 +301,12 @@ public interface Session {
      *
      * @param l OTR engine listener instance.
      */
-    void addOtrEngineListener(@Nonnull OtrEngineListener l);
+    void addOtrEngineListener(OtrEngineListener l);
 
     /**
      * Unregister OTR engine listener.
      *
      * @param l OTR engine listener instance.
      */
-    void removeOtrEngineListener(@Nonnull OtrEngineListener l);
+    void removeOtrEngineListener(OtrEngineListener l);
 }

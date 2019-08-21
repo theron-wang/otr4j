@@ -10,7 +10,6 @@
 package net.java.otr4j.io;
 
 import java.util.Objects;
-import javax.annotation.Nonnull;
 
 import static java.util.Objects.requireNonNull;
 
@@ -58,7 +57,7 @@ public final class ErrorMessage implements Message {
      * @param identifier The OTRv4 identifier for predefined error messages. Use empty-string if custom error message.
      * @param error      The error message.
      */
-    public ErrorMessage(@Nonnull final String identifier, @Nonnull final String error) {
+    public ErrorMessage(final String identifier, final String error) {
         this.identifier = requireNonNull(identifier);
         this.error = requireNonNull(error);
     }
@@ -74,9 +73,6 @@ public final class ErrorMessage implements Message {
     public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
-        }
-        if (obj == null) {
-            return false;
         }
         if (getClass() != obj.getClass()) {
             return false;

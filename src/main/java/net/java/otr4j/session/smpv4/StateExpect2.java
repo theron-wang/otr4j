@@ -44,8 +44,7 @@ final class StateExpect2 implements SMPState {
     private final Scalar a2;
     private final Scalar a3;
 
-    StateExpect2(@Nonnull final SecureRandom random, @Nonnull final Scalar secret, @Nonnull final Scalar a2,
-            @Nonnull final Scalar a3) {
+    StateExpect2(final SecureRandom random, final Scalar secret, final Scalar a2, final Scalar a3) {
         this.random = requireNonNull(random);
         this.secret = requireNonNull(secret);
         this.a2 = requireNonNull(a2);
@@ -60,16 +59,15 @@ final class StateExpect2 implements SMPState {
 
     @Nonnull
     @Override
-    public SMPMessage1 initiate(@Nonnull final SMPContext context, @Nonnull final String question,
-            @Nonnull final Scalar secret) throws SMPAbortException {
+    public SMPMessage1 initiate(final SMPContext context, final String question, final Scalar secret)
+            throws SMPAbortException {
         context.setState(new StateExpect1(this.random, UNDECIDED));
         throw new SMPAbortException("Not in initial state. Aborting running SMP negotiation.");
     }
 
     @Nullable
     @Override
-    public SMPMessage2 respondWithSecret(@Nonnull final SMPContext context, @Nonnull final String question,
-            @Nonnull final Scalar secret) {
+    public SMPMessage2 respondWithSecret(final SMPContext context, final String question, final Scalar secret) {
         // Given that this is an action by the local user, we don't see this as a violation of the protocol. Therefore,
         // we don't abort.
         LOGGER.log(Level.WARNING, "Requested to respond with secret answer, but no request is pending. Ignoring request.");
@@ -78,8 +76,7 @@ final class StateExpect2 implements SMPState {
 
     @Nonnull
     @Override
-    public SMPMessage3 process(@Nonnull final SMPContext context, @Nonnull final SMPMessage message)
-            throws SMPAbortException {
+    public SMPMessage3 process(final SMPContext context, final SMPMessage message) throws SMPAbortException {
         requireNonNull(context);
         requireNonNull(message);
         if (!(message instanceof SMPMessage2)) {

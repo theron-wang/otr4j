@@ -9,8 +9,6 @@
 
 package net.java.otr4j.crypto.ed448;
 
-import javax.annotation.Nonnull;
-
 import static net.java.otr4j.crypto.ed448.Ed448.containsPoint;
 
 /**
@@ -28,7 +26,7 @@ public final class ECDHKeyPairs {
      * @param point The ECDH public key.
      * @throws ValidationException In case of illegal point value.
      */
-    public static void verifyECDHPublicKey(@Nonnull final Point point) throws ValidationException {
+    public static void verifyECDHPublicKey(final Point point) throws ValidationException {
         if (!containsPoint(point)) {
             throw new ValidationException("Public key is not on curve Ed448-Goldilocks.");
         }

@@ -38,8 +38,8 @@ public final class Collections {
      */
     @CanIgnoreReturnValue
     @Nonnull
-    public static <S, T extends Collection<S>> T requireNoIllegalValues(@Nonnull final Collection<S> blacklist,
-            @Nonnull final T collection) {
+    public static <S, T extends Collection<S>> T requireNoIllegalValues(final Collection<S> blacklist,
+            final T collection) {
         requireNonNull(collection);
         for (final S illegal : blacklist) {
             if (collection.contains(illegal)) {
@@ -60,7 +60,7 @@ public final class Collections {
      */
     @CanIgnoreReturnValue
     @Nonnull
-    public static <T extends Collection<?>> T requireMinElements(final int minimum, @Nonnull final T collection) {
+    public static <T extends Collection<?>> T requireMinElements(final int minimum, final T collection) {
         final int size = collection.size();
         if (size < minimum) {
             throw new IllegalArgumentException("Only " + size + " entries found. Expected " + minimum + " at minimum.");
@@ -80,8 +80,8 @@ public final class Collections {
      */
     @CanIgnoreReturnValue
     @Nonnull
-    public static <E, T extends Collection<? super E>> T requireElements(@Nonnull final Collection<E> elements,
-            @Nonnull final T collection) {
+    public static <E, T extends Collection<? super E>> T requireElements(final Collection<E> elements,
+            final T collection) {
         if (!collection.containsAll(elements)) {
             throw new IllegalArgumentException("Expected elements certain elements to be present, but these are missing.");
         }

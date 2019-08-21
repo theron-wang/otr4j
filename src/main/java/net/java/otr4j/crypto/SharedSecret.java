@@ -45,7 +45,7 @@ public final class SharedSecret implements AutoCloseable {
      */
     private final byte[] secbytes;
 
-    SharedSecret(@Nonnull final byte[] secret) {
+    SharedSecret(final byte[] secret) {
         assert !allZeroBytes(secret) : "Expected non-zero byte-array for a secret. Something critical might be going wrong.";
         final BigInteger s = new BigInteger(1, secret);
         this.secbytes = new OtrOutputStream().writeBigInt(s).toByteArray();
@@ -60,9 +60,6 @@ public final class SharedSecret implements AutoCloseable {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
         if (getClass() != obj.getClass()) {
             return false;
         }

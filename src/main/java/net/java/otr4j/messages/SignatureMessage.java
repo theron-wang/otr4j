@@ -48,9 +48,8 @@ public final class SignatureMessage extends AbstractEncodedMessage {
      * @param senderInstance   sender instance tag
      * @param receiverInstance receiver instance tag
      */
-    public SignatureMessage(final int protocolVersion, @Nonnull final byte[] xEncrypted,
-            @Nonnull final byte[] xEncryptedMAC, @Nonnull final InstanceTag senderInstance,
-            @Nonnull final InstanceTag receiverInstance) {
+    public SignatureMessage(final int protocolVersion, final byte[] xEncrypted, final byte[] xEncryptedMAC,
+            final InstanceTag senderInstance, final InstanceTag receiverInstance) {
         super(requireInRange(Version.TWO, Version.THREE, protocolVersion), senderInstance, receiverInstance);
         this.xEncrypted = requireNonNull(xEncrypted);
         this.xEncryptedMAC = requireNonNull(xEncryptedMAC);
@@ -82,7 +81,7 @@ public final class SignatureMessage extends AbstractEncodedMessage {
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream writer) {
+    public void writeTo(final OtrOutputStream writer) {
         super.writeTo(writer);
         writer.writeData(this.xEncrypted);
         writer.writeMac(this.xEncryptedMAC);

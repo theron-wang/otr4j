@@ -43,15 +43,15 @@ final class StateExpect1 extends AbstractSMPState {
     @Nullable
     final BigInteger g3o;
 
-    StateExpect1(@Nonnull final SecureRandom sr) {
+    StateExpect1(final SecureRandom sr) {
         this(sr, SMPStatus.UNDECIDED, null, null, null, null, null);
     }
 
-    StateExpect1(@Nonnull final SecureRandom sr, @Nonnull final SMPStatus status) {
+    StateExpect1(final SecureRandom sr, final SMPStatus status) {
         this(sr, status, null, null, null, null, null);
     }
 
-    private StateExpect1(@Nonnull final SecureRandom sr, @Nonnull final SMPStatus status, @Nullable final BigInteger x2,
+    private StateExpect1(final SecureRandom sr, final SMPStatus status, @Nullable final BigInteger x2,
             @Nullable final BigInteger x3, @Nullable final BigInteger g2, @Nullable final BigInteger g3,
             @Nullable final BigInteger g3o) {
         super(sr);
@@ -76,7 +76,7 @@ final class StateExpect1 extends AbstractSMPState {
 
     @Override
     @Nonnull
-    byte[] startSMP(@Nonnull final SM astate, @Nonnull final byte[] secretBytes) {
+    byte[] startSMP(final SM astate, final byte[] secretBytes) {
         /* Initialize the sm state or update the secret */
         final BigInteger secret = new BigInteger(1, secretBytes);
 
@@ -101,7 +101,7 @@ final class StateExpect1 extends AbstractSMPState {
     }
 
     @Override
-    void smpMessage1a(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SMException {
+    void smpMessage1a(final SM bstate, final byte[] input) throws SMException {
         /* Initialize the sm state if needed */
 
         /* Read from input to find the mpis */
@@ -133,7 +133,7 @@ final class StateExpect1 extends AbstractSMPState {
 
     @Override
     @Nonnull
-    byte[] smpMessage1b(@Nonnull final SM bstate, @Nonnull final byte[] secretBytes) throws SMException {
+    byte[] smpMessage1b(final SM bstate, final byte[] secretBytes) throws SMException {
         if (status() != SMPStatus.INPROGRESS) {
             // In case a question gets answered before the question is received,
             // this is considered bad order of messages. Abort protocol and

@@ -9,4 +9,7 @@
 /**
  * Low-level I/O logic. Specialized for OTR message processing, OTR-encoding and -decoding.
  */
+@ParametersAreNonnullByDefault
 package net.java.otr4j.io;
+
+import javax.annotation.ParametersAreNonnullByDefault;

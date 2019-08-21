@@ -70,7 +70,7 @@ public final class DHKeyPair implements AutoCloseable {
      * @param r secret data to be used as secret key.
      */
     @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
-    private DHKeyPair(@Nonnull final byte[] r) {
+    private DHKeyPair(final byte[] r) {
         assert !allZeroBytes(r) : "Expected non-zero bytes for input. This may indicate that a critical bug is present, or it may be a false warning.";
         this.secretKey = new BigInteger(1, requireLengthExactly(DH_PRIVATE_KEY_LENGTH_BYTES, r));
         this.publicKey = G3.modPow(this.secretKey, MODULUS);
@@ -94,7 +94,7 @@ public final class DHKeyPair implements AutoCloseable {
      * @return Returns generated DH key pair.
      */
     @Nonnull
-    public static DHKeyPair generate(@Nonnull final SecureRandom random) {
+    public static DHKeyPair generate(final SecureRandom random) {
         final byte[] r = new byte[DH_PRIVATE_KEY_LENGTH_BYTES];
         random.nextBytes(r);
         return generate(r);
@@ -107,7 +107,7 @@ public final class DHKeyPair implements AutoCloseable {
      * @return Returns the DH key pair.
      */
     @Nonnull
-    public static DHKeyPair generate(@Nonnull final byte[] r) {
+    public static DHKeyPair generate(final byte[] r) {
         return new DHKeyPair(r);
     }
 
@@ -128,7 +128,7 @@ public final class DHKeyPair implements AutoCloseable {
      * @return Returns the generated shared secret.
      */
     @Nonnull
-    public BigInteger generateSharedSecret(@Nonnull final BigInteger otherPublicKey) {
+    public BigInteger generateSharedSecret(final BigInteger otherPublicKey) {
         if (this.secretKey == null) {
             throw new IllegalStateException("Secret key material has been cleared. Only public key is still available.");
         }
@@ -142,7 +142,7 @@ public final class DHKeyPair implements AutoCloseable {
      * @return Returns true iff legal DH public key value, false otherwise.
      */
     @CheckReturnValue
-    public static boolean checkPublicKey(@Nonnull final BigInteger publicKey) {
+    public static boolean checkPublicKey(final BigInteger publicKey) {
         return publicKey.compareTo(G3) >= 0 && publicKey.compareTo(MODULUS_MINUS_GEN) <= 0
             && ONE.equals(publicKey.modPow(Q, MODULUS));
     }

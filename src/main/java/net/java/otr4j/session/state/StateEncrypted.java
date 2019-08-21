@@ -29,6 +29,5 @@ public interface StateEncrypted extends State {
 
     @Nonnull
     @Override
-    AbstractEncodedMessage transformSending(@Nonnull Context context, @Nonnull String msgText,
-            @Nonnull Iterable<TLV> tlvs, byte flags);
+    AbstractEncodedMessage transformSending(Context context, String msgText, Iterable<TLV> tlvs, byte flags);
 }

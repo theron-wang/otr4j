@@ -46,7 +46,7 @@ public final class EdDSAKeyPair implements AutoCloseable {
     private final byte[] publicKey;
     private boolean cleared = false;
 
-    private EdDSAKeyPair(@Nonnull final byte[] symmetricKey, @Nonnull final byte[] publicKey) {
+    private EdDSAKeyPair(final byte[] symmetricKey, final byte[] publicKey) {
         assert !allZeroBytes(symmetricKey);
         this.symmetricKey = requireLengthExactly(SECRET_KEY_LENGTH_BYTES, symmetricKey);
         assert !allZeroBytes(publicKey);
@@ -61,7 +61,7 @@ public final class EdDSAKeyPair implements AutoCloseable {
      * @return Returns the generated key pair.
      */
     @Nonnull
-    public static EdDSAKeyPair generate(@Nonnull final SecureRandom random) {
+    public static EdDSAKeyPair generate(final SecureRandom random) {
         final byte[] symmetricKey = randomBytes(random, new byte[SECRET_KEY_LENGTH_BYTES]);
         final byte[] publicKey = new byte[PUBLIC_KEY_LENGTH_BYTES];
         generatePublicKey(symmetricKey, 0, publicKey, 0);
@@ -76,7 +76,7 @@ public final class EdDSAKeyPair implements AutoCloseable {
      * @param signature The signature.
      * @throws ValidationException In case we fail to validate the message against the provided signature.
      */
-    public static void verify(@Nonnull final Point publicKey, @Nonnull final byte[] message, @Nonnull final byte[] signature)
+    public static void verify(final Point publicKey, final byte[] message, final byte[] signature)
             throws ValidationException {
         assert !allZeroBytes(signature) : "Expected random data for signature instead of all zero-bytes.";
         if (!Ed448.verify(signature, 0, publicKey.getEncoded(), 0, ED448_CONTEXT, message, 0, message.length)) {
@@ -93,7 +93,7 @@ public final class EdDSAKeyPair implements AutoCloseable {
      * @return Returns the signature that corresponds to the message.
      */
     @Nonnull
-    public byte[] sign(@Nonnull final byte[] message) {
+    public byte[] sign(final byte[] message) {
         requireNotCleared();
         final byte[] signature = new byte[Ed448.SIGNATURE_SIZE];
         Ed448.sign(this.symmetricKey, 0, ED448_CONTEXT, message, 0, message.length, signature, 0);

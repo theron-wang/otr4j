@@ -28,8 +28,7 @@ final class StateExpect4 extends AbstractSMPState {
     private final BigInteger pab;
     private final BigInteger qab;
 
-    StateExpect4(@Nonnull final StateExpect2 previous, @Nonnull final BigInteger g3o, @Nonnull final BigInteger pab,
-            @Nonnull final BigInteger qab) {
+    StateExpect4(final StateExpect2 previous, final BigInteger g3o, final BigInteger pab, final BigInteger qab) {
         super(previous.secureRandom());
         this.x3 = previous.x3;
         this.g3o = g3o;
@@ -49,7 +48,7 @@ final class StateExpect4 extends AbstractSMPState {
     }
 
     @Override
-    void smpMessage4(@Nonnull final SM astate, @Nonnull final byte[] input) throws SMException {
+    void smpMessage4(final SM astate, final byte[] input) throws SMException {
         /* Read from input to find the mpis */
         final BigInteger[] msg4 = SM.deserialize(input);
 

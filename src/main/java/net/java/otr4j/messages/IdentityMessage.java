@@ -76,10 +76,9 @@ public final class IdentityMessage extends AbstractEncodedMessage {
      * @param ourFirstECDHPublicKey the first ECDH public key to be used after DAKE completes
      * @param ourFirstDHPublicKey   the first DH public key to be used after DAKE completes
      */
-    public IdentityMessage(final int protocolVersion, @Nonnull final InstanceTag senderInstance,
-            @Nonnull final InstanceTag receiverInstance, @Nonnull final ClientProfilePayload clientProfile,
-            @Nonnull final Point y, @Nonnull final BigInteger b, @Nonnull final Point ourFirstECDHPublicKey,
-            @Nonnull final BigInteger ourFirstDHPublicKey) {
+    public IdentityMessage(final int protocolVersion, final InstanceTag senderInstance,
+            final InstanceTag receiverInstance, final ClientProfilePayload clientProfile, final Point y,
+            final BigInteger b, final Point ourFirstECDHPublicKey, final BigInteger ourFirstDHPublicKey) {
         super(requireInRange(Version.FOUR, Version.FOUR, protocolVersion), senderInstance, receiverInstance);
         this.clientProfile = requireNonNull(clientProfile);
         this.y = requireNonNull(y);
@@ -96,7 +95,7 @@ public final class IdentityMessage extends AbstractEncodedMessage {
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream writer) {
+    public void writeTo(final OtrOutputStream writer) {
         super.writeTo(writer);
         writer.write(clientProfile);
         writer.writePoint(this.y);
@@ -110,7 +109,7 @@ public final class IdentityMessage extends AbstractEncodedMessage {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (getClass() != o.getClass()) {
             return false;
         }
         if (!super.equals(o)) {

@@ -13,7 +13,6 @@ import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.io.OtrOutputStream;
 
-import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
 import java.util.Objects;
 
@@ -45,8 +44,8 @@ public final class DHKeyMessage extends AbstractEncodedMessage {
      * @param senderInstance   the sender instance tag
      * @param receiverInstance the receiver instance tag
      */
-    public DHKeyMessage(final int protocolVersion, @Nonnull final DHPublicKey dhPublicKey,
-            @Nonnull final InstanceTag senderInstance, @Nonnull final InstanceTag receiverInstance) {
+    public DHKeyMessage(final int protocolVersion, final DHPublicKey dhPublicKey, final InstanceTag senderInstance,
+            final InstanceTag receiverInstance) {
         super(requireInRange(Version.TWO, Version.THREE, protocolVersion), senderInstance, receiverInstance);
         this.dhPublicKey = Objects.requireNonNull(dhPublicKey);
     }
@@ -83,7 +82,7 @@ public final class DHKeyMessage extends AbstractEncodedMessage {
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream writer) {
+    public void writeTo(final OtrOutputStream writer) {
         super.writeTo(writer);
         writer.writeDHPublicKey(this.dhPublicKey);
     }

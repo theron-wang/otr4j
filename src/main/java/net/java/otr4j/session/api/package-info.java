@@ -11,4 +11,7 @@
  *
  * API package to enable the separation of top-level OTR session from internal subsystems, such as SMP.
  */
+@ParametersAreNonnullByDefault
 package net.java.otr4j.session.api;
+
+import javax.annotation.ParametersAreNonnullByDefault;

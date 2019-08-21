@@ -30,25 +30,23 @@ abstract class AbstractCommonState extends AbstractOTR4State {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractCommonState.class.getName());
 
-    AbstractCommonState(@Nonnull final AuthState authState) {
+    AbstractCommonState(final AuthState authState) {
         super(authState);
     }
 
     @Nonnull
     @Override
-    public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage plainTextMessage) {
+    public String handlePlainTextMessage(final Context context, final PlainTextMessage plainTextMessage) {
         return plainTextMessage.getCleanText();
     }
 
     @Override
-    public void handleErrorMessage(@Nonnull final Context context, @Nonnull final ErrorMessage errorMessage)
-            throws OtrException {
+    public void handleErrorMessage(final Context context, final ErrorMessage errorMessage) throws OtrException {
         showError(context.getHost(), context.getSessionID(), errorMessage.error);
     }
 
-    void handleUnreadableMessage(@Nonnull final Context context, @Nonnull final DataMessage message,
-            @Nonnull final String identifier, @Nonnull final String error)
-            throws OtrException {
+    void handleUnreadableMessage(final Context context, final DataMessage message, final String identifier,
+            final String error) throws OtrException {
         if ((message.flags & FLAG_IGNORE_UNREADABLE) == FLAG_IGNORE_UNREADABLE) {
             LOGGER.fine("Unreadable message received with IGNORE_UNREADABLE flag set. Ignoring silently.");
             return;
@@ -56,9 +54,8 @@ abstract class AbstractCommonState extends AbstractOTR4State {
         signalUnreadableMessage(context, identifier, error);
     }
 
-    void handleUnreadableMessage(@Nonnull final Context context, @Nonnull final DataMessage4 message,
-            @Nonnull final String identifier, @Nonnull final String error)
-            throws OtrException {
+    void handleUnreadableMessage(final Context context, final DataMessage4 message, final String identifier,
+            final String error) throws OtrException {
         if ((message.flags & FLAG_IGNORE_UNREADABLE) == FLAG_IGNORE_UNREADABLE) {
             LOGGER.fine("Unreadable message received with IGNORE_UNREADABLE flag set. Ignoring silently.");
             return;
@@ -79,15 +76,15 @@ abstract class AbstractCommonState extends AbstractOTR4State {
      */
     @Nullable
     @Override
-    public Message transformSending(@Nonnull final Context context, @Nonnull final String msgText,
-            @Nonnull final Iterable<TLV> tlvs, final byte flags) throws OtrException {
+    public Message transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
+            final byte flags) throws OtrException {
         context.queueMessage(msgText);
         requireEncryptedMessage(context.getHost(), context.getSessionID(), msgText);
         return null;
     }
 
     @Override
-    public void expire(@Nonnull final Context context) throws OtrException {
+    public void expire(final Context context) throws OtrException {
         throw new IncorrectStateException("State " + this.getClass().getName() + " does not expire.");
     }
 

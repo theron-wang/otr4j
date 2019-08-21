@@ -24,7 +24,7 @@ public final class PointTestUtils {
      * @return Returns newly created point.
      */
     @Nonnull
-    public static Point createPoint(@Nonnull final BigInteger x, @Nonnull final BigInteger y) {
+    public static Point createPoint(final BigInteger x, final BigInteger y) {
         return new Point(Points.createPoint(x, y).encode());
     }
 }

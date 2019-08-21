@@ -34,7 +34,7 @@ final class Shake256 {
      * @param outputSize The output size of the digest.
      */
     @Nonnull
-    static byte[] shake256(@Nonnull final byte[] input, final int outputSize) {
+    static byte[] shake256(final byte[] input, final int outputSize) {
         requireAtLeast(0, outputSize);
         assert !allZeroBytes(input) : "Expected non-zero bytes for input. This may indicate that a critical bug is present, or it may be a false warning.";
         final SHAKEDigest digest = new SHAKEDigest(SHAKE_256_LENGTH_BITS);

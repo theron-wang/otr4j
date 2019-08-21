@@ -79,7 +79,7 @@ public final class DHKeyPairOTR3 {
      * @param privateKey the private key
      * @param publicKey  the corresponding public key
      */
-    private DHKeyPairOTR3(@Nonnull final DHPrivateKey privateKey, @Nonnull final DHPublicKey publicKey) {
+    private DHKeyPairOTR3(final DHPrivateKey privateKey, final DHPublicKey publicKey) {
         this.privateKey = requireNonNull(privateKey);
         this.publicKey = requireNonNull(publicKey);
     }
@@ -91,7 +91,7 @@ public final class DHKeyPairOTR3 {
      * @return Returns the DH key pair.
      */
     @Nonnull
-    public static DHKeyPairOTR3 generateDHKeyPair(@Nonnull final SecureRandom random) {
+    public static DHKeyPairOTR3 generateDHKeyPair(final SecureRandom random) {
 
         // Generate a AsymmetricCipherKeyPair using BC.
         final DHParameters dhParams = new DHParameters(MODULUS, GENERATOR, null, DH_PRIVATE_KEY_MINIMUM_BIT_LENGTH);
@@ -137,7 +137,7 @@ public final class DHKeyPairOTR3 {
      * @throws OtrCryptoException In case of illegal MPI value.
      */
     @Nonnull
-    public static DHPublicKey fromBigInteger(@Nonnull final BigInteger mpi) throws OtrCryptoException {
+    public static DHPublicKey fromBigInteger(final BigInteger mpi) throws OtrCryptoException {
         final DHPublicKeySpec pubKeySpecs = new DHPublicKeySpec(mpi, MODULUS, GENERATOR);
         try {
             final KeyFactory keyFac = KeyFactory.getInstance(KF_DH);
@@ -157,7 +157,7 @@ public final class DHKeyPairOTR3 {
      * @throws OtrCryptoException In case of illegal key.
      */
     @Nonnull
-    public SharedSecret generateSharedSecret(@Nonnull final DHPublicKey publicKey) throws OtrCryptoException {
+    public SharedSecret generateSharedSecret(final DHPublicKey publicKey) throws OtrCryptoException {
         verifyDHPublicKey(publicKey);
         try {
             final KeyAgreement ka = KeyAgreement.getInstance(KA_DH);
@@ -190,7 +190,7 @@ public final class DHKeyPairOTR3 {
      * value.
      */
     @Nonnull
-    public static DHPublicKey verifyDHPublicKey(@Nonnull final DHPublicKey dhPublicKey) throws OtrCryptoException {
+    public static DHPublicKey verifyDHPublicKey(final DHPublicKey dhPublicKey) throws OtrCryptoException {
         // Verifies that Alice's gy is a legal value (2 <= gy <= modulus-2)
         if (dhPublicKey.getY().compareTo(MODULUS_MINUS_TWO) > 0) {
             throw new OtrCryptoException("Illegal D-H Public Key value.");
@@ -202,7 +202,7 @@ public final class DHKeyPairOTR3 {
     }
 
     @Nonnull
-    private static DHPublicKeyParameters convertToPublicKeyParams(@Nonnull final AsymmetricKeyParameter params) {
+    private static DHPublicKeyParameters convertToPublicKeyParams(final AsymmetricKeyParameter params) {
         if (!(params instanceof DHPublicKeyParameters)) {
             throw new IllegalArgumentException("Expected to acquire DHPublicKeyParameters instance, but it isn't. ("
                     + params.getClass().getCanonicalName() + ")");
@@ -211,7 +211,7 @@ public final class DHKeyPairOTR3 {
     }
 
     @Nonnull
-    private static DHPrivateKeyParameters convertToPrivateKeyParams(@Nonnull final AsymmetricKeyParameter params) {
+    private static DHPrivateKeyParameters convertToPrivateKeyParams(final AsymmetricKeyParameter params) {
         if (!(params instanceof DHPrivateKeyParameters)) {
             throw new IllegalArgumentException("Expected to acquire DHPrivateKeyParameters instance, but it isn't. ("
                     + params.getClass().getCanonicalName() + ")");

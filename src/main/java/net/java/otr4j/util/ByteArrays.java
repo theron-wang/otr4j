@@ -49,7 +49,7 @@ public final class ByteArrays {
      */
     @CanIgnoreReturnValue
     @Nonnull
-    public static byte[] requireLengthExactly(final int length, @Nonnull final byte[] bytes) {
+    public static byte[] requireLengthExactly(final int length, final byte[] bytes) {
         if (bytes.length != length) {
             throw new IllegalArgumentException("Illegal array length: " + bytes.length);
         }
@@ -65,7 +65,7 @@ public final class ByteArrays {
      */
     @CanIgnoreReturnValue
     @Nonnull
-    public static byte[] requireLengthAtLeast(final int minLength, @Nonnull final byte[] bytes) {
+    public static byte[] requireLengthAtLeast(final int minLength, final byte[] bytes) {
         if (bytes.length < minLength) {
             throw new IllegalArgumentException("Illegal array length: " + bytes.length);
         }
@@ -79,7 +79,7 @@ public final class ByteArrays {
      * @return Returns true if all bytes are zero, or false otherwise.
      */
     @CheckReturnValue
-    public static boolean allZeroBytes(@Nonnull final byte[] data) {
+    public static boolean allZeroBytes(final byte[] data) {
         for (final byte b : data) {
             if (b != 0) {
                 return false;
@@ -97,7 +97,7 @@ public final class ByteArrays {
      * @return Returns true iff both byte arrays have same contents (and same length).
      */
     @CheckReturnValue
-    public static boolean constantTimeEquals(@Nonnull final byte[] data1, @Nonnull final byte[] data2) {
+    public static boolean constantTimeEquals(final byte[] data1, final byte[] data2) {
         if (requireNonNull(data1) == requireNonNull(data2)) {
             throw new IllegalArgumentException("BUG: Same instance is compared.");
         }
@@ -112,7 +112,7 @@ public final class ByteArrays {
      * @return Returns true iff both byte arrays have same contents (and same length).
      */
     @CheckReturnValue
-    public static boolean constantTimeEqualsOrSame(@Nonnull final byte[] data1, @Nonnull final byte[] data2) {
+    public static boolean constantTimeEqualsOrSame(final byte[] data1, final byte[] data2) {
         requireNonNull(data1);
         requireNonNull(data2);
         assert !allZeroBytes(data1) : "Expected non-zero bytes for data1. This may indicate that a critical bug is present, or it may be a false warning.";
@@ -127,7 +127,7 @@ public final class ByteArrays {
      * @return Returns hexadecimal string representation.
      */
     @Nonnull
-    public static String toHexString(@Nonnull final byte[] in) {
+    public static String toHexString(final byte[] in) {
         final StringBuilder out = new StringBuilder(in.length * 2);
         for (final byte b : in) {
             out.append(HEX_ENCODER[(b >>> 4) & 0x0F]);
@@ -144,7 +144,7 @@ public final class ByteArrays {
      * @return Returns byte-array with byte-representation for input.
      */
     @Nonnull
-    public static byte[] fromHexString(@Nonnull final String v) {
+    public static byte[] fromHexString(final String v) {
         final String value = v.toUpperCase(Locale.US);
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         for (int index = 0; index < value.length(); index += 2) {

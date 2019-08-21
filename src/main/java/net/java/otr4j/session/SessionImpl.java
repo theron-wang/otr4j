@@ -253,19 +253,19 @@ final class SessionImpl implements Session, Context {
         @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
         @GuardedBy("SessionImpl.this.masterSession")
         @Override
-        public void sessionStatusChanged(@Nonnull final SessionID sessionID, @Nonnull final InstanceTag receiver) {
+        public void sessionStatusChanged(final SessionID sessionID, final InstanceTag receiver) {
             OtrEngineListeners.sessionStatusChanged(duplicate(listeners), sessionID, receiver);
         }
 
         @GuardedBy("SessionImpl.this.masterSession")
         @Override
-        public void multipleInstancesDetected(@Nonnull final SessionID sessionID) {
+        public void multipleInstancesDetected(final SessionID sessionID) {
             throw new IllegalStateException("Multiple instances should be detected in the master session. This event should never have happened.");
         }
 
         @GuardedBy("SessionImpl.this.masterSession")
         @Override
-        public void outgoingSessionChanged(@Nonnull final SessionID sessionID) {
+        public void outgoingSessionChanged(final SessionID sessionID) {
             throw new IllegalStateException("Outgoing session changes should be performed in the master session only. This event should never have happened.");
         }
     };
@@ -290,7 +290,7 @@ final class SessionImpl implements Session, Context {
      * @param sessionID The session ID
      * @param host      The OTR engine host listener.
      */
-    SessionImpl(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost host) {
+    SessionImpl(final SessionID sessionID, final OtrEngineHost host) {
         this(null, sessionID, host, ZERO_TAG, new SecureRandom(), new ArrayList<String>());
     }
 
@@ -306,12 +306,8 @@ final class SessionImpl implements Session, Context {
      * @param secureRandom  The secure random instance.
      */
     @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
-    private SessionImpl(@Nullable final SessionImpl masterSession,
-            @Nonnull final SessionID sessionID,
-            @Nonnull final OtrEngineHost host,
-            @Nonnull final InstanceTag receiverTag,
-            @Nonnull final SecureRandom secureRandom,
-            @Nonnull final ArrayList<String> messageQueue) {
+    private SessionImpl(@Nullable final SessionImpl masterSession, final SessionID sessionID, final OtrEngineHost host,
+            final InstanceTag receiverTag, final SecureRandom secureRandom, final ArrayList<String> messageQueue) {
         this.masterSession = masterSession == null ? this : masterSession;
         assert this.masterSession.masterSession == this.masterSession : "BUG: expected master session to be its own master session. This is likely an illegal state.";
         this.secureRandom = requireNonNull(secureRandom);
@@ -379,7 +375,7 @@ final class SessionImpl implements Session, Context {
 
     @GuardedBy("masterSession")
     @Override
-    public void setAuthState(@Nonnull final AuthState state) {
+    public void setAuthState(final AuthState state) {
         if (this.sessionState.getAuthState().getTimestamp() > state.getTimestamp()) {
             throw new IllegalArgumentException("BUG: we always expect to replace a state instance with a more recent state.");
         }
@@ -388,7 +384,7 @@ final class SessionImpl implements Session, Context {
 
     @GuardedBy("masterSession")
     @Override
-    public void transition(@Nonnull final State fromState, @Nonnull final State toState) {
+    public void transition(final State fromState, final State toState) {
         requireEquals(this.sessionState, fromState,
                 "BUG: provided \"from\" state is not the current state. Expected " + this.sessionState + ", but got " + fromState);
         if (toState instanceof StateEncrypted) {
@@ -411,7 +407,7 @@ final class SessionImpl implements Session, Context {
     }
 
     @GuardedBy("masterSession")
-    private void sendQueuedMessages(@Nonnull final StateEncrypted toState) {
+    private void sendQueuedMessages(final StateEncrypted toState) {
         while (!this.messageQueue.isEmpty()) {
             final String message = this.messageQueue.remove(0);
             try {
@@ -463,7 +459,7 @@ final class SessionImpl implements Session, Context {
 
     @Override
     @Nullable
-    public String transformReceiving(@Nonnull final String msgText) throws OtrException {
+    public String transformReceiving(final String msgText) throws OtrException {
         synchronized (this.masterSession) {
             logger.log(FINEST, "Entering {0} session.", masterSession == this ? "master" : "slave");
 
@@ -580,7 +576,7 @@ final class SessionImpl implements Session, Context {
      */
     @GuardedBy("masterSession")
     @Nullable
-    private String handleFragment(@Nonnull final Fragment fragment) throws OtrException {
+    private String handleFragment(final Fragment fragment) throws OtrException {
         assert this.masterSession != this || fragment.getVersion() == TWO
             : "BUG: Expect to only handle OTRv2 message fragments on master session. All other fragments should be handled on dedicated slave session.";
         final String reassembledText;
@@ -628,7 +624,7 @@ final class SessionImpl implements Session, Context {
      */
     @GuardedBy("masterSession")
     @Nullable
-    private String handleEncodedMessage(@Nonnull final EncodedMessage message) throws OtrException {
+    private String handleEncodedMessage(final EncodedMessage message) throws OtrException {
         assert this.masterSession != this || message.version == TWO : "BUG: We should not process encoded message in master session for protocol version 3 or higher.";
         assert !ZERO_TAG.equals(message.senderTag) : "BUG: No encoded message without sender instance tag should reach this point.";
         if (message.version == THREE && checkDHKeyMessage(message)) {
@@ -653,7 +649,7 @@ final class SessionImpl implements Session, Context {
     }
 
     @GuardedBy("masterSession")
-    private void handleQueryMessage(@Nonnull final QueryMessage queryMessage) throws OtrException {
+    private void handleQueryMessage(final QueryMessage queryMessage) throws OtrException {
         assert this.masterSession == this : "BUG: handleQueryMessage should only ever be called from the master session, as no instance tags are known.";
         logger.log(FINEST, "{0} received a query message from {1} through {2}.",
                 new Object[]{this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
@@ -674,7 +670,7 @@ final class SessionImpl implements Session, Context {
     }
 
     @GuardedBy("masterSession")
-    private void handleErrorMessage(@Nonnull final ErrorMessage errorMessage)
+    private void handleErrorMessage(final ErrorMessage errorMessage)
             throws OtrException {
         assert this.masterSession == this : "BUG: handleErrorMessage should only ever be called from the master session, as no instance tags are known.";
         logger.log(FINEST, "{0} received an error message from {1} through {2}.",
@@ -683,7 +679,7 @@ final class SessionImpl implements Session, Context {
     }
 
     @Override
-    public void injectMessage(@Nonnull final Message m) throws OtrException {
+    public void injectMessage(final Message m) throws OtrException {
         synchronized (this.masterSession) {
             final String serialized = writeMessage(m);
             final String[] fragments;
@@ -711,7 +707,7 @@ final class SessionImpl implements Session, Context {
     }
 
     @Nonnull
-    private String getFallbackMessage(@Nonnull final SessionID sessionID, final int spaceLeft) {
+    private String getFallbackMessage(final SessionID sessionID, final int spaceLeft) {
         if (spaceLeft <= 0) {
             return "";
         }
@@ -727,7 +723,7 @@ final class SessionImpl implements Session, Context {
 
     @GuardedBy("masterSession")
     @Nonnull
-    private String handlePlainTextMessage(@Nonnull final PlainTextMessage plainTextMessage) {
+    private String handlePlainTextMessage(final PlainTextMessage plainTextMessage) {
         assert this.masterSession == this : "BUG: handlePlainTextMessage should only ever be called from the master session, as no instance tags are known.";
         logger.log(FINEST, "{0} received a plaintext message from {1} through {2}.",
                 new Object[]{this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
@@ -742,7 +738,7 @@ final class SessionImpl implements Session, Context {
     }
 
     @GuardedBy("masterSession")
-    private void handleWhitespaceTag(@Nonnull final PlainTextMessage plainTextMessage) {
+    private void handleWhitespaceTag(final PlainTextMessage plainTextMessage) {
         final OtrPolicy policy = getSessionPolicy();
         if (!policy.isWhitespaceStartAKE()) {
             // no policy w.r.t. starting AKE on whitespace tag
@@ -785,7 +781,7 @@ final class SessionImpl implements Session, Context {
      */
     @Override
     @Nonnull
-    public String[] transformSending(@Nonnull final String msgText) throws OtrException {
+    public String[] transformSending(final String msgText) throws OtrException {
         synchronized (this.masterSession) {
             return this.transformSending(msgText, Collections.<TLV>emptyList());
         }
@@ -803,7 +799,7 @@ final class SessionImpl implements Session, Context {
     // TODO report message queued to host application instead of error. (Maybe make text of OtrEngineHost#requireEncryptedMessage conditional on whether or not queueing is enabled.)
     @Override
     @Nonnull
-    public String[] transformSending(@Nonnull final String msgText, @Nonnull final Iterable<TLV> tlvs)
+    public String[] transformSending(final String msgText, final Iterable<TLV> tlvs)
             throws OtrException {
         synchronized (this.masterSession) {
             if (masterSession == this && outgoingSession != this) {
@@ -913,7 +909,7 @@ final class SessionImpl implements Session, Context {
     }
 
     @Override
-    public void addOtrEngineListener(@Nonnull final OtrEngineListener l) {
+    public void addOtrEngineListener(final OtrEngineListener l) {
         synchronized (this.masterSession) {
             if (!listeners.contains(l)) {
                 listeners.add(l);
@@ -922,7 +918,7 @@ final class SessionImpl implements Session, Context {
     }
 
     @Override
-    public void removeOtrEngineListener(@Nonnull final OtrEngineListener l) {
+    public void removeOtrEngineListener(final OtrEngineListener l) {
         synchronized (this.masterSession) {
             listeners.remove(l);
         }
@@ -989,7 +985,7 @@ final class SessionImpl implements Session, Context {
      * master sessions.
      */
     @Override
-    public void setOutgoingSession(@Nonnull final InstanceTag tag) {
+    public void setOutgoingSession(final InstanceTag tag) {
         synchronized (this.masterSession) {
             if (masterSession != this) {
                 // Only master session can set the outgoing session.
@@ -1018,7 +1014,7 @@ final class SessionImpl implements Session, Context {
      */
     @Override
     @Nonnull
-    public SessionStatus getSessionStatus(@Nonnull final InstanceTag tag) {
+    public SessionStatus getSessionStatus(final InstanceTag tag) {
         synchronized (this.masterSession) {
             if (tag.equals(this.receiverTag)) {
                 return this.sessionState.getStatus();
@@ -1042,7 +1038,7 @@ final class SessionImpl implements Session, Context {
      */
     @Override
     @Nonnull
-    public DSAPublicKey getRemotePublicKey(@Nonnull final InstanceTag tag) throws IncorrectStateException {
+    public DSAPublicKey getRemotePublicKey(final InstanceTag tag) throws IncorrectStateException {
         synchronized (this.masterSession) {
             if (tag.equals(this.receiverTag)) {
                 return this.sessionState.getRemotePublicKey();
@@ -1079,7 +1075,7 @@ final class SessionImpl implements Session, Context {
      * @throws OtrException In case of invalid/unsupported OTR protocol version.
      */
     @GuardedBy("masterSession")
-    private void respondAuth(final int version, @Nonnull final InstanceTag receiverTag) throws OtrException {
+    private void respondAuth(final int version, final InstanceTag receiverTag) throws OtrException {
         if (!Version.SUPPORTED.contains(version)) {
             throw new OtrException("Unsupported OTR version encountered.");
         }
@@ -1101,7 +1097,7 @@ final class SessionImpl implements Session, Context {
      * @throws OtrException In case of failure to init SMP or transform to encoded message.
      */
     @Override
-    public void initSmp(@Nullable final String question, @Nonnull final String answer) throws OtrException {
+    public void initSmp(@Nullable final String question, final String answer) throws OtrException {
         synchronized (this.masterSession) {
             if (this != outgoingSession) {
                 outgoingSession.initSmp(question, answer);
@@ -1135,7 +1131,7 @@ final class SessionImpl implements Session, Context {
      * from ENCRYPTED, issues with SMP processing.
      */
     @Override
-    public void respondSmp(@Nullable final String question, @Nonnull final String secret) throws OtrException {
+    public void respondSmp(@Nullable final String question, final String secret) throws OtrException {
         synchronized (this.masterSession) {
             if (this != outgoingSession) {
                 outgoingSession.respondSmp(question, secret);
@@ -1154,8 +1150,8 @@ final class SessionImpl implements Session, Context {
      * @throws OtrException In case of failure.
      */
     @Override
-    public void respondSmp(@Nonnull final InstanceTag receiverTag, @Nullable final String question,
-            @Nonnull final String secret) throws OtrException {
+    public void respondSmp(final InstanceTag receiverTag, @Nullable final String question, final String secret)
+            throws OtrException {
         synchronized (this.masterSession) {
             final SessionImpl session = receiverTag.equals(this.receiverTag) ? this : this.slaveSessions.get(receiverTag);
             if (session == null) {
@@ -1174,7 +1170,7 @@ final class SessionImpl implements Session, Context {
      *                      processing.
      */
     @GuardedBy("masterSession")
-    private void sendResponseSmp(@Nullable final String question, @Nonnull final String answer) throws OtrException {
+    private void sendResponseSmp(@Nullable final String question, final String answer) throws OtrException {
         final State session = this.sessionState;
         final TLV tlv = session.getSmpHandler().respond(question == null ? "" : question, answer.getBytes(UTF_8));
         final Message m = session.transformSending(this, "", singletonList(tlv), FLAG_IGNORE_UNREADABLE);
@@ -1310,7 +1306,7 @@ final class SessionImpl implements Session, Context {
 
     // TODO evaluate what to do with situation where multiple instances establish private messaging session concurrently. One will be first, it will receive the queued messages. These might not go to the client instance that we want to.
     @Override
-    public void queueMessage(@Nonnull final String message) {
+    public void queueMessage(final String message) {
         synchronized (this.masterSession) {
             this.messageQueue.add(message);
         }

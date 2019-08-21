@@ -12,4 +12,7 @@
  * This implementation will throw unchecked exceptions in case support in the
  * JVM is lacking, such as for required hashing functions and ciphers.
  */
+@ParametersAreNonnullByDefault
 package net.java.otr4j.session.ake;
+
+import javax.annotation.ParametersAreNonnullByDefault;

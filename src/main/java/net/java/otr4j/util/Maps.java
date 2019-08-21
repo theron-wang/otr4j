@@ -35,7 +35,7 @@ public final class Maps {
      */
     @CanIgnoreReturnValue
     @Nonnull
-    public static <K, V> Map<K, V> requireMinEntries(final int minimum, @Nonnull final Map<K, V> map) {
+    public static <K, V> Map<K, V> requireMinEntries(final int minimum, final Map<K, V> map) {
         final int size = map.size();
         if (size < minimum) {
             throw new IllegalArgumentException("Expected at minimum " + minimum + " entries. Got only " + size + " entries.");

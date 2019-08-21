@@ -9,4 +9,7 @@
 /**
  * Package containing OTR-encoded message types.
  */
+@ParametersAreNonnullByDefault
 package net.java.otr4j.messages;
+
+import javax.annotation.ParametersAreNonnullByDefault;

@@ -18,7 +18,6 @@ import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.messages.ValidationException;
 import org.junit.runner.RunWith;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ProtocolException;
@@ -34,7 +33,7 @@ public class EncodedMessageParserDriver {
     private final byte[] data = new byte[65536];
 
     @Fuzz
-    public void fuzzMessage(@Nonnull final InputStream input) throws IOException, OtrCryptoException, ValidationException {
+    public void fuzzMessage(final InputStream input) throws IOException, OtrCryptoException, ValidationException {
         final int length = input.read(this.data);
         final OtrInputStream otrinput = new OtrInputStream(copyOf(this.data, length));
         final int version = otrinput.readShort();

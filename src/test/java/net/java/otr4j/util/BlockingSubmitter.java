@@ -9,7 +9,6 @@
 
 package net.java.otr4j.util;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
@@ -35,27 +34,27 @@ public final class BlockingSubmitter<E> {
         this.queues = new ArrayList<>();
     }
 
-    public boolean addQueue(@Nonnull final BlockingQueue<E> queue) {
+    public boolean addQueue(final BlockingQueue<E> queue) {
         return this.queues.add(requireNonNull(queue));
     }
 
-    public boolean removeQueue(@Nonnull final BlockingQueue<E> queue) {
+    public boolean removeQueue(final BlockingQueue<E> queue) {
         return this.queues.remove(requireNonNull(queue));
     }
 
-    public void add(@Nonnull final E e) {
+    public void add(final E e) {
         for (final BlockingQueue<E> queue : this.queues) {
             queue.add(e);
         }
     }
 
-    public void addAll(@Nonnull final Collection<? extends E> c) {
+    public void addAll(final Collection<? extends E> c) {
         for (final BlockingQueue<E> queue : this.queues) {
             queue.addAll(c);
         }
     }
 
-    public boolean offer(@Nonnull final E e) {
+    public boolean offer(final E e) {
         BlockingQueue<E> failedQueue = null;
         for (final BlockingQueue<E> queue : this.queues) {
             if (!queue.offer(e)) {
@@ -78,7 +77,7 @@ public final class BlockingSubmitter<E> {
         return false;
     }
 
-    public boolean offer(final E e, final long timeout, @Nonnull final TimeUnit unit) throws InterruptedException {
+    public boolean offer(final E e, final long timeout, final TimeUnit unit) throws InterruptedException {
         BlockingQueue<E> failedQueue = null;
         final long start = nanoTime();
         for (final BlockingQueue<E> queue : this.queues) {
@@ -105,7 +104,7 @@ public final class BlockingSubmitter<E> {
         return false;
     }
 
-    public void put(@Nonnull final E e) throws InterruptedException {
+    public void put(final E e) throws InterruptedException {
         for (final BlockingQueue<E> queue : this.queues) {
             queue.put(e);
         }

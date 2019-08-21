@@ -45,7 +45,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
     private boolean cleared = false;
 
     @Nonnull
-    Scalar(@Nonnull final byte[] encoded) {
+    Scalar(final byte[] encoded) {
         this.encoded = requireLengthExactly(SCALAR_LENGTH_BYTES, encoded);
     }
 
@@ -56,7 +56,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      * @return Returns scalar instance.
      */
     @Nonnull
-    public static Scalar decodeScalar(@Nonnull final byte[] encoded) {
+    public static Scalar decodeScalar(final byte[] encoded) {
         return fromBigInteger(new BigInteger(1, reverse(encoded)));
     }
 
@@ -67,7 +67,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      * @return Returns scalar instance.
      */
     @Nonnull
-    static Scalar fromBigInteger(@Nonnull final BigInteger value) {
+    static Scalar fromBigInteger(final BigInteger value) {
         // FIXME is it a problem if `value mod q` again contains pruned bits?
         return new Scalar(reverse(asUnsignedByteArray(SCALAR_LENGTH_BYTES, value.mod(primeOrder()))));
     }
@@ -90,7 +90,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      * @return Returns the multiplication result.
      */
     @Nonnull
-    public Scalar multiply(@Nonnull final Scalar scalar) {
+    public Scalar multiply(final Scalar scalar) {
         requireNotCleared();
         return fromBigInteger(toBigInteger().multiply(scalar.toBigInteger()));
     }
@@ -102,7 +102,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      * @return Returns the addition result.
      */
     @Nonnull
-    public Scalar add(@Nonnull final Scalar scalar) {
+    public Scalar add(final Scalar scalar) {
         requireNotCleared();
         return fromBigInteger(toBigInteger().add(scalar.toBigInteger()));
     }
@@ -114,7 +114,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      * @return Returns the subtraction result.
      */
     @Nonnull
-    public Scalar subtract(@Nonnull final Scalar scalar) {
+    public Scalar subtract(final Scalar scalar) {
         requireNotCleared();
         return fromBigInteger(toBigInteger().subtract(scalar.toBigInteger()));
     }
@@ -126,7 +126,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      * @return Returns result of modulo.
      */
     @Nonnull
-    public Scalar mod(@Nonnull final Scalar modulus) {
+    public Scalar mod(final Scalar modulus) {
         requireNotCleared();
         return fromBigInteger(toBigInteger().mod(modulus.toBigInteger()));
     }
@@ -148,7 +148,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      * @param dst    the destination for the encoded value
      * @param offset the offset for the starting point to writing the encoded value
      */
-    public void encodeTo(@Nonnull final byte[] dst, final int offset) {
+    public void encodeTo(final byte[] dst, final int offset) {
         requireNotCleared();
         System.arraycopy(this.encoded, 0, dst, offset, SCALAR_LENGTH_BYTES);
     }
@@ -159,7 +159,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      * @param out the destination
      * @throws IOException In case of failure in OutputStream during writing.
      */
-    public void encodeTo(@Nonnull final OutputStream out) throws IOException {
+    public void encodeTo(final OutputStream out) throws IOException {
         requireNotCleared();
         out.write(this.encoded, 0, SCALAR_LENGTH_BYTES);
     }
@@ -169,7 +169,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (getClass() != o.getClass()) {
             return false;
         }
         final Scalar scalar = (Scalar) o;
@@ -183,13 +183,13 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
 
     @Override
     @CheckReturnValue
-    public boolean constantTimeEquals(@Nonnull final Scalar o) {
+    public boolean constantTimeEquals(final Scalar o) {
         return constantTimeAreEqual(this.encoded, o.encoded);
     }
 
     // TODO make Scalar.compareTo perform constant-time comparison
     @Override
-    public int compareTo(@Nonnull final Scalar scalar) {
+    public int compareTo(final Scalar scalar) {
         assert this.encoded.length == SCALAR_LENGTH_BYTES && scalar.encoded.length == SCALAR_LENGTH_BYTES;
         for (int i = SCALAR_LENGTH_BYTES - 1; i >= 0; --i) {
             final byte xi = (byte) (this.encoded[i] ^ Byte.MIN_VALUE);

@@ -78,8 +78,8 @@ public final class Fragment implements Message {
     private final int total;
     private final String content;
 
-    private Fragment(final int version, final int identifier, @Nonnull final InstanceTag senderTag,
-            @Nonnull final InstanceTag receiverTag, final int index, final int total, @Nonnull final String content) {
+    private Fragment(final int version, final int identifier, final InstanceTag senderTag, final InstanceTag receiverTag,
+            final int index, final int total, final String content) {
         this.version = version;
         this.identifier = identifier;
         this.senderTag = requireNonNull(senderTag);
@@ -98,7 +98,7 @@ public final class Fragment implements Message {
      */
     @SuppressWarnings({"PMD.AssignmentInOperand"})
     @Nonnull
-    public static Fragment parseFragment(@Nonnull final String message) throws ProtocolException {
+    public static Fragment parseFragment(final String message) throws ProtocolException {
         final int version;
         final int identifier;
         final int sendertagValue;

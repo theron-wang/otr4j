@@ -43,8 +43,7 @@ public abstract class AbstractEncodedMessage implements Message, OtrEncodable {
      */
     public final InstanceTag receiverTag;
 
-    AbstractEncodedMessage(final int protocolVersion, @Nonnull final InstanceTag senderTag,
-            @Nonnull final InstanceTag receiverTag) {
+    AbstractEncodedMessage(final int protocolVersion, final InstanceTag senderTag, final InstanceTag receiverTag) {
         this.protocolVersion = protocolVersion;
         this.senderTag = requireNonNull(senderTag);
         this.receiverTag = requireNonNull(receiverTag);
@@ -82,7 +81,7 @@ public abstract class AbstractEncodedMessage implements Message, OtrEncodable {
 
     @OverridingMethodsMustInvokeSuper
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream writer) {
+    public void writeTo(final OtrOutputStream writer) {
         // Start writing common header of encoded messages.
         writer.writeShort(this.protocolVersion);
         writer.writeByte(getType());

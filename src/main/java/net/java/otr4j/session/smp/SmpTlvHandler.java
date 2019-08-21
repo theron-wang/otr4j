@@ -9,6 +9,7 @@
 
 package net.java.otr4j.session.smp;
 
+import com.google.errorprone.annotations.CheckReturnValue;
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.SessionID;
@@ -89,9 +90,8 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
      * @param host            the SMP engine host
      * @param s               the session's shared secret
      */
-    public SmpTlvHandler(@Nonnull final SecureRandom random, @Nonnull final SessionID sessionID,
-            @Nonnull final DSAPublicKey remotePublicKey, @Nonnull final InstanceTag receiverTag,
-            @Nonnull final SmpEngineHost host, @Nonnull final SharedSecret s) {
+    public SmpTlvHandler(final SecureRandom random, final SessionID sessionID, final DSAPublicKey remotePublicKey,
+            final InstanceTag receiverTag, final SmpEngineHost host, final SharedSecret s) {
         this.sessionID = requireNonNull(sessionID);
         this.remotePublicKey = requireNonNull(remotePublicKey);
         this.s = requireNonNull(s);
@@ -106,14 +106,15 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
      * @param tlv TLV
      * @return Returns true iff TLV contains SMP payload.
      */
-    public static boolean smpPayload(@Nonnull final TLV tlv) {
+    @CheckReturnValue
+    public static boolean smpPayload(final TLV tlv) {
         return tlv.type == SMP1 || tlv.type == SMP1Q || tlv.type == SMP2 || tlv.type == SMP3 || tlv.type == SMP4
                 || tlv.type == SMP_ABORT;
     }
 
     @Nonnull
     @Override
-    public TLV initiate(@Nonnull final String question, @Nonnull final byte[] answer) throws OtrException {
+    public TLV initiate(final String question, final byte[] answer) throws OtrException {
         final byte[] initiatorFingerprint = this.host.getLocalFingerprintRaw(this.sessionID);
         final byte[] responderFingerprint = getFingerprintRaw(this.remotePublicKey);
         final byte[] secret = generateSecret(answer, initiatorFingerprint, responderFingerprint);
@@ -141,7 +142,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
 
     @Nonnull
     @Override
-    public TLV respond(@Nonnull final String question, @Nonnull final byte[] answer) throws OtrException {
+    public TLV respond(final String question, final byte[] answer) throws OtrException {
         if (this.sm.status() != INPROGRESS) {
             throw new OtrException("There is no question to be answered.");
         }
@@ -174,8 +175,8 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
      * @param answer the answer of the local user
      * @return Returns the generated secret MPI to be used in SMP.
      */
-    private byte[] generateSecret(@Nonnull final byte[] answer, @Nonnull final byte[] initiatorFingerprint,
-            @Nonnull final byte[] responderFingerprint) {
+    private byte[] generateSecret(final byte[] answer, final byte[] initiatorFingerprint,
+            final byte[] responderFingerprint) {
         return sha256Hash(VERSION_BYTE, initiatorFingerprint, responderFingerprint, this.s.ssid(), answer);
     }
 
@@ -189,7 +190,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
     }
 
     @Override
-    public boolean smpAbortedTLV(@Nonnull final TLV tlv) {
+    public boolean smpAbortedTLV(final TLV tlv) {
         return tlv.type == SMP_ABORT;
     }
 
@@ -207,7 +208,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
      * @throws SMException In case of failure to process TLV.
      */
     @Nullable
-    public TLV process(@Nonnull final TLV tlv) throws SMException {
+    public TLV process(final TLV tlv) throws SMException {
         try {
             switch (tlv.type) {
             case SMP_ABORT:
@@ -236,7 +237,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
     }
 
     @Nullable
-    private TLV processTlvSMP1Q(@Nonnull final TLV tlv) throws SMException {
+    private TLV processTlvSMP1Q(final TLV tlv) throws SMException {
         // We can only do the verification half now.
         // We must wait for the secret to be entered
         // to continue.
@@ -263,7 +264,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
     }
 
     @Nullable
-    private TLV processTlvSMP1(@Nonnull final TLV tlv) throws SMException {
+    private TLV processTlvSMP1(final TLV tlv) throws SMException {
         // We can only do the verification half now. We must wait for the secret to be entered to continue.
         sm.step2a(tlv.value);
         askForSecret(host, this.sessionID, this.receiverTag, null);
@@ -271,13 +272,13 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
     }
 
     @Nonnull
-    private TLV processTlvSMP2(@Nonnull final TLV tlv) throws SMException {
+    private TLV processTlvSMP2(final TLV tlv) throws SMException {
         final byte[] nextmsg = sm.step3(tlv.value);
         return new TLV(SMP3, nextmsg);
     }
 
     @Nonnull
-    private TLV processTlvSMP3(@Nonnull final TLV tlv) throws SMException {
+    private TLV processTlvSMP3(final TLV tlv) throws SMException {
         final byte[] nextmsg = sm.step4(tlv.value);
         // Set trust level based on result.
         if (this.sm.status() == SUCCEEDED) {
@@ -289,7 +290,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
     }
 
     @Nullable
-    private TLV processTlvSMP4(@Nonnull final TLV tlv) throws SMException {
+    private TLV processTlvSMP4(final TLV tlv) throws SMException {
         sm.step5(tlv.value);
         if (this.sm.status() == SUCCEEDED) {
             verify(host, this.sessionID, getFingerprint());

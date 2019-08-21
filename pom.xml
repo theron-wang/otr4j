@@ -182,7 +182,7 @@
                                 <arg>-Xlint:all,-options</arg>
                                 <arg>-Xdoclint:all/protected</arg>
                                 <arg>-XDcompilePolicy=simple</arg>
-                                <arg>-Xplugin:ErrorProne -Xep:NullAway:WARN -XepOpt:NullAway:AnnotatedPackages=net.java.otr4j</arg>
+                                <arg>-Xplugin:ErrorProne -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=net.java.otr4j</arg>
                             </compilerArgs>
                         </configuration>
                     </execution>

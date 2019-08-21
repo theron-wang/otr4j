@@ -22,7 +22,6 @@ import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
 import org.junit.Test;
 
-import javax.annotation.Nonnull;
 import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
@@ -192,7 +191,7 @@ public final class AuthRMessageTest {
         assertArrayEquals(expected, new OtrOutputStream().write(message).toByteArray());
     }
 
-    private static Sigma generateSigma(@Nonnull final EdDSAKeyPair keypair, @Nonnull final byte[] message) {
+    private static Sigma generateSigma(final EdDSAKeyPair keypair, final byte[] message) {
         final ECDHKeyPair pair1 = ECDHKeyPair.generate(RANDOM);
         final ECDHKeyPair pair2 = ECDHKeyPair.generate(RANDOM);
         return ringSign(RANDOM, keypair, keypair.getPublicKey(), pair1.getPublicKey(), pair2.getPublicKey(), message);

@@ -99,7 +99,7 @@ public final class OtrSessionManager {
      * @param host OTR engine host that provides callback interface to host
      * logic.
      */
-    public OtrSessionManager(@Nonnull final OtrEngineHost host) {
+    public OtrSessionManager(final OtrEngineHost host) {
         this.host = requireNonNull(host, "OtrEngineHost is required");
     }
 
@@ -113,7 +113,7 @@ public final class OtrSessionManager {
      * @return Returns a newly created OTR session instance.
      */
     @Nonnull
-    public static Session createSession(@Nonnull final SessionID sessionID, @Nonnull final OtrEngineHost host) {
+    public static Session createSession(final SessionID sessionID, final OtrEngineHost host) {
         final SessionImpl session = new SessionImpl(sessionID, host);
         SessionExpirationTimerTask.instance().register(session);
         return session;
@@ -130,17 +130,17 @@ public final class OtrSessionManager {
         // Note that this implementation must be context-agnostic as the same instance is now reused in all sessions.
 
         @Override
-        public void sessionStatusChanged(@Nonnull final SessionID sessionID, @Nonnull final InstanceTag receiverTag) {
+        public void sessionStatusChanged(final SessionID sessionID, final InstanceTag receiverTag) {
             OtrEngineListeners.sessionStatusChanged(duplicate(listeners), sessionID, receiverTag);
         }
 
         @Override
-        public void multipleInstancesDetected(@Nonnull final SessionID sessionID) {
+        public void multipleInstancesDetected(final SessionID sessionID) {
             OtrEngineListeners.multipleInstancesDetected(duplicate(listeners), sessionID);
         }
 
         @Override
-        public void outgoingSessionChanged(@Nonnull final SessionID sessionID) {
+        public void outgoingSessionChanged(final SessionID sessionID) {
             OtrEngineListeners.outgoingSessionChanged(duplicate(listeners), sessionID);
         }
     };
@@ -152,7 +152,7 @@ public final class OtrSessionManager {
      * @param sessionID The session's ID.
      * @return Returns Session instance that corresponds to provided sessionID.
      */
-    public Session getSession(@Nonnull final SessionID sessionID) {
+    public Session getSession(final SessionID sessionID) {
         synchronized (sessions) {
             SessionImpl session = sessions.get(sessionID);
             if (session == null) {
@@ -173,7 +173,7 @@ public final class OtrSessionManager {
      *
      * @param l the listener
      */
-    public void addOtrEngineListener(@Nonnull final OtrEngineListener l) {
+    public void addOtrEngineListener(final OtrEngineListener l) {
         requireNonNull(l, "null is not a valid listener");
         synchronized (listeners) {
             if (!listeners.contains(l)) {
@@ -187,7 +187,7 @@ public final class OtrSessionManager {
      *
      * @param l the listener
      */
-    public void removeOtrEngineListener(@Nonnull final OtrEngineListener l) {
+    public void removeOtrEngineListener(final OtrEngineListener l) {
         requireNonNull(l, "null is not a valid listener");
         synchronized (listeners) {
             listeners.remove(l);

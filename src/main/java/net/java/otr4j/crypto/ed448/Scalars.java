@@ -9,8 +9,6 @@
 
 package net.java.otr4j.crypto.ed448;
 
-import javax.annotation.Nonnull;
-
 import static net.java.otr4j.crypto.ed448.Scalar.SCALAR_LENGTH_BYTES;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 
@@ -64,7 +62,7 @@ public final class Scalars {
      * @param privateKeySourceData Public key source data.
      * @throws IllegalArgumentException In case of invalid length of source data.
      */
-    public static void prune(@Nonnull final byte[] privateKeySourceData) {
+    public static void prune(final byte[] privateKeySourceData) {
         requireLengthExactly(SCALAR_LENGTH_BYTES, privateKeySourceData);
         privateKeySourceData[0] = (byte) (privateKeySourceData[0] & 0b11111100);
         privateKeySourceData[SCALAR_LENGTH_BYTES - 1] = 0;

@@ -34,7 +34,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID The session ID
      * @param msg       The message to inject
      */
-    void injectMessage(@Nonnull SessionID sessionID, @Nonnull String msg);
+    void injectMessage(SessionID sessionID, String msg);
 
     /**
      * Warn the user that an encrypted message was received that could not be
@@ -43,7 +43,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      *
      * @param sessionID The session ID
      */
-    void unreadableMessageReceived(@Nonnull SessionID sessionID);
+    void unreadableMessageReceived(SessionID sessionID);
 
     /**
      * Display the message to the user, but warn him that the message was
@@ -52,7 +52,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID The session ID
      * @param msg       the body of the received message that was not encrypted
      */
-    void unencryptedMessageReceived(@Nonnull SessionID sessionID, @Nonnull String msg);
+    void unencryptedMessageReceived(SessionID sessionID, String msg);
 
     /**
      * Ask Engine Host to show provided error message that was received over
@@ -61,7 +61,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      * @param error     the error message
      */
-    void showError(@Nonnull SessionID sessionID, @Nonnull String error);
+    void showError(SessionID sessionID, String error);
 
     /**
      * Signal Engine Host that OTR secure session is finished.
@@ -69,7 +69,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      * @param msgText   message text
      */
-    void finishedSessionMessage(@Nonnull SessionID sessionID, @Nonnull String msgText);
+    void finishedSessionMessage(SessionID sessionID, String msgText);
 
     /**
      * Signal Engine Host that current policy dictates that a secure session is
@@ -78,7 +78,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      * @param msgText   the encryption required message
      */
-    void requireEncryptedMessage(@Nonnull SessionID sessionID, @Nonnull String msgText);
+    void requireEncryptedMessage(SessionID sessionID, String msgText);
 
     /**
      * Request the current session policy for provided session ID.
@@ -86,7 +86,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      * @return Returns the current policy for specified session.
      */
-    OtrPolicy getSessionPolicy(@Nonnull SessionID sessionID);
+    OtrPolicy getSessionPolicy(SessionID sessionID);
 
     /**
      * Get instructions for the necessary fragmentation operations.
@@ -104,7 +104,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * maximum value possible, {@link Integer#MAX_VALUE}, if fragmentation
      * is not necessary.
      */
-    int getMaxFragmentSize(@Nonnull SessionID sessionID);
+    int getMaxFragmentSize(SessionID sessionID);
 
     /**
      * Request local key pair from Engine Host. (OTRv2/OTRv3)
@@ -118,7 +118,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @return Returns the local key pair.
      */
     @Nonnull
-    DSAKeyPair getLocalKeyPair(@Nonnull SessionID sessionID);
+    DSAKeyPair getLocalKeyPair(SessionID sessionID);
 
     /**
      * Request local long-term key pair from Engine Host. (OTRv4)
@@ -129,7 +129,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @return Returns the local long-term Ed448-goldilocks key pair.
      */
     @Nonnull
-    EdDSAKeyPair getLongTermKeyPair(@Nonnull SessionID sessionID);
+    EdDSAKeyPair getLongTermKeyPair(SessionID sessionID);
 
     /**
      * Request the client's Client Profile.
@@ -143,7 +143,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @return Returns the Client Profile for this client.
      */
     @Nonnull
-    ClientProfile getClientProfile(@Nonnull SessionID sessionID);
+    ClientProfile getClientProfile(SessionID sessionID);
 
     /**
      * Publish Client Profile payload.
@@ -157,7 +157,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      *
      * @param payload the encoded Client Profile payload.
      */
-    void publishClientProfilePayload(@Nonnull byte[] payload);
+    void publishClientProfilePayload(byte[] payload);
 
     /**
      * Restore a previously published Client Profile payload.
@@ -182,7 +182,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      */
     @Override
     @Nonnull
-    byte[] getLocalFingerprintRaw(@Nonnull SessionID sessionID);
+    byte[] getLocalFingerprintRaw(SessionID sessionID);
 
     /**
      * When a message is received that is unreadable for some reason, for
@@ -198,7 +198,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param identifier the OTRv4 error identifier, or empty-string.
      * @return Returns an error message.
      */
-    String getReplyForUnreadableMessage(@Nonnull SessionID sessionID, @Nonnull String identifier);
+    String getReplyForUnreadableMessage(SessionID sessionID, String identifier);
 
     /**
      * Return the localized message that explains to the recipient how to get an
@@ -210,7 +210,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID the session ID
      * @return String the localized message
      */
-    String getFallbackMessage(@Nonnull SessionID sessionID);
+    String getFallbackMessage(SessionID sessionID);
 
     /**
      * Signal the Engine Host that a message is received that is intended for
@@ -219,7 +219,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      *
      * @param sessionID the session ID
      */
-    void messageFromAnotherInstanceReceived(@Nonnull SessionID sessionID);
+    void messageFromAnotherInstanceReceived(SessionID sessionID);
 
     /**
      * Signal the Engine Host that we have received a message that is intended
@@ -228,7 +228,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      *
      * @param sessionID the session ID
      */
-    void multipleInstancesDetected(@Nonnull SessionID sessionID);
+    void multipleInstancesDetected(SessionID sessionID);
 
     /**
      * Report on discovery of extra symmetric key in message.
@@ -241,6 +241,5 @@ public interface OtrEngineHost extends SmpEngineHost {
      *                          contained TLV 8.
      * @param tlvData           The data embedded in TLV 8.
      */
-    void extraSymmetricKeyDiscovered(@Nonnull final SessionID sessionID, @Nonnull final String message,
-            @Nonnull final byte[] extraSymmetricKey, @Nonnull final byte[] tlvData);
+    void extraSymmetricKeyDiscovered(SessionID sessionID, String message, byte[] extraSymmetricKey, byte[] tlvData);
 }

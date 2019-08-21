@@ -65,7 +65,7 @@ public final class DSAKeyPair {
      * @param privateKey the private key
      * @param publicKey  the corresponding public key
      */
-    public DSAKeyPair(@Nonnull final DSAPrivateKey privateKey, @Nonnull final DSAPublicKey publicKey) {
+    public DSAKeyPair(final DSAPrivateKey privateKey, final DSAPublicKey publicKey) {
         this.privateKey = requireNonNull(privateKey);
         this.publicKey = requireNonNull(publicKey);
     }
@@ -95,8 +95,8 @@ public final class DSAKeyPair {
      * @return Returns an instance of DSAKeyPair containing the encoded key pair.
      * @throws OtrCryptoException Thrown in case of failure to reconstruct DSA public or private key.
      */
-    public static DSAKeyPair restoreDSAKeyPair(@Nonnull final byte[] encodedPrivateKey,
-            @Nonnull final byte[] encodedPublicKey) throws OtrCryptoException {
+    public static DSAKeyPair restoreDSAKeyPair(final byte[] encodedPrivateKey, final byte[] encodedPublicKey)
+            throws OtrCryptoException {
         final PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedPrivateKey);
         final X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(encodedPublicKey);
         try {
@@ -122,8 +122,8 @@ public final class DSAKeyPair {
      * @throws OtrCryptoException Throws OtrCryptoException in case of failure to create DSA public key.
      */
     @Nonnull
-    public static DSAPublicKey createDSAPublicKey(@Nonnull final BigInteger y, @Nonnull final BigInteger p,
-            @Nonnull final BigInteger q, @Nonnull final BigInteger g) throws OtrCryptoException {
+    public static DSAPublicKey createDSAPublicKey(final BigInteger y, final BigInteger p, final BigInteger q,
+            final BigInteger g) throws OtrCryptoException {
         try {
             final KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM_DSA);
             final DSAPublicKeySpec keySpec = new DSAPublicKeySpec(y, p, q, g);
@@ -150,7 +150,7 @@ public final class DSAKeyPair {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (getClass() != o.getClass()) {
             return false;
         }
         final DSAKeyPair that = (DSAKeyPair) o;
@@ -191,7 +191,7 @@ public final class DSAKeyPair {
          */
         public final byte[] encodedPublicKey;
 
-        private EncodedDSAKeyPair(@Nonnull final byte[] encodedPrivateKey, @Nonnull final byte[] encodedPublicKey) {
+        private EncodedDSAKeyPair(final byte[] encodedPrivateKey, final byte[] encodedPublicKey) {
             this.encodedPrivateKey = requireNonNull(encodedPrivateKey);
             this.encodedPublicKey = requireNonNull(encodedPublicKey);
         }
@@ -204,7 +204,7 @@ public final class DSAKeyPair {
      * @return Returns signature in bytes.
      */
     @Nonnull
-    public byte[] sign(@Nonnull final byte[] b) {
+    public byte[] sign(final byte[] b) {
         final BigInteger q = this.privateKey.getParams().getQ();
         final DSASignature signature = signRS(b);
 
@@ -227,7 +227,7 @@ public final class DSAKeyPair {
      * @return Signature components 'r' and 's'.
      */
     @Nonnull
-    public DSASignature signRS(@Nonnull final byte[] b) {
+    public DSASignature signRS(final byte[] b) {
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
         final DSAParams dsaParams = privateKey.getParams();
         final DSAParameters bcDSAParameters = new DSAParameters(dsaParams.getP(), dsaParams.getQ(), dsaParams.getG());
@@ -260,8 +260,8 @@ public final class DSAKeyPair {
      * @param rs Components R and S.
      * @throws OtrCryptoException Thrown in case of failed verification.
      */
-    public static void verifySignature(@Nonnull final byte[] b, @Nonnull final DSAPublicKey pubKey,
-            @Nonnull final byte[] rs) throws OtrCryptoException {
+    public static void verifySignature(final byte[] b, final DSAPublicKey pubKey, final byte[] rs)
+            throws OtrCryptoException {
         final int qlen = pubKey.getParams().getQ().bitLength() / 8;
         requireLengthExactly(2 * qlen, rs);
         final ByteBuffer buff = ByteBuffer.wrap(rs);
@@ -272,8 +272,8 @@ public final class DSAKeyPair {
         verifySignature(b, pubKey, r, s);
     }
 
-    private static void verifySignature(@Nonnull final byte[] b, @Nonnull final DSAPublicKey pubKey,
-            @Nonnull final byte[] r, @Nonnull final byte[] s) throws OtrCryptoException {
+    private static void verifySignature(final byte[] b, final DSAPublicKey pubKey, final byte[] r, final byte[] s)
+            throws OtrCryptoException {
         assert !allZeroBytes(r) : "Expected non-zero bytes for r. This may indicate that a critical bug is present, or it may be a false warning.";
         assert !allZeroBytes(s) : "Expected non-zero bytes for s. This may indicate that a critical bug is present, or it may be a false warning.";
         verifySignature(b, pubKey, new BigInteger(1, r), new BigInteger(1, s));
@@ -288,8 +288,8 @@ public final class DSAKeyPair {
      * @param s      the signature component 's'
      * @throws OtrCryptoException In case of illegal signature.
      */
-    public static void verifySignature(@Nonnull final byte[] b, @Nonnull final DSAPublicKey pubKey,
-            @Nonnull final BigInteger r, @Nonnull final BigInteger s) throws OtrCryptoException {
+    public static void verifySignature(final byte[] b, final DSAPublicKey pubKey, final BigInteger r, final BigInteger s)
+            throws OtrCryptoException {
         requireNonNull(b);
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
         final DSAParams dsaParams = pubKey.getParams();
@@ -337,7 +337,7 @@ public final class DSAKeyPair {
          * @param s the 's' component
          */
         @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
-        public DSASignature(@Nonnull final BigInteger r, @Nonnull final BigInteger s) {
+        public DSASignature(final BigInteger r, final BigInteger s) {
             this.r = requireNonNull(r);
             this.s = requireNonNull(s);
             assert this.r.bitLength() + this.s.bitLength() <= DSA_SIGNATURE_LENGTH_BYTES * 8
@@ -349,7 +349,7 @@ public final class DSAKeyPair {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (getClass() != o.getClass()) {
                 return false;
             }
             final DSASignature that = (DSASignature) o;

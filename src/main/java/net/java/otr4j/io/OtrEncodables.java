@@ -27,7 +27,7 @@ public final class OtrEncodables {
      * @return Returns byte-array representing OTR-encoded encodable.
      */
     @Nonnull
-    public static byte[] encode(@Nonnull final OtrEncodable encodable) {
+    public static byte[] encode(final OtrEncodable encodable) {
         final OtrOutputStream out = new OtrOutputStream();
         encodable.writeTo(out);
         return out.toByteArray();

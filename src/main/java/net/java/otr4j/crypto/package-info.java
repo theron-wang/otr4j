@@ -23,7 +23,10 @@
  *     material.</li>
  * </ul>
  */
+@ParametersAreNonnullByDefault
 package net.java.otr4j.crypto;
 // TODO ensure that all AutoCloseable instances are closed after use. (i.e. thoroughly validate destroy-implementations)
 // TODO investigate what we need to clean additionally for Point and BigInteger calculations where we use temporary instances during computation.
 // TODO investigate whether it is possible to write Java security policy file to protect internal data of 'crypto' package content, as it contains secrets.
+
+import javax.annotation.ParametersAreNonnullByDefault;

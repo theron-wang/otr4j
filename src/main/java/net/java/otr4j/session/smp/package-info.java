@@ -9,4 +9,7 @@
 /**
  * The OTRv3 Socialist Millionaires Protocol implementation.
  */
+@ParametersAreNonnullByDefault
 package net.java.otr4j.session.smp;
+
+import javax.annotation.ParametersAreNonnullByDefault;

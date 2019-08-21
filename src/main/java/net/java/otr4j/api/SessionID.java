@@ -40,8 +40,7 @@ public final class SessionID {
      * @param remoteUserID the remote user on the other side of the conversation
      * @param protocolName the messaging protocol used for the conversation
      */
-    public SessionID(@Nonnull final String localAccountID, @Nonnull final String remoteUserID,
-            @Nonnull final String protocolName) {
+    public SessionID(final String localAccountID, final String remoteUserID, final String protocolName) {
         this.localAccountID = requireNonNull(localAccountID);
         this.remoteUserID = requireNonNull(remoteUserID);
         this.protocolName = requireNonNull(protocolName);
@@ -96,9 +95,6 @@ public final class SessionID {
     public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
-        }
-        if (obj == null) {
-            return false;
         }
         if (getClass() != obj.getClass()) {
             return false;

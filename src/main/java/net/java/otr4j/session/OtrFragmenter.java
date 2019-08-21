@@ -82,8 +82,7 @@ final class OtrFragmenter {
      *
      * @param host OTR engine host calling upon OTR session
      */
-    OtrFragmenter(@Nonnull final SecureRandom random, @Nonnull final OtrEngineHost host,
-            @Nonnull final SessionID sessionID) {
+    OtrFragmenter(final SecureRandom random, final OtrEngineHost host, final SessionID sessionID) {
         this.random = requireNonNull(random);
         this.host = requireNonNull(host);
         this.sessionID = requireNonNull(sessionID);
@@ -99,7 +98,7 @@ final class OtrFragmenter {
      * @throws ProtocolException In case fragment size is too small to store any content or when the provided policy
      *                           does not support fragmentation, for example if only OTRv1 is allowed.
      */
-    int numberOfFragments(final int version, @Nonnull final String message) throws ProtocolException {
+    int numberOfFragments(final int version, final String message) throws ProtocolException {
         if (version < Version.TWO) {
             return 1;
         }
@@ -118,7 +117,7 @@ final class OtrFragmenter {
      * @return returns number of fragments required.
      * @throws ProtocolException if fragment size is too small.
      */
-    private int computeFragmentNumber(final int version, @Nonnull final String message, final int fragmentSize)
+    private int computeFragmentNumber(final int version, final String message, final int fragmentSize)
             throws ProtocolException {
         final int overhead = computeHeaderSize(version);
         final int payloadSize = fragmentSize - overhead;
@@ -148,7 +147,7 @@ final class OtrFragmenter {
      * @throws ProtocolException if the fragment size is too small or if the maximum number of fragments is exceeded.
      */
     @Nonnull
-    String[] fragment(final int version, final int sender, final int receiver, @Nonnull final String message)
+    String[] fragment(final int version, final int sender, final int receiver, final String message)
             throws ProtocolException {
         final int fragmentSize = this.host.getMaxFragmentSize(this.sessionID);
         return fragment(version, sender, receiver, message, fragmentSize);
@@ -169,7 +168,7 @@ final class OtrFragmenter {
      */
     @Nonnull
     private String[] fragment(final int version, final int sendertag, final int receivertag,
-            @Nonnull final String message, final int fragmentSize) throws ProtocolException {
+            final String message, final int fragmentSize) throws ProtocolException {
         if (fragmentSize >= message.length()) {
             return new String[]{message};
         }
@@ -209,7 +208,7 @@ final class OtrFragmenter {
      */
     @Nonnull
     private String createMessageFragment(final int version, final int id, final int sendertag, final int receivertag,
-            final int count, final int total, @Nonnull final String partialContent) {
+            final int count, final int total, final String partialContent) {
         switch (version) {
         case Version.TWO:
             return createV2MessageFragment(count, total, partialContent);
@@ -233,7 +232,7 @@ final class OtrFragmenter {
      */
     @Nonnull
     private String createV4MessageFragment(final int id, final int sendertag, final int receivertag, final int count,
-            final int total, @Nonnull final String partialContent) {
+            final int total, final String partialContent) {
         return String.format(OTRV4_MESSAGE_FRAGMENT_FORMAT, id, sendertag, receivertag, count + 1, total, partialContent);
     }
 
@@ -247,7 +246,7 @@ final class OtrFragmenter {
      */
     @Nonnull
     private String createV3MessageFragment(final int sendertag, final int receivertag, final int count, final int total,
-            @Nonnull final String partialContent) {
+            final String partialContent) {
         return String.format(OTRV3_MESSAGE_FRAGMENT_FORMAT, sendertag, receivertag, count + 1, total, partialContent);
     }
 
@@ -260,7 +259,7 @@ final class OtrFragmenter {
      * @return returns the full message fragment
      */
     @Nonnull
-    private String createV2MessageFragment(final int count, final int total, @Nonnull final String partialContent) {
+    private String createV2MessageFragment(final int count, final int total, final String partialContent) {
         return String.format(OTRV2_MESSAGE_FRAGMENT_FORMAT, count + 1, total, partialContent);
     }
 

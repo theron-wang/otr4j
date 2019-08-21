@@ -12,7 +12,6 @@ package net.java.otr4j.session;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.session.state.IncorrectStateException;
 
-import javax.annotation.Nonnull;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,7 +43,7 @@ final class SessionExpirationTimerTask extends TimerTask {
         return INSTANCE;
     }
 
-    void register(@Nonnull final SessionImpl session) {
+    void register(final SessionImpl session) {
         this.registry.add(new WeakReference<>(session));
     }
 
@@ -70,7 +69,7 @@ final class SessionExpirationTimerTask extends TimerTask {
     }
 
     // TODO very specific requirements for expiration timer (https://github.com/otrv4/otrv4/blob/master/otrv4.md#session-expiration "The session expiration timer begins at different times for the sender and the receiver of the first data message in a conversation. The sender begins their timer as they send the first data message or as they attach an encrypted message to the Non-Interactive-Auth message. The receiver begins their timer when they receive this first data message.")
-    private void expireTimedOutSessions(final long now, @Nonnull final SessionImpl session) {
+    private void expireTimedOutSessions(final long now, final SessionImpl session) {
         try {
             if (now - session.getLastActivityTimestamp() > SESSION_TIMEOUT_NANOSECONDS) {
                 LOGGER.log(FINE, "Expiring session " + session.getSessionID() + " (" + session.getSenderInstanceTag() + ")");

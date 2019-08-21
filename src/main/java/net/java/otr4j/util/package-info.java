@@ -9,4 +9,7 @@
 /**
  * Utilities for general types.
  */
+@ParametersAreNonnullByDefault
 package net.java.otr4j.util;
+
+import javax.annotation.ParametersAreNonnullByDefault;

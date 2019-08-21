@@ -11,7 +11,6 @@ package net.java.otr4j.util;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
-import javax.annotation.Nonnull;
 import java.math.BigInteger;
 
 /**
@@ -79,7 +78,7 @@ public final class Integers {
      * @param radix Radix for parsing.
      * @return Returns integer value between 0 and 0xffffffff. (That is, all 32 bits are used. So might be negative.)
      */
-    public static int parseUnsignedInt(@Nonnull final String text, final int radix) {
+    public static int parseUnsignedInt(final String text, final int radix) {
         return new BigInteger(text, radix).intValue();
     }
 }

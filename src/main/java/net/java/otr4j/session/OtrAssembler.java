@@ -12,7 +12,6 @@ package net.java.otr4j.session;
 import net.java.otr4j.api.Session;
 import net.java.otr4j.io.Fragment;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
 import java.util.HashMap;
@@ -41,7 +40,7 @@ final class OtrAssembler {
      * @throws ProtocolException In case the fragment is rejected.
      */
     @Nullable
-    String accumulate(@Nonnull final Fragment fragment) throws ProtocolException {
+    String accumulate(final Fragment fragment) throws ProtocolException {
         final int version = fragment.getVersion();
         switch (version) {
         case Session.Version.TWO:
@@ -82,7 +81,7 @@ final class OtrAssembler {
          *                           that breaks with the expectations of the OTR protocol.
          */
         @Nullable
-        private String accumulate(@Nonnull final Fragment fragment) throws ProtocolException {
+        private String accumulate(final Fragment fragment) throws ProtocolException {
             final int id = fragment.getSenderTag().getValue();
             if (fragment.getIndex() == INDEX_FIRST_FRAGMENT) {
                 // first fragment
@@ -147,7 +146,7 @@ final class OtrAssembler {
          * case of complete reassembly.
          */
         @Nullable
-        String accumulate(@Nonnull final Fragment fragment) throws ProtocolException {
+        String accumulate(final Fragment fragment) throws ProtocolException {
             String[] parts = fragments.get(fragment.getIdentifier());
             if (parts == null) {
                 parts = new String[fragment.getTotal()];

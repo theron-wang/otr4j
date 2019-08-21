@@ -16,7 +16,6 @@ import net.java.otr4j.crypto.ed448.ValidationException;
 import org.bouncycastle.util.test.FixedSecureRandom;
 import org.junit.Test;
 
-import javax.annotation.Nonnull;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
@@ -244,7 +243,7 @@ public final class StateExpect1Test {
         state.process(context, message);
     }
 
-    private static Point mustDecodePoint(@Nonnull final byte[] encoded) {
+    private static Point mustDecodePoint(final byte[] encoded) {
         try {
             return decodePoint(encoded);
         } catch (final ValidationException e) {
@@ -257,12 +256,12 @@ public final class StateExpect1Test {
         private String question;
 
         @Override
-        public void setState(@Nonnull final SMPState newState) {
+        public void setState(final SMPState newState) {
             this.state = requireNonNull(newState);
         }
 
         @Override
-        public void requestSecret(@Nonnull final String question) {
+        public void requestSecret(final String question) {
             this.question = requireNonNull(question);
         }
     }

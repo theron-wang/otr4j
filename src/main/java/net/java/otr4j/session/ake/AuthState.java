@@ -51,7 +51,7 @@ public interface AuthState {
      * @return Returns DHCommitMessage with which we can initiate an AKE.
      */
     @Nonnull
-    AbstractEncodedMessage initiate(@Nonnull AuthContext context, int version, @Nonnull InstanceTag receiverTag);
+    AbstractEncodedMessage initiate(AuthContext context, int version, InstanceTag receiverTag);
 
     /**
      * Handle AKE message.
@@ -67,8 +67,7 @@ public interface AuthState {
      * verification and validation exceptions.
      */
     @Nonnull
-    Result handle(@Nonnull AuthContext context, @Nonnull AbstractEncodedMessage message)
-            throws ProtocolException, OtrException;
+    Result handle(AuthContext context, AbstractEncodedMessage message) throws ProtocolException, OtrException;
 
     /**
      * Result of AKE state handling.

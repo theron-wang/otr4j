@@ -62,7 +62,7 @@ public final class OtrOutputStream {
      *
      * @param out the byte-array output stream
      */
-    public OtrOutputStream(@Nonnull final ByteArrayOutputStream out) {
+    public OtrOutputStream(final ByteArrayOutputStream out) {
         this.out = requireNonNull(out);
     }
 
@@ -83,7 +83,7 @@ public final class OtrOutputStream {
      * @return Returns the output stream such that chaining method calls is possible.
      */
     @Nonnull
-    public OtrOutputStream write(@Nonnull final OtrEncodable encodable) {
+    public OtrOutputStream write(final OtrEncodable encodable) {
         encodable.writeTo(this);
         return this;
     }
@@ -101,7 +101,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeMessage(@Nonnull final String message) {
+    public OtrOutputStream writeMessage(final String message) {
         if (message.isEmpty()) {
             return this;
         }
@@ -120,7 +120,7 @@ public final class OtrOutputStream {
      * @return Returns OtrOutputStream instance such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeTLV(@Nonnull final Iterable<TLV> tlvs) {
+    public OtrOutputStream writeTLV(final Iterable<TLV> tlvs) {
         for (final TLV tlv : tlvs) {
             this.writeShort(tlv.type).writeTlvData(tlv.value);
         }
@@ -128,7 +128,7 @@ public final class OtrOutputStream {
     }
 
     @Nonnull
-    private OtrOutputStream writeTlvData(@Nonnull final byte[] b) {
+    private OtrOutputStream writeTlvData(final byte[] b) {
         writeNumber(b.length, TLV_LEN);
         if (b.length > 0) {
             this.out.write(b, 0, b.length);
@@ -143,7 +143,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeBigInt(@Nonnull final BigInteger bi) {
+    public OtrOutputStream writeBigInt(final BigInteger bi) {
         writeData(asUnsignedByteArray(bi));
         return this;
     }
@@ -167,7 +167,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeData(@Nonnull final byte[] b) {
+    public OtrOutputStream writeData(final byte[] b) {
         writeNumber(b.length, DATA_LEN);
         if (b.length > 0) {
             this.out.write(b, 0, b.length);
@@ -223,7 +223,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeInstanceTag(@Nonnull final InstanceTag tag) {
+    public OtrOutputStream writeInstanceTag(final InstanceTag tag) {
         writeInt(tag.getValue());
         return this;
     }
@@ -235,7 +235,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeMac(@Nonnull final byte[] mac) {
+    public OtrOutputStream writeMac(final byte[] mac) {
         requireLengthExactly(TYPE_LEN_MAC, mac);
         assert !allZeroBytes(mac) : "Expected MAC to contain non-zero bytes.";
         this.out.write(mac, 0, mac.length);
@@ -253,7 +253,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeCtr(@Nonnull final byte[] ctr) {
+    public OtrOutputStream writeCtr(final byte[] ctr) {
         requireLengthAtLeast(TYPE_LEN_CTR, ctr);
         assert !allZeroBytes(ctr) : "Expected non-zero bytes in ctr value.";
         this.out.write(ctr, 0, TYPE_LEN_CTR);
@@ -267,7 +267,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeDHPublicKey(@Nonnull final DHPublicKey dhPublicKey) {
+    public OtrOutputStream writeDHPublicKey(final DHPublicKey dhPublicKey) {
         final byte[] data = asUnsignedByteArray(dhPublicKey.getY());
         assert data[0] != 0 : "The encoded DH public key should not contain leading zeroes.";
         writeData(data);
@@ -281,7 +281,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writePublicKey(@Nonnull final DSAPublicKey pubKey) {
+    public OtrOutputStream writePublicKey(final DSAPublicKey pubKey) {
         writeShort(PUBLIC_KEY_TYPE_DSA);
         final DSAParams dsaParams = pubKey.getParams();
         writeBigInt(dsaParams.getP());
@@ -298,7 +298,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeDSASignature(@Nonnull final byte[] signature) {
+    public OtrOutputStream writeDSASignature(final byte[] signature) {
         requireLengthExactly(DSA_SIGNATURE_LENGTH_BYTES, signature);
         assert !allZeroBytes(signature) : "Expected DSA signature to contain non-zero bytes.";
         this.out.write(signature, 0, signature.length);
@@ -312,7 +312,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeNonce(@Nonnull final byte[] nonce) {
+    public OtrOutputStream writeNonce(final byte[] nonce) {
         requireLengthExactly(NONCE_LENGTH_BYTES, nonce);
         assert !allZeroBytes(nonce) : "Expected nonce to contain non-zero bytes.";
         this.out.write(nonce, 0, NONCE_LENGTH_BYTES);
@@ -326,7 +326,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeMacOTR4(@Nonnull final byte[] mac) {
+    public OtrOutputStream writeMacOTR4(final byte[] mac) {
         requireLengthExactly(MAC_OTR4_LENGTH_BYTES, mac);
         assert !allZeroBytes(mac) : "Expected OTRv4 MAC to contain non-zero bytes.";
         this.out.write(mac, 0, MAC_OTR4_LENGTH_BYTES);
@@ -340,7 +340,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writePoint(@Nonnull final Point p) {
+    public OtrOutputStream writePoint(final Point p) {
         final byte[] data = p.encode();
         this.out.write(data, 0, data.length);
         return this;
@@ -353,7 +353,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeScalar(@Nonnull final Scalar s) {
+    public OtrOutputStream writeScalar(final Scalar s) {
         final byte[] value = s.encode();
         this.out.write(value, 0, value.length);
         return this;
@@ -366,7 +366,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeEdDSASignature(@Nonnull final byte[] signature) {
+    public OtrOutputStream writeEdDSASignature(final byte[] signature) {
         requireLengthExactly(EDDSA_SIGNATURE_LENGTH_BYTES, signature);
         assert !allZeroBytes(signature) : "Expected EdDSA signature to contain non-zero bytes.";
         this.out.write(signature, 0, EDDSA_SIGNATURE_LENGTH_BYTES);
@@ -380,7 +380,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeFingerprint(@Nonnull final byte[] fingerprint) {
+    public OtrOutputStream writeFingerprint(final byte[] fingerprint) {
         requireLengthExactly(FINGERPRINT_LENGTH_BYTES, fingerprint);
         assert !allZeroBytes(fingerprint) : "Expected OTRv4 fingerprint to contain non-zero bytes.";
         this.out.write(fingerprint, 0, FINGERPRINT_LENGTH_BYTES);
@@ -394,7 +394,7 @@ public final class OtrOutputStream {
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
     @Nonnull
-    public OtrOutputStream writeSSID(@Nonnull final byte[] ssid) {
+    public OtrOutputStream writeSSID(final byte[] ssid) {
         requireLengthExactly(SSID_LENGTH_BYTES, ssid);
         assert !allZeroBytes(ssid) : "Expected OTRv4 ssid to contain non-zero bytes.";
         this.out.write(ssid, 0, SSID_LENGTH_BYTES);

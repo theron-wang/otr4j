@@ -47,8 +47,7 @@ public final class SignatureX implements OtrEncodable {
      * @param signature            the corresponding signature
      */
     @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
-    public SignatureX(@Nonnull final DSAPublicKey ourLongTermPublicKey, final int ourKeyID,
-            @Nonnull final byte[] signature) {
+    public SignatureX(final DSAPublicKey ourLongTermPublicKey, final int ourKeyID, final byte[] signature) {
         this.longTermPublicKey = requireNonNull(ourLongTermPublicKey);
         this.dhKeyID = requireNotEquals(0, ourKeyID);
         this.signature = requireLengthExactly(DSA_SIGNATURE_LENGTH_BYTES, signature);
@@ -87,9 +86,6 @@ public final class SignatureX implements OtrEncodable {
 
     @Override
     public boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
         if (getClass() != obj.getClass()) {
             return false;
         }
@@ -109,12 +105,12 @@ public final class SignatureX implements OtrEncodable {
      * @param expectedSignature the expected signature to verify against the SignatureX signature
      * @throws OtrCryptoException In case of failures of a cryptographic nature.
      */
-    public void verify(@Nonnull final byte[] expectedSignature) throws OtrCryptoException {
+    public void verify(final byte[] expectedSignature) throws OtrCryptoException {
         verifySignature(expectedSignature, this.longTermPublicKey, this.signature);
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream out) {
+    public void writeTo(final OtrOutputStream out) {
         out.writePublicKey(this.longTermPublicKey);
         out.writeInt(this.dhKeyID);
         out.writeDSASignature(this.signature);

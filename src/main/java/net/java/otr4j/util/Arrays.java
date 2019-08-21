@@ -11,8 +11,6 @@ package net.java.otr4j.util;
 
 import com.google.errorprone.annotations.CheckReturnValue;
 
-import javax.annotation.Nonnull;
-
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -31,7 +29,7 @@ public final class Arrays {
      * @return Returns true iff some entries are missing (contain null), false otherwise.
      */
     @CheckReturnValue
-    public static boolean containsEmpty(@Nonnull final Object[] data) {
+    public static boolean containsEmpty(final Object[] data) {
         for (final Object entry : data) {
             if (entry == null) {
                 return true;
@@ -53,7 +51,7 @@ public final class Arrays {
      * @return Returns true iff e is found, or false otherwise.
      */
     @CheckReturnValue
-    public static <E> boolean contains(@Nonnull final E e, @Nonnull final E[] data) {
+    public static <E> boolean contains(final E e, final E[] data) {
         requireNonNull(e);
         for (final E i : data) {
             if (e.equals(i)) {
@@ -73,7 +71,7 @@ public final class Arrays {
      * @return Returns true iff e is found, or false otherwise.
      */
     @CheckReturnValue
-    public static boolean contains(final int e, @Nonnull final int[] data) {
+    public static boolean contains(final int e, final int[] data) {
         for (final int v : data) {
             if (e == v) {
                 return true;

@@ -65,8 +65,8 @@ final class SessionKey implements AutoCloseable {
      */
     private boolean used;
 
-    SessionKey(final int localKeyID, @Nonnull final DHKeyPairOTR3 localKeyPair, final int remoteKeyID,
-            @Nonnull final DHPublicKey remotePublicKey) throws OtrCryptoException {
+    SessionKey(final int localKeyID, final DHKeyPairOTR3 localKeyPair, final int remoteKeyID,
+            final DHPublicKey remotePublicKey) throws OtrCryptoException {
         this.localKeyID = localKeyID;
         this.remoteKeyID = remoteKeyID;
         this.localKeyPair = requireNonNull(localKeyPair);
@@ -115,9 +115,6 @@ final class SessionKey implements AutoCloseable {
     public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
-        }
-        if (obj == null) {
-            return false;
         }
         if (getClass() != obj.getClass()) {
             return false;
@@ -228,7 +225,7 @@ final class SessionKey implements AutoCloseable {
      *                                                     failure.
      */
     @Nonnull
-    byte[] verifyReceivingCtr(@Nonnull final byte[] receivingCtr) throws ReceivingCounterValidationFailed {
+    byte[] verifyReceivingCtr(final byte[] receivingCtr) throws ReceivingCounterValidationFailed {
         if (receivingCtr.length != this.receivingCtr.length) {
             throw new ReceivingCounterValidationFailed("counter value has unexpected length");
         }
@@ -276,7 +273,7 @@ final class SessionKey implements AutoCloseable {
 
         private static final long serialVersionUID = 2904530293964813552L;
 
-        private ReceivingCounterValidationFailed(@Nonnull final String reason) {
+        private ReceivingCounterValidationFailed(final String reason) {
             super("Receiving counter is illegal: " + reason);
         }
     }

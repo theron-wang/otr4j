@@ -31,7 +31,7 @@ public final class PlainTextMessage extends QueryMessage {
      * @param versions  the protocol versions
      * @param cleanText the plain text message content
      */
-    public PlainTextMessage(@Nonnull final Set<Integer> versions, @Nonnull final String cleanText) {
+    public PlainTextMessage(final Set<Integer> versions, final String cleanText) {
         super(versions);
         this.cleanText = requireNonNull(cleanText);
     }

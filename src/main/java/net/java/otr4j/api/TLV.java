@@ -9,8 +9,6 @@
 
 package net.java.otr4j.api;
 
-import javax.annotation.Nonnull;
-
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -48,7 +46,7 @@ public final class TLV {
      * @param type  the type
      * @param value the value body (optional)
      */
-    public TLV(final int type, @Nonnull final byte[] value) {
+    public TLV(final int type, final byte[] value) {
         this.type = type;
         this.value = requireNonNull(value);
     }

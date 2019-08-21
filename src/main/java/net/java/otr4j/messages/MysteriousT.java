@@ -15,7 +15,6 @@ import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrOutputStream;
 
-import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
 import java.util.Arrays;
 
@@ -83,10 +82,9 @@ public final class MysteriousT implements OtrEncodable {
      * @param encryptedMessage    the encrypted message content
      */
     @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    public MysteriousT(final int protocolVersion, @Nonnull final InstanceTag senderInstanceTag,
-            @Nonnull final InstanceTag receiverInstanceTag, final byte flags, final int senderKeyID,
-            final int recipientKeyID, @Nonnull final DHPublicKey nextDH, @Nonnull final byte[] ctr,
-            @Nonnull final byte[] encryptedMessage) {
+    public MysteriousT(final int protocolVersion, final InstanceTag senderInstanceTag,
+            final InstanceTag receiverInstanceTag, final byte flags, final int senderKeyID, final int recipientKeyID,
+            final DHPublicKey nextDH, final byte[] ctr, final byte[] encryptedMessage) {
         if (protocolVersion < Session.Version.TWO || protocolVersion > Session.Version.THREE) {
             throw new IllegalArgumentException("Illegal protocol version specified.");
         }
@@ -125,9 +123,6 @@ public final class MysteriousT implements OtrEncodable {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
-            return false;
-        }
         if (getClass() != obj.getClass()) {
             return false;
         }
@@ -163,7 +158,7 @@ public final class MysteriousT implements OtrEncodable {
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream out) {
+    public void writeTo(final OtrOutputStream out) {
         out.writeShort(this.protocolVersion);
         out.writeByte(this.messageType);
         if (this.protocolVersion == Version.THREE) {

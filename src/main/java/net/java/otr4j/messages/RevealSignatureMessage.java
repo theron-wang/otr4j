@@ -13,7 +13,6 @@ import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.io.OtrOutputStream;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
@@ -53,9 +52,8 @@ public final class RevealSignatureMessage extends AbstractEncodedMessage {
      * @param senderInstance   the sender instance tag
      * @param receiverInstance the receiver instance tag
      */
-    public RevealSignatureMessage(final int protocolVersion, @Nonnull final byte[] xEncrypted,
-            @Nonnull final byte[] xEncryptedMAC, @Nonnull final byte[] revealedKey,
-            @Nonnull final InstanceTag senderInstance, @Nonnull final InstanceTag receiverInstance) {
+    public RevealSignatureMessage(final int protocolVersion, final byte[] xEncrypted, final byte[] xEncryptedMAC,
+            final byte[] revealedKey, final InstanceTag senderInstance, final InstanceTag receiverInstance) {
         super(requireInRange(Version.TWO, Version.THREE, protocolVersion), senderInstance, receiverInstance);
         this.xEncrypted = requireNonNull(xEncrypted);
         this.xEncryptedMAC = requireNonNull(xEncryptedMAC);
@@ -63,7 +61,7 @@ public final class RevealSignatureMessage extends AbstractEncodedMessage {
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream writer) {
+    public void writeTo(final OtrOutputStream writer) {
         super.writeTo(writer);
         writer.writeData(this.revealedKey);
         writer.writeData(this.xEncrypted);
@@ -81,7 +79,7 @@ public final class RevealSignatureMessage extends AbstractEncodedMessage {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (getClass() != o.getClass()) {
             return false;
         }
         if (!super.equals(o)) {

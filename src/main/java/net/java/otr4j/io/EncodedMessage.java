@@ -11,8 +11,6 @@ package net.java.otr4j.io;
 
 import net.java.otr4j.api.InstanceTag;
 
-import javax.annotation.Nonnull;
-
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -54,8 +52,8 @@ public final class EncodedMessage implements Message {
      * @param receiverTag the receiver instance tag
      * @param payload     the OTR-encoded payload
      */
-    public EncodedMessage(final int version, final int type, @Nonnull final InstanceTag senderTag,
-            @Nonnull final InstanceTag receiverTag, @Nonnull final OtrInputStream payload) {
+    public EncodedMessage(final int version, final int type, final InstanceTag senderTag, final InstanceTag receiverTag,
+            final OtrInputStream payload) {
         this.version = version;
         this.type = type;
         this.senderTag = requireNonNull(senderTag);

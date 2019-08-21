@@ -85,7 +85,7 @@ public final class MessageProcessor {
      * @throws ProtocolException          In case of protocol violations.
      */
     @Nonnull
-    public static Message parseMessage(@Nonnull final String text) throws ProtocolException {
+    public static Message parseMessage(final String text) throws ProtocolException {
 
         if (text.startsWith(HEAD + " " + ERROR_PREFIX)) {
             // Error tag found.
@@ -185,7 +185,7 @@ public final class MessageProcessor {
      * @return Returns the string-representation of the provided message.
      */
     @Nonnull
-    public static String writeMessage(@Nonnull final Message m) {
+    public static String writeMessage(final Message m) {
         final StringWriter writer = new StringWriter();
         if (m instanceof ErrorMessage) {
             writer.write(HEAD);
@@ -222,7 +222,7 @@ public final class MessageProcessor {
     }
 
     @Nonnull
-    private static String generateWhitespaceTag(@Nonnull final Iterable<Integer> versions) {
+    private static String generateWhitespaceTag(final Iterable<Integer> versions) {
         final StringBuilder builder = new StringBuilder(40);
         for (final int version : versions) {
             if (version == Version.TWO) {
@@ -239,7 +239,7 @@ public final class MessageProcessor {
     }
 
     @Nonnull
-    private static String generateQueryTag(@Nonnull final Iterable<Integer> versions) {
+    private static String generateQueryTag(final Iterable<Integer> versions) {
         final String versionsString = encodeVersionString(versions);
         return versionsString.length() == 0 ? "" : HEAD + HEAD_QUERY_V + versionsString + HEAD_QUERY_Q;
     }
@@ -251,7 +251,7 @@ public final class MessageProcessor {
      * @return Returns ASCII string representation.
      */
     @Nonnull
-    public static String encodeVersionString(@Nonnull final Iterable<Integer> versions) {
+    public static String encodeVersionString(final Iterable<Integer> versions) {
         final StringBuilder versionsString = new StringBuilder();
         for (final int version : versions) {
             if (version < 0 || version > 9) {
@@ -269,7 +269,7 @@ public final class MessageProcessor {
      * @return Returns set containing version ints.
      */
     @Nonnull
-    public static Set<Integer> parseVersionString(@Nonnull final String versionString) {
+    public static Set<Integer> parseVersionString(final String versionString) {
         final TreeSet<Integer> versions = new TreeSet<>();
         for (final char c : versionString.toCharArray()) {
             final int idx = NUMBERINDEX.indexOf(c);
@@ -287,7 +287,7 @@ public final class MessageProcessor {
      * @return Returns true if content is OTR encoded, or false otherwise.
      */
     @CheckReturnValue
-    public static boolean otrEncoded(@Nonnull final String content) {
+    public static boolean otrEncoded(final String content) {
         return content.startsWith(HEAD + HEAD_ENCODED) && content.endsWith(".");
     }
 
@@ -298,7 +298,7 @@ public final class MessageProcessor {
      * @return Returns true if content is OTR fragment, or false otherwise.
      */
     @CheckReturnValue
-    public static boolean otrFragmented(@Nonnull final String content) {
+    public static boolean otrFragmented(final String content) {
         return (content.startsWith(HEAD + HEAD_FRAGMENTED_V2) || content.startsWith(HEAD + HEAD_FRAGMENTED_V3))
             && content.endsWith(String.valueOf(TAIL_FRAGMENTED));
     }

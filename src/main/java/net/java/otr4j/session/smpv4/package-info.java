@@ -9,5 +9,8 @@
 /**
  * Socialist Millionaires Protocol for OTR version 4.
  */
+@ParametersAreNonnullByDefault
 package net.java.otr4j.session.smpv4;
 // TODO Support querying the user whether to abort in-progress SMP before initiating new SMP.
+
+import javax.annotation.ParametersAreNonnullByDefault;

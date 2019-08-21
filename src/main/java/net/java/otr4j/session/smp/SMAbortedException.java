@@ -9,8 +9,6 @@
 
 package net.java.otr4j.session.smp;
 
-import javax.annotation.Nonnull;
-
 /**
  * SM Aborted exception indicates that the current SMP exchange is aborted
  * and the state reset to default.
@@ -28,7 +26,7 @@ final class SMAbortedException extends SMException {
      * triggering abort.
      * @param message Message
      */
-    SMAbortedException(final boolean inProgress, @Nonnull final String message) {
+    SMAbortedException(final boolean inProgress, final String message) {
         super(message);
         this.inProgress = inProgress;
     }

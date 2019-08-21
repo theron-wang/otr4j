@@ -35,9 +35,8 @@ public final class SecurityParameters {
     private final DHPublicKey remoteDHPublicKey;
     private final SharedSecret s;
 
-    SecurityParameters(final int version, @Nonnull final DHKeyPairOTR3 localDHKeyPair,
-            @Nonnull final DSAPublicKey remoteLongTermPublicKey, @Nonnull final DHPublicKey remoteDHPublicKey,
-            @Nonnull final SharedSecret s) {
+    SecurityParameters(final int version, final DHKeyPairOTR3 localDHKeyPair, final DSAPublicKey remoteLongTermPublicKey,
+            final DHPublicKey remoteDHPublicKey, final SharedSecret s) {
         if (version < Version.TWO || version > Version.THREE) {
             throw new IllegalArgumentException("Illegal version value specified.");
         }

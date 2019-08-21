@@ -27,7 +27,7 @@ public final class Sessions {
      * @return Returns id for session.
      */
     @Nonnull
-    public static String generateIdentifier(@Nonnull final Session session) {
+    public static String generateIdentifier(final Session session) {
         return session.getSessionID() + ", " + session.getReceiverInstanceTag().getValue();
     }
 }

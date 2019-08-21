@@ -35,7 +35,7 @@ public final class Iterables {
      * @throws IllegalArgumentException In case instance cannot be found.
      */
     @Nonnull
-    public static <T, S extends T> S findByType(@Nonnull final Iterable<T> iterable, @Nonnull final Class<S> fieldType) {
+    public static <T, S extends T> S findByType(final Iterable<T> iterable, final Class<S> fieldType) {
         for (final T field : iterable) {
             if (fieldType.isInstance(field)) {
                 return fieldType.cast(field);
@@ -55,7 +55,7 @@ public final class Iterables {
      * @return Returns found element or default. (Only returns null if default value is null.)
      */
     @Nullable
-    public static <T, S extends T> S findByType(@Nonnull final Iterable<T> iterable, @Nonnull final Class<S> fieldType,
+    public static <T, S extends T> S findByType(final Iterable<T> iterable, final Class<S> fieldType,
             @Nullable final S defaultValue) {
         for (final T field : iterable) {
             if (fieldType.isInstance(field)) {

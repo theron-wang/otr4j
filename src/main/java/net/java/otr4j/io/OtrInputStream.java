@@ -65,7 +65,7 @@ public final class OtrInputStream {
      *
      * @param in the source input stream
      */
-    public OtrInputStream(@Nonnull final byte[] in) {
+    public OtrInputStream(final byte[] in) {
         this.in = new ByteArrayInputStream(in);
     }
 
@@ -260,7 +260,7 @@ public final class OtrInputStream {
      * @throws ProtocolException In case of unexpected content in the message stream.
      */
     @Nonnull
-    public byte[] readSignature(@Nonnull final DSAPublicKey pubKey) throws ProtocolException {
+    public byte[] readSignature(final DSAPublicKey pubKey) throws ProtocolException {
         final DSAParams dsaParams = pubKey.getParams();
         return checkedRead(dsaParams.getQ().bitLength() / 4);
     }

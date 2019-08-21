@@ -42,8 +42,8 @@ public final class AuthIMessage extends AbstractEncodedMessage {
      * @param receiverInstance the receiver instance tag
      * @param sigma             the ring signature
      */
-    public AuthIMessage(final int protocolVersion, @Nonnull final InstanceTag senderInstance,
-            @Nonnull final InstanceTag receiverInstance, @Nonnull final Sigma sigma) {
+    public AuthIMessage(final int protocolVersion, final InstanceTag senderInstance, final InstanceTag receiverInstance,
+            final Sigma sigma) {
         super(requireInRange(Version.FOUR, Version.FOUR, protocolVersion), senderInstance, receiverInstance);
         this.sigma = requireNonNull(sigma);
     }
@@ -54,7 +54,7 @@ public final class AuthIMessage extends AbstractEncodedMessage {
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream writer) {
+    public void writeTo(final OtrOutputStream writer) {
         super.writeTo(writer);
         writer.write(this.sigma);
     }

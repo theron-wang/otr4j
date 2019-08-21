@@ -13,7 +13,6 @@ import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.io.OtrOutputStream;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
@@ -51,9 +50,8 @@ public final class DHCommitMessage extends AbstractEncodedMessage {
      * @param senderInstance       the sender instance tag
      * @param receiverInstance     the receiver instance tag
      */
-    public DHCommitMessage(final int protocolVersion, @Nonnull final byte[] dhPublicKeyHash,
-            @Nonnull final byte[] dhPublicKeyEncrypted, @Nonnull final InstanceTag senderInstance,
-            @Nonnull final InstanceTag receiverInstance) {
+    public DHCommitMessage(final int protocolVersion, final byte[] dhPublicKeyHash, final byte[] dhPublicKeyEncrypted,
+            final InstanceTag senderInstance, final InstanceTag receiverInstance) {
         super(requireInRange(Version.TWO, Version.THREE, protocolVersion), senderInstance, receiverInstance);
         this.dhPublicKeyEncrypted = requireNonNull(dhPublicKeyEncrypted);
         this.dhPublicKeyHash = requireNonNull(dhPublicKeyHash);
@@ -86,7 +84,7 @@ public final class DHCommitMessage extends AbstractEncodedMessage {
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream writer) {
+    public void writeTo(final OtrOutputStream writer) {
         super.writeTo(writer);
         writer.writeData(this.dhPublicKeyEncrypted);
         writer.writeData(this.dhPublicKeyHash);

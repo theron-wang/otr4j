@@ -90,10 +90,9 @@ final class StateAwaitingAuthR extends AbstractCommonState {
 
     private final DHKeyPair ourFirstDHKeyPair;
 
-    StateAwaitingAuthR(@Nonnull final AuthState authState, @Nonnull final ECDHKeyPair ecdhKeyPair,
-            @Nonnull final DHKeyPair dhKeyPair, @Nonnull final ECDHKeyPair ourFirstECDHKeyPair,
-            @Nonnull final DHKeyPair ourFirstDHKeyPair, @Nonnull final ClientProfilePayload ourProfilePayload,
-            @Nonnull final IdentityMessage previousMessage) {
+    StateAwaitingAuthR(final AuthState authState, final ECDHKeyPair ecdhKeyPair, final DHKeyPair dhKeyPair,
+            final ECDHKeyPair ourFirstECDHKeyPair, final DHKeyPair ourFirstDHKeyPair,
+            final ClientProfilePayload ourProfilePayload, final IdentityMessage previousMessage) {
         super(authState);
         this.ecdhKeyPair = requireNonNull(ecdhKeyPair);
         this.dhKeyPair = requireNonNull(dhKeyPair);
@@ -133,7 +132,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
     }
 
     @Override
-    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) throws OtrException {
+    void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException {
         if (message instanceof IdentityMessage) {
             try {
                 handleIdentityMessage(context, (IdentityMessage) message);
@@ -156,8 +155,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
     }
 
     @Override
-    void handleIdentityMessage(@Nonnull final Context context, @Nonnull final IdentityMessage message)
-            throws OtrException {
+    void handleIdentityMessage(final Context context, final IdentityMessage message) throws OtrException {
         final ClientProfile theirProfile = message.clientProfile.validate();
         IdentityMessages.validate(message, theirProfile);
         if (this.previousMessage.b.compareTo(message.b) > 0) {
@@ -173,8 +171,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         super.handleIdentityMessage(context, message);
     }
 
-    private void handleAuthRMessage(@Nonnull final Context context, @Nonnull final AuthRMessage message)
-            throws OtrException {
+    private void handleAuthRMessage(final Context context, final AuthRMessage message) throws OtrException {
         final SessionID sessionID = context.getSessionID();
         final EdDSAKeyPair ourLongTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
         // Validate received Auth-R message.
@@ -214,7 +211,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
 
     @Nullable
     @Override
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage message) throws OtrException {
+    String handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv3 data message in state WAITING_AUTH_I. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return null;
@@ -222,14 +219,14 @@ final class StateAwaitingAuthR extends AbstractCommonState {
 
     @Nullable
     @Override
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage4 message) throws OtrException {
+    String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv4 data message in state WAITING_AUTH_I. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return null;
     }
 
     @Override
-    public void end(@Nonnull final Context context) {
+    public void end(final Context context) {
         this.dhKeyPair.close();
         this.ecdhKeyPair.close();
         this.ourFirstDHKeyPair.close();

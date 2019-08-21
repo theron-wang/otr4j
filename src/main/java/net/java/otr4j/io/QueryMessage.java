@@ -30,7 +30,7 @@ public class QueryMessage implements Message {
      *
      * @param versions the set of versions
      */
-    public QueryMessage(@Nonnull final Set<Integer> versions) {
+    public QueryMessage(final Set<Integer> versions) {
         this.versions = requireNonNull(versions);
     }
 
@@ -55,9 +55,6 @@ public class QueryMessage implements Message {
     public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
-        }
-        if (obj == null) {
-            return false;
         }
         if (!(obj instanceof QueryMessage)) {
             return false;

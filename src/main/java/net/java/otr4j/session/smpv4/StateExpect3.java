@@ -47,8 +47,8 @@ final class StateExpect3 implements SMPState {
     private final Point g2;
     private final Point g3;
 
-    StateExpect3(@Nonnull final SecureRandom random, @Nonnull final Point pb, @Nonnull final Point qb,
-            @Nonnull final Scalar b3, @Nonnull final Point g3a, @Nonnull final Point g2, @Nonnull final Point g3) {
+    StateExpect3(final SecureRandom random, final Point pb, final Point qb, final Scalar b3, final Point g3a,
+            final Point g2, final Point g3) {
         this.random = requireNonNull(random);
         this.pb = requireNonNull(pb);
         this.qb = requireNonNull(qb);
@@ -66,16 +66,15 @@ final class StateExpect3 implements SMPState {
 
     @Nonnull
     @Override
-    public SMPMessage1 initiate(@Nonnull final SMPContext context, @Nonnull final String question,
-            @Nonnull final Scalar secret) throws SMPAbortException {
+    public SMPMessage1 initiate(final SMPContext context, final String question, final Scalar secret)
+            throws SMPAbortException {
         context.setState(new StateExpect1(this.random, UNDECIDED));
         throw new SMPAbortException("Not in initial state. Aborting running SMP negotiation.");
     }
 
     @Nullable
     @Override
-    public SMPMessage2 respondWithSecret(@Nonnull final SMPContext context, @Nonnull final String question,
-            @Nonnull final Scalar secret) {
+    public SMPMessage2 respondWithSecret(final SMPContext context, final String question, final Scalar secret) {
         // Given that this is an action by the local user, we don't see this as a violation of the protocol. Therefore,
         // we don't abort.
         LOGGER.log(Level.WARNING, "Requested to respond with secret answer, but no request is pending. Ignoring request.");
@@ -84,8 +83,7 @@ final class StateExpect3 implements SMPState {
 
     @Nonnull
     @Override
-    public SMPMessage4 process(@Nonnull final SMPContext context, @Nonnull final SMPMessage message)
-            throws SMPAbortException {
+    public SMPMessage4 process(final SMPContext context, final SMPMessage message) throws SMPAbortException {
         requireNonNull(context);
         requireNonNull(message);
         if (!(message instanceof SMPMessage3)) {

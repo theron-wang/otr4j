@@ -50,7 +50,7 @@ final class StateAwaitingDHKey extends AbstractAuthState {
     private final byte[] r;
 
     @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    StateAwaitingDHKey(final int version, @Nonnull final DHKeyPairOTR3 keypair, @Nonnull final byte[] r) {
+    StateAwaitingDHKey(final int version, final DHKeyPairOTR3 keypair, final byte[] r) {
         super();
         if (version < Version.TWO || version > Version.THREE) {
             throw new IllegalArgumentException("unsupported version specified");
@@ -65,7 +65,7 @@ final class StateAwaitingDHKey extends AbstractAuthState {
 
     @Nonnull
     @Override
-    public Result handle(@Nonnull final AuthContext context, @Nonnull final AbstractEncodedMessage message) throws OtrCryptoException {
+    public Result handle(final AuthContext context, final AbstractEncodedMessage message) throws OtrCryptoException {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         }
@@ -86,7 +86,7 @@ final class StateAwaitingDHKey extends AbstractAuthState {
     }
 
     @Nonnull
-    private Result handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) {
+    private Result handleDHCommitMessage(final AuthContext context, final DHCommitMessage message) {
         // OTR: "This is the trickiest transition in the whole protocol. It indicates that you have already sent a D-H Commit message
         // to your correspondent, but that he either didn't receive it, or just didn't receive it yet, and has sent you one as well.
         // The symmetry will be broken by comparing the hashed gx you sent in your D-H Commit Message with the one you received,
@@ -118,8 +118,7 @@ final class StateAwaitingDHKey extends AbstractAuthState {
     }
 
     @Nonnull
-    private Result handleDHKeyMessage(@Nonnull final AuthContext context, @Nonnull final DHKeyMessage message)
-            throws OtrCryptoException {
+    private Result handleDHKeyMessage(final AuthContext context, final DHKeyMessage message) throws OtrCryptoException {
         // OTR: "Reply with a Reveal Signature Message and transition authstate to AUTHSTATE_AWAITING_SIG."
         // OTR: "Verifies that Alice's gy is a legal value (2 <= gy <= modulus-2)"
         verifyDHPublicKey(message.dhPublicKey);

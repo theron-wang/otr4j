@@ -12,7 +12,6 @@ package net.java.otr4j.session;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.session.state.IncorrectStateException;
 
-import javax.annotation.Nonnull;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,7 +43,7 @@ final class HeartBeatTimerTask extends TimerTask {
         return INSTANCE;
     }
 
-    void register(@Nonnull final SessionImpl session) {
+    void register(final SessionImpl session) {
         this.registry.add(new WeakReference<>(session));
     }
 
@@ -69,7 +68,7 @@ final class HeartBeatTimerTask extends TimerTask {
         }
     }
 
-    private void sendHeartbeatOnIdleness(final long now, @Nonnull final SessionImpl session) {
+    private void sendHeartbeatOnIdleness(final long now, final SessionImpl session) {
         try {
             if (now - session.getLastMessageSentTimestamp() > IDLENESS_THRESHOLD_NANOSECONDS) {
                 LOGGER.log(FINE, "Sending heartbeat for session " + session.getSessionID() + " (" + session.getSenderInstanceTag() + ")");

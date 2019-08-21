@@ -32,7 +32,7 @@ final class SMPMessages {
     }
 
     @Nonnull
-    static SMPMessage parse(@Nonnull final TLV tlv) throws ProtocolException, OtrCryptoException {
+    static SMPMessage parse(final TLV tlv) throws ProtocolException, OtrCryptoException {
         final OtrInputStream in = new OtrInputStream(tlv.value);
         switch (tlv.type) {
         case SMP1: {

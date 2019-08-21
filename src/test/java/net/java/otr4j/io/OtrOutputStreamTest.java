@@ -16,7 +16,6 @@ import net.java.otr4j.crypto.ed448.Scalars;
 import net.java.otr4j.crypto.ed448.ValidationException;
 import org.junit.Test;
 
-import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
@@ -137,7 +136,7 @@ public class OtrOutputStreamTest {
         final byte[] expected = concatenate(new byte[] {0, 0, 0, 0xc}, data);
         final byte[] result = new OtrOutputStream().write(new OtrEncodable() {
             @Override
-            public void writeTo(@Nonnull final OtrOutputStream out) {
+            public void writeTo(final OtrOutputStream out) {
                 out.writeData(data);
             }
         }).toByteArray();

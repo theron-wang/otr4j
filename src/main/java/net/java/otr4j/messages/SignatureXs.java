@@ -39,7 +39,7 @@ public final class SignatureXs {
      */
     @SuppressWarnings("PMD.PrematureDeclaration")
     @Nonnull
-    public static SignatureX readSignatureX(@Nonnull final byte[] bytes) throws ProtocolException, OtrCryptoException,
+    public static SignatureX readSignatureX(final byte[] bytes) throws ProtocolException, OtrCryptoException,
             UnsupportedTypeException {
         final OtrInputStream in = new OtrInputStream(bytes);
         final DSAPublicKey pubKey = in.readPublicKey();

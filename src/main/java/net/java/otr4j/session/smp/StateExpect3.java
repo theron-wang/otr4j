@@ -32,7 +32,7 @@ final class StateExpect3 extends AbstractSMPState {
     private final BigInteger p;
     private final BigInteger q;
 
-    StateExpect3(@Nonnull final StateExpect1 previous, @Nonnull final BigInteger p, @Nonnull final BigInteger q) {
+    StateExpect3(final StateExpect1 previous, final BigInteger p, final BigInteger q) {
         super(previous.secureRandom());
         this.x3 = requireNonNull(previous.x3);
         this.g2 = requireNonNull(previous.g2);
@@ -55,7 +55,7 @@ final class StateExpect3 extends AbstractSMPState {
 
     @Override
     @Nonnull
-    byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SMException {
+    byte[] smpMessage3(final SM bstate, final byte[] input) throws SMException {
         /* Read from input to find the MPIs */
         final BigInteger[] msg3 = SM.deserialize(input);
 

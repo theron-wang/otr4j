@@ -48,8 +48,7 @@ abstract class AbstractAuthState implements AuthState {
 
     @Nonnull
     @Override
-    public AbstractEncodedMessage initiate(@Nonnull final AuthContext context, final int version,
-            @Nonnull final InstanceTag receiverTag) {
+    public AbstractEncodedMessage initiate(final AuthContext context, final int version, final InstanceTag receiverTag) {
         if (version == Version.TWO || version == Version.THREE) {
             return initiateVersion3(context, version, receiverTag);
         }
@@ -60,7 +59,7 @@ abstract class AbstractAuthState implements AuthState {
     }
 
     @Nonnull
-    private DHCommitMessage initiateVersion3(@Nonnull final AuthContext context, final int version, @Nonnull final InstanceTag receiverTag) {
+    private DHCommitMessage initiateVersion3(final AuthContext context, final int version, final InstanceTag receiverTag) {
         // OTR: "Choose a random value x (at least 320 bits)"
         final DHKeyPairOTR3 keypair = generateDHKeyPair(context.secureRandom());
         LOGGER.finest("Generated local D-H key pair.");

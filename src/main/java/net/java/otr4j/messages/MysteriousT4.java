@@ -73,13 +73,12 @@ public final class MysteriousT4 {
      * @return Returns the byte-array representing the mysterious 'T' value based on provided arguments.
      */
     @Nonnull
-    public static byte[] encode(@Nonnull final Purpose purpose, @Nonnull final ClientProfilePayload profileAlice,
-            @Nonnull final ClientProfilePayload profileBob, @Nonnull final Point x, @Nonnull final Point y,
-            @Nonnull final BigInteger a, @Nonnull final BigInteger b, @Nonnull final Point senderFirstECDHPublicKey,
-            @Nonnull final BigInteger senderFirstDHPublicKey, @Nonnull final Point receiverFirstECDHPublicKey,
-            @Nonnull final BigInteger receiverFirstDHPublicKey, @Nonnull  final InstanceTag senderTag,
-            @Nonnull final InstanceTag receiverTag, @Nonnull final String senderContactID,
-            @Nonnull final String receiverContactID) {
+    public static byte[] encode(final Purpose purpose, final ClientProfilePayload profileAlice,
+            final ClientProfilePayload profileBob, final Point x, final Point y, final BigInteger a, final BigInteger b,
+            final Point senderFirstECDHPublicKey, final BigInteger senderFirstDHPublicKey,
+            final Point receiverFirstECDHPublicKey, final BigInteger receiverFirstDHPublicKey,
+            final InstanceTag senderTag, final InstanceTag receiverTag, final String senderContactID,
+            final String receiverContactID) {
         final KDFUsage bobsProfileUsage;
         final KDFUsage alicesProfileUsage;
         final KDFUsage phiUsage;
@@ -135,10 +134,10 @@ public final class MysteriousT4 {
      * @return Returns generate Phi value.
      */
     @Nonnull
-    static byte[] generatePhi(@Nonnull final InstanceTag senderTag, @Nonnull final InstanceTag receiverTag,
-            @Nonnull final Point senderFirstECDHPublicKey, @Nonnull final BigInteger senderFirstDHPublicKey,
-            @Nonnull final Point receiverFirstECDHPublicKey, @Nonnull final BigInteger receiverFirstDHPublicKey,
-            @Nonnull final String senderContactID, @Nonnull final String receiverContactID) {
+    static byte[] generatePhi(final InstanceTag senderTag, final InstanceTag receiverTag,
+            final Point senderFirstECDHPublicKey, final BigInteger senderFirstDHPublicKey,
+            final Point receiverFirstECDHPublicKey, final BigInteger receiverFirstDHPublicKey,
+            final String senderContactID, final String receiverContactID) {
         final byte[] senderIDBytes = senderContactID.getBytes(UTF_8);
         final byte[] receiverIDBytes = receiverContactID.getBytes(UTF_8);
         return new OtrOutputStream().writeInstanceTag(senderTag).writeInstanceTag(receiverTag)

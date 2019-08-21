@@ -9,10 +9,9 @@
 
 package net.java.otr4j.api;
 
+import javax.annotation.Nullable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * Utilities for SmpEngineHost.
@@ -36,8 +35,8 @@ public final class SmpEngineHosts {
      * @param sender the sender instance tag
      * @param question The question sent by the other party.
      */
-    public static void askForSecret(@Nonnull final SmpEngineHost host, @Nonnull final SessionID sessionID,
-            @Nonnull final InstanceTag sender, @Nullable final String question) {
+    public static void askForSecret(final SmpEngineHost host, final SessionID sessionID, final InstanceTag sender,
+            @Nullable final String question) {
         try {
             host.askForSecret(sessionID, sender, question);
         } catch (final RuntimeException e) {
@@ -62,8 +61,8 @@ public final class SmpEngineHosts {
      * @param cheated indicator for nature of SMP error, whether error because
      * of "cheat" status or for other reason.
      */
-    public static void smpError(@Nonnull final SmpEngineHost host, @Nonnull final SessionID sessionID,
-            final int tlvType, final boolean cheated) {
+    public static void smpError(final SmpEngineHost host, final SessionID sessionID, final int tlvType,
+            final boolean cheated) {
         try {
             host.smpError(sessionID, tlvType, cheated);
         } catch (final RuntimeException e) {
@@ -85,7 +84,7 @@ public final class SmpEngineHosts {
      * @param host The SMP engine host
      * @param sessionID The session ID
      */
-    public static void smpAborted(@Nonnull final SmpEngineHost host, @Nonnull final SessionID sessionID) {
+    public static void smpAborted(final SmpEngineHost host, final SessionID sessionID) {
         try {
             host.smpAborted(sessionID);
         } catch (final RuntimeException e) {
@@ -104,8 +103,7 @@ public final class SmpEngineHosts {
      * @param sessionID the session ID
      * @param fingerprint the fingerprint of the verified chat partner
      */
-    public static void verify(@Nonnull final SmpEngineHost host, @Nonnull final SessionID sessionID,
-            @Nonnull final String fingerprint) {
+    public static void verify(final SmpEngineHost host, final SessionID sessionID, final String fingerprint) {
         try {
             host.verify(sessionID, fingerprint);
         } catch (final RuntimeException e) {
@@ -124,8 +122,7 @@ public final class SmpEngineHosts {
      * @param sessionID the session ID
      * @param fingerprint the fingerprint of the unverified chat partner
      */
-    public static void unverify(@Nonnull final SmpEngineHost host, @Nonnull final SessionID sessionID,
-            @Nonnull final String fingerprint) {
+    public static void unverify(final SmpEngineHost host, final SessionID sessionID, final String fingerprint) {
         try {
             host.unverify(sessionID, fingerprint);
         } catch (final RuntimeException e) {

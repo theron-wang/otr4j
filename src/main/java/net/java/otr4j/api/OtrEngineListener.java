@@ -28,19 +28,19 @@ public interface OtrEngineListener {
      *                  receiver instance tag may be {@link InstanceTag#ZERO_TAG}
      *                  in case an OTR v2 session was changed.
      */
-    void sessionStatusChanged(@Nonnull SessionID sessionID, @Nonnull InstanceTag receiver);
+    void sessionStatusChanged(SessionID sessionID, InstanceTag receiver);
 
     /**
      * Event triggered in case multiple instances are detected.
      *
      * @param sessionID The session ID
      */
-    void multipleInstancesDetected(@Nonnull SessionID sessionID);
+    void multipleInstancesDetected(SessionID sessionID);
 
     /**
      * Event triggered in case the outgoing session has changed.
      *
      * @param sessionID The session ID
      */
-    void outgoingSessionChanged(@Nonnull SessionID sessionID);
+    void outgoingSessionChanged(SessionID sessionID);
 }

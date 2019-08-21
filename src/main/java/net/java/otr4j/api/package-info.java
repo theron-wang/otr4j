@@ -9,4 +9,7 @@
 /**
  * The API for otr4j.
  */
+@ParametersAreNonnullByDefault
 package net.java.otr4j.api;
+
+import javax.annotation.ParametersAreNonnullByDefault;

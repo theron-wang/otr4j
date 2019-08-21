@@ -41,7 +41,7 @@ public final class ECDHKeyPair implements AutoCloseable {
 
     private final Point publicKey;
 
-    ECDHKeyPair(@Nonnull final Scalar secretKey) {
+    ECDHKeyPair(final Scalar secretKey) {
         this.secretKey = requireNonNull(secretKey);
         this.publicKey = multiplyByBase(secretKey);
     }
@@ -55,7 +55,7 @@ public final class ECDHKeyPair implements AutoCloseable {
      * @return Returns ECDH keypair.
      */
     @Nonnull
-    public static ECDHKeyPair generate(@Nonnull final SecureRandom random) {
+    public static ECDHKeyPair generate(final SecureRandom random) {
         //  - pick a random value r (57 bytes)
         final byte[] r = new byte[SECRET_KEY_LENGTH_BYTES];
         random.nextBytes(r);
@@ -70,7 +70,7 @@ public final class ECDHKeyPair implements AutoCloseable {
      * @return Returns the generated ECDH key pair.
      */
     @Nonnull
-    public static ECDHKeyPair generate(@Nonnull final byte[] r) {
+    public static ECDHKeyPair generate(final byte[] r) {
         //  - pick a random value r (57 bytes)
         requireLengthExactly(SECRET_KEY_LENGTH_BYTES, r);
         assert !allZeroBytes(r) : "Expected 57 bytes of random data, instead of all zeroes.";
@@ -116,7 +116,7 @@ public final class ECDHKeyPair implements AutoCloseable {
      */
     // TODO mark as CleanupObligation, once these annotations are in use
     @Nonnull
-    public Point generateSharedSecret(@Nonnull final Point otherPublicKey) throws ValidationException {
+    public Point generateSharedSecret(final Point otherPublicKey) throws ValidationException {
         if (this.secretKey == null) {
             throw new IllegalStateException("Secret key material has been cleared. Only public key is still available.");
         }

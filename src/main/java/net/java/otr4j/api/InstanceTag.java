@@ -84,7 +84,8 @@ public final class InstanceTag {
      * @param random Secure random instance to use for generating.
      * @return Returns new randomly generated Instance tag instance.
      */
-    public static InstanceTag random(@Nonnull final SecureRandom random) {
+    @Nonnull
+    public static InstanceTag random(final SecureRandom random) {
         return new InstanceTag(random.nextDouble());
     }
 

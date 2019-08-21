@@ -95,10 +95,9 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
      * @param theirForgingKey        the remote party's forging key
      * @param receiverTag            receiver tag this SMP instance belongs to
      */
-    public SMP(@Nonnull final SecureRandom random, @Nonnull final SmpEngineHost host, @Nonnull final SessionID sessionID,
-            @Nonnull final byte[] ssid, @Nonnull final Point ourLongTermPublicKey, @Nonnull final Point ourForgingKey,
-            @Nonnull final Point theirLongTermPublicKey, @Nonnull final Point theirForgingKey,
-            @Nonnull final InstanceTag receiverTag) {
+    public SMP(final SecureRandom random, final SmpEngineHost host, final SessionID sessionID, final byte[] ssid,
+            final Point ourLongTermPublicKey, final Point ourForgingKey, final Point theirLongTermPublicKey,
+            final Point theirForgingKey, final InstanceTag receiverTag) {
         this.random = requireNonNull(random);
         this.host = requireNonNull(host);
         this.sessionID = requireNonNull(sessionID);
@@ -118,7 +117,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
      * @param tlv TLV to inspect
      * @return Returns true iff TLV contains SMP payload.
      */
-    public static boolean smpPayload(@Nonnull final TLV tlv) {
+    public static boolean smpPayload(final TLV tlv) {
         return tlv.type == SMP1 || tlv.type == SMP2 || tlv.type == SMP3 || tlv.type == SMP4 || tlv.type == SMP_ABORT;
     }
 
@@ -128,13 +127,13 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
     }
 
     @Override
-    public void setState(@Nonnull final SMPState newState) {
+    public void setState(final SMPState newState) {
         this.state = requireNonNull(newState);
         LOGGER.log(Level.FINE, "SMP transitioning to state {0}", newState);
     }
 
     @Override
-    public void requestSecret(@Nonnull final String question) {
+    public void requestSecret(final String question) {
         askForSecret(this.host, this.sessionID, this.receiverTag, question);
     }
 
@@ -147,7 +146,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
      */
     @Nonnull
     @Override
-    public TLV initiate(@Nonnull final String question, @Nonnull final byte[] answer) {
+    public TLV initiate(final String question, final byte[] answer) {
         try {
             final Scalar secret = generateSecret(answer, this.ourLongTermPublicKey, this.ourForgingKey,
                     this.theirLongTermPublicKey, this.theirForgingKey);
@@ -167,7 +166,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
      */
     @Nullable
     @Override
-    public TLV respond(@Nonnull final String question, @Nonnull final byte[] answer) {
+    public TLV respond(final String question, final byte[] answer) {
         final Scalar secret = generateSecret(answer, this.theirLongTermPublicKey, this.theirForgingKey,
                 this.ourLongTermPublicKey, this.ourForgingKey);
         final SMPMessage2 response = this.state.respondWithSecret(this, question, secret);
@@ -177,9 +176,8 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
         return new TLV(SMP2, encode(response));
     }
 
-    private Scalar generateSecret(@Nonnull final byte[] answer, @Nonnull final Point initiatorPublicKey,
-            @Nonnull final Point initiatorForgingKey, @Nonnull final Point responderPublicKey,
-            @Nonnull final Point responderForgingKey) {
+    private Scalar generateSecret(final byte[] answer, final Point initiatorPublicKey, final Point initiatorForgingKey,
+            final Point responderPublicKey, final Point responderForgingKey) {
         final byte[] secretInputData = new OtrOutputStream().writeByte(VERSION)
                 .writeFingerprint(fingerprint(initiatorPublicKey, initiatorForgingKey))
                 .writeFingerprint(fingerprint(responderPublicKey, responderForgingKey))
@@ -202,7 +200,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
      * @throws OtrCryptoException In case of failure in cryptographic parts of SMP messages.
      */
     @Nullable
-    public TLV process(@Nonnull final TLV tlv) throws ProtocolException, OtrCryptoException {
+    public TLV process(final TLV tlv) throws ProtocolException, OtrCryptoException {
         if (tlv.type == SMP_ABORT) {
             abort();
             return null;
@@ -243,7 +241,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
     }
 
     @Override
-    public boolean smpAbortedTLV(@Nonnull final TLV tlv) {
+    public boolean smpAbortedTLV(final TLV tlv) {
         return tlv.type == SMP_ABORT;
     }
 }

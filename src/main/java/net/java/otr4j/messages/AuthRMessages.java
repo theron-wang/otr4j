@@ -13,7 +13,6 @@ import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
 
-import javax.annotation.Nonnull;
 import java.math.BigInteger;
 
 import static net.java.otr4j.crypto.DHKeyPairs.verifyDHPublicKey;
@@ -47,12 +46,11 @@ public final class AuthRMessages {
      * @param receiverFirstDHPublicKey   the receiver's first DH public key after DAKE completes
      * @throws ValidationException In case the message fails validation.
      */
-    public static void validate(@Nonnull final AuthRMessage message,
-            @Nonnull final ClientProfilePayload ourClientProfilePayload, @Nonnull final ClientProfile ourProfile,
-            @Nonnull final ClientProfile theirProfile, @Nonnull final String senderAccountID,
-            @Nonnull final String receiverAccountID, @Nonnull final Point receiverECDHPublicKey,
-            @Nonnull final BigInteger receiverDHPublicKey, @Nonnull final Point receiverFirstECDHPublicKey,
-            @Nonnull final BigInteger receiverFirstDHPublicKey) throws ValidationException {
+    public static void validate(final AuthRMessage message, final ClientProfilePayload ourClientProfilePayload,
+            final ClientProfile ourProfile, final ClientProfile theirProfile, final String senderAccountID,
+            final String receiverAccountID, final Point receiverECDHPublicKey, final BigInteger receiverDHPublicKey,
+            final Point receiverFirstECDHPublicKey, final BigInteger receiverFirstDHPublicKey)
+            throws ValidationException {
         try {
             verifyECDHPublicKey(message.x);
             verifyDHPublicKey(message.a);

@@ -65,14 +65,13 @@ final class StateExpect1 implements SMPState {
     @Nullable
     private final SMPMessage1 message;
 
-    StateExpect1(@Nonnull final SecureRandom random, @Nonnull final SMPStatus status) {
+    StateExpect1(final SecureRandom random, final SMPStatus status) {
         this.random = requireNonNull(random);
         this.status = requireNonNull(status);
         this.message = null;
     }
 
-    private StateExpect1(@Nonnull final SecureRandom random, @Nonnull final SMPStatus status,
-            @Nonnull final SMPMessage1 message) {
+    private StateExpect1(final SecureRandom random, final SMPStatus status, final SMPMessage1 message) {
         this.random = requireNonNull(random);
         this.status = requireNonNull(status);
         this.message = requireNonNull(message);
@@ -86,8 +85,7 @@ final class StateExpect1 implements SMPState {
 
     @Nonnull
     @Override
-    public SMPMessage1 initiate(@Nonnull final SMPContext context, @Nonnull final String question,
-            @Nonnull final Scalar secret) {
+    public SMPMessage1 initiate(final SMPContext context, final String question, final Scalar secret) {
         requireNonNull(context);
         final Scalar a2 = generateRandomValueInZq(this.random);
         final Scalar a3 = generateRandomValueInZq(this.random);
@@ -106,8 +104,7 @@ final class StateExpect1 implements SMPState {
 
     @Nullable
     @Override
-    public SMPMessage2 respondWithSecret(@Nonnull final SMPContext context, @Nonnull final String question,
-            @Nonnull final Scalar secret) {
+    public SMPMessage2 respondWithSecret(final SMPContext context, final String question, final Scalar secret) {
         requireNonNull(context);
         if (this.message == null) {
             LOGGER.log(Level.WARNING, "The answer to an SMP question is provided, but no SMP init message is waiting to be answered. Ignoring answer.");
@@ -145,8 +142,7 @@ final class StateExpect1 implements SMPState {
 
     @Nullable
     @Override
-    public SMPMessage process(@Nonnull final SMPContext context, @Nonnull final SMPMessage message)
-            throws SMPAbortException {
+    public SMPMessage process(final SMPContext context, final SMPMessage message) throws SMPAbortException {
         requireNonNull(context);
         requireNonNull(message);
         if (!(message instanceof SMPMessage1)) {

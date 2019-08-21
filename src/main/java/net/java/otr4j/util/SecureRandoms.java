@@ -31,7 +31,7 @@ public final class SecureRandoms {
      * @return Returns 'dest' filled with random data.
      */
     @Nonnull
-    public static byte[] randomBytes(@Nonnull final SecureRandom random, @Nonnull final byte[] dest) {
+    public static byte[] randomBytes(final SecureRandom random, final byte[] dest) {
         random.nextBytes(dest);
         return dest;
     }

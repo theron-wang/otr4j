@@ -16,6 +16,7 @@ import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.io.OtrOutputStream;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.util.Objects;
 
@@ -81,10 +82,9 @@ public final class AuthRMessage extends AbstractEncodedMessage {
      * @param ourFirstECDHPublicKey the first ECDH public key to be used once DAKE has completed
      * @param ourFirstDHPublicKey   the first DH public key to be used once DAKE has completed
      */
-    public AuthRMessage(final int protocolVersion, @Nonnull final InstanceTag senderInstance,
-            @Nonnull final InstanceTag receiverInstance, @Nonnull final ClientProfilePayload clientProfile,
-            @Nonnull final Point x, @Nonnull final BigInteger a, @Nonnull final Sigma sigma,
-            @Nonnull final Point ourFirstECDHPublicKey, @Nonnull final BigInteger ourFirstDHPublicKey) {
+    public AuthRMessage(final int protocolVersion, final InstanceTag senderInstance, final InstanceTag receiverInstance,
+            final ClientProfilePayload clientProfile, final Point x, final BigInteger a, final Sigma sigma,
+            final Point ourFirstECDHPublicKey, final BigInteger ourFirstDHPublicKey) {
         super(requireInRange(Version.FOUR, Version.FOUR, protocolVersion), senderInstance, receiverInstance);
         this.clientProfile = requireNonNull(clientProfile);
         this.x = requireNonNull(x);
@@ -100,7 +100,7 @@ public final class AuthRMessage extends AbstractEncodedMessage {
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream writer) {
+    public void writeTo(final OtrOutputStream writer) {
         super.writeTo(writer);
         writer.write(this.clientProfile);
         writer.writePoint(this.x);
@@ -111,7 +111,7 @@ public final class AuthRMessage extends AbstractEncodedMessage {
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(@Nullable final Object o) {
         if (this == o) {
             return true;
         }

@@ -12,7 +12,6 @@ package net.java.otr4j.io;
 import net.java.otr4j.api.Session;
 import org.junit.Test;
 
-import javax.annotation.Nonnull;
 import java.net.ProtocolException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -518,12 +517,12 @@ public final class MessageProcessorTest {
 
         private final String message;
 
-        private OtrEncodableTestMessage(@Nonnull final String message) {
+        private OtrEncodableTestMessage(final String message) {
             this.message = requireNonNull(message);
         }
 
         @Override
-        public void writeTo(@Nonnull final OtrOutputStream out) {
+        public void writeTo(final OtrOutputStream out) {
             out.writeMessage(this.message);
         }
     }

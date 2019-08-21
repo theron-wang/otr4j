@@ -90,7 +90,7 @@ public final class OtrCryptoEngine {
      * @throws OtrCryptoException In case of illegal key value.
      */
     @Nonnull
-    public static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key) throws OtrCryptoException {
+    public static byte[] sha256Hmac(final byte[] b, final byte[] key) throws OtrCryptoException {
         return sha256Hmac(b, key, 0);
     }
 
@@ -104,7 +104,7 @@ public final class OtrCryptoEngine {
      * @throws OtrCryptoException In case of illegal key value.
      */
     @Nonnull
-    private static byte[] sha256Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key, final int length)
+    private static byte[] sha256Hmac(final byte[] b, final byte[] key, final int length)
             throws OtrCryptoException {
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
         assert !allZeroBytes(key) : "Expected non-zero bytes for key. This may indicate that a critical bug is present, or it may be a false warning.";
@@ -139,7 +139,7 @@ public final class OtrCryptoEngine {
      * @return Returns the checksum.
      */
     @Nonnull
-    public static byte[] sha1Hmac(@Nonnull final byte[] b, @Nonnull final byte[] key) {
+    public static byte[] sha1Hmac(final byte[] b, final byte[] key) {
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
         assert !allZeroBytes(key) : "Expected non-zero bytes for key. This may indicate that a critical bug is present, or it may be a false warning.";
         final byte[] macBytes;
@@ -166,7 +166,7 @@ public final class OtrCryptoEngine {
      * @throws OtrCryptoException In case of illegal key value.
      */
     @Nonnull
-    public static byte[] sha256Hmac160(@Nonnull final byte[] b, @Nonnull final byte[] key) throws OtrCryptoException {
+    public static byte[] sha256Hmac160(final byte[] b, final byte[] key) throws OtrCryptoException {
         return sha256Hmac(b, key, MAC_LENGTH_BYTES);
     }
 
@@ -178,7 +178,7 @@ public final class OtrCryptoEngine {
      * @return Returns the checksum result.
      */
     @Nonnull
-    public static byte[] sha256Hash(@Nonnull final byte[] first, final byte[]... next) {
+    public static byte[] sha256Hash(final byte[] first, final byte[]... next) {
         final MessageDigest sha256;
         try {
             sha256 = MessageDigest.getInstance(MD_SHA256);
@@ -200,7 +200,7 @@ public final class OtrCryptoEngine {
      * @return Returns the checksum result.
      */
     @Nonnull
-    public static byte[] sha1Hash(@Nonnull final byte[] first, final byte[]... next) {
+    public static byte[] sha1Hash(final byte[] first, final byte[]... next) {
         final MessageDigest sha1;
         try {
             sha1 = MessageDigest.getInstance(MD_SHA1);
@@ -224,7 +224,7 @@ public final class OtrCryptoEngine {
      * @throws OtrCryptoException In case of illegal ciphertext.
      */
     @Nonnull
-    public static byte[] aesDecrypt(@Nonnull final byte[] key, @Nonnull final byte[] ctr, @Nonnull final byte[] b)
+    public static byte[] aesDecrypt(final byte[] key, final byte[] ctr, final byte[] b)
             throws OtrCryptoException {
         requireLengthExactly(CTR_LENGTH_BYTES, ctr);
         assert !allZeroBytes(key) : "Expected non-zero bytes for key. This may indicate that a critical bug is present, or it may be a false warning.";
@@ -253,7 +253,7 @@ public final class OtrCryptoEngine {
      * @return Returns the encrypted content.
      */
     @Nonnull
-    public static byte[] aesEncrypt(@Nonnull final byte[] key, @Nonnull final byte[] ctr, @Nonnull final byte[] b) {
+    public static byte[] aesEncrypt(final byte[] key, final byte[] ctr, final byte[] b) {
         requireLengthExactly(CTR_LENGTH_BYTES, ctr);
         assert !allZeroBytes(key) : "Expected non-zero bytes for key. This may indicate that a critical bug is present, or it may be a false warning.";
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
@@ -278,7 +278,7 @@ public final class OtrCryptoEngine {
      * @return Returns fingerprint in hexadecimal string-representation
      */
     @Nonnull
-    public static String getFingerprint(@Nonnull final DSAPublicKey pubKey) {
+    public static String getFingerprint(final DSAPublicKey pubKey) {
         final byte[] b = getFingerprintRaw(pubKey);
         return toHexString(b);
     }
@@ -290,7 +290,7 @@ public final class OtrCryptoEngine {
      * @return Returns the fingerprint as byte-array.
      */
     @Nonnull
-    public static byte[] getFingerprintRaw(@Nonnull final DSAPublicKey pubKey) {
+    public static byte[] getFingerprintRaw(final DSAPublicKey pubKey) {
         final byte[] bRemotePubKey = new OtrOutputStream().writePublicKey(pubKey).toByteArray();
         final byte[] trimmed = new byte[bRemotePubKey.length - 2];
         System.arraycopy(bRemotePubKey, 2, trimmed, 0, trimmed.length);
@@ -308,8 +308,7 @@ public final class OtrCryptoEngine {
      * @param message The exception message in case of arrays are not equal.
      * @throws OtrCryptoException Throws exception in case of inequality.
      */
-    public static void checkEquals(@Nonnull final byte[] a, @Nonnull final byte[] b, @Nonnull final String message)
-            throws OtrCryptoException {
+    public static void checkEquals(final byte[] a, final byte[] b, final String message) throws OtrCryptoException {
         assert !allZeroBytes(a) : "Expected non-zero bytes for a. This may indicate that a critical bug is present, or it may be a false warning.";
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
         if (!constantTimeEquals(a, b)) {

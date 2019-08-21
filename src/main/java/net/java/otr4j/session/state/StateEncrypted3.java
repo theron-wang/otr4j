@@ -106,7 +106,8 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
 
     private long lastMessageSentTimestamp = System.nanoTime();
 
-    StateEncrypted3(@Nonnull final Context context, @Nonnull final AuthState state, @Nonnull final SecurityParameters params) throws OtrCryptoException {
+    StateEncrypted3(final Context context, final AuthState state, final SecurityParameters params)
+            throws OtrCryptoException {
         super(state);
         final SessionID sessionID = context.getSessionID();
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
@@ -120,7 +121,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
 
     @Nonnull
     @Override
-    public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage message) {
+    public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
         unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
         return super.handlePlainTextMessage(context, message);
@@ -159,14 +160,13 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     }
 
     @Override
-    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message) {
+    void handleAKEMessage(final Context context, final AbstractEncodedMessage message) {
         logger.log(FINE, "Ignoring OTRv4 DAKE message as we are in OTRv3 encrypted message state.");
     }
 
     @Override
     @Nullable
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage message)
-            throws OtrException, ProtocolException {
+    String handleDataMessage(final Context context, final DataMessage message) throws OtrException, ProtocolException {
         logger.finest("Message state is ENCRYPTED. Trying to decrypt message.");
         // Find matching session keys.
         final SessionKey matchingKeys;
@@ -252,13 +252,12 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
 
     @Nullable
     @Override
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage4 message) {
+    String handleDataMessage(final Context context, final DataMessage4 message) {
         throw new IllegalStateException("BUG: OTRv2/OTRv3 encrypted message state does not handle OTRv4 data messages.");
     }
 
     @Override
-    public void handleErrorMessage(@Nonnull final Context context, @Nonnull final ErrorMessage errorMessage)
-            throws OtrException {
+    public void handleErrorMessage(final Context context, final ErrorMessage errorMessage) throws OtrException {
         super.handleErrorMessage(context, errorMessage);
         final OtrPolicy policy = context.getSessionPolicy();
         if (!policy.viable() || !policy.isErrorStartAKE()) {
@@ -273,8 +272,8 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
 
     @Override
     @Nonnull
-    public DataMessage transformSending(@Nonnull final Context context, @Nonnull final String msgText,
-            @Nonnull final Iterable<TLV> tlvs, final byte flags) {
+    public DataMessage transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
+            final byte flags) {
         final SessionID sessionID = context.getSessionID();
         logger.log(Level.FINEST, "{0} sends an encrypted message to {1} through {2}.",
                 new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
@@ -317,7 +316,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     }
 
     @Override
-    public void end(@Nonnull final Context context) throws OtrException {
+    public void end(final Context context) throws OtrException {
         // The message carrying TLV 1 (Disconnect) is supposed to contain remaining MAC keys. However, as part of
         // sending the data message, we already include remaining MAC keys as part of sending the Data message.
         final TLV disconnectTlv = new TLV(TLV.DISCONNECTED, TLV.EMPTY_BODY);

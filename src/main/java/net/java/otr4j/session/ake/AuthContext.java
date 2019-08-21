@@ -59,5 +59,5 @@ public interface AuthContext {
      *
      * @param state The new AKE state.
      */
-    void setAuthState(@Nonnull AuthState state);
+    void setAuthState(AuthState state);
 }

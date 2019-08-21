@@ -87,7 +87,7 @@ public final class Ed448 {
      * @return Returns the point resulting from the multiplication.
      */
     @Nonnull
-    public static Point multiplyByBase(@Nonnull final Scalar scalar) {
+    public static Point multiplyByBase(final Scalar scalar) {
         return new Point(nl.dannyvanheumen.joldilocks.Ed448.multiplyByBase(scalar.toBigInteger()).encode());
     }
 
@@ -99,7 +99,7 @@ public final class Ed448 {
      */
     @CanIgnoreReturnValue
     @Nonnull
-    public static Point requireValidPoint(@Nonnull final Point point) {
+    public static Point requireValidPoint(final Point point) {
         if (!containsPoint(point)) {
             throw new IllegalArgumentException("Point is illegal: point is identity.");
         }
@@ -113,7 +113,7 @@ public final class Ed448 {
      * @return Returns true if it is contained in the curve.
      */
     @CheckReturnValue
-    public static boolean containsPoint(@Nonnull final Point point) {
+    public static boolean containsPoint(final Point point) {
         if (checkIdentity(point)) {
             return false;
         }
@@ -138,7 +138,7 @@ public final class Ed448 {
      * @return Returns true if p is identity, or false otherwise.
      */
     @CheckReturnValue
-    public static boolean checkIdentity(@Nonnull final Point point) {
+    public static boolean checkIdentity(final Point point) {
         requireLengthExactly(PUBLIC_KEY_SIZE, point.getEncoded());
         return constantTimeEquals(IDENTITY, point.getEncoded());
     }

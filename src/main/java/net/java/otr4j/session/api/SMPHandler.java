@@ -9,6 +9,7 @@
 
 package net.java.otr4j.session.api;
 
+import com.google.errorprone.annotations.CheckReturnValue;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.TLV;
 
@@ -34,7 +35,7 @@ public interface SMPHandler {
      * @throws OtrException In case of issues while initiating SMP.
      */
     @Nonnull
-    TLV initiate(@Nonnull final String question, @Nonnull final byte[] answer) throws OtrException;
+    TLV initiate(final String question, final byte[] answer) throws OtrException;
 
     /**
      * Respond to SMP negotiation initiated by the other party.
@@ -45,7 +46,7 @@ public interface SMPHandler {
      * @throws OtrException In case of issues while responding.
      */
     @Nullable
-    TLV respond(@Nonnull final String question, @Nonnull final byte[] answer) throws OtrException;
+    TLV respond(String question, byte[] answer) throws OtrException;
 
     /**
      * Check whether a SMP negotiation is in progress.
@@ -69,5 +70,6 @@ public interface SMPHandler {
      * @param tlv TLV
      * @return Returns true iff TLV is intended to signal aborting SMP.
      */
-    boolean smpAbortedTLV(@Nonnull final TLV tlv);
+    @CheckReturnValue
+    boolean smpAbortedTLV(TLV tlv);
 }

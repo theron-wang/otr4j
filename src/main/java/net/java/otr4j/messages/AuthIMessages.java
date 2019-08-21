@@ -13,7 +13,6 @@ import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
 
-import javax.annotation.Nonnull;
 import java.math.BigInteger;
 
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ringVerify;
@@ -50,13 +49,12 @@ public final class AuthIMessages {
      * @param receiverFirstDHPublicKey   the receiver's first DH public key to use after DAKE completes
      * @throws ValidationException In case validation fails.
      */
-    public static void validate(@Nonnull final AuthIMessage message,
-            @Nonnull final ClientProfilePayload ourProfilePayload, @Nonnull final ClientProfile ourProfile,
-            @Nonnull final ClientProfilePayload profileBobPayload, @Nonnull final ClientProfile profileBob,
-            @Nonnull final Point x, @Nonnull final Point y, @Nonnull final BigInteger a, @Nonnull final BigInteger b,
-            @Nonnull final Point senderFirstECDHPublicKey, @Nonnull final BigInteger senderFirstDHPublicKey,
-            @Nonnull final Point receiverFirstECDHPublicKey, @Nonnull final BigInteger receiverFirstDHPublicKey,
-            @Nonnull final String senderAccountID, @Nonnull final String receiverAccountID) throws ValidationException {
+    public static void validate(final AuthIMessage message, final ClientProfilePayload ourProfilePayload,
+            final ClientProfile ourProfile, final ClientProfilePayload profileBobPayload, final ClientProfile profileBob,
+            final Point x, final Point y, final BigInteger a, final BigInteger b, final Point senderFirstECDHPublicKey,
+            final BigInteger senderFirstDHPublicKey, final Point receiverFirstECDHPublicKey,
+            final BigInteger receiverFirstDHPublicKey, final String senderAccountID, final String receiverAccountID)
+            throws ValidationException {
         validateEquals(message.senderTag, profileBob.getInstanceTag(), "Sender instance tag does not match with owner instance tag in client profile.");
         // We don't do extra verification of points here, as these have been verified upon receiving the Identity
         // message. This was the previous message that was sent. So we can assume points are trustworthy.

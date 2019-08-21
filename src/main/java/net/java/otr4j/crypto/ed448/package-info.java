@@ -11,6 +11,7 @@
  *
  * Types in this package are fine-tuned to the definitions of OTRv4.
  */
+@ParametersAreNonnullByDefault
 package net.java.otr4j.crypto.ed448;
 // FIXME replace Joldilocks with BC 1.60+, then update import-control constraints. Requires:
 // * 'Is identity' check
@@ -22,3 +23,5 @@ package net.java.otr4j.crypto.ed448;
 // * point-comparison (greater-than-or-equal, at the very least)
 // * OPTIONAL: access to base point, modulus, prime-order?
 // FIXME verify that new ed448 crypto implementations do not litter memory space with temporary data. Check cloned arrays, appropriate memory cleaning, etc.
+
+import javax.annotation.ParametersAreNonnullByDefault;

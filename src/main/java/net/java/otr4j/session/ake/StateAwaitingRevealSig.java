@@ -65,8 +65,8 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
     private final byte[] remotePublicKeyHash;
     private final byte[] remotePublicKeyEncrypted;
 
-    StateAwaitingRevealSig(final int version, @Nonnull final DHKeyPairOTR3 keypair,
-            @Nonnull final byte[] remotePublicKeyHash, @Nonnull final byte[] remotePublicKeyEncrypted) {
+    StateAwaitingRevealSig(final int version, final DHKeyPairOTR3 keypair, final byte[] remotePublicKeyHash,
+            final byte[] remotePublicKeyEncrypted) {
         super();
         this.version = requireInRange(Version.TWO, Version.THREE, version);
         this.keypair = requireNonNull(keypair);
@@ -76,9 +76,8 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
 
     @Nonnull
     @Override
-    public Result handle(@Nonnull final AuthContext context, @Nonnull final AbstractEncodedMessage message)
-            throws OtrException, ProtocolException {
-
+    public Result handle(final AuthContext context, final AbstractEncodedMessage message) throws OtrException,
+            ProtocolException {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         }
@@ -107,7 +106,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
     }
 
     @Nonnull
-    private Result handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) {
+    private Result handleDHCommitMessage(final AuthContext context, final DHCommitMessage message) {
         // OTR: "Retransmit your D-H Key Message (the same one as you sent when you entered AUTHSTATE_AWAITING_REVEALSIG).
         // Forget the old D-H Commit message, and use this new one instead."
         context.setAuthState(new StateAwaitingRevealSig(message.protocolVersion, this.keypair, message.dhPublicKeyHash,
@@ -128,9 +127,8 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
      * @throws ProtocolException Thrown in case of message content errors.
      */
     @Nonnull
-    private Result handleRevealSignatureMessage(@Nonnull final AuthContext context,
-            @Nonnull final RevealSignatureMessage message) throws OtrCryptoException,
-            ProtocolException, UnsupportedTypeException {
+    private Result handleRevealSignatureMessage(final AuthContext context, final RevealSignatureMessage message)
+            throws OtrCryptoException, ProtocolException, UnsupportedTypeException {
         // OTR: "Use the received value of r to decrypt the value of gx received in the D-H Commit Message, and verify
         // the hash therein. Decrypt the encrypted signature, and verify the signature and the MACs."
         final DHPublicKey remoteDHPublicKey;

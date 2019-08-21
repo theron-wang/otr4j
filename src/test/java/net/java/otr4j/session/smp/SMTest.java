@@ -462,7 +462,7 @@ public class SMTest {
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage1a(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
+            void smpMessage1a(SM bstate, byte[] input) throws SMException {
                 throw e;
             }
 
@@ -496,7 +496,7 @@ public class SMTest {
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage1a(@Nonnull SM bstate, @Nonnull byte[] input) {
+            void smpMessage1a(SM bstate, byte[] input) {
                 throw e;
             }
 
@@ -531,7 +531,7 @@ public class SMTest {
 
             @Nonnull
             @Override
-            byte[] smpMessage1b(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
+            byte[] smpMessage1b(SM bstate, byte[] input) throws SMException {
                 throw e;
             }
 
@@ -566,7 +566,7 @@ public class SMTest {
 
             @Nonnull
             @Override
-            byte[] smpMessage1b(@Nonnull SM bstate, @Nonnull byte[] input) {
+            byte[] smpMessage1b(SM bstate, byte[] input) {
                 throw e;
             }
 
@@ -601,7 +601,7 @@ public class SMTest {
 
             @Nonnull
             @Override
-            byte[] smpMessage2(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
+            byte[] smpMessage2(SM bstate, byte[] input) throws SMException {
                 throw e;
             }
 
@@ -636,7 +636,7 @@ public class SMTest {
 
             @Nonnull
             @Override
-            byte[] smpMessage2(@Nonnull SM bstate, @Nonnull byte[] input) {
+            byte[] smpMessage2(SM bstate, byte[] input) {
                 throw e;
             }
 
@@ -671,7 +671,7 @@ public class SMTest {
 
             @Nonnull
             @Override
-            byte[] smpMessage3(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
+            byte[] smpMessage3(SM bstate, byte[] input) throws SMException {
                 throw e;
             }
 
@@ -706,7 +706,7 @@ public class SMTest {
 
             @Nonnull
             @Override
-            byte[] smpMessage3(@Nonnull SM bstate, @Nonnull byte[] input) {
+            byte[] smpMessage3(SM bstate, byte[] input) {
                 throw e;
             }
 
@@ -740,7 +740,7 @@ public class SMTest {
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage4(@Nonnull SM bstate, @Nonnull byte[] input) throws SMException {
+            void smpMessage4(SM bstate, byte[] input) throws SMException {
                 throw e;
             }
 
@@ -774,7 +774,7 @@ public class SMTest {
         final AbstractSMPState s = new AbstractSMPState(sr) {
 
             @Override
-            void smpMessage4(@Nonnull SM bstate, @Nonnull byte[] input) {
+            void smpMessage4(SM bstate, byte[] input) {
                 throw e;
             }
 

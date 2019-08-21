@@ -325,7 +325,7 @@ public final class StateExpect2Test {
         state.process(context, message);
     }
 
-    private static Point mustDecodePoint(@Nonnull final byte[] encoded) {
+    private static Point mustDecodePoint(final byte[] encoded) {
         try {
             return decodePoint(encoded);
         } catch (final ValidationException e) {

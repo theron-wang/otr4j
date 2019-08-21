@@ -9,4 +9,7 @@
 /**
  * otr4j session management.
  */
+@ParametersAreNonnullByDefault
 package net.java.otr4j.session;
+
+import javax.annotation.ParametersAreNonnullByDefault;

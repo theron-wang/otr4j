@@ -61,9 +61,8 @@ final class StateAwaitingSig extends AbstractAuthState {
      */
     private final RevealSignatureMessage previousRevealSigMessage;
 
-    StateAwaitingSig(final int version, @Nonnull final DHKeyPairOTR3 localDHKeyPair,
-            @Nonnull final DHPublicKey remoteDHPublicKey, @Nonnull final SharedSecret s,
-            @Nonnull final RevealSignatureMessage previousRevealSigMessage) {
+    StateAwaitingSig(final int version, final DHKeyPairOTR3 localDHKeyPair, final DHPublicKey remoteDHPublicKey,
+            final SharedSecret s, final RevealSignatureMessage previousRevealSigMessage) {
         super();
         if (version < Version.TWO || version > Version.THREE) {
             throw new IllegalArgumentException("unsupported version specified");
@@ -81,9 +80,8 @@ final class StateAwaitingSig extends AbstractAuthState {
 
     @Nonnull
     @Override
-    public Result handle(@Nonnull final AuthContext context, @Nonnull final AbstractEncodedMessage message)
-            throws OtrException, ProtocolException {
-
+    public Result handle(final AuthContext context, final AbstractEncodedMessage message) throws OtrException,
+            ProtocolException {
         if (message instanceof DHCommitMessage) {
             return handleDHCommitMessage(context, (DHCommitMessage) message);
         }
@@ -110,7 +108,7 @@ final class StateAwaitingSig extends AbstractAuthState {
     }
 
     @Nonnull
-    private Result handleDHCommitMessage(@Nonnull final AuthContext context, @Nonnull final DHCommitMessage message) {
+    private Result handleDHCommitMessage(final AuthContext context, final DHCommitMessage message) {
         // OTR: "Reply with a new D-H Key message, and transition authstate to AUTHSTATE_AWAITING_REVEALSIG."
         LOGGER.finest("Generating local D-H key pair.");
         // OTR: "Choose a random value y (at least 320 bits), and calculate gy."
@@ -124,7 +122,7 @@ final class StateAwaitingSig extends AbstractAuthState {
     }
 
     @Nonnull
-    private Result handleDHKeyMessage(@Nonnull final DHKeyMessage message) {
+    private Result handleDHKeyMessage(final DHKeyMessage message) {
         // OTR: "If this D-H Key message is the same the one you received earlier (when you entered AUTHSTATE_AWAITING_SIG):
         // Retransmit your Reveal Signature Message. Otherwise: Ignore the message."
         if (!this.localDHKeyPair.getPublic().getY().equals(message.dhPublicKey.getY())) {
@@ -139,9 +137,8 @@ final class StateAwaitingSig extends AbstractAuthState {
     }
 
     @Nonnull
-    private Result handleSignatureMessage(@Nonnull final AuthContext context,
-            @Nonnull final SignatureMessage message) throws OtrCryptoException, ProtocolException,
-            UnsupportedTypeException {
+    private Result handleSignatureMessage(final AuthContext context, final SignatureMessage message)
+            throws OtrCryptoException, ProtocolException, UnsupportedTypeException {
         // OTR: "Decrypt the encrypted signature, and verify the signature and the MACs."
         try {
             // OTR: "Uses m2' to verify MACm2'(AESc'(XA))"

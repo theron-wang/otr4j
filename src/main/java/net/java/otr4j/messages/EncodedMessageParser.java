@@ -180,7 +180,7 @@ public final class EncodedMessageParser {
      * @return Returns true iff DH-Key message or false otherwise.
      */
     @CheckReturnValue
-    public static boolean checkDHKeyMessage(@Nonnull final EncodedMessage message) {
+    public static boolean checkDHKeyMessage(final EncodedMessage message) {
         return message.type == MESSAGE_DHKEY;
     }
 
@@ -191,7 +191,7 @@ public final class EncodedMessageParser {
      * @return Returns true iff Auth-R message or false otherwise.
      */
     @CheckReturnValue
-    public static boolean checkAuthRMessage(@Nonnull final EncodedMessage message) {
+    public static boolean checkAuthRMessage(final EncodedMessage message) {
         return message.type == MESSAGE_AUTH_R;
     }
 }

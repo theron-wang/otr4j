@@ -46,7 +46,7 @@ final class StateFinished extends AbstractCommonState {
 
     private static final Logger LOGGER = Logger.getLogger(StateFinished.class.getName());
 
-    StateFinished(@Nonnull final AuthState authState) {
+    StateFinished(final AuthState authState) {
         super(authState);
     }
 
@@ -81,15 +81,14 @@ final class StateFinished extends AbstractCommonState {
 
     @Override
     @Nonnull
-    public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage plainTextMessage) {
+    public String handlePlainTextMessage(final Context context, final PlainTextMessage plainTextMessage) {
         // Display the message to the user, but warn him that the message was received unencrypted.
         unencryptedMessageReceived(context.getHost(), context.getSessionID(), plainTextMessage.getCleanText());
         return super.handlePlainTextMessage(context, plainTextMessage);
     }
 
     @Override
-    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
-            throws OtrException {
+    void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException {
         if (message instanceof IdentityMessage) {
             try {
                 handleIdentityMessage(context, (IdentityMessage) message);
@@ -104,7 +103,7 @@ final class StateFinished extends AbstractCommonState {
 
     @Override
     @Nullable
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage message) throws OtrException {
+    String handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(Level.FINEST, "Received OTRv2/3 data message in FINISHED state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return null;
@@ -112,7 +111,7 @@ final class StateFinished extends AbstractCommonState {
 
     @Nullable
     @Override
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage4 message) throws OtrException {
+    String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
         LOGGER.log(Level.FINEST, "Received OTRv4 data message in FINISHED state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return null;
@@ -120,15 +119,15 @@ final class StateFinished extends AbstractCommonState {
 
     @Override
     @Nullable
-    public Message transformSending(@Nonnull final Context context, @Nonnull final String msgText,
-            @Nonnull final Iterable<TLV> tlvs, final byte flags) {
+    public Message transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
+            final byte flags) {
         context.queueMessage(msgText);
         finishedSessionMessage(context.getHost(), context.getSessionID(), msgText);
         return null;
     }
 
     @Override
-    public void end(@Nonnull final Context context) {
+    public void end(final Context context) {
         context.transition(this, new StatePlaintext(getAuthState()));
     }
 

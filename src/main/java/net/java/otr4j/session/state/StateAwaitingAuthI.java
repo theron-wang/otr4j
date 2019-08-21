@@ -96,12 +96,10 @@ final class StateAwaitingAuthI extends AbstractCommonState {
 
     private final byte[] k;
 
-    StateAwaitingAuthI(@Nonnull final AuthState authState, @Nonnull final byte[] k, @Nonnull final byte[] ssid,
-            @Nonnull final ECDHKeyPair ourECDHKeyPair, @Nonnull final DHKeyPair ourDHKeyPair,
-            @Nonnull final ECDHKeyPair ourFirstECDHKeyPair, @Nonnull final DHKeyPair ourFirstDHKeyPair,
-            @Nonnull final Point theirFirstECDHPublicKey, @Nonnull final BigInteger theirFirstDHPublicKey,
-            @Nonnull final Point y, @Nonnull final BigInteger b, @Nonnull final ClientProfilePayload ourProfile,
-            @Nonnull final ClientProfilePayload profileBob) {
+    StateAwaitingAuthI(final AuthState authState, final byte[] k, final byte[] ssid, final ECDHKeyPair ourECDHKeyPair,
+            final DHKeyPair ourDHKeyPair, final ECDHKeyPair ourFirstECDHKeyPair, final DHKeyPair ourFirstDHKeyPair,
+            final Point theirFirstECDHPublicKey, final BigInteger theirFirstDHPublicKey, final Point y,
+            final BigInteger b, final ClientProfilePayload ourProfile, final ClientProfilePayload profileBob) {
         super(authState);
         this.ourECDHKeyPair = requireNonNull(ourECDHKeyPair);
         this.ourDHKeyPair = requireNonNull(ourDHKeyPair);
@@ -147,8 +145,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
     }
 
     @Override
-    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
-            throws OtrException {
+    void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException {
         if (message instanceof IdentityMessage) {
             try {
                 handleIdentityMessage(context, (IdentityMessage) message);
@@ -181,8 +178,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
      */
     // TODO eventually write a test case that demonstrates responses by multiple sessions, such that correct handling of ephemeral keys is mandatory or it will expose the bug.
     @Override
-    void handleIdentityMessage(@Nonnull final Context context, @Nonnull final IdentityMessage message)
-            throws OtrException {
+    void handleIdentityMessage(final Context context, final IdentityMessage message) throws OtrException {
         final ClientProfile theirNewClientProfile = message.clientProfile.validate();
         IdentityMessages.validate(message, theirNewClientProfile);
         final SessionID sessionID = context.getSessionID();
@@ -218,8 +214,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
                 message.ourFirstDHPublicKey, message.y, message.b, ourProfile, message.clientProfile));
     }
 
-    private void handleAuthIMessage(@Nonnull final Context context, @Nonnull final AuthIMessage message)
-            throws ValidationException {
+    private void handleAuthIMessage(final Context context, final AuthIMessage message) throws ValidationException {
         // Validate message.
         final ClientProfile profileBobValidated = this.profileBob.validate();
         final ClientProfile ourProfileValidated = this.ourProfile.validate();
@@ -241,7 +236,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
 
     @Nullable
     @Override
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage message) throws OtrException {
+    String handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv3 data message in state WAITING_AUTH_I. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return null;
@@ -249,14 +244,14 @@ final class StateAwaitingAuthI extends AbstractCommonState {
 
     @Nullable
     @Override
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage4 message) throws OtrException {
+    String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv4 data message in state WAITING_AUTH_I. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return null;
     }
 
     @Override
-    public void end(@Nonnull final Context context) {
+    public void end(final Context context) {
         this.ourDHKeyPair.close();
         this.ourECDHKeyPair.close();
         this.ourFirstDHKeyPair.close();

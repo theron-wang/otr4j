@@ -14,8 +14,6 @@ import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.io.ErrorMessage;
 
-import javax.annotation.Nonnull;
-
 import static net.java.otr4j.api.OtrEngineHosts.getReplyForUnreadableMessage;
 import static net.java.otr4j.api.OtrEngineHosts.unreadableMessageReceived;
 
@@ -36,8 +34,8 @@ public final class Contexts {
      * @param message    the textual error message.
      * @throws OtrException In case of failure to inject the remote message into the chat transport.
      */
-    public static void signalUnreadableMessage(@Nonnull final Context context, @Nonnull final String identifier,
-            @Nonnull final String message) throws OtrException {
+    public static void signalUnreadableMessage(final Context context, final String identifier, final String message)
+            throws OtrException {
         final OtrEngineHost host = context.getHost();
         final SessionID sessionID = context.getSessionID();
         unreadableMessageReceived(host, sessionID);

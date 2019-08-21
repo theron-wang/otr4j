@@ -76,8 +76,8 @@ public final class DataMessage extends AbstractEncodedMessage {
      * @param senderInstanceTag   the sender instance tag
      * @param receiverInstanceTag the receiver instance tag
      */
-    public DataMessage(@Nonnull final MysteriousT t, @Nonnull final byte[] mac, @Nonnull final byte[] oldMACKeys,
-            @Nonnull final InstanceTag senderInstanceTag, @Nonnull final InstanceTag receiverInstanceTag) {
+    public DataMessage(final MysteriousT t, final byte[] mac, final byte[] oldMACKeys,
+            final InstanceTag senderInstanceTag, final InstanceTag receiverInstanceTag) {
         this(t.protocolVersion, t.flags, t.senderKeyID, t.recipientKeyID, t.nextDH, t.ctr, t.encryptedMessage, mac,
                 oldMACKeys, senderInstanceTag, receiverInstanceTag);
     }
@@ -98,10 +98,9 @@ public final class DataMessage extends AbstractEncodedMessage {
      * @param receiverInstanceTag the receiver instance tag
      */
     public DataMessage(final int protocolVersion, final byte flags, final int senderKeyID,
-            final int recipientKeyID, @Nonnull final DHPublicKey nextDH,
-            @Nonnull final byte[] ctr, @Nonnull final byte[] encryptedMessage,
-            @Nonnull final byte[] mac, @Nonnull final byte[] oldMACKeys,
-            @Nonnull final InstanceTag senderInstanceTag, @Nonnull final InstanceTag receiverInstanceTag) {
+            final int recipientKeyID, final DHPublicKey nextDH, final byte[] ctr, final byte[] encryptedMessage,
+            final byte[] mac, final byte[] oldMACKeys, final InstanceTag senderInstanceTag,
+            final InstanceTag receiverInstanceTag) {
         super(protocolVersion, senderInstanceTag, receiverInstanceTag);
         this.flags = flags;
         this.senderKeyID = senderKeyID;
@@ -176,7 +175,7 @@ public final class DataMessage extends AbstractEncodedMessage {
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream writer) {
+    public void writeTo(final OtrOutputStream writer) {
         super.writeTo(writer);
         writer.writeByte(this.flags);
         writer.writeInt(this.senderKeyID);

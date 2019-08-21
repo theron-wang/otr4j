@@ -264,7 +264,7 @@ public final class OtrCryptoEngine4 {
      * @param forgingKey The forging key to use as part of the fingerprint.
      * @return Returns the fingerprint derived from the provided public key.
      */
-    public static byte[] fingerprint(@Nonnull final Point publicKey, @Nonnull final Point forgingKey) {
+    public static byte[] fingerprint(final Point publicKey, final Point forgingKey) {
         return hwc(FINGERPRINT, FINGERPRINT_LENGTH_BYTES, publicKey.encode(), forgingKey.encode());
     }
 
@@ -277,7 +277,7 @@ public final class OtrCryptoEngine4 {
      * @return Returns the resulting digest value.
      */
     @CheckReturnValue
-    public static byte[] kdf(@Nonnull final KDFUsage usageID, final int outputSize, @Nonnull final byte[]... input) {
+    public static byte[] kdf(final KDFUsage usageID, final int outputSize, final byte[]... input) {
         requireAtLeast(0, outputSize);
         final byte[] dst = new byte[outputSize];
         kdf(dst, 0, usageID, outputSize, input);
@@ -293,8 +293,8 @@ public final class OtrCryptoEngine4 {
      * @param input      the input
      * @param outputSize the output size in bytes
      */
-    public static void kdf(@Nonnull final byte[] dst, final int offset, @Nonnull final KDFUsage usageID,
-            final int outputSize, @Nonnull final byte[]... input) {
+    public static void kdf(final byte[] dst, final int offset, final KDFUsage usageID, final int outputSize,
+            final byte[]... input) {
         shake256(dst, offset, usageID, outputSize, input);
     }
 
@@ -306,8 +306,8 @@ public final class OtrCryptoEngine4 {
      * @param input      the input
      * @return Returns the resulting digest value.
      */
-    @CheckReturnValue
-    public static byte[] hwc(@Nonnull final KDFUsage usageID, final int outputSize, @Nonnull final byte[]... input) {
+    @Nonnull
+    public static byte[] hwc(final KDFUsage usageID, final int outputSize, final byte[]... input) {
         requireAtLeast(0, outputSize);
         final byte[] result = new byte[outputSize];
         shake256(result, 0, usageID, outputSize, input);
@@ -322,8 +322,8 @@ public final class OtrCryptoEngine4 {
      * @param input      the input
      * @return Returns the resulting digest value.
      */
-    @CheckReturnValue
-    public static byte[] hcmac(@Nonnull final KDFUsage usageID, final int outputSize, @Nonnull final byte[]... input) {
+    @Nonnull
+    public static byte[] hcmac(final KDFUsage usageID, final int outputSize, final byte[]... input) {
         requireAtLeast(0, outputSize);
         final byte[] result = new byte[outputSize];
         shake256(result, 0, usageID, outputSize, input);
@@ -341,8 +341,8 @@ public final class OtrCryptoEngine4 {
      * @param input      The input data to KDF_1.
      * @param outputSize The size of the derivative output.
      */
-    private static void shake256(@Nonnull final byte[] dst, final int offset, @Nonnull final KDFUsage usageID,
-            final int outputSize, @Nonnull final byte[]... input) {
+    private static void shake256(final byte[] dst, final int offset, final KDFUsage usageID, final int outputSize,
+            final byte[]... input) {
         requireNonNull(dst);
         requireAtLeast(0, outputSize);
         final SHAKEDigest digest = new SHAKEDigest(SHAKE_256_LENGTH_BITS);
@@ -361,7 +361,7 @@ public final class OtrCryptoEngine4 {
      * @param random SecureRandom instance
      * @return Returns a newly generated random value.
      */
-    public static Scalar generateRandomValueInZq(@Nonnull final SecureRandom random) {
+    public static Scalar generateRandomValueInZq(final SecureRandom random) {
         final byte[] value = randomBytes(random, new byte[SCALAR_LENGTH_BYTES]);
         final byte[] h = new byte[SCALAR_LENGTH_BYTES];
         final SHAKEDigest digest = new SHAKEDigest(SHAKE_256_LENGTH_BITS);
@@ -381,7 +381,7 @@ public final class OtrCryptoEngine4 {
      * @return Returns derived scalar value.
      */
     @Nonnull
-    public static Scalar hashToScalar(@Nonnull final KDFUsage usageID, @Nonnull final byte[]... d) {
+    public static Scalar hashToScalar(final KDFUsage usageID, final byte[]... d) {
         // "Compute h = KDF_1(d, 64) as an unsigned value, little-endian."
         final byte[] h = hwc(usageID, HASH_TO_SCALAR_LENGTH_BYTES, d);
         try {
@@ -398,7 +398,7 @@ public final class OtrCryptoEngine4 {
      * @param point EdDSA public key, represented as Point.
      * @throws OtrCryptoException Thrown in case point is illegal, i.e. does not lie on the Ed448-Goldilocks curve.
      */
-    public static void verifyEdDSAPublicKey(@Nonnull final Point point) throws OtrCryptoException {
+    public static void verifyEdDSAPublicKey(final Point point) throws OtrCryptoException {
         if (!containsPoint(point)) {
             throw new OtrCryptoException("Illegal public key.");
         }
@@ -412,7 +412,7 @@ public final class OtrCryptoEngine4 {
      * @throws OtrCryptoException Throws in case of bytes contain invalid data.
      */
     @Nonnull
-    public static Point decodePoint(@Nonnull final byte[] pointBytes) throws OtrCryptoException {
+    public static Point decodePoint(final byte[] pointBytes) throws OtrCryptoException {
         try {
             return Point.decodePoint(pointBytes);
         } catch (final ValidationException ex) {
@@ -429,7 +429,7 @@ public final class OtrCryptoEngine4 {
      * @return Returns the derived extra symmetric key.
      */
     @Nonnull
-    public static byte[] deriveExtraSymmetricKey(final int index, @Nonnull final byte[] context, @Nonnull final byte[] baseKey) {
+    public static byte[] deriveExtraSymmetricKey(final int index, final byte[] context, final byte[] baseKey) {
         final byte[] idx = {(byte) (index & 0xff), (byte) ((index >>> 8) & 0xff)};
         requireLengthExactly(EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES, context);
         requireLengthExactly(EXTRA_SYMMETRIC_KEY_LENGTH_BYTES, baseKey);
@@ -452,7 +452,7 @@ public final class OtrCryptoEngine4 {
      * @return Returns the encrypted content.
      */
     @Nonnull
-    public static byte[] encrypt(@Nonnull final byte[] mkEnc, @Nonnull final byte[] message) {
+    public static byte[] encrypt(final byte[] mkEnc, final byte[] message) {
         requireLengthAtLeast(CHACHA20_KEY_LENGTH_BYTES, mkEnc);
         requireNonNull(message);
         final byte[] key = Arrays.copyOf(mkEnc, CHACHA20_KEY_LENGTH_BYTES);
@@ -478,7 +478,7 @@ public final class OtrCryptoEngine4 {
      * @return Returns the decrypted (plaintext) content.
      */
     @Nonnull
-    public static byte[] decrypt(@Nonnull final byte[] mkEnc, @Nonnull final byte[] ciphertext) {
+    public static byte[] decrypt(final byte[] mkEnc, final byte[] ciphertext) {
         requireLengthAtLeast(CHACHA20_KEY_LENGTH_BYTES, mkEnc);
         requireNonNull(ciphertext);
         final byte[] key = Arrays.copyOf(mkEnc, CHACHA20_KEY_LENGTH_BYTES);
@@ -509,8 +509,8 @@ public final class OtrCryptoEngine4 {
      */
     @SuppressWarnings ({"PMD.FormalParameterNamingConventions", "PMD.LocalVariableNamingConventions"})
     @Nonnull
-    public static Sigma ringSign(@Nonnull final SecureRandom random, @Nonnull final EdDSAKeyPair longTermKeyPair,
-            @Nonnull final Point A1, @Nonnull final Point A2, @Nonnull final Point A3, @Nonnull final byte[] m) {
+    public static Sigma ringSign(final SecureRandom random, final EdDSAKeyPair longTermKeyPair, final Point A1,
+            final Point A2, final Point A3, final byte[] m) {
         if (!containsPoint(longTermKeyPair.getPublicKey()) || !containsPoint(A1) || !containsPoint(A2) || !containsPoint(A3)) {
             throw new IllegalArgumentException("Illegal point provided. Points need to be on curve Ed448.");
         }
@@ -599,8 +599,8 @@ public final class OtrCryptoEngine4 {
      *                            value.
      */
     @SuppressWarnings ({"PMD.FormalParameterNamingConventions", "PMD.LocalVariableNamingConventions"})
-    public static void ringVerify(@Nonnull final Point A1, @Nonnull final Point A2, @Nonnull final Point A3,
-            @Nonnull final Sigma sigma, @Nonnull final byte[] m) throws OtrCryptoException {
+    public static void ringVerify(final Point A1, final Point A2, final Point A3, final Sigma sigma, final byte[] m)
+            throws OtrCryptoException {
         if (!containsPoint(A1) || !containsPoint(A2) || !containsPoint(A3)) {
             throw new OtrCryptoException("One of the public keys is invalid.");
         }
@@ -646,8 +646,8 @@ public final class OtrCryptoEngine4 {
         private final Scalar c3;
         private final Scalar r3;
 
-        private Sigma(@Nonnull final Scalar c1, @Nonnull final Scalar r1, @Nonnull final Scalar c2,
-                @Nonnull final Scalar r2, @Nonnull final Scalar c3, @Nonnull final Scalar r3) {
+        private Sigma(final Scalar c1, final Scalar r1, final Scalar c2, final Scalar r2, final Scalar c3,
+                final Scalar r3) {
             this.c1 = requireNonNull(c1);
             this.r1 = requireNonNull(r1);
             this.c2 = requireNonNull(c2);
@@ -663,7 +663,7 @@ public final class OtrCryptoEngine4 {
          * @return Returns sigma as parsed from the data.
          * @throws ProtocolException In case of failure to read sigma from input.
          */
-        public static Sigma readFrom(@Nonnull final OtrInputStream in) throws ProtocolException {
+        public static Sigma readFrom(final OtrInputStream in) throws ProtocolException {
             final Scalar c1 = in.readScalar();
             final Scalar r1 = in.readScalar();
             final Scalar c2 = in.readScalar();
@@ -679,7 +679,7 @@ public final class OtrCryptoEngine4 {
          * @param out The output stream.
          */
         @Override
-        public void writeTo(@Nonnull final OtrOutputStream out) {
+        public void writeTo(final OtrOutputStream out) {
             out.writeScalar(this.c1);
             out.writeScalar(this.r1);
             out.writeScalar(this.c2);
@@ -694,7 +694,7 @@ public final class OtrCryptoEngine4 {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (getClass() != o.getClass()) {
                 return false;
             }
             final Sigma sigma = (Sigma) o;

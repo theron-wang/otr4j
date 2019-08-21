@@ -1469,7 +1469,7 @@ public class SessionTest {
         }
 
         @Override
-        public boolean test(@Nonnull final String s) {
+        public boolean test(final String s) {
             return s.length() <= maximum;
         }
     }
@@ -1503,8 +1503,8 @@ public class SessionTest {
 
         private int messageSize = MAX_VALUE;
 
-        private Client(@Nonnull final String id, @Nonnull final SessionID sessionID, @Nonnull final OtrPolicy policy,
-                @Nonnull final BlockingSubmitter<String> sendChannel, @Nonnull final BlockingQueue<String> receiptChannel) {
+        private Client(final String id, final SessionID sessionID, final OtrPolicy policy,
+                final BlockingSubmitter<String> sendChannel, final BlockingQueue<String> receiptChannel) {
             this.logger = Logger.getLogger(Client.class.getName() + ":" + id);
             this.receiptChannel = requireNonNull(receiptChannel);
             this.sendChannel = requireNonNull(sendChannel);
@@ -1539,11 +1539,11 @@ public class SessionTest {
             return results.toArray(new String[0]);
         }
 
-        void sendMessage(@Nonnull final String msg) throws OtrException {
+        void sendMessage(final String msg) throws OtrException {
             this.sendChannel.addAll(asList(this.session.transformSending(msg)));
         }
 
-        void sendMessage(@Nonnull final String msg, final int index) throws OtrException {
+        void sendMessage(final String msg, final int index) throws OtrException {
             this.sendChannel.addAll(asList(this.session.getInstances().get(index).transformSending(msg)));
         }
 
@@ -1552,118 +1552,119 @@ public class SessionTest {
         }
 
         @Override
-        public void injectMessage(@Nonnull final SessionID sessionID, @Nonnull final String msg) {
+        public void injectMessage(final SessionID sessionID, final String msg) {
             this.sendChannel.add(msg);
         }
 
         @Override
-        public void unreadableMessageReceived(@Nonnull final SessionID sessionID) {
+        public void unreadableMessageReceived(final SessionID sessionID) {
             logger.finest("Unreadable message received. (Session: " + sessionID + ")");
         }
 
         @Override
-        public void unencryptedMessageReceived(@Nonnull final SessionID sessionID, @Nonnull final String msg) {
+        public void unencryptedMessageReceived(final SessionID sessionID, final String msg) {
             logger.finest("Message received unencrypted: " + msg + " (Session: " + sessionID + ")");
         }
 
         @Override
-        public void showError(@Nonnull final SessionID sessionID, @Nonnull final String error) {
+        public void showError(final SessionID sessionID, final String error) {
             logger.finest("OTR received an error: " + error + " (Session: " + sessionID + ")");
         }
 
         @Override
-        public void finishedSessionMessage(@Nonnull final SessionID sessionID, @Nonnull final String msgText) {
+        public void finishedSessionMessage(final SessionID sessionID, final String msgText) {
             logger.finest("Encrypted session finished. (Session: " + sessionID + ")");
         }
 
         @Override
-        public void requireEncryptedMessage(@Nonnull final SessionID sessionID, @Nonnull final String msgText) {
+        public void requireEncryptedMessage(final SessionID sessionID, final String msgText) {
             logger.finest("Encrypted message is required. (Session: " + sessionID + "). Sent in plain text: " + msgText);
         }
 
         @Override
-        public OtrPolicy getSessionPolicy(@Nonnull final SessionID sessionID) {
+        public OtrPolicy getSessionPolicy(final SessionID sessionID) {
             return this.policy;
         }
 
         @Override
-        public int getMaxFragmentSize(@Nonnull final SessionID sessionID) {
+        public int getMaxFragmentSize(final SessionID sessionID) {
             return this.messageSize;
         }
 
         @Nonnull
         @Override
-        public DSAKeyPair getLocalKeyPair(@Nonnull final SessionID sessionID) {
+        public DSAKeyPair getLocalKeyPair(final SessionID sessionID) {
             return this.dsaKeyPair;
         }
 
         @Nonnull
         @Override
-        public EdDSAKeyPair getLongTermKeyPair(@Nonnull final SessionID sessionID) {
+        public EdDSAKeyPair getLongTermKeyPair(final SessionID sessionID) {
             return this.ed448KeyPair;
         }
 
         @Nonnull
         @Override
-        public ClientProfile getClientProfile(@Nonnull final SessionID sessionID) {
+        public ClientProfile getClientProfile(final SessionID sessionID) {
             return this.profile;
         }
 
         @Override
-        public void askForSecret(@Nonnull final SessionID sessionID, @Nonnull final InstanceTag receiverTag, @Nullable final String question) {
+        public void askForSecret(final SessionID sessionID, final InstanceTag receiverTag, @Nullable final String question) {
             logger.finest("A request for the secret was received. (Question: " + question + ") [NOT IMPLEMENTED, LOGGING ONLY]");
         }
 
         @Nonnull
         @Override
-        public byte[] getLocalFingerprintRaw(@Nonnull final SessionID sessionID) {
+        public byte[] getLocalFingerprintRaw(final SessionID sessionID) {
             return OtrCryptoEngine.getFingerprintRaw(this.dsaKeyPair.getPublic());
         }
 
         @Override
-        public void smpError(@Nonnull final SessionID sessionID, final int tlvType, final boolean cheated) {
+        public void smpError(final SessionID sessionID, final int tlvType, final boolean cheated) {
             logger.finest("SMP process resulted in error. (TLV type: " + tlvType + ", cheated: " + cheated + ", session: " + sessionID + ")");
         }
 
         @Override
-        public void smpAborted(@Nonnull final SessionID sessionID) {
+        public void smpAborted(final SessionID sessionID) {
             logger.finest("SMP process is aborted. (Session: " + sessionID + ")");
         }
 
         @Override
-        public void verify(@Nonnull final SessionID sessionID, @Nonnull final String fingerprint) {
+        public void verify(final SessionID sessionID, final String fingerprint) {
             logger.finest("Verifying fingerprint " + fingerprint + " (Session: " + sessionID + ")");
             this.verified.add(fingerprint);
         }
 
         @Override
-        public void unverify(@Nonnull final SessionID sessionID, @Nonnull final String fingerprint) {
+        public void unverify(final SessionID sessionID, final String fingerprint) {
             logger.finest("Invalidating fingerprint " + fingerprint + " (Session: " + sessionID + ")");
             this.verified.remove(fingerprint);
         }
 
         @Override
-        public String getReplyForUnreadableMessage(@Nonnull final SessionID sessionID, @Nonnull final String identifier) {
+        public String getReplyForUnreadableMessage(final SessionID sessionID, final String identifier) {
             return "The message is unreadable. (Session: " + sessionID + ")";
         }
 
         @Override
-        public String getFallbackMessage(@Nonnull final SessionID sessionID) {
+        public String getFallbackMessage(final SessionID sessionID) {
             return null;
         }
 
         @Override
-        public void messageFromAnotherInstanceReceived(@Nonnull final SessionID sessionID) {
+        public void messageFromAnotherInstanceReceived(final SessionID sessionID) {
             logger.finest("Message from another instance received. (Session: " + sessionID + ")");
         }
 
         @Override
-        public void multipleInstancesDetected(@Nonnull final SessionID sessionID) {
+        public void multipleInstancesDetected(final SessionID sessionID) {
             logger.finest("Multiple instances detected. (Session: " + sessionID + ")");
         }
 
         @Override
-        public void extraSymmetricKeyDiscovered(@Nonnull final SessionID sessionID, @Nonnull final String message, @Nonnull final byte[] extraSymmetricKey, @Nonnull final byte[] tlvData) {
+        public void extraSymmetricKeyDiscovered(final SessionID sessionID, final String message,
+                final byte[] extraSymmetricKey, final byte[] tlvData) {
             logger.finest("Extra symmetric key TLV discovered in encoded message. (Session: " + sessionID + ")");
         }
 
@@ -1674,7 +1675,7 @@ public class SessionTest {
         }
 
         @Override
-        public void publishClientProfilePayload(@Nonnull final byte[] payload) {
+        public void publishClientProfilePayload(final byte[] payload) {
             // No need to do anything as we don't publish in this test dummy.
         }
     }

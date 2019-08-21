@@ -13,7 +13,6 @@ import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import org.junit.runner.RunWith;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ProtocolException;
@@ -27,7 +26,7 @@ import static org.junit.Assume.assumeNoException;
 public class MessageParserDriver {
 
     @Fuzz
-    public void fuzzMessage(@Nonnull final InputStream input) throws IOException {
+    public void fuzzMessage(final InputStream input) throws IOException {
         final byte[] data = new byte[4096];
         final int count = input.read(data);
         try {

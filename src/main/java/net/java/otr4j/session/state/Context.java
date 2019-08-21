@@ -47,7 +47,7 @@ public interface Context extends AuthContext {
      * @param msg message
      * @throws OtrException Throws in case of problems while injecting message.
      */
-    void injectMessage(@Nonnull Message msg) throws OtrException;
+    void injectMessage(Message msg) throws OtrException;
 
     /**
      * Get ID of current session.
@@ -86,7 +86,7 @@ public interface Context extends AuthContext {
      * @param fromState the current state instance - will be cleared after transitioning
      * @param toState   the new state instance - will become current after transitioning
      */
-    void transition(@Nonnull State fromState, @Nonnull State toState);
+    void transition(State fromState, State toState);
 
     /**
      * Get sender (our) instance tag.
@@ -148,5 +148,5 @@ public interface Context extends AuthContext {
      *
      * @param message the message to be queued.
      */
-    void queueMessage(@Nonnull final String message);
+    void queueMessage(final String message);
 }

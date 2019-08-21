@@ -44,8 +44,8 @@ public final class SignatureM implements OtrEncodable {
      * @param localLongTermPublicKey The local long-term DSA public key
      * @param keyPairID              The key pair ID
      */
-    public SignatureM(@Nonnull final DHPublicKey localPubKey, @Nonnull final DHPublicKey remotePublicKey,
-            @Nonnull final DSAPublicKey localLongTermPublicKey, final int keyPairID) {
+    public SignatureM(final DHPublicKey localPubKey, final DHPublicKey remotePublicKey,
+            final DSAPublicKey localLongTermPublicKey, final int keyPairID) {
         this.localPubKey = requireNonNull(localPubKey);
         this.remotePubKey = requireNonNull(remotePublicKey);
         this.localLongTermPubKey = requireNonNull(localLongTermPublicKey);
@@ -68,9 +68,6 @@ public final class SignatureM implements OtrEncodable {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
-            return false;
-        }
         if (getClass() != obj.getClass()) {
             return false;
         }
@@ -88,7 +85,7 @@ public final class SignatureM implements OtrEncodable {
     }
 
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream out) {
+    public void writeTo(final OtrOutputStream out) {
         out.writeBigInt(this.localPubKey.getY());
         out.writeBigInt(this.remotePubKey.getY());
         out.writePublicKey(this.localLongTermPubKey);

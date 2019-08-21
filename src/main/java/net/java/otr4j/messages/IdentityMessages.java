@@ -12,8 +12,6 @@ package net.java.otr4j.messages;
 import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.crypto.OtrCryptoException;
 
-import javax.annotation.Nonnull;
-
 import static net.java.otr4j.crypto.DHKeyPairs.verifyDHPublicKey;
 import static net.java.otr4j.crypto.ed448.ECDHKeyPairs.verifyECDHPublicKey;
 import static net.java.otr4j.messages.Validators.validateEquals;
@@ -35,7 +33,7 @@ public final class IdentityMessages {
      *                     independently such that we can avoid validating the profile multiple times.
      * @throws ValidationException Validation failure of parts of the Identity message.
      */
-    public static void validate(@Nonnull final IdentityMessage message, @Nonnull final ClientProfile theirProfile)
+    public static void validate(final IdentityMessage message, final ClientProfile theirProfile)
             throws ValidationException {
         validateEquals(message.senderTag, theirProfile.getInstanceTag(), "Sender instance tag does not match with owner instance tag in client profile.");
         try {

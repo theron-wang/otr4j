@@ -27,7 +27,7 @@ public final class Strings {
      * @return Joint string.
      */
     @Nonnull
-    public static String join(@Nonnull final String... parts) {
+    public static String join(final String... parts) {
         final StringBuilder builder = new StringBuilder();
         for (final String part : parts) {
             builder.append(part);

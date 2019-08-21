@@ -81,10 +81,9 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
 
     private long lastMessageSentTimestamp = System.nanoTime();
 
-    StateEncrypted4(@Nonnull final Context context, @Nonnull final byte[] ssid,
-            @Nonnull final Point ourLongTermPublicKey, @Nonnull final Point ourForgingKey,
-            @Nonnull final Point theirLongTermPublicKey, @Nonnull final Point theirForgingKey,
-            @Nonnull final DoubleRatchet ratchet, @Nonnull final AuthState authState) {
+    StateEncrypted4(final Context context, final byte[] ssid, final Point ourLongTermPublicKey,
+            final Point ourForgingKey, final Point theirLongTermPublicKey, final Point theirForgingKey,
+            final DoubleRatchet ratchet, final AuthState authState) {
         super(authState);
         final SessionID sessionID = context.getSessionID();
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
@@ -95,7 +94,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
 
     @Nonnull
     @Override
-    public String handlePlainTextMessage(@Nonnull final Context context, @Nonnull final PlainTextMessage message) {
+    public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
         unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
         return super.handlePlainTextMessage(context, message);
@@ -142,14 +141,14 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
 
     @Nonnull
     @Override
-    public DataMessage4 transformSending(@Nonnull final Context context, @Nonnull final String msgText,
-            @Nonnull final Iterable<TLV> tlvs, final byte flags) {
+    public DataMessage4 transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
+            final byte flags) {
         return transformSending(context, msgText, tlvs, flags, new byte[0]);
     }
 
     @Nonnull
-    private DataMessage4 transformSending(@Nonnull final Context context, @Nonnull final String msgText,
-            @Nonnull final Iterable<TLV> tlvs, final byte flags, @Nonnull final byte[] providedMACsToReveal) {
+    private DataMessage4 transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
+            final byte flags, final byte[] providedMACsToReveal) {
         assert providedMACsToReveal.length == 0 || !allZeroBytes(providedMACsToReveal)
                 : "BUG: expected providedMACsToReveal to contains some non-zero values.";
         // Perform ratchet if necessary, possibly collecting MAC codes to reveal.
@@ -185,8 +184,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     }
 
     @Override
-    void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
-            throws OtrException {
+    void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException {
         if (message instanceof IdentityMessage) {
             try {
                 handleIdentityMessage(context, (IdentityMessage) message);
@@ -201,7 +199,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
 
     @Nullable
     @Override
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage message) {
+    String handleDataMessage(final Context context, final DataMessage message) {
         throw new IllegalStateException("BUG: OTRv4 encrypted message state does not handle OTRv2/OTRv3 data messages.");
     }
 
@@ -209,8 +207,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     // FIXME write tests for SMP_ABORT sets UNREADABLE flag, SMP payload corrupted, SMP payload incomplete, ...
     @Nullable
     @Override
-    String handleDataMessage(@Nonnull final Context context, @Nonnull final DataMessage4 message)
-            throws OtrException, ProtocolException {
+    String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException, ProtocolException {
         if (message.j == 0) {
             if (message.i < this.ratchet.getI()) {
                 // Ratchet ID < our current ratchet ID. This is technically impossible, so should not be supported.
@@ -306,7 +303,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     }
 
     @Override
-    public void end(@Nonnull final Context context) throws OtrException {
+    public void end(final Context context) throws OtrException {
         // Note: although we send a TLV 1 (DISCONNECT) here, we should not reveal remaining MACs.
         final TLV disconnectTlv = new TLV(DISCONNECTED, new byte[0]);
         final AbstractEncodedMessage m = transformSending(context, "", singletonList(disconnectTlv), FLAG_IGNORE_UNREADABLE);
@@ -320,7 +317,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     }
 
     @Override
-    public void expire(@Nonnull final Context context) throws OtrException {
+    public void expire(final Context context) throws OtrException {
         final TLV disconnectTlv = new TLV(DISCONNECTED, TLV.EMPTY_BODY);
         final DataMessage4 m = transformSending(context, "", singleton(disconnectTlv), FLAG_IGNORE_UNREADABLE,
                 this.ratchet.collectRemainingMACsToReveal());

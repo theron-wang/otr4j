@@ -28,7 +28,6 @@ import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.session.ake.AuthState;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
@@ -49,13 +48,13 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractOTR4State.class.getName());
 
-    AbstractOTR4State(@Nonnull final AuthState authState) {
+    AbstractOTR4State(final AuthState authState) {
         super(authState);
     }
 
     @Nullable
     @Override
-    public String handleEncodedMessage(@Nonnull final Context context, @Nonnull final EncodedMessage message) throws OtrException {
+    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws OtrException {
         if (message.version != FOUR) {
             // FIXME is it going to be an issue if we always delegate on message != OTRv4, even if (*OTRv4*) DAKE in progress/finished?
             return super.handleEncodedMessage(context, message);
@@ -94,8 +93,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
      * @throws OtrException                                In case of failure to inject message into the network.
      */
     @ForOverride
-    abstract void handleAKEMessage(@Nonnull final Context context, @Nonnull final AbstractEncodedMessage message)
-            throws OtrException;
+    abstract void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException;
 
     /**
      * Common implementation for handling OTRv4 Identity message that is shared among states.
@@ -104,8 +102,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
      * @param message the Identity message to be processed
      * @throws net.java.otr4j.messages.ValidationException In case of failure to validate received Identity message.
      */
-    void handleIdentityMessage(@Nonnull final Context context, @Nonnull final IdentityMessage message)
-            throws OtrException {
+    void handleIdentityMessage(final Context context, final IdentityMessage message) throws OtrException {
         final ClientProfile theirClientProfile = message.clientProfile.validate();
         validate(message, theirClientProfile);
         final ClientProfilePayload profile = context.getClientProfilePayload();
@@ -140,8 +137,8 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
     }
 
     @Override
-    public void initiateAKE(@Nonnull final Context context, final int version,
-            @Nonnull final InstanceTag receiverInstanceTag) throws OtrException {
+    public void initiateAKE(final Context context, final int version, final InstanceTag receiverInstanceTag)
+            throws OtrException {
         if (version != FOUR) {
             super.initiateAKE(context, version, receiverInstanceTag);
             return;
@@ -171,9 +168,9 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
      * @param ourLongTermPublicKey   our long-term public key as used in the DAKE
      * @param theirLongTermPublicKey their long-term public key as used in the DAKE
      */
-    final void secure(@Nonnull final Context context, @Nonnull final byte[] ssid, @Nonnull final DoubleRatchet ratchet,
-            @Nonnull final Point ourLongTermPublicKey, @Nonnull final Point ourForgingKey,
-            @Nonnull final Point theirLongTermPublicKey, @Nonnull final Point theirForgingKey) {
+    final void secure(final Context context, final byte[] ssid, final DoubleRatchet ratchet,
+            final Point ourLongTermPublicKey, final Point ourForgingKey, final Point theirLongTermPublicKey,
+            final Point theirForgingKey) {
         context.transition(this, new StateEncrypted4(context, ssid, ourLongTermPublicKey, ourForgingKey,
                 theirLongTermPublicKey, theirForgingKey, ratchet, getAuthState()));
         if (context.getSessionStatus() != ENCRYPTED) {
@@ -192,6 +189,5 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
      */
     @ForOverride
     @Nullable
-    abstract String handleDataMessage(@Nonnull final Context context, @Nonnull DataMessage4 message)
-            throws ProtocolException, OtrException;
+    abstract String handleDataMessage(Context context, DataMessage4 message) throws ProtocolException, OtrException;
 }

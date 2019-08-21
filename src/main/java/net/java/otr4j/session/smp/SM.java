@@ -68,31 +68,31 @@ final class SM implements AutoCloseable {
      *
      * @param sr secure random instance
      */
-    SM(@Nonnull final SecureRandom sr) {
+    SM(final SecureRandom sr) {
         this.state = new StateExpect1(sr);
     }
 
-    void setState(@Nonnull final AbstractSMPState state) {
+    void setState(final AbstractSMPState state) {
         LOGGER.log(Level.FINER, "Updating SMP state to: {0}", state);
         this.state = Objects.requireNonNull(state);
     }
 
     @Nonnull
-    static BigInteger hash(final int version, @Nonnull final BigInteger a) {
+    static BigInteger hash(final int version, final BigInteger a) {
         final byte[] digest = sha256Hash(new byte[] {(byte) version},
                 new OtrOutputStream().writeBigInt(a).toByteArray());
         return new BigInteger(1, digest);
     }
 
     @Nonnull
-    static BigInteger hash(final int version, @Nonnull final BigInteger a, @Nonnull final BigInteger b) {
+    static BigInteger hash(final int version, final BigInteger a, final BigInteger b) {
         final byte[] digest = sha256Hash(new byte[] {(byte) version},
                 new OtrOutputStream().writeBigInt(a).writeBigInt(b).toByteArray());
         return new BigInteger(1, digest);
     }
 
     @Nonnull
-    static byte[] serialize(@Nonnull final BigInteger[] ints) {
+    static byte[] serialize(final BigInteger[] ints) {
         final OtrOutputStream serialization = new OtrOutputStream().writeInt(ints.length);
         for (final BigInteger i : ints) {
             serialization.writeBigInt(i);
@@ -101,7 +101,7 @@ final class SM implements AutoCloseable {
     }
 
     @Nonnull
-    static BigInteger[] deserialize(@Nonnull final byte[] bytes) throws SMException {
+    static BigInteger[] deserialize(final byte[] bytes) throws SMException {
         try {
             final OtrInputStream in = new OtrInputStream(bytes);
             final int len = in.readInt();
@@ -179,7 +179,7 @@ final class SM implements AutoCloseable {
      * exchange.
      */
     @Nonnull
-    byte[] step1(@Nonnull final byte[] secret) throws SMException {
+    byte[] step1(final byte[] secret) throws SMException {
         LOGGER.fine("Initiating SMP exchange.");
         // startSMP is solely controlled by the local user. In case an exception
         // occurs here, it is related to a programming error.
@@ -196,7 +196,7 @@ final class SM implements AutoCloseable {
      * @throws SMException Thrown in case of abort or failure to process SMP
      * message.
      */
-    void step2a(@Nonnull final byte[] input) throws SMException {
+    void step2a(final byte[] input) throws SMException {
         LOGGER.fine("Received SMP exchange initiation request.");
         try {
             this.state.smpMessage1a(this, input);
@@ -231,7 +231,7 @@ final class SM implements AutoCloseable {
      * on abort.
      */
     @Nonnull
-    byte[] step2b(@Nonnull final byte[] secret) throws SMException {
+    byte[] step2b(final byte[] secret) throws SMException {
         LOGGER.fine("Continuing SMP exchange initiation reply after receiving data from OtrEngineHost.");
         try {
             return this.state.smpMessage1b(this, secret);
@@ -263,7 +263,7 @@ final class SM implements AutoCloseable {
      * in case of abort.
      */
     @Nonnull
-    byte[] step3(@Nonnull final byte[] input) throws SMException {
+    byte[] step3(final byte[] input) throws SMException {
         LOGGER.fine("Received reply to SMP exchange initiation request. Sending final message in SMP exchange.");
         try {
             return this.state.smpMessage2(this, input);
@@ -295,7 +295,7 @@ final class SM implements AutoCloseable {
      * in case of abort.
      */
     @Nonnull
-    byte[] step4(@Nonnull final byte[] input) throws SMException {
+    byte[] step4(final byte[] input) throws SMException {
         LOGGER.fine("Received final SMP response. Concluding SMP exchange and sending final response.");
         try {
             return this.state.smpMessage3(this, input);
@@ -322,7 +322,7 @@ final class SM implements AutoCloseable {
      * @param input The final SMP message to be received.
      * @throws SMException Thrown in case of failure to process SMP message or in case of abort.
      */
-    void step5(@Nonnull final byte[] input) throws SMException {
+    void step5(final byte[] input) throws SMException {
         LOGGER.fine("Received final SMP response. Concluding SMP exchange.");
         try {
             this.state.smpMessage4(this, input);

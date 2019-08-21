@@ -68,7 +68,7 @@ public class ConditionalBlockingQueueTest {
     private static final class AlwaysFalse<T> implements ConditionalBlockingQueue.Predicate<T> {
 
         @Override
-        public boolean test(@Nonnull final Object o) {
+        public boolean test(final Object o) {
             return false;
         }
     }

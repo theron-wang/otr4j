@@ -90,7 +90,7 @@ public final class DataMessage4 extends AbstractEncodedMessage {
      * @param original      the original DataMessage4 instance
      * @param authenticator the substitute authenticator
      */
-    public DataMessage4(@Nonnull final DataMessage4 original, @Nonnull final byte[] authenticator) {
+    public DataMessage4(final DataMessage4 original, final byte[] authenticator) {
         this(original.protocolVersion, original.senderTag, original.receiverTag, original.flags,
                 original.pn, original.i, original.j, original.ecdhPublicKey, original.dhPublicKey,
                 original.ciphertext, authenticator, original.revealedMacs);
@@ -112,10 +112,10 @@ public final class DataMessage4 extends AbstractEncodedMessage {
      * @param authenticator       the authenticator code
      * @param revealedMacs        the revealed MAC keys
      */
-    public DataMessage4(final int protocolVersion, @Nonnull final InstanceTag senderInstanceTag,
-            @Nonnull final InstanceTag receiverInstanceTag, final byte flags, final int pn, final int i, final int j,
-            @Nonnull final Point ecdhPublicKey, @Nullable final BigInteger dhPublicKey,
-            @Nonnull final byte[] ciphertext, @Nonnull final byte[] authenticator, @Nonnull final byte[] revealedMacs) {
+    public DataMessage4(final int protocolVersion, final InstanceTag senderInstanceTag,
+            final InstanceTag receiverInstanceTag, final byte flags, final int pn, final int i, final int j,
+            final Point ecdhPublicKey, @Nullable final BigInteger dhPublicKey, final byte[] ciphertext,
+            final byte[] authenticator, final byte[] revealedMacs) {
         super(requireInRange(Version.FOUR, Version.FOUR, protocolVersion), senderInstanceTag, receiverInstanceTag);
         this.flags = flags;
         this.pn = pn;
@@ -138,7 +138,7 @@ public final class DataMessage4 extends AbstractEncodedMessage {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (getClass() != o.getClass()) {
             return false;
         }
         if (!super.equals(o)) {
@@ -164,7 +164,7 @@ public final class DataMessage4 extends AbstractEncodedMessage {
 
     @SuppressWarnings({"MethodDoesntCallSuperMethod", "MissingSuperCall"})
     @Override
-    public void writeTo(@Nonnull final OtrOutputStream writer) {
+    public void writeTo(final OtrOutputStream writer) {
         // Intentionally not calling `super.writeTo(writer)`. It is already called in `writeDataMessageSections`.
         writeDataMessageSections(writer);
         assert !allZeroBytes(this.authenticator) : "BUG: the chance for an all zero-bytes authenticator is extremely low. Verify if the authenticator is embedded into the message after it has been generated.";
@@ -177,7 +177,7 @@ public final class DataMessage4 extends AbstractEncodedMessage {
      *
      * @param writer the output stream to write to.
      */
-    void writeDataMessageSections(@Nonnull final OtrOutputStream writer) {
+    void writeDataMessageSections(final OtrOutputStream writer) {
         super.writeTo(writer);
         writer.writeByte(this.flags);
         writer.writeInt(this.pn);

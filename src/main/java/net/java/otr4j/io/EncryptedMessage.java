@@ -42,7 +42,7 @@ public final class EncryptedMessage {
      * @throws ProtocolException In case of incomplete or bad message bytes.
      */
     @Nonnull
-    public static Content extractContents(@Nonnull final byte[] messageBytes) throws ProtocolException {
+    public static Content extractContents(final byte[] messageBytes) throws ProtocolException {
 
         // find the null TLV separator in the package, or just use the end value
         int tlvIndex = messageBytes.length;
@@ -84,7 +84,7 @@ public final class EncryptedMessage {
          */
         public final List<TLV> tlvs;
 
-        private Content(@Nonnull final String message, @Nonnull final List<TLV> tlvs) {
+        private Content(final String message, final List<TLV> tlvs) {
             this.message = requireNonNull(message);
             this.tlvs = requireNonNull(tlvs);
         }

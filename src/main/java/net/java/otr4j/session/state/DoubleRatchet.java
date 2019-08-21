@@ -109,7 +109,7 @@ final class DoubleRatchet implements AutoCloseable {
     private long lastRotation = System.nanoTime();
 
     @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
-    DoubleRatchet(@Nonnull final MixedSharedSecret sharedSecret, @Nonnull final byte[] initialRootKey, @Nonnull final Role role) {
+    DoubleRatchet(final MixedSharedSecret sharedSecret, final byte[] initialRootKey, final Role role) {
         this.sharedSecret = requireNonNull(sharedSecret);
         this.rootKey = requireLengthExactly(ROOT_KEY_LENGTH_BYTES, initialRootKey);
         assert !allZeroBytes(this.rootKey) : "Expected random data, instead of all zero-bytes. There might be something severely wrong.";
@@ -234,7 +234,7 @@ final class DoubleRatchet implements AutoCloseable {
      * @return Returns a composite result consisting of the generated nonce and the ciphertext.
      */
     @Nonnull
-    byte[] encrypt(@Nonnull final byte[] data) {
+    byte[] encrypt(final byte[] data) {
         LOGGER.log(FINEST, "Generating message keys for encryption of ratchet {0}, message {1}.",
                 new Object[]{this.i - 1, this.senderRatchet.messageID});
         try (MessageKeys keys = this.generateSendingKeys()) {
@@ -249,7 +249,7 @@ final class DoubleRatchet implements AutoCloseable {
      * @return Returns authenticator value.
      */
     @Nonnull
-    byte[] authenticate(@Nonnull final byte[] dataMessageSectionsContent) {
+    byte[] authenticate(final byte[] dataMessageSectionsContent) {
         LOGGER.log(FINEST, "Generating message keys for authentication of ratchet {0}, message {1}.",
                 new Object[]{this.i - 1, this.senderRatchet.messageID});
         try (MessageKeys keys = this.generateSendingKeys()) {
@@ -281,9 +281,9 @@ final class DoubleRatchet implements AutoCloseable {
      *                                     occurs when the first message of a new message is missing and therefore we
      *                                     cannot generate the necessary keys.
      */
-    byte[] decrypt(final int ratchetId, final int messageId, @Nonnull final byte[] encodedDataMessageSections,
-            @Nonnull final byte[] authenticator, @Nonnull final byte[] ciphertext)
-            throws VerificationException, RotationLimitationException {
+    byte[] decrypt(final int ratchetId, final int messageId, final byte[] encodedDataMessageSections,
+            final byte[] authenticator, final byte[] ciphertext) throws VerificationException,
+            RotationLimitationException {
         LOGGER.log(FINEST, "Generating message keys for verification and decryption of ratchet {0}, message {1}.",
                 new Object[] {this.i - 1, this.receiverRatchet.messageID});
         try (MessageKeys keys = generateReceivingKeys(ratchetId, messageId)) {
@@ -387,7 +387,7 @@ final class DoubleRatchet implements AutoCloseable {
      */
     // TODO preserve message keys in previous ratchet before rotating away.
     // FIXME need to verify that public keys (ECDH and DH) were not encountered previously.
-    void rotateReceiverKeys(@Nonnull final Point nextECDH, @Nullable final BigInteger nextDH) throws OtrCryptoException {
+    void rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH) throws OtrCryptoException {
         requireNotClosed();
         LOGGER.log(FINEST, "Rotating root key and receiving chain key for ratchet {0} (nextDH = {1})",
                 new Object[]{this.i, nextDH != null});
@@ -407,7 +407,7 @@ final class DoubleRatchet implements AutoCloseable {
         this.i += 1;
     }
 
-    private void generateRatchetKeys(@Nonnull final Purpose purpose) {
+    private void generateRatchetKeys(final Purpose purpose) {
         final byte[] previousRootKey = this.rootKey.clone();
         final byte[] newK = this.sharedSecret.getK();
         final byte[] concatPreviousRootKeyNewK = concatenate(previousRootKey, newK);
@@ -452,7 +452,7 @@ final class DoubleRatchet implements AutoCloseable {
     }
 
     @MustBeClosed
-    private MessageKeys generateMessageKeys(@Nonnull final byte[] chainkey) {
+    private MessageKeys generateMessageKeys(final byte[] chainkey) {
         assert !allZeroBytes(chainkey) : "Expected chainkey of random data instead of all zero-bytes.";
         final byte[] encrypt = kdf(MESSAGE_KEY, MK_ENC_LENGTH_BYTES, chainkey);
         final byte[] extraSymmetricKey = kdf(EXTRA_SYMMETRIC_KEY, EXTRA_SYMMETRIC_KEY_LENGTH_BYTES,
@@ -480,7 +480,7 @@ final class DoubleRatchet implements AutoCloseable {
 
         final byte[] revealedMacs;
 
-        private RotationResult(@Nullable final BigInteger dhPublicKey, @Nonnull final byte[] revealedMacs) {
+        private RotationResult(@Nullable final BigInteger dhPublicKey, final byte[] revealedMacs) {
             this.dhPublicKey = dhPublicKey;
             this.revealedMacs = requireNonNull(revealedMacs);
         }
@@ -545,7 +545,7 @@ final class DoubleRatchet implements AutoCloseable {
         /**
          * Rotate the ratchet key.
          */
-        void rotateKeys(@Nonnull final byte[] concatPreviousRootKeyNewK) {
+        void rotateKeys(final byte[] concatPreviousRootKeyNewK) {
             requireNotClosed();
             this.messageID = 0;
             kdf(this.chainKey, 0, CHAIN_KEY, CHAIN_KEY_LENGTH_BYTES, concatPreviousRootKeyNewK);
@@ -594,7 +594,7 @@ final class DoubleRatchet implements AutoCloseable {
          * @param extraSymmetricKey extra symmetric key
          */
         @MustBeClosed
-        private MessageKeys(@Nonnull final byte[] encrypt, @Nonnull final byte[] extraSymmetricKey) {
+        private MessageKeys(final byte[] encrypt, final byte[] extraSymmetricKey) {
             assert !allZeroBytes(encrypt) : "Expected encryption key of \"random\" data, instead of all zero-bytes.";
             this.encrypt = requireLengthExactly(MK_ENC_LENGTH_BYTES, encrypt);
             assert !allZeroBytes(extraSymmetricKey) : "Expected extra symmetric key of \"random\" data, instead of all zero-bytes.";
@@ -618,7 +618,7 @@ final class DoubleRatchet implements AutoCloseable {
          * @return Returns a result containing the ciphertext and nonce used.
          */
         @Nonnull
-        byte[] encrypt(@Nonnull final byte[] message) {
+        byte[] encrypt(final byte[] message) {
             requireNotClosed();
             return OtrCryptoEngine4.encrypt(this.encrypt, message);
         }
@@ -630,7 +630,7 @@ final class DoubleRatchet implements AutoCloseable {
          * @return Returns the plaintext message.
          */
         @Nonnull
-        byte[] decrypt(@Nonnull final byte[] ciphertext) {
+        byte[] decrypt(final byte[] ciphertext) {
             requireNotClosed();
             return OtrCryptoEngine4.decrypt(this.encrypt, ciphertext);
         }
@@ -648,7 +648,7 @@ final class DoubleRatchet implements AutoCloseable {
          * @return Returns the MAC. (Must be cleared separately.)
          */
         @Nonnull
-        byte[] authenticate(@Nonnull final byte[] dataMessageSections) {
+        byte[] authenticate(final byte[] dataMessageSections) {
             requireNotClosed();
             final byte[] mac = kdf(MAC_KEY, MK_MAC_LENGTH_BYTES, this.encrypt);
             final byte[] authenticator = hcmac(AUTHENTICATOR, AUTHENTICATOR_LENGTH_BYTES, mac, dataMessageSections);
@@ -664,7 +664,7 @@ final class DoubleRatchet implements AutoCloseable {
          * @throws VerificationException In case of failure to verify the authenticator against the data message section
          *                               content.
          */
-        void verify(@Nonnull final byte[] dataMessageSection, @Nonnull final byte[] authenticator)
+        void verify(final byte[] dataMessageSection, final byte[] authenticator)
                 throws VerificationException {
             requireNotClosed();
             final byte[] expectedAuthenticator = authenticate(dataMessageSection);
@@ -702,7 +702,7 @@ final class DoubleRatchet implements AutoCloseable {
 
         private static final long serialVersionUID = -2200918867384812098L;
 
-        private RotationLimitationException(@Nonnull final String message) {
+        private RotationLimitationException(final String message) {
             super(message);
         }
     }
@@ -714,7 +714,7 @@ final class DoubleRatchet implements AutoCloseable {
 
         private static final long serialVersionUID = 2169901253478095348L;
 
-        private VerificationException(@Nonnull final String message) {
+        private VerificationException(final String message) {
             super(message);
         }
     }
