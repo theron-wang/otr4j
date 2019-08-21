@@ -219,10 +219,11 @@ public final class MixedSharedSecret implements AutoCloseable {
         }
         this.theirECDHPublicKey = theirECDHPublicKey;
         if (performDHRatchet) {
-            if (!checkPublicKey(requireNonNull(theirDHPublicKey))) {
+            final BigInteger existingDhPublicKey = requireNonNull(theirDHPublicKey);
+            if (!checkPublicKey(existingDhPublicKey)) {
                 throw new OtrCryptoException("DH public key failed verification.");
             }
-            this.theirDHPublicKey = theirDHPublicKey;
+            this.theirDHPublicKey = existingDhPublicKey;
         }
         regenerateK(performDHRatchet);
         this.ecdhKeyPair.close();

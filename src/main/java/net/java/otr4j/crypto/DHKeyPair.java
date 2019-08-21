@@ -12,6 +12,7 @@ package net.java.otr4j.crypto;
 import com.google.errorprone.annotations.CheckReturnValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
@@ -54,6 +55,7 @@ public final class DHKeyPair implements AutoCloseable {
     /**
      * The secret key of the key pair.
      */
+    @Nullable
     private BigInteger secretKey;
 
     /**
@@ -67,6 +69,7 @@ public final class DHKeyPair implements AutoCloseable {
      *
      * @param r secret data to be used as secret key.
      */
+    @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
     private DHKeyPair(@Nonnull final byte[] r) {
         assert !allZeroBytes(r) : "Expected non-zero bytes for input. This may indicate that a critical bug is present, or it may be a false warning.";
         this.secretKey = new BigInteger(1, requireLengthExactly(DH_PRIVATE_KEY_LENGTH_BYTES, r));

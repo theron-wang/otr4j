@@ -305,6 +305,7 @@ final class SessionImpl implements Session, Context {
      * @param receiverTag   The receiver instance tag. The receiver instance tag is allowed to be ZERO.
      * @param secureRandom  The secure random instance.
      */
+    @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
     private SessionImpl(@Nullable final SessionImpl masterSession,
             @Nonnull final SessionID sessionID,
             @Nonnull final OtrEngineHost host,

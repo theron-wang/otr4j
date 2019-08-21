@@ -30,12 +30,17 @@ final class StateExpect1 extends AbstractSMPState {
 
     private final SMPStatus status;
 
-    final BigInteger x2;
+    @Nullable
+    private final BigInteger x2;
+    @Nullable
     final BigInteger x3;
 
+    @Nullable
     final BigInteger g2;
+    @Nullable
     final BigInteger g3;
 
+    @Nullable
     final BigInteger g3o;
 
     StateExpect1(@Nonnull final SecureRandom sr) {
@@ -136,6 +141,12 @@ final class StateExpect1 extends AbstractSMPState {
             bstate.setState(new StateExpect1(this.secureRandom()));
             throw new SMAbortedException(false,
                     "An SMP exchange initial request was not yet received. There is no question posed that can be answered with a shared secret.");
+        }
+        if (this.x2 == null || this.x3 == null || this.g2 == null || this.g3 == null) {
+            // this case indicates that either state management is bad, or we try to respond with an answer before we
+            // have received a question. The "missing question" case should already be discovered with the status check.
+            // So if we arrive here, in any case it is considered a bug.
+            throw new IllegalStateException("BUG: null field detected. Expected all necessary fields to be present at this time.");
         }
 
         /* Convert the given secret to the proper form and store it */

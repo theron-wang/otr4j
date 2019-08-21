@@ -10,6 +10,7 @@
 package net.java.otr4j.crypto.ed448;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.security.SecureRandom;
 
 import static java.util.Objects.requireNonNull;
@@ -35,6 +36,7 @@ public final class ECDHKeyPair implements AutoCloseable {
      */
     private static final int SECRET_KEY_LENGTH_BYTES = SECRET_KEY_SIZE;
 
+    @Nullable
     private Scalar secretKey;
 
     private final Point publicKey;

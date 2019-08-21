@@ -31,6 +31,7 @@ import static net.java.otr4j.crypto.DHKeyPairOTR3.generateDHKeyPair;
  *
  * @author Danny van Heumen
  */
+@SuppressWarnings("NullAway")
 final class SessionKeyManager implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(SessionKeyManager.class.getName());

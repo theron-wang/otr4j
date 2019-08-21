@@ -9,6 +9,7 @@
 package net.java.otr4j.api;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.logging.Logger;
 
 import static java.util.logging.Level.WARNING;
@@ -136,8 +137,8 @@ public final class OtrEngineHosts {
      * @param sessionID the session ID
      * @return Returns the engine host's customized fallback message or null if request failed with a runtime exception.
      */
-    public static String getFallbackMessage(@Nonnull final OtrEngineHost host,
-            @Nonnull final SessionID sessionID) {
+    @Nullable
+    public static String getFallbackMessage(@Nonnull final OtrEngineHost host, @Nonnull final SessionID sessionID) {
         try {
             return host.getFallbackMessage(sessionID);
         } catch (final RuntimeException e) {

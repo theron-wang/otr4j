@@ -10,6 +10,7 @@
 package net.java.otr4j.util;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import static java.util.Objects.requireNonNull;
 
@@ -51,5 +52,21 @@ public final class Objects {
         if (java.util.Objects.equals(requireNonNull(o1), requireNonNull(o2))) {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    /**
+     * Method for checking internal state.
+     *
+     * @param o   the object to verify
+     * @param <T> the object's type
+     * @return Returns o iff non-null, otherwise throw IllegalStateException.
+     */
+    // FIXME write unit tests
+    @Nonnull
+    public static <T> T expectNonNull(@Nullable final T o) {
+        if (o == null) {
+            throw new IllegalStateException("object is expected to be non-null");
+        }
+        return o;
     }
 }

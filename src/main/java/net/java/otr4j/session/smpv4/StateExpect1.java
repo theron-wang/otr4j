@@ -62,6 +62,7 @@ final class StateExpect1 implements SMPState {
      * The previously received SMPMessage1. This field exists to remember the initiation message in the time we are
      * requesting the local user to provide his answer to the posed question.
      */
+    @Nullable
     private final SMPMessage1 message;
 
     StateExpect1(@Nonnull final SecureRandom random, @Nonnull final SMPStatus status) {

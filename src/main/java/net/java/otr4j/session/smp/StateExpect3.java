@@ -15,6 +15,8 @@ import net.java.otr4j.session.api.SMPStatus;
 import javax.annotation.Nonnull;
 import java.math.BigInteger;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * SMP state in expectation of SMP message 3: Alice's final message in SMP
  * exchange.
@@ -32,10 +34,10 @@ final class StateExpect3 extends AbstractSMPState {
 
     StateExpect3(@Nonnull final StateExpect1 previous, @Nonnull final BigInteger p, @Nonnull final BigInteger q) {
         super(previous.secureRandom());
-        this.x3 = previous.x3;
-        this.g2 = previous.g2;
-        this.g3 = previous.g3;
-        this.g3o = previous.g3o;
+        this.x3 = requireNonNull(previous.x3);
+        this.g2 = requireNonNull(previous.g2);
+        this.g3 = requireNonNull(previous.g3);
+        this.g3o = requireNonNull(previous.g3o);
         this.p = p;
         this.q = q;
     }
@@ -54,7 +56,7 @@ final class StateExpect3 extends AbstractSMPState {
     @Override
     @Nonnull
     byte[] smpMessage3(@Nonnull final SM bstate, @Nonnull final byte[] input) throws SMException {
-        /* Read from input to find the mpis */
+        /* Read from input to find the MPIs */
         final BigInteger[] msg3 = SM.deserialize(input);
 
         final BigInteger[] msg4 = new BigInteger[3];

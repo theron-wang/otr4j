@@ -46,12 +46,14 @@ public final class SignatureX implements OtrEncodable {
      * @param ourKeyID             our key ID
      * @param signature            the corresponding signature
      */
+    @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
     public SignatureX(@Nonnull final DSAPublicKey ourLongTermPublicKey, final int ourKeyID,
             @Nonnull final byte[] signature) {
         this.longTermPublicKey = requireNonNull(ourLongTermPublicKey);
         this.dhKeyID = requireNotEquals(0, ourKeyID);
         this.signature = requireLengthExactly(DSA_SIGNATURE_LENGTH_BYTES, signature);
-        assert !allZeroBytes(this.signature) : "Expected non-zero bytes for signature. This may indicate that a critical bug is present, or it may be a false warning.";
+        assert !allZeroBytes(this.signature)
+                : "Expected non-zero bytes for signature. This may indicate that a critical bug is present, or it may be a false warning.";
     }
 
     /**
