@@ -192,6 +192,7 @@
                         <configuration>
                             <compilerArgs>
                                 <arg>-Xlint:all,-options,-deprecation</arg>
+                                <arg>-Xdoclint:none</arg>
                             </compilerArgs>
                         </configuration>
                     </execution>
