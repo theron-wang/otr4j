@@ -16,7 +16,6 @@ import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.io.OtrOutputStream;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.util.Objects;
 

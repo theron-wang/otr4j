@@ -250,7 +250,7 @@ public final class ScalarTest {
     }
 
     @SuppressWarnings("SimplifiableJUnitAssertion")
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testScalarNotEqualsNull() {
         final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
         assertFalse(scalar.equals(null));

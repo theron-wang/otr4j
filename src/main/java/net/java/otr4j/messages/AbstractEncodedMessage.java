@@ -15,7 +15,6 @@ import net.java.otr4j.io.Message;
 import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrOutputStream;
 
-import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 
 import static java.util.Objects.requireNonNull;

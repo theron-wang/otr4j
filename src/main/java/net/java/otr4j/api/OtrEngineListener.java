@@ -9,8 +9,6 @@
 
 package net.java.otr4j.api;
 
-import javax.annotation.Nonnull;
-
 /**
  * This interface should be implemented by the host application. It notifies
  * about session status changes.
