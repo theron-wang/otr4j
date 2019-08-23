@@ -114,7 +114,7 @@ public final class AuthRMessage extends AbstractEncodedMessage {
         if (this == o) {
             return true;
         }
-        if (getClass() != o.getClass()) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         if (!super.equals(o)) {

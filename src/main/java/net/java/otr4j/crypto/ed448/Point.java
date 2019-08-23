@@ -70,7 +70,7 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
         if (this == o) {
             return true;
         }
-        if (getClass() != o.getClass()) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         final Point point = (Point) o;

@@ -150,7 +150,7 @@ public final class DSAKeyPair {
         if (this == o) {
             return true;
         }
-        if (getClass() != o.getClass()) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         final DSAKeyPair that = (DSAKeyPair) o;
@@ -349,7 +349,7 @@ public final class DSAKeyPair {
             if (this == o) {
                 return true;
             }
-            if (getClass() != o.getClass()) {
+            if (o == null || getClass() != o.getClass()) {
                 return false;
             }
             final DSASignature that = (DSASignature) o;

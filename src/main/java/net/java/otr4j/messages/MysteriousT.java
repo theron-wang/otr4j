@@ -123,7 +123,7 @@ public final class MysteriousT implements OtrEncodable {
         if (this == obj) {
             return true;
         }
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
         final MysteriousT other = (MysteriousT) obj;

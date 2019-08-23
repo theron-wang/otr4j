@@ -68,7 +68,7 @@ public final class SignatureM implements OtrEncodable {
         if (this == obj) {
             return true;
         }
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
         final SignatureM other = (SignatureM) obj;

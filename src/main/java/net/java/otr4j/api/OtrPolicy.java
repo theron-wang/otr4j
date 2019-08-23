@@ -353,7 +353,7 @@ public final class OtrPolicy {
         if (obj == this) {
             return true;
         }
-        if (obj.getClass() != this.getClass()) {
+        if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
         final OtrPolicy policy = (OtrPolicy) obj;

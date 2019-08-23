@@ -14,7 +14,6 @@ import net.java.otr4j.io.Fragment;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.io.MessageProcessor;
 
-import javax.annotation.Nonnull;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.ArrayList;

@@ -96,7 +96,7 @@ public final class SessionID {
         if (this == obj) {
             return true;
         }
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
         final SessionID other = (SessionID) obj;

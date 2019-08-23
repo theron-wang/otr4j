@@ -169,7 +169,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
         if (this == o) {
             return true;
         }
-        if (getClass() != o.getClass()) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         final Scalar scalar = (Scalar) o;

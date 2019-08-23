@@ -74,7 +74,7 @@ public final class ErrorMessage implements Message {
         if (this == obj) {
             return true;
         }
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
         final ErrorMessage other = (ErrorMessage) obj;

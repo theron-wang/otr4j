@@ -60,7 +60,7 @@ public final class SharedSecret implements AutoCloseable {
 
     @Override
     public boolean equals(final Object obj) {
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
         final SharedSecret other = (SharedSecret) obj;

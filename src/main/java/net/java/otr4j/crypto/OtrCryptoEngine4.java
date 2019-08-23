@@ -694,7 +694,7 @@ public final class OtrCryptoEngine4 {
             if (this == o) {
                 return true;
             }
-            if (getClass() != o.getClass()) {
+            if (o == null || getClass() != o.getClass()) {
                 return false;
             }
             final Sigma sigma = (Sigma) o;

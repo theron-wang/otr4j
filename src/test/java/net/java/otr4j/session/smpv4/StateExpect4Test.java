@@ -15,7 +15,6 @@ import net.java.otr4j.crypto.ed448.Scalars;
 import net.java.otr4j.crypto.ed448.ValidationException;
 import org.junit.Test;
 
-import javax.annotation.Nonnull;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 

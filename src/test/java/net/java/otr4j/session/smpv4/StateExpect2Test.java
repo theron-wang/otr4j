@@ -16,7 +16,6 @@ import net.java.otr4j.crypto.ed448.ValidationException;
 import org.bouncycastle.crypto.prng.FixedSecureRandom;
 import org.junit.Test;
 
-import javax.annotation.Nonnull;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 

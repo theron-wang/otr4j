@@ -11,7 +11,6 @@ package net.java.otr4j.util;
 
 import org.junit.Test;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 

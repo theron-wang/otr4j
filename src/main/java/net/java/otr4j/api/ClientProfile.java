@@ -138,7 +138,7 @@ public final class ClientProfile {
         if (this == o) {
             return true;
         }
-        if (getClass() != o.getClass()) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         final ClientProfile that = (ClientProfile) o;

@@ -86,7 +86,7 @@ public final class SignatureX implements OtrEncodable {
 
     @Override
     public boolean equals(final Object obj) {
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
         final SignatureX other = (SignatureX) obj;
