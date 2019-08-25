@@ -30,7 +30,7 @@ _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bo
   - _ Ring Signatures
   - _ SMP for OTRv4
 - _ Support for skipped messages, keeping track of skipped message keys.
-- _ OTRv4 maintenance tasks
+- _ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer></s>, refreshing client profile)
 - _ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive" use cases (including all FIXMEs)
   - _ Full review against the (finalized) OTRv4 spec.  
     _As the specification has been modified during implementation of support in otr4j, a full review against current spec is needed._
