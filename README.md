@@ -163,6 +163,7 @@ _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bo
   - ☑ Introduce checkstyle _ImportControl_ module to guard the design structure
   - ☑ Introduce [ErrorProne](https://errorprone.info/docs/installation).
   - ☑ Introduce thread-safety verified by static analysis. ([ErrorProne: @GuardedBy annotation](https://github.com/google/error-prone/blob/master/annotations/src/main/java/com/google/errorprone/annotations/concurrent/GuardedBy.java))
+  - ☑ Introduce [NullAway](https://github.com/uber/NullAway) for compile-time nullability checking. Defaults to _non-null_ by default.
   - ☐ Introduce [Animal sniffer](https://www.mojohaus.org/animal-sniffer/) build plug-in to verify that we do not break backwards-compatibility, once released.
   - ☐ Experiment with features of [Checker Framework](https://checkerframework.org).
   - ☒ spotbugs-annotations to support managing clean-up of cryptographic key material  
