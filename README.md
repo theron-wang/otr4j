@@ -21,7 +21,8 @@ _Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bo
   _a.k.a. "at least the bugs are symmetric in nature :-)"_
 - ✔ Socialist Millionaire's Protocol for OTRv4.
 - ✔ Migrate OTRv4 DAKE state machine into OTRv4 Message state machine.
-- ⌛ Redesigned Double Ratchet algorithm.
+- ⌛ Redesigned Double Ratchet algorithm.  
+  _Requires update to the OTRv4 specification._
 - ⌛ Migrate Ed448-Goldilocks and EdDSA implementation to Bouncy Castle.  
   _Requires additions to the BouncyCastle API, as certain necessary operations are not currently supplied._
   - ✔ EdDSA long-term keypair
