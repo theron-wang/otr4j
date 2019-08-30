@@ -9,7 +9,6 @@
 
 package net.java.otr4j.crypto;
 
-import net.java.otr4j.io.OtrOutputStream;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;
@@ -24,12 +23,10 @@ import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.DSAPublicKey;
 
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static net.java.otr4j.util.ByteArrays.toHexString;
 
 /**
  * Utility for cryptographic functions.
@@ -269,32 +266,6 @@ public final class OtrCryptoEngine {
             throw new IllegalStateException("Failed to encrypt content.", ex);
         }
         return aesOutLwEnc;
-    }
-
-    /**
-     * Get the fingerprint for provided DSA public key.
-     *
-     * @param pubKey the DSA public key
-     * @return Returns fingerprint in hexadecimal string-representation
-     */
-    @Nonnull
-    public static String getFingerprint(final DSAPublicKey pubKey) {
-        final byte[] b = getFingerprintRaw(pubKey);
-        return toHexString(b);
-    }
-
-    /**
-     * Get the fingerprint for provided DSA public key as "raw" byte-array.
-     *
-     * @param pubKey the DSA public key
-     * @return Returns the fingerprint as byte-array.
-     */
-    @Nonnull
-    public static byte[] getFingerprintRaw(final DSAPublicKey pubKey) {
-        final byte[] bRemotePubKey = new OtrOutputStream().writePublicKey(pubKey).toByteArray();
-        final byte[] trimmed = new byte[bRemotePubKey.length - 2];
-        System.arraycopy(bRemotePubKey, 2, trimmed, 0, trimmed.length);
-        return sha1Hash(trimmed);
     }
 
     /**

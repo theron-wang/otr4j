@@ -15,7 +15,6 @@ import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SmpEngineHost;
 import net.java.otr4j.api.TLV;
-import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.session.api.SMPHandler;
 import net.java.otr4j.session.api.SMPStatus;
@@ -32,11 +31,12 @@ import static net.java.otr4j.api.SmpEngineHosts.smpAborted;
 import static net.java.otr4j.api.SmpEngineHosts.smpError;
 import static net.java.otr4j.api.SmpEngineHosts.unverify;
 import static net.java.otr4j.api.SmpEngineHosts.verify;
-import static net.java.otr4j.crypto.OtrCryptoEngine.getFingerprintRaw;
 import static net.java.otr4j.crypto.OtrCryptoEngine.sha256Hash;
 import static net.java.otr4j.session.api.SMPStatus.CHEATED;
 import static net.java.otr4j.session.api.SMPStatus.INPROGRESS;
 import static net.java.otr4j.session.api.SMPStatus.SUCCEEDED;
+import static net.java.otr4j.session.smp.DSAPublicKeys.fingerprint;
+import static net.java.otr4j.util.ByteArrays.toHexString;
 
 /**
  * SMP TLV Handler handles any interaction w.r.t. mutual authentication using
@@ -116,7 +116,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
     @Override
     public TLV initiate(final String question, final byte[] answer) throws OtrException {
         final byte[] initiatorFingerprint = this.host.getLocalFingerprintRaw(this.sessionID);
-        final byte[] responderFingerprint = getFingerprintRaw(this.remotePublicKey);
+        final byte[] responderFingerprint = fingerprint(this.remotePublicKey);
         final byte[] secret = generateSecret(answer, initiatorFingerprint, responderFingerprint);
         try {
             final byte[] smpmsg = sm.step1(secret);
@@ -146,7 +146,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
         if (this.sm.status() != INPROGRESS) {
             throw new OtrException("There is no question to be answered.");
         }
-        final byte[] initiatorFingerprint = getFingerprintRaw(this.remotePublicKey);
+        final byte[] initiatorFingerprint = fingerprint(this.remotePublicKey);
         final byte[] responderFingerprint = this.host.getLocalFingerprintRaw(this.sessionID);
         final byte[] secret = generateSecret(answer, initiatorFingerprint, responderFingerprint);
         try {
@@ -281,10 +281,11 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
     private TLV processTlvSMP3(final TLV tlv) throws SMException {
         final byte[] nextmsg = sm.step4(tlv.value);
         // Set trust level based on result.
+        final String fingerprint = toHexString(fingerprint(this.remotePublicKey));
         if (this.sm.status() == SUCCEEDED) {
-            verify(host, this.sessionID, getFingerprint());
+            verify(host, this.sessionID, fingerprint);
         } else {
-            unverify(host, this.sessionID, getFingerprint());
+            unverify(host, this.sessionID, fingerprint);
         }
         return new TLV(SMP4, nextmsg);
     }
@@ -292,17 +293,13 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
     @Nullable
     private TLV processTlvSMP4(final TLV tlv) throws SMException {
         sm.step5(tlv.value);
+        final String fingerprint = toHexString(fingerprint(this.remotePublicKey));
         if (this.sm.status() == SUCCEEDED) {
-            verify(host, this.sessionID, getFingerprint());
+            verify(host, this.sessionID, fingerprint);
         } else {
-            unverify(host, this.sessionID, getFingerprint());
+            unverify(host, this.sessionID, fingerprint);
         }
         return null;
-    }
-
-    @Nonnull
-    private String getFingerprint() {
-        return OtrCryptoEngine.getFingerprint(this.remotePublicKey);
     }
 
     @Override

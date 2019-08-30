@@ -12,7 +12,6 @@ package net.java.otr4j.api;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DSAKeyPair;
-import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
@@ -57,6 +56,7 @@ import static net.java.otr4j.crypto.DSAKeyPair.generateDSAKeyPair;
 import static net.java.otr4j.io.MessageProcessor.otrEncoded;
 import static net.java.otr4j.io.MessageProcessor.otrFragmented;
 import static net.java.otr4j.session.OtrSessionManager.createSession;
+import static net.java.otr4j.session.smp.DSAPublicKeys.fingerprint;
 import static net.java.otr4j.util.Arrays.contains;
 import static net.java.otr4j.util.BlockingQueuesTestUtils.drop;
 import static net.java.otr4j.util.BlockingQueuesTestUtils.rearrangeFragments;
@@ -1617,7 +1617,7 @@ public class SessionTest {
         @Nonnull
         @Override
         public byte[] getLocalFingerprintRaw(final SessionID sessionID) {
-            return OtrCryptoEngine.getFingerprintRaw(this.dsaKeyPair.getPublic());
+            return fingerprint(this.dsaKeyPair.getPublic());
         }
 
         @Override
