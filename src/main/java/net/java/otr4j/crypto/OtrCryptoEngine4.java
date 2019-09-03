@@ -507,6 +507,7 @@ public final class OtrCryptoEngine4 {
      * @param m               The message for which the signature should be generated.
      * @return Returns the sigma values that represent the ring signature.
      */
+    // TODO implement constant-time selection of applicable case (eq1, eq2, eq3)
     @SuppressWarnings ({"PMD.FormalParameterNamingConventions", "PMD.LocalVariableNamingConventions"})
     @Nonnull
     public static Sigma ringSign(final SecureRandom random, final EdDSAKeyPair longTermKeyPair, final Point A1,
@@ -531,7 +532,6 @@ public final class OtrCryptoEngine4 {
             final Point T1;
             final Point T2;
             final Point T3;
-            // TODO replace with constant-time selection
             if (eq1) {
                 // "Compute T1 = G * t1."
                 T1 = multiplyByBase(ti);
@@ -572,7 +572,6 @@ public final class OtrCryptoEngine4 {
             try (Scalar ai = longTermKeyPair.getSecretKey()) {
                 ri = ti.subtract(ci.multiply(ai)).mod(q);
             }
-            // TODO replace with constant-time selection
             if (eq1) {
                 // "Send sigma = (c1, r1, c2, r2, c3, r3)."
                 return new Sigma(ci, ri, cj, rj, ck, rk);

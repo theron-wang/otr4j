@@ -19,6 +19,7 @@ import java.security.SecureRandom;
 import static java.util.Arrays.fill;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
+import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -50,6 +51,10 @@ public class SignatureMessageTest {
         for (int i = 1; i <= 10000000; i *= 10) {
             byte[] fakeEncrypted = randomBytes(RANDOM, new byte[i]);
             RANDOM.nextBytes(fakeEncryptedMAC);
+            if (allZeroBytes(fakeEncrypted) || allZeroBytes(fakeEncryptedMAC)) {
+                // skip in presence of all-zero byte-array, as it would trigger the fail-safe assertion
+                continue;
+            }
             current = new SignatureMessage(Version.THREE, fakeEncrypted, fakeEncryptedMAC.clone(), ZERO_TAG, ZERO_TAG);
             assertNotNull(current);
             assertNotEquals(current, previous);
