@@ -69,7 +69,6 @@ public final class DHKeyPair implements AutoCloseable {
      *
      * @param r secret data to be used as secret key.
      */
-    @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
     private DHKeyPair(final byte[] r) {
         assert !allZeroBytes(r) : "Expected non-zero bytes for input. This may indicate that a critical bug is present, or it may be a false warning.";
         this.secretKey = new BigInteger(1, requireLengthExactly(DH_PRIVATE_KEY_LENGTH_BYTES, r));

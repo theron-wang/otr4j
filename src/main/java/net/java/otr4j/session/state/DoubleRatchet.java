@@ -108,7 +108,6 @@ final class DoubleRatchet implements AutoCloseable {
      */
     private long lastRotation = System.nanoTime();
 
-    @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
     DoubleRatchet(final MixedSharedSecret sharedSecret, final byte[] initialRootKey, final Role role) {
         this.sharedSecret = requireNonNull(sharedSecret);
         this.rootKey = requireLengthExactly(ROOT_KEY_LENGTH_BYTES, initialRootKey);

@@ -336,7 +336,6 @@ public final class DSAKeyPair {
          * @param r the 'r' component
          * @param s the 's' component
          */
-        @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
         public DSASignature(final BigInteger r, final BigInteger s) {
             this.r = requireNonNull(r);
             this.s = requireNonNull(s);

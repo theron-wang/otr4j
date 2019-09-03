@@ -46,7 +46,6 @@ public final class SignatureX implements OtrEncodable {
      * @param ourKeyID             our key ID
      * @param signature            the corresponding signature
      */
-    @SuppressWarnings("NullAway") // FIXME remove once bug is fixed (https://github.com/uber/NullAway/issues/347)
     public SignatureX(final DSAPublicKey ourLongTermPublicKey, final int ourKeyID, final byte[] signature) {
         this.longTermPublicKey = requireNonNull(ourLongTermPublicKey);
         this.dhKeyID = requireNotEquals(0, ourKeyID);
