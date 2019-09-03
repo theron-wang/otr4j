@@ -81,8 +81,7 @@ abstract class AbstractOTR3State implements State {
         try {
             encodedM = parseEncodedMessage(message);
         } catch (final ProtocolException e) {
-            // TODO we probably want to just drop the message, i.s.o. throwing exception.
-            throw new OtrException("Invalid encoded message content.", e);
+            return null;
         }
 
         assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof DHCommitMessage
