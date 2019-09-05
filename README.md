@@ -186,7 +186,7 @@ Architectural constraints that are respected in the design.
 
 _Note: otr4j with OTRv4 support is not backwards-compatible with older releases. Although the API has not changed significantly, some restructuring has been performed and the interfaces extended to be able to support client requirements of OTRv4._
 
-The easiest way to start adoption of this new version given an earlier implementation of otr4j:
+The easiest way to start adoption of this new version given an earlier implementation of otr4j is already in use:
 
 1. Throw away existing imports and import types as _many of the existing types_ have moved to the `net.java.otr4j.api` package.
 1. Extend your implementation of `net.java.otr4j.api.OtrEngineHost` with the additional methods that are now required.
@@ -194,6 +194,11 @@ The easiest way to start adoption of this new version given an earlier implement
    method's API and expectations. If this is not the case, file a bug as this should be expected.  
    _As there are new features and upgraded cryptographic primitives in OTRv4, upgrading will not be effortless. However
    it should be possible to do a basic implementation in a reasonable amount of time._  
+
+To further secure access to _otr4j_ state:
+
+- Use security manager and policy files to prevent reflective access to `net.java.otr4j.crypto` and subpackages:  
+  The architectural constraint prescribes that all sensitive cryptographic material is concentrated in `net.java.otr4j.crypto`. Secrets are encapsulated, but reflection would still allow access and extraction of this sensitive data.
 
 # Contributing / Help needed
 
