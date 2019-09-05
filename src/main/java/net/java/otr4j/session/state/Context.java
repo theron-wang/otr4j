@@ -30,7 +30,6 @@ import java.security.SecureRandom;
  *
  * @author Danny van Heumen
  */
-// TODO not sure I'm happy with mixing up AKE context and Message state context.
 public interface Context extends AuthContext {
 
     /**
