@@ -10,11 +10,11 @@
 package net.java.otr4j.session;
 
 import net.java.otr4j.api.OtrEngineHost;
+import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.api.SessionID;
 
 import javax.annotation.Nonnull;
-import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 
@@ -89,16 +89,15 @@ final class OtrFragmenter {
     }
 
     /**
-     * Calculate the number of fragments that are required for the message to be
-     * sent fragmented completely.
+     * Calculate the number of fragments that are required for the message to be sent fragmented completely.
      *
      * @param version the negotiated protocol version
      * @param message the original message
      * @return returns the number of fragments required
-     * @throws ProtocolException In case fragment size is too small to store any content or when the provided policy
-     *                           does not support fragmentation, for example if only OTRv1 is allowed.
+     * @throws OtrException In case fragment size is too small to store any content or when the provided policy does not
+     *                      support fragmentation, for example if only OTRv1 is allowed.
      */
-    int numberOfFragments(final int version, final String message) throws ProtocolException {
+    int numberOfFragments(final int version, final String message) throws OtrException {
         if (version < Version.TWO) {
             return 1;
         }
@@ -115,14 +114,14 @@ final class OtrFragmenter {
      * @param message      the original message
      * @param fragmentSize size of fragments
      * @return returns number of fragments required.
-     * @throws ProtocolException if fragment size is too small.
+     * @throws OtrException if fragment size is too small.
      */
     private int computeFragmentNumber(final int version, final String message, final int fragmentSize)
-            throws ProtocolException {
+            throws OtrException {
         final int overhead = computeHeaderSize(version);
         final int payloadSize = fragmentSize - overhead;
         if (payloadSize <= 0) {
-            throw new ProtocolException("Fragment size too small for storing content.");
+            throw new OtrException("Fragment size too small for storing content.");
         }
         int messages = message.length() / payloadSize;
         if (message.length() % payloadSize != 0) {
@@ -144,11 +143,10 @@ final class OtrFragmenter {
      * @param message  the original message
      * @return returns an array of message fragments. The array will contain at
      * least 1 message fragment, or more if fragmentation is necessary.
-     * @throws ProtocolException if the fragment size is too small or if the maximum number of fragments is exceeded.
+     * @throws OtrException if the fragment size is too small or if the maximum number of fragments is exceeded.
      */
     @Nonnull
-    String[] fragment(final int version, final int sender, final int receiver, final String message)
-            throws ProtocolException {
+    String[] fragment(final int version, final int sender, final int receiver, final String message) throws OtrException {
         final int fragmentSize = this.host.getMaxFragmentSize(this.sessionID);
         return fragment(version, sender, receiver, message, fragmentSize);
     }
@@ -163,18 +161,18 @@ final class OtrFragmenter {
      * @param fragmentSize the maximum fragment size
      * @return Returns the fragmented message. The array will contain at least 1
      * message fragment, or more if fragmentation is necessary.
-     * @throws ProtocolException In the case when it is impossible to fragment the message according to the specified
-     *                           instructions.
+     * @throws OtrException In the case when it is impossible to fragment the message according to the specified
+     *                      instructions.
      */
     @Nonnull
     private String[] fragment(final int version, final int sendertag, final int receivertag,
-            final String message, final int fragmentSize) throws ProtocolException {
+            final String message, final int fragmentSize) throws OtrException {
         if (fragmentSize >= message.length()) {
             return new String[]{message};
         }
         final int num = computeFragmentNumber(version, message, fragmentSize);
         if (num > MAXIMUM_NUMBER_OF_FRAGMENTS) {
-            throw new ProtocolException("Number of necessary fragments exceeds limit.");
+            throw new OtrException("Number of necessary fragments exceeds limit.");
         }
         final int payloadSize = fragmentSize - computeHeaderSize(version);
         final int id = this.random.nextInt();

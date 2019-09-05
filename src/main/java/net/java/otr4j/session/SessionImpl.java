@@ -690,12 +690,8 @@ final class SessionImpl implements Session, Context {
                 fragments = new String[] {serialized + ' ' + getFallbackMessage(this.sessionID, spaceForFallbackMessage)};
             } else if (m instanceof AbstractEncodedMessage) {
                 final AbstractEncodedMessage encoded = (AbstractEncodedMessage) m;
-                try {
-                    fragments = this.fragmenter.fragment(encoded.protocolVersion, encoded.senderTag.getValue(),
-                            encoded.receiverTag.getValue(), serialized);
-                } catch (final ProtocolException e) {
-                    throw new OtrException("Failed to fragment OTR-encoded message to specified protocol parameters.", e);
-                }
+                fragments = this.fragmenter.fragment(encoded.protocolVersion, encoded.senderTag.getValue(),
+                        encoded.receiverTag.getValue(), serialized);
             } else {
                 fragments = new String[] {serialized};
             }
@@ -811,12 +807,8 @@ final class SessionImpl implements Session, Context {
             final String serialized = writeMessage(m);
             if (m instanceof AbstractEncodedMessage) {
                 final AbstractEncodedMessage encoded = (AbstractEncodedMessage) m;
-                try {
-                    return this.fragmenter.fragment(encoded.protocolVersion, encoded.senderTag.getValue(),
-                            encoded.receiverTag.getValue(), serialized);
-                } catch (final ProtocolException e) {
-                    throw new OtrException("Failed to fragment message according to protocol parameters.", e);
-                }
+                return this.fragmenter.fragment(encoded.protocolVersion, encoded.senderTag.getValue(),
+                        encoded.receiverTag.getValue(), serialized);
             }
             return new String[] {serialized};
         }
