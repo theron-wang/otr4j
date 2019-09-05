@@ -10,7 +10,6 @@ This repository contains the community-friendly fork with the addition of signif
 
 ## Progress
 
-__Status__: _In active development_  
 Current work should be considered __at most__ _prototype-quality and guaranteed insecure._ The development follows the _master_ branch of [OTRv4], but may lag behind in areas that currently lack development focus.
 
 Development stages:
