@@ -13,6 +13,7 @@ import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.io.OtrOutputStream;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
@@ -32,14 +33,17 @@ public final class RevealSignatureMessage extends AbstractEncodedMessage {
     /**
      * The revealed key.
      */
+    @Nonnull
     public final byte[] revealedKey;
     /**
      * Encrypted value 'x'.
      */
+    @Nonnull
     public final byte[] xEncrypted;
     /**
      * MAC of encrypted value 'x'.
      */
+    @Nonnull
     public final byte[] xEncryptedMAC;
 
     /**
@@ -79,10 +83,10 @@ public final class RevealSignatureMessage extends AbstractEncodedMessage {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!super.equals(o)) {
             return false;
         }
-        if (!super.equals(o)) {
+        if (getClass() != o.getClass()) {
             return false;
         }
         final RevealSignatureMessage that = (RevealSignatureMessage) o;

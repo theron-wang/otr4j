@@ -13,9 +13,10 @@ import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.io.OtrOutputStream;
 
+import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
-import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
@@ -34,6 +35,7 @@ public final class DHKeyMessage extends AbstractEncodedMessage {
     /**
      * DH public key.
      */
+    @Nonnull
     public final DHPublicKey dhPublicKey;
 
     /**
@@ -47,15 +49,14 @@ public final class DHKeyMessage extends AbstractEncodedMessage {
     public DHKeyMessage(final int protocolVersion, final DHPublicKey dhPublicKey, final InstanceTag senderInstance,
             final InstanceTag receiverInstance) {
         super(requireInRange(Version.TWO, Version.THREE, protocolVersion), senderInstance, receiverInstance);
-        this.dhPublicKey = Objects.requireNonNull(dhPublicKey);
+        this.dhPublicKey = requireNonNull(dhPublicKey);
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result
-                + ((dhPublicKey == null) ? 0 : dhPublicKey.hashCode());
+        result = prime * result + dhPublicKey.hashCode();
         return result;
     }
 
@@ -71,14 +72,7 @@ public final class DHKeyMessage extends AbstractEncodedMessage {
             return false;
         }
         final DHKeyMessage other = (DHKeyMessage) obj;
-        if (dhPublicKey == null) {
-            if (other.dhPublicKey != null) {
-                return false;
-            }
-        } else if (dhPublicKey.getY().compareTo(other.dhPublicKey.getY()) != 0) {
-            return false;
-        }
-        return true;
+        return dhPublicKey.getY().compareTo(other.dhPublicKey.getY()) == 0;
     }
 
     @Override

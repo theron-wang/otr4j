@@ -13,6 +13,7 @@ import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.io.OtrOutputStream;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
@@ -32,10 +33,12 @@ public final class SignatureMessage extends AbstractEncodedMessage {
     /**
      * Encrypted X.
      */
+    @Nonnull
     public final byte[] xEncrypted;
     /**
      * MAC of encrypted X.
      */
+    @Nonnull
     public final byte[] xEncryptedMAC;
 
     /**

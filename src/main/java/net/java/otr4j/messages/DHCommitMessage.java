@@ -13,6 +13,7 @@ import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.io.OtrOutputStream;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
@@ -35,10 +36,12 @@ public final class DHCommitMessage extends AbstractEncodedMessage {
     /**
      * The encrypted DH public key.
      */
+    @Nonnull
     public final byte[] dhPublicKeyEncrypted;
     /**
      * The DH public key hash.
      */
+    @Nonnull
     public final byte[] dhPublicKeyHash;
 
     /**
