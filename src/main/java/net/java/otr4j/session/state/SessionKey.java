@@ -26,8 +26,6 @@ import static net.java.otr4j.crypto.OtrCryptoEngine.sha1Hash;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static org.bouncycastle.util.Arrays.clear;
 
-// TODO consider doing lazy evaluation of generating 's', 'receivingCtr' and 'sendingCtr'. (Would save some memory/computation in case this session key combination is not actually used.)
-// TODO Does it make sense to randomly generate the initial sending counter value to further avoid reuse?
 final class SessionKey implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(SessionKey.class.getName());
@@ -221,8 +219,7 @@ final class SessionKey implements AutoCloseable {
      * @param receivingCtr Counter to verify.
      * @return Returns extended counter that is extended to 16 bytes of which the first 8 bytes is pristine provided
      * receiving ctr value.
-     * @throws SessionKey.ReceivingCounterValidationFailed In case of validation
-     *                                                     failure.
+     * @throws SessionKey.ReceivingCounterValidationFailed In case of validation failure.
      */
     @Nonnull
     byte[] verifyReceivingCtr(final byte[] receivingCtr) throws ReceivingCounterValidationFailed {
@@ -240,8 +237,8 @@ final class SessionKey implements AutoCloseable {
                 throw new ReceivingCounterValidationFailed("lower counter value");
             }
         }
-        // Note that by OTR spec we aren't allowed to accept all-zeroes spec. Therefore, if all bytes are identical,
-        // fail receiving counter validation.
+        // Note that by OTR spec we aren't allowed to accept all-zeroes counter. Therefore, if all bytes are identical,
+        // fail receiving counter validation. (This holds for first and subsequent messages.)
         throw new ReceivingCounterValidationFailed("identical counter value");
     }
 

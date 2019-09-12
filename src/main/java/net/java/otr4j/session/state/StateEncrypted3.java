@@ -29,6 +29,7 @@ import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.ake.SecurityParameters;
 import net.java.otr4j.session.smp.SMException;
 import net.java.otr4j.session.smp.SmpTlvHandler;
+import net.java.otr4j.session.state.SessionKeyManager.SessionKeyUnavailableException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -172,7 +173,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         final SessionKey matchingKeys;
         try {
             matchingKeys = sessionKeyManager.get(message.recipientKeyID, message.senderKeyID);
-        } catch (final SessionKeyManager.SessionKeyUnavailableException ex) {
+        } catch (final SessionKeyUnavailableException ex) {
             logger.finest("No matching keys found.");
             handleUnreadableMessage(context, message, "", ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
@@ -183,7 +184,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
 
         final byte[] computedMAC = sha1Hmac(encode(message.getT()), matchingKeys.receivingMAC());
         if (!constantTimeEquals(computedMAC, message.mac)) {
-            logger.finest("MAC verification failed, ignoring message");
+            logger.finest("MAC verification failed, ignoring message.");
             handleUnreadableMessage(context, message, "", ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         }

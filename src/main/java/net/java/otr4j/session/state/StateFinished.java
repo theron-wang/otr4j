@@ -35,9 +35,8 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAG
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 
 /**
- * Message state FINISHED. This message state is initiated through events
- * started from the initial message state PLAINTEXT (and transition through
- * ENCRYPTED).
+ * Message state FINISHED. This message state is initiated through events started from the initial message state
+ * PLAINTEXT (and transition through ENCRYPTED).
  *
  * @author Danny van Heumen
  */
