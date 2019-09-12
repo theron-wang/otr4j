@@ -23,7 +23,6 @@ import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static org.bouncycastle.math.ec.rfc8032.Ed448.SECRET_KEY_SIZE;
 import static org.bouncycastle.util.Arrays.clear;
-import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
 import static org.bouncycastle.util.Arrays.copyOfRange;
 
 /**
@@ -122,8 +121,7 @@ public final class ECDHKeyPair implements AutoCloseable {
         }
         final Point sharedSecret = otherPublicKey.multiply(this.secretKey);
         // TODO is this sufficient to discover all illegal public keys?
-        // Immediately using BouncyCastle's constantTimeAreEqual such that we don't run into the all-zero-bytes assertions
-        if (constantTimeAreEqual(new byte[57], sharedSecret.getEncoded())) {
+        if (allZeroBytes(sharedSecret.getEncoded())) {
             throw new ValidationException("Illegal ECDH public key: other point has small contribution.");
         }
         if (checkIdentity(sharedSecret)) {
