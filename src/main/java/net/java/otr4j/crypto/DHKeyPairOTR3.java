@@ -35,6 +35,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Key pair for DH private and public key.
  */
+@SuppressWarnings("InsecureCryptoUsage")
 public final class DHKeyPairOTR3 {
 
     private static final String KA_DH = "DH";

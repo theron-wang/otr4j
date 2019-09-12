@@ -38,6 +38,7 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
 /**
  * Key pair to keep DSA private and corresponding public key.
  */
+@SuppressWarnings("InsecureCryptoUsage")
 public final class DSAKeyPair {
 
     private static final String ALGORITHM_DSA = "DSA";

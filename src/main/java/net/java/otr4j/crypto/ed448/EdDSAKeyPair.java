@@ -110,7 +110,7 @@ public final class EdDSAKeyPair implements AutoCloseable {
         try {
             return decodePoint(this.publicKey);
         } catch (final ValidationException e) {
-            throw new IllegalStateException("BUG: The public key is expected to always be correct as it is part of the EdDSA key pair.");
+            throw new IllegalStateException("BUG: The public key is expected to always be correct as it is part of the EdDSA key pair.", e);
         }
     }
 

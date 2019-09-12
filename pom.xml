@@ -182,7 +182,7 @@
                                 <arg>-Xlint:all,-options</arg>
                                 <arg>-Xdoclint:all/protected</arg>
                                 <arg>-XDcompilePolicy=simple</arg>
-                                <arg>-Xplugin:ErrorProne -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=net.java.otr4j</arg>
+                                <arg>-Xplugin:ErrorProne -Xep:Java7ApiChecker:WARN -Xep:LockMethodChecker:ERROR -Xep:UnlockMethod:ERROR -Xep:InsecureCryptoUsage:ERROR -Xep:EmptyIf:ERROR -Xep:DivZero:ERROR -Xep:EqualsBrokenForNull:WARN -Xep:MissingDefault:WARN -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=net.java.otr4j</arg>
                             </compilerArgs>
                         </configuration>
                     </execution>
