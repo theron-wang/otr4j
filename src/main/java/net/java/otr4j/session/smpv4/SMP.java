@@ -221,9 +221,11 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
         }
         if (response == null) {
             return null;
-        } else if (response instanceof SMPMessage3) {
+        }
+        if (response instanceof SMPMessage3) {
             return new TLV(SMP3, encode(response));
-        } else if (response instanceof SMPMessage4) {
+        }
+        if (response instanceof SMPMessage4) {
             return new TLV(SMP4, encode(response));
         }
         throw new IllegalStateException("Unexpected SMP response type: " + response.getClass() + ". Cannot construct corresponding TLV.");
