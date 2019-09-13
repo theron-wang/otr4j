@@ -63,8 +63,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         try {
             encodedM = parseEncodedMessage(message);
         } catch (final ProtocolException e) {
-            // TODO we probably want to just drop the message, i.s.o. throwing exception.
-            throw new OtrException("Invalid encoded message content.", e);
+            return null;
         }
         assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof IdentityMessage
                 : "BUG: receiver instance should be set for anything other than the first AKE message.";
