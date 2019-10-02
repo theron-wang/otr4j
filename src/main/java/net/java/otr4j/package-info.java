@@ -8,7 +8,6 @@
  */
 // TODO Review rule exclusions for maven-compiler-plugin, SpotBugs, pmd, ...
 // NOTE OTRv3 does not document that SMP TLVs should have IGNORE_UNREADABLE flag set. So for now, we're not setting the flag for SMP TLVs.
-// FUTURE do something fuzzing-like to thoroughly test receiving user messages with various characters. Especially normal user messages that are picked up as OTR-encoded but then crash/fail processing because it's only a partially-valid OTR encoded message.
 // FIXME verify that description of process in https://github.com/otrv4/otrv4/blob/master/otrv4.md#receiving-an-identity-message - state=WAITING_AUTH_I is still accurate. Seems to talk about maintaining original message which cannot be because we deleted secure keys for our_ecdh_first and our_dh_first.
 // TODO General questions on way-of-working for OTRv4:
 //  * "Set their_ecdh as the 'Public ECDH key' from the message. Set their_dh as the 'Public DH Key' from the message, if it is not empty." are duplicate. Already included as part of Rotation instructions.
