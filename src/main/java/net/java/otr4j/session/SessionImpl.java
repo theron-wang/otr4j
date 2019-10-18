@@ -127,6 +127,7 @@ import static net.java.otr4j.util.Objects.requireNotEquals;
  * @author George Politis
  * @author Danny van Heumen
  */
+// TODO consider moving away from recursive use of Session, to delegating class with a number of instances of Session for each instance, with OTRv2 using zero-instance-tag. (Can delegating class be stateless? Would simplify managing thread-safety.)
 @SuppressWarnings("PMD.TooManyFields")
 final class SessionImpl implements Session, Context {
 
@@ -134,7 +135,7 @@ final class SessionImpl implements Session, Context {
 
     /**
      * Session state contains the currently active message state of the session.
-     *
+     * <p>
      * The message state, being plaintext, encrypted or finished, is the
      * instance that contains the logic concerning message handling for both
      * incoming and outgoing messages, and everything related to this message
@@ -208,7 +209,7 @@ final class SessionImpl implements Session, Context {
 
     /**
      * Receiver instance tag.
-     *
+     * <p>
      * The receiver tag is only used in OTRv3. In case of OTRv2 the instance tag
      * will be zero-tag ({@link InstanceTag#ZERO_TAG}).
      */
@@ -235,7 +236,7 @@ final class SessionImpl implements Session, Context {
 
     /**
      * List of registered listeners.
-     *
+     * <p>
      * Synchronized access is required. This is currently managed in methods
      * accessing the list.
      */
@@ -577,7 +578,7 @@ final class SessionImpl implements Session, Context {
     @Nullable
     private String handleFragment(final Fragment fragment) throws OtrException {
         assert this.masterSession != this || fragment.getVersion() == TWO
-            : "BUG: Expect to only handle OTRv2 message fragments on master session. All other fragments should be handled on dedicated slave session.";
+                : "BUG: Expect to only handle OTRv2 message fragments on master session. All other fragments should be handled on dedicated slave session.";
         final String reassembledText;
         try {
             reassembledText = assembler.accumulate(fragment);
@@ -651,7 +652,7 @@ final class SessionImpl implements Session, Context {
     private void handleQueryMessage(final QueryMessage queryMessage) throws OtrException {
         assert this.masterSession == this : "BUG: handleQueryMessage should only ever be called from the master session, as no instance tags are known.";
         logger.log(FINEST, "{0} received a query message from {1} through {2}.",
-                new Object[]{this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
+                new Object[] {this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
 
         final OtrPolicy policy = getSessionPolicy();
         if (queryMessage.getVersions().contains(FOUR) && policy.isAllowV4()) {
@@ -673,7 +674,7 @@ final class SessionImpl implements Session, Context {
             throws OtrException {
         assert this.masterSession == this : "BUG: handleErrorMessage should only ever be called from the master session, as no instance tags are known.";
         logger.log(FINEST, "{0} received an error message from {1} through {2}.",
-                new Object[]{this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
+                new Object[] {this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
         this.sessionState.handleErrorMessage(this, errorMessage);
     }
 
@@ -721,7 +722,7 @@ final class SessionImpl implements Session, Context {
     private String handlePlainTextMessage(final PlainTextMessage plainTextMessage) {
         assert this.masterSession == this : "BUG: handlePlainTextMessage should only ever be called from the master session, as no instance tags are known.";
         logger.log(FINEST, "{0} received a plaintext message from {1} through {2}.",
-                new Object[]{this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
+                new Object[] {this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
         final String messagetext = this.sessionState.handlePlainTextMessage(this, plainTextMessage);
         if (plainTextMessage.getVersions().isEmpty()) {
             logger.finest("Received plaintext message without the whitespace tag.");
@@ -787,7 +788,7 @@ final class SessionImpl implements Session, Context {
      * network.
      *
      * @param msgText the (normal) message content
-     * @param tlvs TLV items (must not be null, may be an empty list)
+     * @param tlvs    TLV items (must not be null, may be an empty list)
      * @return Returns the (array of) messages to be sent over IM network.
      * @throws OtrException OtrException in case of exceptions.
      */
@@ -816,12 +817,12 @@ final class SessionImpl implements Session, Context {
 
     /**
      * Start a new OTR session by sending an OTR query message.
-     *
+     * <p>
      * Consider using {@link OtrPolicy#viable()} to verify whether any version of the OTR protocol is allowed, such that
      * we can actually establish a private conversation.
      *
      * @throws OtrException Throws an error in case we failed to inject the
-     * Query message into the host's transport channel.
+     *                      Query message into the host's transport channel.
      */
     @Override
     public void startSession() throws OtrException {
@@ -845,7 +846,7 @@ final class SessionImpl implements Session, Context {
      * End message state.
      *
      * @throws OtrException Throw OTR exception in case of failure during
-     * ending.
+     *                      ending.
      */
     @Override
     public void endSession() throws OtrException {
@@ -868,8 +869,8 @@ final class SessionImpl implements Session, Context {
      * sending a Query message.
      *
      * @throws OtrException Throws exception in case of failed session ending,
-     * failed full session start, or failed creation or injection of DH-Commit
-     * message.
+     *                      failed full session start, or failed creation or injection of DH-Commit
+     *                      message.
      */
     @Override
     public void refreshSession() throws OtrException {
@@ -1000,7 +1001,7 @@ final class SessionImpl implements Session, Context {
      * Get session status for specified session.
      *
      * @param tag Instance tag identifying session. In case of
-     * {@link InstanceTag#ZERO_TAG} queries session status for OTRv2 session.
+     *            {@link InstanceTag#ZERO_TAG} queries session status for OTRv2 session.
      * @return Returns current session status.
      */
     @Override
@@ -1022,10 +1023,10 @@ final class SessionImpl implements Session, Context {
      * Get remote public key for specified session.
      *
      * @param tag Instance tag identifying session. In case of
-     * {@link InstanceTag#ZERO_TAG} queries session status for OTRv2 session.
+     *            {@link InstanceTag#ZERO_TAG} queries session status for OTRv2 session.
      * @return Returns remote (long-term) public key.
      * @throws IncorrectStateException Thrown in case session's message state is
-     * not ENCRYPTED.
+     *                                 not ENCRYPTED.
      */
     @Override
     @Nonnull
@@ -1059,10 +1060,10 @@ final class SessionImpl implements Session, Context {
     /**
      * Respond to AKE query message.
      *
-     * @param version OTR protocol version to use.
+     * @param version     OTR protocol version to use.
      * @param receiverTag The receiver tag to which to address the DH Commit
-     * message. In case the receiver is not yet known (this is a valid use
-     * case), specify {@link InstanceTag#ZERO_TAG}.
+     *                    message. In case the receiver is not yet known (this is a valid use
+     *                    case), specify {@link InstanceTag#ZERO_TAG}.
      * @throws OtrException In case of invalid/unsupported OTR protocol version.
      */
     @GuardedBy("masterSession")
@@ -1084,7 +1085,7 @@ final class SessionImpl implements Session, Context {
      * Initialize SMP negotiation.
      *
      * @param question The question, optional.
-     * @param answer The answer to be verified using ZK-proof.
+     * @param answer   The answer to be verified using ZK-proof.
      * @throws OtrException In case of failure to init SMP or transform to encoded message.
      */
     @Override
@@ -1117,9 +1118,9 @@ final class SessionImpl implements Session, Context {
      * Respond to SMP request.
      *
      * @param question The question to be sent with SMP response, may be null.
-     * @param secret The SMP secret that should be verified through ZK-proof.
+     * @param secret   The SMP secret that should be verified through ZK-proof.
      * @throws OtrException In case of failure to send, message state different
-     * from ENCRYPTED, issues with SMP processing.
+     *                      from ENCRYPTED, issues with SMP processing.
      */
     @Override
     public void respondSmp(@Nullable final String question, final String secret) throws OtrException {
@@ -1136,8 +1137,8 @@ final class SessionImpl implements Session, Context {
      * Respond with SMP message for specified receiver tag.
      *
      * @param receiverTag The receiver instance tag.
-     * @param question The question, optional.
-     * @param secret The secret to be verified using ZK-proof.
+     * @param question    The question, optional.
+     * @param secret      The secret to be verified using ZK-proof.
      * @throws OtrException In case of failure.
      */
     @Override
@@ -1214,7 +1215,7 @@ final class SessionImpl implements Session, Context {
     /**
      * Acquire the extra symmetric key that can be derived from the session's
      * shared secret.
-     *
+     * <p>
      * This extra key can also be derived by your chat counterpart. This key
      * never needs to be communicated. TLV 8, that is described in otr v3 spec,
      * is used to inform your counterpart that he needs to start using the key.
@@ -1223,7 +1224,7 @@ final class SessionImpl implements Session, Context {
      *
      * @return Returns the extra symmetric key.
      * @throws OtrException In case the message state is not ENCRYPTED, there
-     * exists no extra symmetric key to return.
+     *                      exists no extra symmetric key to return.
      */
     @Override
     @Nonnull
