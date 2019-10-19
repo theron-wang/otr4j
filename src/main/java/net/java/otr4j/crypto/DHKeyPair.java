@@ -17,6 +17,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 import static java.math.BigInteger.ONE;
+import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 
@@ -128,10 +129,7 @@ public final class DHKeyPair implements AutoCloseable {
      */
     @Nonnull
     public BigInteger generateSharedSecret(final BigInteger otherPublicKey) {
-        if (this.secretKey == null) {
-            throw new IllegalStateException("Secret key material has been cleared. Only public key is still available.");
-        }
-        return otherPublicKey.modPow(this.secretKey, MODULUS);
+        return otherPublicKey.modPow(requireNonNull(this.secretKey), MODULUS);
     }
 
     /**

@@ -123,4 +123,12 @@ public class DHKeyPairTest {
         assertFalse(checkPublicKey(MODULUS));
         assertFalse(checkPublicKey(MODULUS.subtract(ONE)));
     }
+
+    @Test(expected = NullPointerException.class)
+    public void testGenerateSharedSecretWithCleanedKeyPair() {
+        final DHKeyPair kp1 = DHKeyPair.generate(RANDOM);
+        final DHKeyPair kp2 = DHKeyPair.generate(RANDOM);
+        kp1.close();
+        kp1.generateSharedSecret(kp2.getPublicKey());
+    }
 }
