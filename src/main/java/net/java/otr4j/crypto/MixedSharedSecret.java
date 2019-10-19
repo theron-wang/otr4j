@@ -163,7 +163,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      */
     @Nonnull
     public byte[] getK() {
-        requireNotClosed();
+        expectNotClosed();
         return this.k.clone();
     }
 
@@ -177,7 +177,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      */
     @Nonnull
     public byte[] generateSSID() {
-        requireNotClosed();
+        expectNotClosed();
         return hwc(SSID, SSID_LENGTH_BYTES, this.k);
     }
 
@@ -187,7 +187,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      * @param regenerateDHKeyPair Indicates whether we need to regenerate the DH key pair as well.
      */
     public void rotateOurKeys(final boolean regenerateDHKeyPair) {
-        requireNotClosed();
+        expectNotClosed();
         this.ecdhKeyPair = ECDHKeyPair.generate(this.random);
         if (regenerateDHKeyPair) {
             this.dhKeyPair = DHKeyPair.generate(this.random);
@@ -205,7 +205,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      */
     public void rotateTheirKeys(final boolean performDHRatchet, final Point theirECDHPublicKey,
             @Nullable final BigInteger theirDHPublicKey) throws OtrCryptoException {
-        requireNotClosed();
+        expectNotClosed();
         if (!containsPoint(requireNonNull(theirECDHPublicKey))) {
             throw new OtrCryptoException("ECDH public key failed verification.");
         }
@@ -251,7 +251,7 @@ public final class MixedSharedSecret implements AutoCloseable {
         clear(k_ecdh);
     }
 
-    private void requireNotClosed() {
+    private void expectNotClosed() {
         if (this.closed) {
             throw new IllegalStateException("Shared secret is already closed/disposed of.");
         }
