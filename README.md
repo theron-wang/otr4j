@@ -12,9 +12,11 @@ This repository contains the community-friendly fork with the addition of signif
 
 Current work should be considered __at most__ _prototype-quality and guaranteed insecure._ The development follows the _master_ branch of [OTRv4], but may lag behind in areas that currently lack development focus.
 
+__2019-10-28__ Due to third-party contributions made under dubious circumstances, i.e. possibly made during working time instead of personal time, some merges in the commit history have been redone. There are no longer any third-party contributions in the OTRv4 work. The [original master-branch content][original-master] is still available.
+
 Development stages:
 
-_Note: temporary dependency on [github.com/otr4j/joldilocks][joldilocks]: see bottom of README.md_
+_Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see bottom of README.md_
 
 - ✔ Minimal working encryption (Interactive DAKE, message encryption/decryption, self-serving)  
   _a.k.a. "at least the bugs are symmetric in nature :-)"_
@@ -243,4 +245,5 @@ Due to initial lack of support for Ed448-Goldilocks, a _very_ basic, limited Jav
 [OTRv3]: https://otr.cypherpunks.ca/Protocol-v3-4.1.1.html
 [OTRv4]: https://github.com/otrv4/otrv4
 [otr4j/otr4j]: https://github.com/otr4j/otr4j
-[joldilocks]: https://github.com/otr4j/joldilocks
+[joldilocks]: https://gitlab.com/cobratbq/joldilocks "A beginner-level (functional) implementation of Ed448-Goldilocks."
+[original-master]: https://gitlab.com/cobratbq/otr4j/tree/original-master "The original master branch. Before the history rewrite occurred."
