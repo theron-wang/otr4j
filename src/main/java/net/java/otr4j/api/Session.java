@@ -8,6 +8,8 @@
  */
 package net.java.otr4j.api;
 
+import com.google.errorprone.annotations.CheckReturnValue;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -292,6 +294,7 @@ public interface Session {
      *
      * @return Returns true if in progress, or false otherwise.
      */
+    @CheckReturnValue
     boolean isSmpInProgress();
 
     // Methods related to registering OTR engine listeners.
