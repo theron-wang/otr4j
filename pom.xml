@@ -154,7 +154,7 @@
             <plugin>
                 <groupId>org.simplify4u.plugins</groupId>
                 <artifactId>pgpverify-maven-plugin</artifactId>
-                <version>1.4.0</version>
+                <version>1.5.0-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <goals>
@@ -165,6 +165,7 @@
                 <configuration>
                     <failWeakSignature>true</failWeakSignature>
                     <failNoSignature>false</failNoSignature>
+                    <strictNoSignature>true</strictNoSignature>
                     <keysMapLocation>${project.basedir}/pgpkeys.list</keysMapLocation>
                     <verifySnapshots>false</verifySnapshots>
                     <verifyProvidedDependencies>true</verifyProvidedDependencies>
