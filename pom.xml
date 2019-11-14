@@ -152,9 +152,9 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>com.github.s4u.plugins</groupId>
+                <groupId>org.simplify4u.plugins</groupId>
                 <artifactId>pgpverify-maven-plugin</artifactId>
-                <version>1.2.0</version>
+                <version>1.4.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -162,6 +162,16 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <failWeakSignature>true</failWeakSignature>
+                    <failNoSignature>false</failNoSignature>
+                    <keysMapLocation>${project.basedir}/pgpkeys.list</keysMapLocation>
+                    <verifySnapshots>false</verifySnapshots>
+                    <verifyProvidedDependencies>true</verifyProvidedDependencies>
+                    <verifyPomFiles>true</verifyPomFiles>
+                    <verifyReactorDependencies>true</verifyReactorDependencies>
+                    <verifySystemDependencies>false</verifySystemDependencies>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
