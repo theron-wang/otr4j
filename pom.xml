@@ -168,6 +168,7 @@
                     <strictNoSignature>true</strictNoSignature>
                     <keysMapLocation>${project.basedir}/pgpkeys.list</keysMapLocation>
                     <verifySnapshots>false</verifySnapshots>
+                    <verifyPlugins>true</verifyPlugins>
                     <verifyProvidedDependencies>true</verifyProvidedDependencies>
                     <verifyPomFiles>true</verifyPomFiles>
                     <verifyReactorDependencies>true</verifyReactorDependencies>
