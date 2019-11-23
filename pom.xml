@@ -163,6 +163,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <scope>test</scope>
                     <failWeakSignature>true</failWeakSignature>
                     <failNoSignature>false</failNoSignature>
                     <strictNoSignature>true</strictNoSignature>
