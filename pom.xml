@@ -171,6 +171,7 @@
                     <verifyPomFiles>true</verifyPomFiles>
                     <verifyReactorDependencies>true</verifyReactorDependencies>
                     <verifySystemDependencies>false</verifySystemDependencies>
+                    <quiet>false</quiet>
                 </configuration>
             </plugin>
             <plugin>
