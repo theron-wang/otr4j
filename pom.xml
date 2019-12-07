@@ -154,7 +154,7 @@
             <plugin>
                 <groupId>org.simplify4u.plugins</groupId>
                 <artifactId>pgpverify-maven-plugin</artifactId>
-                <version>1.5.0-SNAPSHOT</version>
+                <version>1.5.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -173,7 +173,7 @@
                     <verifyProvidedDependencies>true</verifyProvidedDependencies>
                     <verifyPomFiles>true</verifyPomFiles>
                     <verifyReactorDependencies>true</verifyReactorDependencies>
-                    <verifySystemDependencies>false</verifySystemDependencies>
+                    <verifySystemDependencies>true</verifySystemDependencies>
                     <quiet>false</quiet>
                 </configuration>
             </plugin>
