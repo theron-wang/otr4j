@@ -70,6 +70,13 @@ To further secure access to _otr4j_ state:
 - Use security manager and policy files to prevent reflective access to `net.java.otr4j.crypto` and subpackages:  
   The architectural constraint prescribes that all sensitive cryptographic material is concentrated in `net.java.otr4j.crypto`. Secrets are encapsulated, but reflection would still allow access and extraction of this sensitive data.
 
+# Limitations
+
+* _otr4j supports message lengths up to 2^31._  
+  Message sizes in OTR are defined as 4-byte _unsigned_. Due to Java's signed integer types, this implementation currently uses a signed integer. Therefore, the highest bit of the message length is interpreted as sign bit. Lengths over 2^31 are unsupported.
+* _otr4j assumes message injections onto the (chat) network always succeed._  
+  It is expected that message injection always succeeds. There is no way to signal that it failed and otr4j does not have any countermeasures in case it fails. (This may be added as a feature, but is currently not under consideration.)
+
 # Contributing / Help needed
 
 Please open an issue to discuss contributions early. As OTRv4 is still in draft and work on otr4j is active, things might change quickly.
@@ -94,13 +101,6 @@ In addition to syntactic correctness checking, we enforce javadoc for anything t
 1. Load the otr4j `pom.xml` file as a maven module (project).
 1. Load `codecheck/checkstyle.xml` as the code style in IntelliJ (you will need to have the Checkstyle plug-in installed)
 1. ... (I'm not sure if anything else is needed, but I'll update when I find out.)
-
-# Limitations
-
-* _otr4j supports message lengths up to 2^31._  
-  Message sizes in OTR are defined as 4-byte _unsigned_. Due to Java's signed integer types, this implementation currently uses a signed integer. Therefore, the highest bit of the message length is interpreted as sign bit. Lengths over 2^31 are unsupported.
-* _otr4j assumes message injections onto the (chat) network always succeed._  
-  It is expected that message injection always succeeds. There is no way to signal that it failed and otr4j does not have any countermeasures in case it fails. (This may be added as a feature, but is currently not under consideration.)
 
 # Dependency on [joldilocks][joldilocks]
 
