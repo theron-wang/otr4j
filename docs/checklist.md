@@ -77,7 +77,7 @@ The checklist reflecting the considerations in the classifications _functional_,
 
 ## Operational
 
-- ☑ [PGP-signature verify maven plug-in](https://github.com/s4u/pgpverify-maven-plugin) for verification of dependencies and build plug-ins according to [predefined public keys mapping](pgpkeys.list).
+- ☑ [PGP-signature verify maven plug-in](https://github.com/s4u/pgpverify-maven-plugin) for verification of dependencies and build plug-ins according to [predefined public keys mapping](../pgpkeys.list).
 - Constant-time implementations:
   - ☑ MAC key comparison
   - ☑ Point and Scalar equality
