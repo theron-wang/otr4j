@@ -14,7 +14,7 @@ Current work should be considered __at most__ _prototype-quality and guaranteed 
 
 __2019-10-28__ Due to third-party contributions made under dubious circumstances, i.e. possibly made during working time instead of personal time, some merges in the commit history have been redone. There are no longer any third-party contributions in the OTRv4 work. The [original master-branch content][original-master] is still available.
 
-Development stages:
+__Development stages__:
 
 _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see bottom of README.md_
 
@@ -41,7 +41,7 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
 - _ Review comments to spot out-of-date quotes from the spec. (Probably better to ignore or generalize.)
 - _ Review and clean up logging statements. Ensure that no secret data is exposed through logging. Verify if log levels are reasonable.
 
-Refer to the [__checklist with functional, operational and developmental details__](docs/checklist.md) for further details.
+Refer to the [__checklist with functional, operational and developmental details__][checklist] for further details.
 
 ## Architectural considerations
 
@@ -52,7 +52,7 @@ Architectural constraints that are respected in the design.
 1. Design that prevents or makes obvious programming errors.
 1. Simplicity: restricted implementation with only as much complexity and abstraction as needed.
 
-# Using otr4j
+## Using otr4j
 
 _Note: otr4j with OTRv4 support is not backwards-compatible with older releases. Although the API has not changed significantly, some restructuring has been performed and the interfaces extended to be able to support client requirements of OTRv4._
 
@@ -70,22 +70,22 @@ To further secure access to _otr4j_ state:
 - Use security manager and policy files to prevent reflective access to `net.java.otr4j.crypto` and subpackages:  
   The architectural constraint prescribes that all sensitive cryptographic material is concentrated in `net.java.otr4j.crypto`. Secrets are encapsulated, but reflection would still allow access and extraction of this sensitive data.
 
-# Limitations
+## Limitations
 
-* _otr4j supports message lengths up to 2^31._  
+- _otr4j supports message lengths up to 2^31._  
   Message sizes in OTR are defined as 4-byte _unsigned_. Due to Java's signed integer types, this implementation currently uses a signed integer. Therefore, the highest bit of the message length is interpreted as sign bit. Lengths over 2^31 are unsupported.
-* _otr4j assumes message injections onto the (chat) network always succeed._  
+- _otr4j assumes message injections onto the (chat) network always succeed._  
   It is expected that message injection always succeeds. There is no way to signal that it failed and otr4j does not have any countermeasures in case it fails. (This may be added as a feature, but is currently not under consideration.)
 
-# Contributing / Help needed
+## Contributing / Help needed
 
 Please open an issue to discuss contributions early. As OTRv4 is still in draft and work on otr4j is active, things might change quickly.
 
 - Helping with implementation work:
-  - See the Functional/Operational/Developmental action points above.
+  - See the [Functional/Operational/Developmental action points][checklist].
   - Look for `FIXME`/`TODO` in the code.
 - Peer-reviewing (for correctness, security and improvements in general)  
-  _Don't trust me. I have done most of the work, so you can contribute the fixes to make it trustworthy for you!_
+  _Don't trust me. I have done most of the work, so you can contribute the fixes to make it more trustworthy._
 - Integration into chat clients
   - adoption
   - feedback on the API from the user perspective
@@ -94,7 +94,7 @@ Please open an issue to discuss contributions early. As OTRv4 is still in draft 
 
 The code is built using maven. The build configuration fails on compiler warnings and performs several types of static analysis. Checkstyle verifies the coding style and the same checkstyle configuration file can be used to configure your IDE. Although this does not catch all potential issues, I hope it will serve to provide early feedback for code contributions.
 
-In addition to syntactic correctness checking, we enforce javadoc for anything that is part of the *public* API: _public_ and _protected_ classes methods and fields. The rationale for this is that the user of otr4j should expect reasonable information on the logic its able to call. Although some javadoc may still be limited in usefulness, we should aim to use it to clarify everything the user should know in using otr4j.
+In addition to syntactic correctness checking, we enforce javadoc for anything that is part of the public API: _public_ and _protected_ classes methods and fields. The rationale is that the user of otr4j should expect reasonable information on the logic its able to call. Although some javadoc may still be limited in usefulness, we should aim to use it to clarify everything the user should know in using otr4j.
 
 ## Setting up your IDE: IntelliJ IDEA
 
@@ -102,7 +102,7 @@ In addition to syntactic correctness checking, we enforce javadoc for anything t
 1. Load `codecheck/checkstyle.xml` as the code style in IntelliJ (you will need to have the Checkstyle plug-in installed)
 1. ... (I'm not sure if anything else is needed, but I'll update when I find out.)
 
-# Dependency on [joldilocks][joldilocks]
+## Dependency on [joldilocks][joldilocks]
 
 Due to initial lack of support for Ed448-Goldilocks, a _very_ basic, limited Java library was written to support Ed448-Goldilocks. This library is by no means production-ready, does not provide any of the operational requirements necessary for security purposes and is not even guaranteed to be functionally correct. It did however enable further implementation of otr4j. We aim to completely migrate away from _joldilocks_ for otr4j. At most, we may keep it as a second opinion in unit testing code. _joldilocks_ needs Java 9 to compile so this dependency also raises our minimum required Java version for otr4j.
 
@@ -116,3 +116,4 @@ Due to initial lack of support for Ed448-Goldilocks, a _very_ basic, limited Jav
 [otr4j/otr4j]: https://github.com/otr4j/otr4j
 [joldilocks]: https://gitlab.com/cobratbq/joldilocks "A beginner-level (functional) implementation of Ed448-Goldilocks."
 [original-master]: https://gitlab.com/cobratbq/otr4j/tree/original-master "The original master branch. Before the history rewrite occurred."
+[checklist]: docs/checklist.md "Checklist with functional, operational and developmental requirements."
