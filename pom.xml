@@ -170,6 +170,7 @@
                     <keysMapLocation>${project.basedir}/pgpkeys.list</keysMapLocation>
                     <verifySnapshots>false</verifySnapshots>
                     <verifyPlugins>true</verifyPlugins>
+                    <verifyAtypical>true</verifyAtypical>
                     <verifyProvidedDependencies>true</verifyProvidedDependencies>
                     <verifyPomFiles>true</verifyPomFiles>
                     <verifyReactorDependencies>true</verifyReactorDependencies>
