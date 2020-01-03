@@ -507,8 +507,7 @@ public final class OtrCryptoEngine4 {
      * @param m               The message for which the signature should be generated.
      * @return Returns the sigma values that represent the ring signature.
      */
-    // TODO implement constant-time selection of applicable case (eq1, eq2, eq3)
-    @SuppressWarnings ({"PMD.FormalParameterNamingConventions", "PMD.LocalVariableNamingConventions"})
+    @SuppressWarnings({"PMD.FormalParameterNamingConventions", "PMD.LocalVariableNamingConventions", "PMD.AvoidLiteralsInIfCondition"})
     @Nonnull
     public static Sigma ringSign(final SecureRandom random, final EdDSAKeyPair longTermKeyPair, final Point A1,
             final Point A2, final Point A3, final byte[] m) {
@@ -520,36 +519,27 @@ public final class OtrCryptoEngine4 {
         }
         final Point longTermPublicKey = longTermKeyPair.getPublicKey();
         // Calculate equality to each of the provided public keys.
-        final boolean eq1 = longTermPublicKey.constantTimeEquals(A1);
-        final boolean eq2 = longTermPublicKey.constantTimeEquals(A2);
-        final boolean eq3 = longTermPublicKey.constantTimeEquals(A3);
-        // "Pick random values t1, c2, c3, r2, r3 in q."
-        try (Scalar ti = generateRandomValueInZq(random)) {
-            final Scalar cj = generateRandomValueInZq(random);
-            final Scalar rj = generateRandomValueInZq(random);
-            final Scalar ck = generateRandomValueInZq(random);
-            final Scalar rk = generateRandomValueInZq(random);
-            final Point T1;
-            final Point T2;
-            final Point T3;
-            if (eq1) {
-                // "Compute T1 = G * t1."
-                T1 = multiplyByBase(ti);
-                // "Compute T2 = G * r2 + A2 * c2."
-                T2 = multiplyByBase(rj).add(A2.multiply(cj));
-                // "Compute T3 = G * r3 + A3 * c3."
-                T3 = multiplyByBase(rk).add(A3.multiply(ck));
-            } else if (eq2) {
-                T1 = multiplyByBase(rj).add(A1.multiply(cj));
-                T2 = multiplyByBase(ti);
-                T3 = multiplyByBase(rk).add(A3.multiply(ck));
-            } else if (eq3) {
-                T1 = multiplyByBase(rj).add(A1.multiply(cj));
-                T2 = multiplyByBase(rk).add(A2.multiply(ck));
-                T3 = multiplyByBase(ti);
-            } else {
-                throw new IllegalArgumentException("Long-term key pair should match at least one of the public keys.");
-            }
+        final int eq1 = longTermPublicKey.constantTimeEquals(A1) ? 1 : 0;
+        final int eq2 = longTermPublicKey.constantTimeEquals(A2) ? 1 : 0;
+        final int eq3 = longTermPublicKey.constantTimeEquals(A3) ? 1 : 0;
+        if (eq1 + eq2 + eq3 != 1) {
+            throw new IllegalArgumentException("Expected long-term keypair to match exactly one of 3 public keys.");
+        }
+        // "Pick random values t, c2, c3, r2, r3 in q."
+        try (Scalar t = generateRandomValueInZq(random)) {
+            Scalar ci = generateRandomValueInZq(random);
+            Scalar ri = generateRandomValueInZq(random);
+            Scalar cj = generateRandomValueInZq(random);
+            Scalar rj = generateRandomValueInZq(random);
+            Scalar ck = generateRandomValueInZq(random);
+            Scalar rk = generateRandomValueInZq(random);
+            // Either `t*G` or `ri*G + ci*A1`, with `eq1==1` for first case, `eq1==0` for second case.
+            final Point T1 = multiplyByBase(t.multiply(eq1))
+                    .add(multiplyByBase(ri.multiply(1 - eq1)).add(A1.multiply(ci.multiply(1 - eq1))));
+            final Point T2 = multiplyByBase(t.multiply(eq2))
+                    .add(multiplyByBase(rj.multiply(1 - eq2)).add(A2.multiply(cj.multiply(1 - eq2))));
+            final Point T3 = multiplyByBase(t.multiply(eq3))
+                    .add(multiplyByBase(rk.multiply(1 - eq3)).add(A3.multiply(ck.multiply(1 - eq3))));
             // "Compute c = HashToScalar(0x1D || G || q || A1 || A2 || A3 || T1 || T2 || T3 || m)."
             final Scalar q = primeOrder();
             final Scalar c;
@@ -565,22 +555,17 @@ public final class OtrCryptoEngine4 {
                 buffer.write(m, 0, m.length);
                 c = hashToScalar(AUTH, buffer.toByteArray());
             }
-            // "Compute c1 = c - c2 - c3 (mod q)."
-            final Scalar ci = c.subtract(cj).subtract(ck).mod(q);
-            // "Compute r1 = t1 - c1 * a1 (mod q)."
-            final Scalar ri;
+            // Either "Compute c1 = c - c2 - c3 (mod q)." or use existing value for ci.
+            ci = c.subtract(cj).subtract(ck).mod(q).multiply(eq1).add(ci.multiply(1 - eq1));
+            cj = c.subtract(ci).subtract(ck).mod(q).multiply(eq2).add(cj.multiply(1 - eq2));
+            ck = c.subtract(ci).subtract(cj).mod(q).multiply(eq3).add(ck.multiply(1 - eq3));
+            // Either "Compute r1 = t1 - c1 * a1 (mod q)." or use existing value for ri.
             try (Scalar ai = longTermKeyPair.getSecretKey()) {
-                ri = ti.subtract(ci.multiply(ai)).mod(q);
+                ri = t.subtract(ci.multiply(ai)).mod(q).multiply(eq1).add(ri.multiply(1 - eq1));
+                rj = t.subtract(cj.multiply(ai)).mod(q).multiply(eq2).add(rj.multiply(1 - eq2));
+                rk = t.subtract(ck.multiply(ai)).mod(q).multiply(eq3).add(rk.multiply(1 - eq3));
             }
-            if (eq1) {
-                // "Send sigma = (c1, r1, c2, r2, c3, r3)."
-                return new Sigma(ci, ri, cj, rj, ck, rk);
-            } else if (eq2) {
-                return new Sigma(cj, rj, ci, ri, ck, rk);
-            } else if (eq3) {
-                return new Sigma(cj, rj, ck, rk, ci, ri);
-            }
-            throw new IllegalStateException("BUG: eq1 or eq2 or e3 should always be true.");
+            return new Sigma(ci, ri, cj, rj, ck, rk);
         } catch (final IOException e) {
             throw new IllegalStateException("Failed to write point to buffer.", e);
         }

@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+import static java.math.BigInteger.valueOf;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static nl.dannyvanheumen.joldilocks.Ed448.primeOrder;
 import static org.bouncycastle.util.Arrays.clear;
@@ -32,7 +33,7 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
  * arithmetic operations, but it does have the benefit that the current bad implementation is isolated to the innermost
  * implementation details.
  */
-// TODO implement arithmetic operations that operate directly on byte-arrays. ('toBigInteger' is workaround to make current implementation work.)
+// TODO implement arithmetic operations that operate directly on byte-arrays. (Needs to be compatible with constant-time selection use in OtrCryptoEngine4#ringSign.) ('toBigInteger' is workaround to make current implementation work.)
 public final class Scalar implements Comparable<Scalar>, AutoCloseable, ConstantTimeEquality<Scalar> {
 
     /**
@@ -81,6 +82,18 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
     public Scalar negate() {
         requireNotCleared();
         return fromBigInteger(toBigInteger().negate());
+    }
+
+    /**
+     * Multiply scalar value by provided long value.
+     *
+     * @param scalar value
+     * @return Returns result of multiplication.
+     */
+    @Nonnull
+    public Scalar multiply(final long scalar) {
+        requireNotCleared();
+        return fromBigInteger(toBigInteger().multiply(valueOf(scalar)));
     }
 
     /**
