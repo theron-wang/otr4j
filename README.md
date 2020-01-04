@@ -28,7 +28,8 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
   _Requires additions to the BouncyCastle API, as certain necessary operations are not currently supplied._
   - ✔ EdDSA long-term keypair
   - ⌛ ECDH keypair
-  - _ Ring Signatures
+  - ✔ Ring Signatures  
+    _Updating primitives is sufficient to make ring signatures work with BC._
   - _ SMP for OTRv4
 - _ Support for skipped messages, keeping track of skipped message keys.
 - _ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer></s>, refreshing client profile)

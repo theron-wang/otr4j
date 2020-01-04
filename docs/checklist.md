@@ -82,7 +82,7 @@ The checklist reflecting the considerations in the classifications _functional_,
   - ☑ MAC key comparison
   - ☑ Point and Scalar equality
   - ☑ Scalar value comparison
-  - ☐ Ring signatures
+  - ☑ Ring signatures
 - Cleaning up data:
   - ☑ Clearing byte-arrays containing sensitive material after use.
   - ☐ Clean up remaining message keys instances when transitioning away from encrypted message states.
