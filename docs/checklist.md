@@ -10,7 +10,7 @@ The checklist reflecting the considerations in the classifications _functional_,
   - ☑ 'Interactive DAKE' implemented as Message states i.s.o. AKE states.
   - ☑ OTRv4 extension to OTR error messages
   - ☑ Periodic heartbeat messages
-  - [Queuing up messages](docs/message-queueing.md) while not in `ENCRYPTED_MESSAGES` state.
+  - [Queuing up messages](message-queueing.md) while not in `ENCRYPTED_MESSAGES` state.
     - ☑ Basic message queueing implemented. (Cannot fully work until Double Ratchet algorithm is implemented.)
     - ☐ Message queueing configurable.  
         _This may be important as queue is flushed onto instance with first established private messaging. This may not always be desirable._
