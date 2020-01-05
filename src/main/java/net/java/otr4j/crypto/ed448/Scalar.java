@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+import static java.lang.Integer.signum;
 import static java.math.BigInteger.valueOf;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static nl.dannyvanheumen.joldilocks.Ed448.primeOrder;
@@ -200,21 +201,17 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
         return constantTimeAreEqual(this.encoded, o.encoded);
     }
 
-    // TODO make Scalar.compareTo perform constant-time comparison
     @Override
     public int compareTo(final Scalar scalar) {
         assert this.encoded.length == SCALAR_LENGTH_BYTES && scalar.encoded.length == SCALAR_LENGTH_BYTES;
+        int r = 0;
         for (int i = SCALAR_LENGTH_BYTES - 1; i >= 0; --i) {
-            final byte xi = (byte) (this.encoded[i] ^ Byte.MIN_VALUE);
-            final byte yi = (byte) (scalar.encoded[i] ^ Byte.MIN_VALUE);
-            if (xi < yi) {
-                return -1;
-            }
-            if (xi > yi) {
-                return 1;
-            }
+            final int xi = this.encoded[i] & 0xff;
+            final int yi = scalar.encoded[i] & 0xff;
+            final int d = signum(xi - yi);
+            r += (~r & 1) * d;
         }
-        return 0;
+        return r;
     }
 
     @Nonnull

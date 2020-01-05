@@ -208,7 +208,10 @@ public final class ScalarTest {
         final Scalar scalar2 = decodeScalar(valueBytes2);
         final BigInteger integer1 = new BigInteger(1, reverse(valueBytes1)).mod(Q_BIGINT);
         final BigInteger integer2 = new BigInteger(1, reverse(valueBytes2)).mod(Q_BIGINT);
-        assertEquals(integer1.compareTo(integer2), scalar1.compareTo(scalar2));
+        final int compInteger = integer1.compareTo(integer2);
+        final int compScalar = scalar1.compareTo(scalar2);
+        assertEquals(compInteger > 0, compScalar > 0);
+        assertEquals(compInteger < 0, compScalar < 0);
     }
 
     @Test
