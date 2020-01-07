@@ -26,11 +26,8 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
   _Requires update to the OTRv4 specification._
 - ⌛ Migrate Ed448-Goldilocks and EdDSA implementation to Bouncy Castle.  
   _Requires additions to the BouncyCastle API, as certain necessary operations are not currently supplied._
-  - ✔ EdDSA long-term keypair
-  - ⌛ ECDH keypair
-  - ✔ Ring Signatures  
-    _Updating primitives is sufficient to make ring signatures work with BC._
-  - _ SMP for OTRv4
+  - ⌛ ECDH operations
+  - _ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
 - _ Support for skipped messages, keeping track of skipped message keys.
 - _ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer></s>, refreshing client profile)
 - _ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive" use cases (including all FIXMEs)
