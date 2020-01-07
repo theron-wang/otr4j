@@ -39,6 +39,36 @@ public final class Integers {
     }
 
     /**
+     * Require integer equality.
+     *
+     * @param expected expected integer value
+     * @param value    actual integer value
+     * @return Returns actual integer value iff equal.
+     * @throws IllegalArgumentException in case actual value is not equal.
+     */
+    @CanIgnoreReturnValue
+    public static int requireEquals(final int expected, final int value) {
+        return requireEquals(expected, value, "value must be " + expected + ", but is " + value);
+    }
+
+    /**
+     * Require integer equality.
+     *
+     * @param expected expected integer value
+     * @param value    actual integer value
+     * @param message  the error message in case of inequality
+     * @return Returns actual integer value iff equal.
+     * @throws IllegalArgumentException in case actual value is not equal.
+     */
+    @CanIgnoreReturnValue
+    public static int requireEquals(final int expected, final int value, final String message) {
+        if (value != expected) {
+            throw new IllegalArgumentException(message);
+        }
+        return value;
+    }
+
+    /**
      * Require an integer value to be different than the forbidden value.
      *
      * @param forbidden the forbidden value

@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import static net.java.otr4j.util.Integers.parseUnsignedInt;
 import static net.java.otr4j.util.Integers.requireAtLeast;
+import static net.java.otr4j.util.Integers.requireEquals;
 import static net.java.otr4j.util.Integers.requireInRange;
 import static net.java.otr4j.util.Integers.requireNotEquals;
 import static org.junit.Assert.assertEquals;
@@ -91,5 +92,30 @@ public class IntegersTest {
     @Test(expected = IllegalArgumentException.class)
     public void testRequireNotEqualsValueForbidden() {
         requireNotEquals(1, 1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testRequireEqualsUnequalNoMessage() {
+        requireEquals(1, 2);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testRequireEqualsUnequalWithMessage() {
+        try {
+            requireEquals(1, 2, "This is wrong!");
+        } catch (final IllegalArgumentException e) {
+            assertEquals("This is wrong!", e.getMessage());
+            throw e;
+        }
+    }
+
+    @Test
+    public void testRequireEqualsEqualNoMessage() {
+        requireEquals(2, 2);
+    }
+
+    @Test
+    public void testRequireEqualsEqualWithMessage() {
+        requireEquals(4, 4, "This is wrong!");
     }
 }

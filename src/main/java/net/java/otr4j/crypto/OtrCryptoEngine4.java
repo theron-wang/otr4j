@@ -44,6 +44,7 @@ import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthAtLeast;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static net.java.otr4j.util.Integers.requireAtLeast;
+import static net.java.otr4j.util.Integers.requireEquals;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.bouncycastle.util.Arrays.clear;
 
@@ -522,9 +523,7 @@ public final class OtrCryptoEngine4 {
         final int eq1 = longTermPublicKey.constantTimeEquals(A1) ? 1 : 0;
         final int eq2 = longTermPublicKey.constantTimeEquals(A2) ? 1 : 0;
         final int eq3 = longTermPublicKey.constantTimeEquals(A3) ? 1 : 0;
-        if (eq1 + eq2 + eq3 != 1) {
-            throw new IllegalArgumentException("Expected long-term keypair to match exactly one of 3 public keys.");
-        }
+        requireEquals(1, eq1 + eq2 + eq3, "Expected long-term keypair to match exactly one of 3 public keys.");
         // "Pick random values t, c2, c3, r2, r3 in q."
         try (Scalar t = generateRandomValueInZq(random)) {
             Scalar ci = generateRandomValueInZq(random);
@@ -534,12 +533,12 @@ public final class OtrCryptoEngine4 {
             Scalar ck = generateRandomValueInZq(random);
             Scalar rk = generateRandomValueInZq(random);
             // Either `t*G` or `ri*G + ci*A1`, with `eq1==1` for first case, `eq1==0` for second case.
-            final Point T1 = multiplyByBase(t.multiply(eq1))
-                    .add(multiplyByBase(ri.multiply(1 - eq1)).add(A1.multiply(ci.multiply(1 - eq1))));
-            final Point T2 = multiplyByBase(t.multiply(eq2))
-                    .add(multiplyByBase(rj.multiply(1 - eq2)).add(A2.multiply(cj.multiply(1 - eq2))));
-            final Point T3 = multiplyByBase(t.multiply(eq3))
-                    .add(multiplyByBase(rk.multiply(1 - eq3)).add(A3.multiply(ck.multiply(1 - eq3))));
+            final Point T1 = multiplyByBase(t.multiply(eq1)).add(
+                    multiplyByBase(ri.multiply(1 - eq1)).add(A1.multiply(ci.multiply(1 - eq1))));
+            final Point T2 = multiplyByBase(t.multiply(eq2)).add(
+                    multiplyByBase(rj.multiply(1 - eq2)).add(A2.multiply(cj.multiply(1 - eq2))));
+            final Point T3 = multiplyByBase(t.multiply(eq3)).add(
+                    multiplyByBase(rk.multiply(1 - eq3)).add(A3.multiply(ck.multiply(1 - eq3))));
             // "Compute c = HashToScalar(0x1D || G || q || A1 || A2 || A3 || T1 || T2 || T3 || m)."
             final Scalar q = primeOrder();
             final Scalar c;
