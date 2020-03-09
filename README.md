@@ -1,6 +1,6 @@
 **NOTE**: *This version of otr4j is in active development for the adoption of the [OTRv4][OTRv4] specification that is being developed at this moment.*
 
-The repository for otr4j OTRv4 development is [github.com/otr4j/otr4j][otr4j/otr4j]. Mirrors at [github.com/cobratbq/otr4j](https://github.com/cobratbq/otr4j), [gitlab.com/cobratbq/otr4j](https://gitlab.com/cobratbq/otr4j).
+The repository for otr4j OTRv4 development is [gitlab.com/cobratbq/otr4j](https://gitlab.com/cobratbq/otr4j).
 
 # otr4j
 
@@ -111,7 +111,6 @@ Due to initial lack of support for Ed448-Goldilocks, a _very_ basic, limited Jav
 [OTRv2]: https://otr.cypherpunks.ca/Protocol-v2-3.1.0.html
 [OTRv3]: https://otr.cypherpunks.ca/Protocol-v3-4.1.1.html
 [OTRv4]: https://github.com/otrv4/otrv4
-[otr4j/otr4j]: https://github.com/otr4j/otr4j
 [joldilocks]: https://gitlab.com/cobratbq/joldilocks "A beginner-level (functional) implementation of Ed448-Goldilocks."
 [original-master]: https://gitlab.com/cobratbq/otr4j/tree/original-master "The original master branch. Before the history rewrite occurred."
 [checklist]: docs/checklist.md "Checklist with functional, operational and developmental requirements."
