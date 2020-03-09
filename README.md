@@ -1,6 +1,6 @@
 **NOTE**: *This version of otr4j is in active development for the adoption of the [OTRv4][OTRv4] specification that is being developed at this moment.*
 
-The repository for otr4j OTRv4 development is [github.com/otr4j/otr4j][otr4j/otr4j].
+The repository for otr4j OTRv4 development is [github.com/otr4j/otr4j][otr4j/otr4j]. Mirrors at [github.com/cobratbq/otr4j](https://github.com/cobratbq/otr4j), [gitlab.com/cobratbq/otr4j](https://gitlab.com/cobratbq/otr4j).
 
 # otr4j
 
