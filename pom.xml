@@ -192,8 +192,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>${project-java-version}</source>
-                    <target>${project-java-version}</target>
                     <release>${project-java-version}</release>
                     <showWarnings>true</showWarnings>
                 </configuration>
@@ -316,7 +314,7 @@
                                 <phase>compile</phase>
                                 <configuration>
                                     <compilerArgs>
-                                        <arg>-Xlint:all,-options</arg>
+                                        <arg>-Xlint:all</arg>
                                         <arg>-Xdoclint:all/protected</arg>
                                         <arg>-XDcompilePolicy=simple</arg>
                                         <arg>-Xplugin:ErrorProne -Xep:Java7ApiChecker:WARN -Xep:LockMethodChecker:ERROR -Xep:UnlockMethod:ERROR -Xep:InsecureCryptoUsage:ERROR -Xep:EmptyIf:ERROR -Xep:DivZero:ERROR -Xep:EqualsBrokenForNull:WARN -Xep:MissingDefault:WARN -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=net.java.otr4j</arg>
@@ -328,7 +326,7 @@
                                 <phase>test-compile</phase>
                                 <configuration>
                                     <compilerArgs>
-                                        <arg>-Xlint:all,-options,-deprecation</arg>
+                                        <arg>-Xlint:all,-deprecation</arg>
                                         <arg>-Xdoclint:none</arg>
                                     </compilerArgs>
                                 </configuration>
