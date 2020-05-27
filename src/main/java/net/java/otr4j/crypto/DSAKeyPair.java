@@ -21,6 +21,7 @@ import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPrivateKey;
 import java.security.interfaces.DSAPublicKey;
@@ -77,10 +78,13 @@ public final class DSAKeyPair {
      * @return Returns the DSA key pair.
      */
     @Nonnull
-    public static DSAKeyPair generateDSAKeyPair() {
+    public static DSAKeyPair generateDSAKeyPair(final SecureRandom random) {
+        // Manually enforce non-null SecureRandom instances. Some libraries/JDKs will default to their own when
+        // null is provided. It is preferred to throw NPE such that an issue in the control flow is apparent.
+        requireNonNull(random);
         try {
             final KeyPairGenerator kg = KeyPairGenerator.getInstance(ALGORITHM_DSA);
-            kg.initialize(DSA_KEY_LENGTH_BITS);
+            kg.initialize(DSA_KEY_LENGTH_BITS, random);
             final KeyPair keypair = kg.genKeyPair();
             return new DSAKeyPair((DSAPrivateKey) keypair.getPrivate(), (DSAPublicKey) keypair.getPublic());
         } catch (final NoSuchAlgorithmException e) {

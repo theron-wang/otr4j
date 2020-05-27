@@ -93,6 +93,9 @@ public final class DHKeyPairOTR3 {
      */
     @Nonnull
     public static DHKeyPairOTR3 generateDHKeyPair(final SecureRandom random) {
+        // Manually enforce non-null SecureRandom instances. Some libraries/JDKs will default to their own when
+        // null is provided. It is preferred to throw NPE such that an issue in the control flow is apparent.
+        requireNonNull(random);
 
         // Generate a AsymmetricCipherKeyPair using BC.
         final DHParameters dhParams = new DHParameters(MODULUS, GENERATOR, null, DH_PRIVATE_KEY_MINIMUM_BIT_LENGTH);
