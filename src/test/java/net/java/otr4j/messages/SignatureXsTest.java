@@ -50,7 +50,7 @@ public final class SignatureXsTest {
 
     @Test
     public void testReadSignatureX() throws ProtocolException, OtrCryptoException, UnsupportedTypeException {
-        final DSAKeyPair keypair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair keypair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final byte[] signature = keypair.sign(randomBytes(RANDOM, new byte[10]));
         final SignatureX sigX = new SignatureX(keypair.getPublic(), 1, signature);
         final byte[] input = new OtrOutputStream().write(sigX).toByteArray();

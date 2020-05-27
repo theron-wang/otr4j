@@ -112,7 +112,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * As OTR version 4 is now the preferred version, the local key pair will typically be used to provide a
      * transitional signature. Only when version 4 is not acceptable/suitable, will this be the primary key pair.
      * <p>
-     * The local OTRv3 key pair can be generated using {@link DSAKeyPair#generateDSAKeyPair()}.
+     * The local OTRv3 key pair can be generated using {@link DSAKeyPair#generateDSAKeyPair(java.security.SecureRandom)}.
      *
      * @param sessionID the session ID
      * @return Returns the local key pair.

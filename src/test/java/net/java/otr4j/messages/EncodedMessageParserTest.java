@@ -231,7 +231,7 @@ public class EncodedMessageParserTest {
         // Our client profile
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
@@ -254,7 +254,7 @@ public class EncodedMessageParserTest {
         // Our client profile
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
@@ -267,7 +267,7 @@ public class EncodedMessageParserTest {
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
                 theirForgingKey, singleton(Session.Version.FOUR), theirDSAKeyPair.getPublic());
@@ -295,7 +295,7 @@ public class EncodedMessageParserTest {
         // Our client profile
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
@@ -308,7 +308,7 @@ public class EncodedMessageParserTest {
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
                 theirForgingKey, singleton(Session.Version.FOUR), theirDSAKeyPair.getPublic());

@@ -224,13 +224,13 @@ public class SMTest {
 
         // Alice
         final SM alice = new SM(sr);
-        final DSAKeyPair aliceKeyPair = generateDSAKeyPair();
+        final DSAKeyPair aliceKeyPair = generateDSAKeyPair(sr);
         final DHKeyPairOTR3 aliceDHKeyPair = generateDHKeyPair(sr);
         final byte[] alicePublic = fingerprint(aliceKeyPair.getPublic());
 
         // Bob
         final SM bob = new SM(sr);
-        final DSAKeyPair bobKeyPair = generateDSAKeyPair();
+        final DSAKeyPair bobKeyPair = generateDSAKeyPair(sr);
         final DHKeyPairOTR3 bobDHKeyPair = generateDHKeyPair(sr);
         final byte[] bobPublic = fingerprint(bobKeyPair.getPublic());
 
@@ -274,13 +274,13 @@ public class SMTest {
 
         // Alice
         final SM alice = new SM(sr);
-        final DSAKeyPair aliceKeyPair = generateDSAKeyPair();
+        final DSAKeyPair aliceKeyPair = generateDSAKeyPair(sr);
         final DHKeyPairOTR3 aliceDHKeyPair = generateDHKeyPair(sr);
         final byte[] alicePublic = fingerprint(aliceKeyPair.getPublic());
 
         // Bob
         final SM bob = new SM(sr);
-        final DSAKeyPair bobKeyPair = generateDSAKeyPair();
+        final DSAKeyPair bobKeyPair = generateDSAKeyPair(sr);
         final DHKeyPairOTR3 bobDHKeyPair = generateDHKeyPair(sr);
         final byte[] bobPublic = fingerprint(bobKeyPair.getPublic());
 
@@ -804,12 +804,12 @@ public class SMTest {
     private SM prepareStateExpect4() throws Exception {
         // Alice
         final SM alice = new SM(sr);
-        final DSAKeyPair aliceKeyPair = generateDSAKeyPair();
+        final DSAKeyPair aliceKeyPair = generateDSAKeyPair(sr);
         final DHKeyPairOTR3 aliceDHKeyPair = generateDHKeyPair(sr);
         final byte[] alicePublic = fingerprint(aliceKeyPair.getPublic());
         // Bob
         final SM bob = new SM(sr);
-        final DSAKeyPair bobKeyPair = generateDSAKeyPair();
+        final DSAKeyPair bobKeyPair = generateDSAKeyPair(sr);
         final DHKeyPairOTR3 bobDHKeyPair = generateDHKeyPair(sr);
         final byte[] bobPublic = fingerprint(bobKeyPair.getPublic());
 
@@ -827,12 +827,12 @@ public class SMTest {
     private SM prepareStateExpect3() throws Exception {
         // Alice
         final SM alice = new SM(sr);
-        final DSAKeyPair aliceKeyPair = generateDSAKeyPair();
+        final DSAKeyPair aliceKeyPair = generateDSAKeyPair(sr);
         final DHKeyPairOTR3 aliceDHKeyPair = generateDHKeyPair(sr);
         final byte[] alicePublic = fingerprint(aliceKeyPair.getPublic());
         // Bob
         final SM bob = new SM(sr);
-        final DSAKeyPair bobKeyPair = generateDSAKeyPair();
+        final DSAKeyPair bobKeyPair = generateDSAKeyPair(sr);
         final DHKeyPairOTR3 bobDHKeyPair = generateDHKeyPair(sr);
         final byte[] bobPublic = fingerprint(bobKeyPair.getPublic());
 

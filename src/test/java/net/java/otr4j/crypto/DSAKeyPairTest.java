@@ -34,11 +34,11 @@ public final class DSAKeyPairTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private static final DSAKeyPair DSA_KEYPAIR = generateDSAKeyPair();
+    private static final DSAKeyPair DSA_KEYPAIR = generateDSAKeyPair(RANDOM);
 
     @Test
     public void testGenerateDSAKeyPair() {
-        final DSAKeyPair keypair = generateDSAKeyPair();
+        final DSAKeyPair keypair = generateDSAKeyPair(RANDOM);
         assertNotNull(keypair);
         assertNotNull(keypair.getPublic());
     }
@@ -57,14 +57,14 @@ public final class DSAKeyPairTest {
 
     @Test(expected = NullPointerException.class)
     public void testSignNullMessage() {
-        final DSAKeyPair keypair = generateDSAKeyPair();
+        final DSAKeyPair keypair = generateDSAKeyPair(RANDOM);
         keypair.sign(null);
     }
 
     @Test
     public void testSignMessage() throws OtrCryptoException {
         final byte[] data = randomBytes(RANDOM, new byte[RANDOM.nextInt(1000)]);
-        final DSAKeyPair keypair = generateDSAKeyPair();
+        final DSAKeyPair keypair = generateDSAKeyPair(RANDOM);
         final byte[] signature = keypair.sign(data);
         DSAKeyPair.verifySignature(data, keypair.getPublic(), signature);
     }
@@ -80,9 +80,9 @@ public final class DSAKeyPairTest {
 
     @Test
     public void testGenerateDSAKeyPairDifferentKeyPairs() {
-        final DSAKeyPair keypair1 = generateDSAKeyPair();
-        final DSAKeyPair keypair2 = generateDSAKeyPair();
-        final DSAKeyPair keypair3 = generateDSAKeyPair();
+        final DSAKeyPair keypair1 = generateDSAKeyPair(RANDOM);
+        final DSAKeyPair keypair2 = generateDSAKeyPair(RANDOM);
+        final DSAKeyPair keypair3 = generateDSAKeyPair(RANDOM);
         assertNotEquals(keypair1.getPublic().getY(), keypair2.getPublic().getY());
         assertNotEquals(keypair1.getPublic().getY(), keypair3.getPublic().getY());
         assertNotEquals(keypair2.getPublic().getY(), keypair3.getPublic().getY());
@@ -93,7 +93,7 @@ public final class DSAKeyPairTest {
 
     @Test
     public void testRecreateDSAPublicKey() throws OtrCryptoException {
-        final DSAKeyPair keypair = generateDSAKeyPair();
+        final DSAKeyPair keypair = generateDSAKeyPair(RANDOM);
         final DSAParams params = keypair.getPublic().getParams();
         final DSAPublicKey recreated = createDSAPublicKey(keypair.getPublic().getY(), params.getP(), params.getQ(), params.getG());
         assertEquals(keypair.getPublic(), recreated);
@@ -101,7 +101,7 @@ public final class DSAKeyPairTest {
 
     @Test(expected = RuntimeException.class)
     public void testRecreateDSAPublicKeyNullY() throws OtrCryptoException {
-        final DSAKeyPair keypair = generateDSAKeyPair();
+        final DSAKeyPair keypair = generateDSAKeyPair(RANDOM);
         final DSAParams params = keypair.getPublic().getParams();
         final DSAPublicKey recreated = createDSAPublicKey(null, params.getP(), params.getQ(), params.getG());
         assertEquals(keypair.getPublic(), recreated);
@@ -109,7 +109,7 @@ public final class DSAKeyPairTest {
 
     @Test(expected = RuntimeException.class)
     public void testRecreateDSAPublicKeyNullP() throws OtrCryptoException {
-        final DSAKeyPair keypair = generateDSAKeyPair();
+        final DSAKeyPair keypair = generateDSAKeyPair(RANDOM);
         final DSAParams params = keypair.getPublic().getParams();
         final DSAPublicKey recreated = createDSAPublicKey(keypair.getPublic().getY(), null, params.getQ(), params.getG());
         assertEquals(keypair.getPublic(), recreated);
@@ -117,7 +117,7 @@ public final class DSAKeyPairTest {
 
     @Test(expected = RuntimeException.class)
     public void testRecreateDSAPublicKeyNullQ() throws OtrCryptoException {
-        final DSAKeyPair keypair = generateDSAKeyPair();
+        final DSAKeyPair keypair = generateDSAKeyPair(RANDOM);
         final DSAParams params = keypair.getPublic().getParams();
         final DSAPublicKey recreated = createDSAPublicKey(keypair.getPublic().getY(), params.getP(), null, params.getG());
         assertEquals(keypair.getPublic(), recreated);
@@ -125,7 +125,7 @@ public final class DSAKeyPairTest {
 
     @Test(expected = RuntimeException.class)
     public void testRecreateDSAPublicKeyNullG() throws OtrCryptoException {
-        final DSAKeyPair keypair = generateDSAKeyPair();
+        final DSAKeyPair keypair = generateDSAKeyPair(RANDOM);
         final DSAParams params = keypair.getPublic().getParams();
         final DSAPublicKey recreated = createDSAPublicKey(keypair.getPublic().getY(), params.getP(), params.getQ(), null);
         assertEquals(keypair.getPublic(), recreated);
@@ -143,7 +143,7 @@ public final class DSAKeyPairTest {
 
     @Test
     public void testRestoreGeneratedDSAKeyPair() throws OtrCryptoException {
-        final DSAKeyPair keypair = generateDSAKeyPair();
+        final DSAKeyPair keypair = generateDSAKeyPair(RANDOM);
         final EncodedDSAKeyPair encoded = keypair.encodeDSAKeyPair();
         final DSAKeyPair restored = restoreDSAKeyPair(encoded.encodedPrivateKey, encoded.encodedPublicKey);
         assertEquals(keypair, restored);

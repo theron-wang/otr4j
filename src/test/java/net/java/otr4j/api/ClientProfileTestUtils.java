@@ -30,7 +30,7 @@ public final class ClientProfileTestUtils {
 
     private final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
 
-    private final DSAKeyPair dsaKeyPair = generateDSAKeyPair();
+    private final DSAKeyPair dsaKeyPair = generateDSAKeyPair(RANDOM);
 
     private final long expirationTime = System.currentTimeMillis() / 1000 + 86400;
 

@@ -75,6 +75,7 @@ public final class DSAKeyPair {
     /**
      * Generate a DSA key pair.
      *
+     * @param random SecureRandom instance used for generation.
      * @return Returns the DSA key pair.
      */
     @Nonnull

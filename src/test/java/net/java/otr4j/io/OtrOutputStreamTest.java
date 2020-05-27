@@ -410,7 +410,7 @@ public class OtrOutputStreamTest {
 
     @Test
     public void testWriteDSAPublicKey() throws ProtocolException {
-        final DSAPublicKey publicKey = generateDSAKeyPair().getPublic();
+        final DSAPublicKey publicKey = generateDSAKeyPair(RANDOM).getPublic();
         final byte[] result = new OtrOutputStream().writePublicKey(publicKey).toByteArray();
         final OtrInputStream in = new OtrInputStream(result);
         assertEquals(0, in.readShort());

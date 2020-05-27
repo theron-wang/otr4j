@@ -24,7 +24,7 @@ public final class SignatureXTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private static final DSAPublicKey publicKey = generateDSAKeyPair().getPublic();
+    private static final DSAPublicKey publicKey = generateDSAKeyPair(RANDOM).getPublic();
 
     @Test(expected = NullPointerException.class)
     public void testConstructNullDSAPublicKey() {

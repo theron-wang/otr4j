@@ -43,7 +43,7 @@ public final class AuthRMessagesTest {
     public void testValidateSuccessful() throws ValidationException {
         // Define their client
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
@@ -59,7 +59,7 @@ public final class AuthRMessagesTest {
         final DHKeyPair ourB = DHKeyPair.generate(RANDOM);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
                 ourForgingKey, singleton(Session.Version.FOUR), ourDSAKeyPair.getPublic());
@@ -82,7 +82,7 @@ public final class AuthRMessagesTest {
     public void testValidateInstanceTagMismatch() throws ValidationException {
         // Define their client
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(new InstanceTag(257), theirLongTermKeyPair.getPublicKey(),
                 forgingKey, singleton(Session.Version.FOUR), theirDSAKeyPair.getPublic());
@@ -98,7 +98,7 @@ public final class AuthRMessagesTest {
         final BigInteger ourB = DHKeyPair.generate(RANDOM).getPublicKey();
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
                 ourForgingKey, singleton(Session.Version.FOUR), ourDSAKeyPair.getPublic());
@@ -120,7 +120,7 @@ public final class AuthRMessagesTest {
     public void testValidateIllegalECDHPublicKey() throws ValidationException {
         // Define their client
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
                 forgingKey, singleton(Version.FOUR), theirDSAKeyPair.getPublic());
@@ -136,7 +136,7 @@ public final class AuthRMessagesTest {
         final BigInteger ourB = DHKeyPair.generate(RANDOM).getPublicKey();
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
                 ourForgingKey, singleton(Session.Version.FOUR), ourDSAKeyPair.getPublic());
@@ -158,7 +158,7 @@ public final class AuthRMessagesTest {
     public void testValidateIllegalDHPublicKey() throws ValidationException {
         // Define their client
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
                 forgingKey, singleton(Session.Version.FOUR), theirDSAKeyPair.getPublic());
@@ -174,7 +174,7 @@ public final class AuthRMessagesTest {
         final BigInteger ourB = DHKeyPair.generate(RANDOM).getPublicKey();
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
                 ourForgingKey, singleton(Session.Version.FOUR), ourDSAKeyPair.getPublic());
@@ -196,7 +196,7 @@ public final class AuthRMessagesTest {
     public void testValidateBadMessage() throws ValidationException {
         // Define their client
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
                 forgingKey, singleton(Version.FOUR), theirDSAKeyPair.getPublic());
@@ -212,7 +212,7 @@ public final class AuthRMessagesTest {
         final BigInteger ourB = DHKeyPair.generate(RANDOM).getPublicKey();
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
                 ourForgingKey, singleton(Session.Version.FOUR), ourDSAKeyPair.getPublic());

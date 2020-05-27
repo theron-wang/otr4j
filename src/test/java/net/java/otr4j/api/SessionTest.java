@@ -1485,7 +1485,7 @@ public class SessionTest {
 
         private final InstanceTag instanceTag = InstanceTag.random(RANDOM);
 
-        private final DSAKeyPair dsaKeyPair = generateDSAKeyPair();
+        private final DSAKeyPair dsaKeyPair = generateDSAKeyPair(RANDOM);
 
         private final EdDSAKeyPair ed448KeyPair = EdDSAKeyPair.generate(RANDOM);
 

@@ -32,7 +32,7 @@ public final class ClientProfileTest {
 
     private final Point forgingPublicKey = generate(RANDOM).getPublicKey();
 
-    private final DSAKeyPair dsaKeyPair = generateDSAKeyPair();
+    private final DSAKeyPair dsaKeyPair = generateDSAKeyPair(RANDOM);
 
     @Test
     public void testConstructWithoutDSAPublicKey() {

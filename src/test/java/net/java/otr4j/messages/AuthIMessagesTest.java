@@ -41,7 +41,7 @@ public final class AuthIMessagesTest {
         // Our client profile
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
@@ -52,7 +52,7 @@ public final class AuthIMessagesTest {
         final BigInteger ourA = DHKeyPair.generate(RANDOM).getPublicKey();
         // Their client profile
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
@@ -79,7 +79,7 @@ public final class AuthIMessagesTest {
         // Our client profile
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
@@ -90,7 +90,7 @@ public final class AuthIMessagesTest {
         final BigInteger ourA = DHKeyPair.generate(RANDOM).getPublicKey();
         // Their client profile
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
@@ -117,7 +117,7 @@ public final class AuthIMessagesTest {
         // Our client profile
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
-        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
@@ -128,7 +128,7 @@ public final class AuthIMessagesTest {
         final BigInteger ourA = DHKeyPair.generate(RANDOM).getPublicKey();
         // Their client profile
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair();
+        final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();

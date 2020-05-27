@@ -39,7 +39,7 @@ public final class AuthRMessageTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private static final DSAKeyPair DSA_KEYPAIR = DSAKeyPair.generateDSAKeyPair();
+    private static final DSAKeyPair DSA_KEYPAIR = DSAKeyPair.generateDSAKeyPair(RANDOM);
 
     private static final Point FORGING_KEY = ECDHKeyPair.generate(RANDOM).getPublicKey();
 
