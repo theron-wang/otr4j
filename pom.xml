@@ -326,7 +326,7 @@
                                 <phase>test-compile</phase>
                                 <configuration>
                                     <compilerArgs>
-                                        <arg>-Xlint:all,-deprecation</arg>
+                                        <arg>-Xlint:all</arg>
                                         <arg>-Xdoclint:none</arg>
                                     </compilerArgs>
                                 </configuration>
