@@ -36,6 +36,7 @@ public final class Collections {
      * @return Returns same collection as provided iff no illegal values are present.
      * @throws IllegalArgumentException In case illegal values are present.
      */
+    // FIXME consider renaming to `requireAbsent` for readability, consistency, conciseness, etc.
     @CanIgnoreReturnValue
     @Nonnull
     public static <S, T extends Collection<S>> T requireNoIllegalValues(final Collection<S> blacklist,

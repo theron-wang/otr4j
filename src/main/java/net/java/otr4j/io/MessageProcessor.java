@@ -235,7 +235,7 @@ public final class MessageProcessor {
                 builder.append("  \t\t \t  ");
             }
         }
-        return builder.length() == 0 ? "" : " \t  \t\t\t\t \t \t \t  " + builder.toString();
+        return builder.length() == 0 ? "" : " \t  \t\t\t\t \t \t \t  " + builder;
     }
 
     @Nonnull
@@ -271,8 +271,8 @@ public final class MessageProcessor {
     @Nonnull
     public static Set<Integer> parseVersionString(final String versionString) {
         final TreeSet<Integer> versions = new TreeSet<>();
-        for (final char c : versionString.toCharArray()) {
-            final int idx = NUMBERINDEX.indexOf(c);
+        for (int i = 0; i < versionString.length(); i++) {
+            final int idx = NUMBERINDEX.indexOf(versionString.charAt(i));
             if (idx > 0) {
                 versions.add(idx);
             }

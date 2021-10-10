@@ -9,7 +9,7 @@
 
 package net.java.otr4j.messages;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Objects;
 
 /**
@@ -42,9 +42,9 @@ final class Validators {
         throw new ValidationException(message);
     }
 
-    static void validateDateAfter(final Date moment, final Date testDate, final String message)
+    static void validateDateAfter(final Instant moment, final Instant testDate, final String message)
             throws ValidationException {
-        if (moment.before(testDate)) {
+        if (moment.isBefore(testDate)) {
             return;
         }
         throw new ValidationException(message);

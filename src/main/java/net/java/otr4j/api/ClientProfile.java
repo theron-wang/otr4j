@@ -9,16 +9,19 @@
 
 package net.java.otr4j.api;
 
+import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.crypto.ed448.Point;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.security.interfaces.DSAPublicKey;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.singleton;
+import static java.util.Collections.unmodifiableSet;
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.Collections.requireElements;
 import static net.java.otr4j.util.Collections.requireMinElements;
@@ -28,6 +31,10 @@ import static net.java.otr4j.util.Collections.requireNoIllegalValues;
  * The validated representation of the ClientProfile.
  */
 public final class ClientProfile {
+
+    private static final Collection<Integer> MANDATORY_VERSIONS = singleton(Version.FOUR);
+
+    private static final Collection<Integer> FORBIDDEN_VERSIONS = asList(Version.ONE, Version.TWO);
 
     /**
      * Owner's instance tag.
@@ -78,8 +85,8 @@ public final class ClientProfile {
         this.instanceTag = requireNonNull(instanceTag);
         this.longTermPublicKey = requireNonNull(longTermPublicKey);
         this.forgingKey = requireNonNull(forgingKey);
-        this.versions = requireMinElements(1, requireElements(singletonList(Session.Version.FOUR),
-                requireNoIllegalValues(asList(Session.Version.ONE, Session.Version.TWO), versions)));
+        this.versions = unmodifiableSet(requireMinElements(1, requireElements(MANDATORY_VERSIONS,
+                requireNoIllegalValues(FORBIDDEN_VERSIONS, versions))));
         this.dsaPublicKey = dsaPublicKey;
     }
 

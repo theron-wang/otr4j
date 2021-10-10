@@ -17,7 +17,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 
 import static java.util.Objects.requireNonNull;
-import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
 
 /**
  * Utility methods for byte arrays.
@@ -89,6 +88,21 @@ public final class ByteArrays {
     }
 
     /**
+     * Test equality of two byte arrays using constant-time method. Inputs cannot be null and must be equal length.
+     *
+     * @param data1 The first byte array.
+     * @param data2 The second byte array.
+     * @return Returns true iff both byte arrays have same contents (and same length).
+     */
+    @CheckReturnValue
+    public static boolean constantTimeEqualsOrSame(final byte[] data1, final byte[] data2) {
+        if (requireNonNull(data1) == requireNonNull(data2)) {
+            return true;
+        }
+        return constantTimeEquals(data1, data2);
+    }
+
+    /**
      * Test equality of two byte arrays using constant-time method. Throws an IllegalArgumentException in case both
      * arrays are same instance. Inputs cannot be null and must be equal length.
      *
@@ -98,26 +112,35 @@ public final class ByteArrays {
      */
     @CheckReturnValue
     public static boolean constantTimeEquals(final byte[] data1, final byte[] data2) {
-        if (requireNonNull(data1) == requireNonNull(data2)) {
+        if (data1.length != data2.length) {
+            return false;
+        }
+        if (data1 == data2) {
             throw new IllegalArgumentException("BUG: Same instance is compared.");
         }
-        return constantTimeEqualsOrSame(data1, data2);
+        assert !allZeroBytes(data1) : "Expected non-zero bytes for data1. This may indicate that a critical bug is present, or it may be a false warning.";
+        assert !allZeroBytes(data2) : "Expected non-zero bytes for data1. This may indicate that a critical bug is present, or it may be a false warning.";
+        int result = 0;
+        for (int i = 0; i < data1.length; i++) {
+            result |= data1[i] ^ data2[i];
+        }
+        return result == 0;
     }
 
     /**
-     * Test equality of two byte arrays using constant-time method. Inputs cannot be null and must be equal length.
+     * Concatenate two byte arrays into a new destination array.
      *
-     * @param data1 The first byte array.
-     * @param data2 The second byte array.
-     * @return Returns true iff both byte arrays have same contents (and same length).
+     * @param first first byte-array
+     * @param second second byte-array
+     * @return Returns a new byte-array with contents of first byte-array followed by second byte-array.
      */
-    @CheckReturnValue
-    public static boolean constantTimeEqualsOrSame(final byte[] data1, final byte[] data2) {
-        requireNonNull(data1);
-        requireNonNull(data2);
-        assert !allZeroBytes(data1) : "Expected non-zero bytes for data1. This may indicate that a critical bug is present, or it may be a false warning.";
-        assert !allZeroBytes(data2) : "Expected non-zero bytes for data1. This may indicate that a critical bug is present, or it may be a false warning.";
-        return constantTimeAreEqual(data1, data2);
+    // FIXME needs tests.
+    @Nonnull
+    public static byte[] concatenate(final byte[] first, final byte[] second) {
+        final byte[] dst = new byte[first.length + second.length];
+        System.arraycopy(first, 0, dst, 0, first.length);
+        System.arraycopy(second, 0, dst, first.length, second.length);
+        return dst;
     }
 
     /**

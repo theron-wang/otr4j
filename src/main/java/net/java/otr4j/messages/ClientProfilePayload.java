@@ -28,9 +28,9 @@ import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.security.interfaces.DSAPublicKey;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -48,9 +48,9 @@ import static net.java.otr4j.io.OtrEncodables.encode;
 import static net.java.otr4j.messages.Validators.validateAtMost;
 import static net.java.otr4j.messages.Validators.validateDateAfter;
 import static net.java.otr4j.messages.Validators.validateExactly;
+import static net.java.otr4j.util.ByteArrays.concatenate;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.Iterables.findByType;
-import static org.bouncycastle.util.Arrays.concatenate;
 
 /**
  * The client profile payload.
@@ -127,7 +127,7 @@ public final class ClientProfilePayload implements OtrEncodable {
         final byte[] signature = eddsaKeyPair.sign(m);
         // We assume that the internally generated client profiles are correct, however it is tested when assertions are
         // enabled.
-        assert testValidate(fields, signature, new Date()) : "BUG: Internally constructed client profile payload fails validation. This should not happen.";
+        assert testValidate(fields, signature, Instant.now()) : "BUG: Internally constructed client profile payload fails validation. This should not happen.";
         return new ClientProfilePayload(fields, signature);
     }
 
@@ -209,7 +209,7 @@ public final class ClientProfilePayload implements OtrEncodable {
             }
         }
         final byte[] signature = in.readEdDSASignature();
-        validate(fields, signature, new Date());
+        validate(fields, signature, Instant.now());
         return new ClientProfilePayload(fields, signature);
     }
 
@@ -249,7 +249,7 @@ public final class ClientProfilePayload implements OtrEncodable {
      */
     @Nonnull
     public ClientProfile validate() throws ValidationException {
-        validate(this.fields, this.signature, new Date());
+        validate(this.fields, this.signature, Instant.now());
         return reconstructClientProfile();
     }
 
@@ -277,7 +277,7 @@ public final class ClientProfilePayload implements OtrEncodable {
      *
      * @return true iff validated successfully
      */
-    private static boolean testValidate(final List<Field> fields, final byte[] signature, final Date now) {
+    private static boolean testValidate(final List<Field> fields, final byte[] signature, final Instant now) {
         try {
             validate(fields, signature, now);
             return true;
@@ -294,7 +294,7 @@ public final class ClientProfilePayload implements OtrEncodable {
      * @param signature The OTRv4 signature for the fields contained in the client profile.
      * @throws ValidationException In case ClientProfilePayload contents are not inconsistent or signature is invalid.
      */
-    private static void validate(final List<Field> fields, final byte[] signature, final Date now)
+    private static void validate(final List<Field> fields, final byte[] signature, final Instant now)
             throws ValidationException {
         final ArrayList<InstanceTagField> instanceTagFields = new ArrayList<>();
         final ArrayList<ED448PublicKeyField> publicKeyFields = new ArrayList<>();
@@ -355,7 +355,8 @@ public final class ClientProfilePayload implements OtrEncodable {
         if (dsaPublicKeyFields.size() == 1 && transitionalSignatureFields.isEmpty()) {
             throw new ValidationException("DSA public key encountered without corresponding transitional signature.");
         }
-        validateDateAfter(now, new Date(expirationDateFields.get(0).timestamp * 1000), "Client Profile has expired.");
+        validateDateAfter(now, Instant.ofEpochSecond(expirationDateFields.get(0).timestamp),
+                "Client Profile has expired.");
         validateAtMost(1, transitionalSignatureFields.size(), "Expected at most one transitional signature, got more than one.");
         if (transitionalSignatureFields.size() == 1) {
             if (dsaPublicKeyFields.size() == 1) {

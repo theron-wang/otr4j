@@ -514,7 +514,9 @@ final class SessionImpl implements Session, Context {
                     this.slaveSessions.put(fragment.getSenderTag(), newSlaveSession);
                 }
                 final SessionImpl slave = this.slaveSessions.get(fragment.getSenderTag());
-                return slave.handleFragment(fragment);
+                synchronized (slave.masterSession) {
+                    return slave.handleFragment(fragment);
+                }
             } else if (masterSession == this && m instanceof EncodedMessage && (((EncodedMessage) m).version == THREE
                     || ((EncodedMessage) m).version == FOUR)) {
                 final EncodedMessage message = (EncodedMessage) m;
@@ -542,7 +544,9 @@ final class SessionImpl implements Session, Context {
                 final SessionImpl slave = this.slaveSessions.get(message.senderTag);
                 logger.log(FINEST, "Delegating to slave session for instance tag {0}",
                         message.senderTag.getValue());
-                return slave.handleEncodedMessage(message);
+                synchronized (slave.masterSession) {
+                    return slave.handleEncodedMessage(message);
+                }
             }
 
             logger.log(FINE, "Received message with type {0}", m.getClass());
@@ -1149,7 +1153,9 @@ final class SessionImpl implements Session, Context {
             if (session == null) {
                 throw new IllegalArgumentException("Unknown receiver instance tag: " + receiverTag.getValue());
             }
-            session.sendResponseSmp(question, secret);
+            synchronized (session.masterSession) {
+                session.sendResponseSmp(question, secret);
+            }
         }
     }
 

@@ -11,7 +11,7 @@ package net.java.otr4j.messages;
 
 import org.junit.Test;
 
-import java.util.Date;
+import java.time.Instant;
 
 import static net.java.otr4j.messages.Validators.validateAtMost;
 import static net.java.otr4j.messages.Validators.validateDateAfter;
@@ -74,21 +74,21 @@ public final class ValidatorsTest {
 
     @Test(expected = ValidationException.class)
     public void testValidateDateExactly() throws ValidationException {
-        final Date now = new Date();
+        final Instant now = Instant.now();
         validateDateAfter(now, now, "Good");
     }
 
     @Test
     public void testValidateDateAfter() throws ValidationException {
-        final Date now = new Date();
-        final Date after = new Date(Long.MAX_VALUE);
+        final Instant now = Instant.now();
+        final Instant after = Instant.ofEpochMilli(Long.MAX_VALUE);
         validateDateAfter(now, after, "Good");
     }
 
     @Test(expected = ValidationException.class)
     public void testValidateDateBefore() throws ValidationException {
-        final Date now = new Date();
-        final Date before = new Date(Long.MIN_VALUE);
+        final Instant now = Instant.now();
+        final Instant before = Instant.ofEpochMilli(Long.MIN_VALUE);
         validateDateAfter(now, before, "Not good");
     }
 }

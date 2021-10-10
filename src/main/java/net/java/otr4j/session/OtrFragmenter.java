@@ -33,21 +33,6 @@ final class OtrFragmenter {
     private static final int MAXIMUM_NUMBER_OF_FRAGMENTS = 65535;
 
     /**
-     * The message format of an OTRv4 message fragment.
-     */
-    private static final String OTRV4_MESSAGE_FRAGMENT_FORMAT = "?OTR|%08x|%08x|%08x,%05d,%05d,%s,";
-
-    /**
-     * The message format of an OTRv3 message fragment.
-     */
-    private static final String OTRV3_MESSAGE_FRAGMENT_FORMAT = "?OTR|%08x|%08x,%05d,%05d,%s,";
-
-    /**
-     * The message format of an OTRv2 message fragment.
-     */
-    private static final String OTRV2_MESSAGE_FRAGMENT_FORMAT = "?OTR,%d,%d,%s,";
-
-    /**
      * OTRv2 header size (overhead of fragmentation).
      */
     private static final int OTRV2_HEADER_SIZE = 18;
@@ -231,7 +216,7 @@ final class OtrFragmenter {
     @Nonnull
     private String createV4MessageFragment(final int id, final int sendertag, final int receivertag, final int count,
             final int total, final String partialContent) {
-        return String.format(OTRV4_MESSAGE_FRAGMENT_FORMAT, id, sendertag, receivertag, count + 1, total, partialContent);
+        return String.format("?OTR|%08x|%08x|%08x,%05d,%05d,%s,", id, sendertag, receivertag, count + 1, total, partialContent);
     }
 
     /**
@@ -245,7 +230,7 @@ final class OtrFragmenter {
     @Nonnull
     private String createV3MessageFragment(final int sendertag, final int receivertag, final int count, final int total,
             final String partialContent) {
-        return String.format(OTRV3_MESSAGE_FRAGMENT_FORMAT, sendertag, receivertag, count + 1, total, partialContent);
+        return String.format("?OTR|%08x|%08x,%05d,%05d,%s,", sendertag, receivertag, count + 1, total, partialContent);
     }
 
     /**
@@ -258,7 +243,7 @@ final class OtrFragmenter {
      */
     @Nonnull
     private String createV2MessageFragment(final int count, final int total, final String partialContent) {
-        return String.format(OTRV2_MESSAGE_FRAGMENT_FORMAT, count + 1, total, partialContent);
+        return String.format("?OTR,%d,%d,%s,", count + 1, total, partialContent);
     }
 
     /**

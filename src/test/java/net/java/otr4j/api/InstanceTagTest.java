@@ -11,6 +11,8 @@ package net.java.otr4j.api;
 
 import org.junit.Test;
 
+import java.security.SecureRandom;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -19,6 +21,8 @@ import static org.junit.Assert.assertTrue;
  * @author Danny van Heumen
  */
 public class InstanceTagTest {
+
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     @Test
     public void testConstructZeroTag() {
@@ -95,7 +99,7 @@ public class InstanceTagTest {
         long longval;
         int idx;
         for (int i = 0; i < 500000; i++) {
-            tag = new InstanceTag();
+            tag = InstanceTag.random(RANDOM);
             val = tag.getValue();
             assertFalse("" + val, 0 <= val && val < InstanceTag.SMALLEST_VALUE);
             // convert to long preserving bits (i.e. don't convert negative int to negative long

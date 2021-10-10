@@ -19,7 +19,6 @@ import java.math.BigInteger;
 import java.util.Arrays;
 
 import static java.lang.Integer.signum;
-import static java.math.BigInteger.valueOf;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static nl.dannyvanheumen.joldilocks.Ed448.primeOrder;
 import static org.bouncycastle.util.Arrays.clear;
@@ -46,7 +45,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
 
     private boolean cleared = false;
 
-    @Nonnull
     Scalar(final byte[] encoded) {
         this.encoded = requireLengthExactly(SCALAR_LENGTH_BYTES, encoded);
     }
@@ -94,7 +92,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
     @Nonnull
     public Scalar multiply(final long scalar) {
         requireNotCleared();
-        return fromBigInteger(toBigInteger().multiply(valueOf(scalar)));
+        return fromBigInteger(toBigInteger().multiply(BigInteger.valueOf(scalar)));
     }
 
     /**

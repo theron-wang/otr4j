@@ -90,18 +90,6 @@ public final class InstanceTag {
     }
 
     /**
-     * The default constructor for Instance Tag.
-     *
-     * If you need to construct many instance tags, you should consider
-     * using {@link #InstanceTag(double) } and your own instance of
-     * SecureRandom to prevent the additional overhead of instantiating
-     * SecureRandom.
-     */
-    public InstanceTag() {
-        this(new SecureRandom().nextDouble());
-    }
-
-    /**
      * Instance Tag constructor.
      *
      * This version of the constructor is provided in order to provide an
