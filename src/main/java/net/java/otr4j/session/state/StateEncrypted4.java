@@ -207,6 +207,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     // FIXME write tests for SMP_ABORT sets UNREADABLE flag, SMP payload corrupted, SMP payload incomplete, ...
     @Nullable
     @Override
+    @SuppressWarnings("PMD.CognitiveComplexity")
     String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException, ProtocolException {
         if (message.j == 0) {
             if (message.i < this.ratchet.getI()) {

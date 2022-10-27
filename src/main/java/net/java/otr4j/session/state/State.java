@@ -90,7 +90,7 @@ public interface State {
      * @throws OtrException In case an exception occurs.
      */
     @Nullable
-    Message transformSending(Context context, String msgText, Iterable<TLV> tlvs, final byte flags) throws OtrException;
+    Message transformSending(Context context, String msgText, Iterable<TLV> tlvs, byte flags) throws OtrException;
 
     /**
      * Handle the received plaintext message.
@@ -101,7 +101,7 @@ public interface State {
      * possible whitespace tags or other OTR artifacts.)
      */
     @Nonnull
-    String handlePlainTextMessage(final Context context, PlainTextMessage plainTextMessage);
+    String handlePlainTextMessage(Context context, PlainTextMessage plainTextMessage);
 
     /**
      * Handle the received encoded message.
@@ -112,7 +112,7 @@ public interface State {
      * @throws OtrException In case of failure to process encoded message.
      */
     @Nullable
-    String handleEncodedMessage(final Context context, EncodedMessage message) throws OtrException;
+    String handleEncodedMessage(Context context, EncodedMessage message) throws OtrException;
 
     /**
      * Get current authentication state from the AKE state machine.
@@ -137,7 +137,7 @@ public interface State {
      * @param receiverTag the receiver instance tag to be targeted, or {@link InstanceTag#ZERO_TAG} if unknown.
      * @throws OtrException In case of failure to inject message into network.
      */
-    void initiateAKE(final Context context, int version, InstanceTag receiverTag) throws OtrException;
+    void initiateAKE(Context context, int version, InstanceTag receiverTag) throws OtrException;
 
     /**
      * Handle the received error message.
@@ -146,7 +146,7 @@ public interface State {
      * @param errorMessage The error message.
      * @throws OtrException In case an exception occurs.
      */
-    void handleErrorMessage(final Context context, ErrorMessage errorMessage) throws OtrException;
+    void handleErrorMessage(Context context, ErrorMessage errorMessage) throws OtrException;
 
     /**
      * Call to end encrypted session, if any.
@@ -157,7 +157,7 @@ public interface State {
      * @param context The message state context.
      * @throws OtrException In case an exception occurs.
      */
-    void end(final Context context) throws OtrException;
+    void end(Context context) throws OtrException;
 
     /**
      * Expire the current state.
@@ -170,7 +170,7 @@ public interface State {
      *                      {@link IncorrectStateException} is thrown to indicate expiration is not applicable to this
      *                      state.
      */
-    void expire(final Context context) throws OtrException;
+    void expire(Context context) throws OtrException;
 
     /**
      * Get SMP TLV handler for use in SMP negotiations.

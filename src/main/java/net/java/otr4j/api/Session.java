@@ -193,7 +193,7 @@ public interface Session {
      * @param tag receiver instance tag
      * @throws java.util.NoSuchElementException In case instance tag cannot be found.
      */
-    void setOutgoingSession(final InstanceTag tag);
+    void setOutgoingSession(InstanceTag tag);
 
     /**
      * Transform message text to prepare for sending which includes possible
@@ -206,7 +206,7 @@ public interface Session {
      * @throws OtrException Thrown in case of problems during transformation.
      */
     @Nonnull
-    String[] transformSending(final String msgText) throws OtrException;
+    String[] transformSending(String msgText) throws OtrException;
 
     /**
      * Transform message text to prepare for sending which includes possible

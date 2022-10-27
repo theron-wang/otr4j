@@ -51,6 +51,8 @@ import static org.bouncycastle.util.Arrays.clear;
 /**
  * Crypto engine for OTRv4.
  */
+// TODO consider reducing complexity.
+@SuppressWarnings("PMD.GodClass")
 public final class OtrCryptoEngine4 {
 
     /**

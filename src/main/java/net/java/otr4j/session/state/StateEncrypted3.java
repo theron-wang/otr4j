@@ -93,11 +93,13 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     /**
      * The Socialist Millionaire Protocol handler.
      */
+    @Nonnull
     private final SmpTlvHandler smpTlvHandler;
 
     /**
      * Long-term remote public key.
      */
+    @Nonnull
     private final DSAPublicKey remotePublicKey;
 
     /**
@@ -167,6 +169,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
 
     @Override
     @Nullable
+    @SuppressWarnings("PMD.CognitiveComplexity")
     String handleDataMessage(final Context context, final DataMessage message) throws OtrException, ProtocolException {
         logger.finest("Message state is ENCRYPTED. Trying to decrypt message.");
         // Find matching session keys.

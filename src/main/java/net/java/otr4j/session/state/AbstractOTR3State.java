@@ -182,5 +182,5 @@ abstract class AbstractOTR3State implements State {
      */
     @ForOverride
     @Nullable
-    abstract String handleDataMessage(final Context context, DataMessage message) throws ProtocolException, OtrException;
+    abstract String handleDataMessage(Context context, DataMessage message) throws ProtocolException, OtrException;
 }

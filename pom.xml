@@ -28,7 +28,7 @@
     </licenses>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project-java-version>8</project-java-version>
+        <project-java-version>11</project-java-version>
     </properties>
     <!-- force HTTPS access for downloading jars -->
     <repositories>
@@ -69,7 +69,7 @@
         <dependency>
             <groupId>com.google.errorprone</groupId>
             <artifactId>error_prone_annotations</artifactId>
-            <version>2.9.0</version>
+            <version>2.16</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -82,7 +82,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
-            <version>1.9.5</version>
+            <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -105,7 +105,7 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-pmd-plugin</artifactId>
                     <!-- TODO need to update PMD once extra checks are resolved. -->
-                    <version>3.12.0</version>
+                    <version>3.19.0</version>
                     <configuration>
                         <!--linkXRef seems to require org.apache.maven.plugins:maven-jxr-plugin, which is not currently available. -->
                         <linkXRef>false</linkXRef>
@@ -116,7 +116,7 @@
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.7</version>
+                    <version>0.8.8</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -124,12 +124,12 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
-                <version>2.8.1</version>
+                <version>2.12.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>enforce-maven</id>
@@ -146,7 +146,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+            <!--<plugin>
                 <groupId>org.simplify4u.plugins</groupId>
                 <artifactId>pgpverify-maven-plugin</artifactId>
                 <version>1.14.1</version>
@@ -174,18 +174,18 @@
                     <verifySystemDependencies>true</verifySystemDependencies>
                     <quiet>false</quiet>
                 </configuration>
-            </plugin>
+            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.0</version>
             </plugin>
             <!-- Specify strict build requirements for production code. -->
             <plugin>
                 <!-- See 'development' profile for additional build parameters for extensive verification. -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.10.1</version>
                 <configuration>
                     <release>${project-java-version}</release>
                     <showWarnings>true</showWarnings>
@@ -194,17 +194,17 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.4.2</version>
                 <configuration>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -223,17 +223,17 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
-                <version>3.0.0-M1</version>
+                <version>3.0.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.0.0-M1</version>
+                <version>3.0.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
+                <version>3.0.0-M7</version>
                 <configuration>
                     <enableAssertions>true</enableAssertions>
                     <parallel>classesAndMethods</parallel>
@@ -251,7 +251,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.1</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <phase>verify</phase>
@@ -267,7 +267,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.9.1</version>
+                <version>3.12.1</version>
             </plugin>
             <!-- See 'development' profile for additional build plug-ins. -->
         </plugins>
@@ -278,10 +278,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
             </plugin>
-            <plugin>
+            <!-- TODO I'm not using this plugin anymore, but reporting is still active? -->
+            <!--<plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-            </plugin>
+            </plugin>-->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -313,7 +314,8 @@
                                         <arg>-Xdoclint:all/protected</arg>
                                         <arg>-XDcompilePolicy=simple</arg>
                                         <!-- TODO update list of warns/errors for errorprone to include newer checks. -->
-                                        <arg>-Xplugin:ErrorProne -Xep:LockMethodChecker:ERROR -Xep:UnlockMethod:ERROR -Xep:InsecureCryptoUsage:ERROR -Xep:EmptyIf:ERROR -Xep:DivZero:ERROR -Xep:EqualsBrokenForNull:WARN -Xep:MissingDefault:WARN -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=net.java.otr4j</arg>
+                                        <!-- TODO Removed/changed checks: -Xep:LockMethodChecker:ERROR -Xep:DivZero:ERROR -Xep:UnlockMethod:ERROR -->
+                                        <arg>-Xplugin:ErrorProne -Xep:InsecureCryptoUsage:ERROR -Xep:EmptyIf:ERROR -Xep:EqualsBrokenForNull:WARN -Xep:MissingDefault:WARN -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=net.java.otr4j</arg>
                                     </compilerArgs>
                                 </configuration>
                             </execution>
@@ -334,12 +336,12 @@
                                 <path>
                                     <groupId>com.google.errorprone</groupId>
                                     <artifactId>error_prone_core</artifactId>
-                                    <version>2.9.0</version>
+                                    <version>2.16</version>
                                 </path>
                                 <path>
                                     <groupId>com.uber.nullaway</groupId>
                                     <artifactId>nullaway</artifactId>
-                                    <version>0.9.2</version>
+                                    <version>0.10.2</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>
@@ -351,12 +353,12 @@
                             <dependency>
                                 <groupId>net.sourceforge.pmd</groupId>
                                 <artifactId>pmd-core</artifactId>
-                                <version>6.15.0</version>
+                                <version>6.50.0</version>
                             </dependency>
                             <dependency>
                                 <groupId>net.sourceforge.pmd</groupId>
                                 <artifactId>pmd-java</artifactId>
-                                <version>6.15.0</version>
+                                <version>6.50.0</version>
                             </dependency>
                         </dependencies>
                         <executions>
@@ -368,7 +370,7 @@
                         </executions>
                         <configuration>
                             <!-- TODO need to fix/update PMD and fix custom prefix '1.' below in targetJdk field. -->
-                            <targetJdk>1.${project-java-version}</targetJdk>
+                            <targetJdk>${project-java-version}</targetJdk>
                             <rulesets>
                                 <ruleset>codecheck/pmd-rules.xml</ruleset>
                             </rulesets>
@@ -379,13 +381,13 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-checkstyle-plugin</artifactId>
-                        <version>3.1.2</version>
+                        <version>3.2.0</version>
                         <dependencies>
                             <dependency>
                                 <groupId>com.puppycrawl.tools</groupId>
                                 <artifactId>checkstyle</artifactId>
                                 <!-- TODO checkstyle 9.0.1 has issues with string-literals containing certain unicode characters. Restricting to latest 8.x release for now. -->
-                                <version>8.45.1</version>
+                                <version>10.3.4</version>
                             </dependency>
                         </dependencies>
                         <executions>

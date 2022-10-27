@@ -147,5 +147,5 @@ public interface Context extends AuthContext {
      *
      * @param message the message to be queued.
      */
-    void queueMessage(final String message);
+    void queueMessage(String message);
 }

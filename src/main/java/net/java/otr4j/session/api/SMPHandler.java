@@ -35,7 +35,7 @@ public interface SMPHandler {
      * @throws OtrException In case of issues while initiating SMP.
      */
     @Nonnull
-    TLV initiate(final String question, final byte[] answer) throws OtrException;
+    TLV initiate(String question, byte[] answer) throws OtrException;
 
     /**
      * Respond to SMP negotiation initiated by the other party.

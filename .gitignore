@@ -18,6 +18,9 @@ otr.properties
 /.idea
 /*.iml
 
+# VSCode/Codium
+/*.code-workspace
+
 # Android build products
 gen/
 build.xml

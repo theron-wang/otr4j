@@ -128,7 +128,8 @@ import static net.java.otr4j.util.Objects.requireNotEquals;
  * @author Danny van Heumen
  */
 // TODO consider moving away from recursive use of Session, to delegating class with a number of instances of Session for each instance, with OTRv2 using zero-instance-tag. (Can delegating class be stateless? Would simplify managing thread-safety.)
-@SuppressWarnings("PMD.TooManyFields")
+// TODO consider reducing complexity.
+@SuppressWarnings({"PMD.TooManyFields", "PMD.GodClass"})
 final class SessionImpl implements Session, Context {
 
     private static final String DEFAULT_FALLBACK_MESSAGE = "Your contact is requesting to start an encrypted chat. Please install an app that supports OTR: https://github.com/otr4j/otr4j/wiki/Apps";
@@ -459,6 +460,7 @@ final class SessionImpl implements Session, Context {
 
     @Override
     @Nullable
+    @SuppressWarnings("PMD.CognitiveComplexity")
     public String transformReceiving(final String msgText) throws OtrException {
         synchronized (this.masterSession) {
             logger.log(FINEST, "Entering {0} session.", masterSession == this ? "master" : "slave");

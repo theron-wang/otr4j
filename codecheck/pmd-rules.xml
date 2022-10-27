@@ -46,6 +46,11 @@
         <exclude name="ExcessiveMethodLength"/>
         <exclude name="ExcessiveClassLength"/>
     </rule>
+    <rule ref="category/java/design.xml/CognitiveComplexity">
+        <properties>
+            <property name="reportLevel" value="20"/>
+        </properties>
+    </rule>
     <rule ref="category/java/documentation.xml">
         <exclude name="CommentSize"/>
         <exclude name="CommentRequired"/>
@@ -56,6 +61,9 @@
         <exclude name="NullAssignment"/>
         <exclude name="DataflowAnomalyAnalysis"/>
         <exclude name="AvoidDuplicateLiterals"/>
+        <exclude name="CompareObjectsWithEquals"/>
+        <!-- FIXME temporarily added -->
+        <exclude name="CloseResource"/>
     </rule>
     <rule ref="category/java/multithreading.xml">
         <exclude name="AvoidUsingVolatile"/>

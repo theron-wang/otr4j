@@ -56,7 +56,8 @@ final class OtrAssembler {
     /**
      * In-order assembler, following OTRv2/OTRv3 specification.
      */
-    @SuppressWarnings("PMD.AvoidStringBufferField")
+    // TODO false-positive in PMD.UnusedPrivateMethod (<https://github.com/pmd/pmd/issues/4016>)
+    @SuppressWarnings({"PMD.AvoidStringBufferField", "PMD.UnusedPrivateMethod"})
     private static final class InOrderAssembler {
 
         private static final int INDEX_FIRST_FRAGMENT = 1;

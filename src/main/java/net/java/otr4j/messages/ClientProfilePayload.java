@@ -294,6 +294,8 @@ public final class ClientProfilePayload implements OtrEncodable {
      * @param signature The OTRv4 signature for the fields contained in the client profile.
      * @throws ValidationException In case ClientProfilePayload contents are not inconsistent or signature is invalid.
      */
+    // TODO consider reducing complexity.
+    @SuppressWarnings("PMD.CognitiveComplexity")
     private static void validate(final List<Field> fields, final byte[] signature, final Instant now)
             throws ValidationException {
         final ArrayList<InstanceTagField> instanceTagFields = new ArrayList<>();

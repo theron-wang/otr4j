@@ -48,6 +48,8 @@ import static org.bouncycastle.util.encoders.Base64.decode;
  * The processor for the general OTR message structure. The parser processes the text representation of an OTR message
  * and returns a message instance. The writer processes object representations to generate text representations.
  */
+// TODO consider reducing complexity.
+@SuppressWarnings({"PMD.GodClass", "PMD.CognitiveComplexity"})
 public final class MessageProcessor {
 
     private static final Logger LOGGER = Logger.getLogger(MessageProcessor.class.getName());

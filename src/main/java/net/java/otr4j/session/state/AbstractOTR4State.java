@@ -92,7 +92,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
      * @throws OtrException                                In case of failure to inject message into the network.
      */
     @ForOverride
-    abstract void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException;
+    abstract void handleAKEMessage(Context context, AbstractEncodedMessage message) throws OtrException;
 
     /**
      * Common implementation for handling OTRv4 Identity message that is shared among states.
