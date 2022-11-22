@@ -82,6 +82,7 @@ public final class ClientProfile {
      */
     public ClientProfile(final InstanceTag instanceTag, final Point longTermPublicKey, final Point forgingKey,
             final Set<Integer> versions, @Nullable final DSAPublicKey dsaPublicKey) {
+        // TODO should check for `> 0` instance tag?
         this.instanceTag = requireNonNull(instanceTag);
         this.longTermPublicKey = requireNonNull(longTermPublicKey);
         this.forgingKey = requireNonNull(forgingKey);
