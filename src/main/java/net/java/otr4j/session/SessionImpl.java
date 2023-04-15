@@ -651,7 +651,13 @@ final class SessionImpl implements Session, Context {
                 this.sessionState = this.masterSession.sessionState;
             }
         }
-        return this.sessionState.handleEncodedMessage(this, message);
+        try {
+            return this.sessionState.handleEncodedMessage(this, message);
+        } catch (final ProtocolException e) {
+            logger.log(FINE, "An illegal message was received. Processing was aborted.", e);
+            // TODO consider how we should signal unreadable message for illegal data messages and potentially show error to client. (Where we escape handling logic through ProtocolException.)
+            return null;
+        }
     }
 
     @GuardedBy("masterSession")

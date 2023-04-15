@@ -33,7 +33,6 @@ import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.logging.Logger;
 
-import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.api.Session.Version.FOUR;
@@ -54,32 +53,22 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
 
     @Nullable
     @Override
-    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws OtrException {
+    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         if (message.version != FOUR) {
             // FIXME is it going to be an issue if we always delegate on message != OTRv4, even if (*OTRv4*) DAKE in progress/finished?
             return super.handleEncodedMessage(context, message);
         }
-        final AbstractEncodedMessage encodedM;
-        try {
-            encodedM = parseEncodedMessage(message);
-        } catch (final ProtocolException e) {
-            return null;
-        }
+        final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
         assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof IdentityMessage
                 : "BUG: receiver instance should be set for anything other than the first AKE message.";
-        try {
-            final SessionID sessionID = context.getSessionID();
-            if (encodedM instanceof DataMessage4) {
-                LOGGER.log(FINEST, "{0} received a data message (OTRv4) from {1}, handling in state {2}.",
-                        new Object[]{sessionID.getAccountID(), sessionID.getUserID(), this.getClass().getName()});
-                return handleDataMessage(context, (DataMessage4) encodedM);
-            }
-            // Anything that is not a Data message is some type of AKE message.
-            handleAKEMessage(context, encodedM);
-        } catch (final ProtocolException e) {
-            LOGGER.log(FINE, "An illegal message was received. Processing was aborted.", e);
-            // TODO consider how we should signal unreadable message for illegal data messages and potentially show error to client. (Where we escape handling logic through ProtocolException.)
+        final SessionID sessionID = context.getSessionID();
+        if (encodedM instanceof DataMessage4) {
+            LOGGER.log(FINEST, "{0} received a data message (OTRv4) from {1}, handling in state {2}.",
+                    new Object[]{sessionID.getAccountID(), sessionID.getUserID(), this.getClass().getName()});
+            return handleDataMessage(context, (DataMessage4) encodedM);
         }
+        // Anything that is not a Data message is some type of AKE message.
+        handleAKEMessage(context, encodedM);
         return null;
     }
 

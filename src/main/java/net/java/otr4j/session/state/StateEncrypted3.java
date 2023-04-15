@@ -57,7 +57,7 @@ import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 
 /**
  * Message state in case an encrypted session is established.
- *
+ * <p>
  * This message state is package-private as we only allow transitioning to this
  * state through the initial PLAINTEXT state.
  *
@@ -69,13 +69,13 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     /**
      * TLV 8 notifies the recipient to use the extra symmetric key to set up an
      * out-of-band encrypted connection.
-     *
+     * <p>
      * Payload:
      *  - 4-byte indication of what to use it for, e.g. file transfer, voice
      *    encryption, ...
      *  - undefined, free for use. Subsequent data might be the file name of
      *    your confidential file transfer.
-     *
+     * <p>
      * WARNING! You should NEVER send the extra symmetric key as payload inside
      * the TLV record. The recipient can already generate the extra symmetric
      * key.

@@ -22,6 +22,7 @@ import net.java.otr4j.session.api.SMPHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.net.ProtocolException;
 import java.security.interfaces.DSAPublicKey;
 
 /**
@@ -110,9 +111,10 @@ public interface State {
      * @param message the encoded message
      * @return Returns decoded, decrypted plaintext message payload, if exists, or {@code null} otherwise.
      * @throws OtrException In case of failure to process encoded message.
+     * @throws ProtocolException In case of bad input data resulting in an unsound message.
      */
     @Nullable
-    String handleEncodedMessage(Context context, EncodedMessage message) throws OtrException;
+    String handleEncodedMessage(Context context, EncodedMessage message) throws ProtocolException, OtrException;
 
     /**
      * Get current authentication state from the AKE state machine.
@@ -174,7 +176,7 @@ public interface State {
 
     /**
      * Get SMP TLV handler for use in SMP negotiations.
-     *
+     * <p>
      * The handler is only available in Encrypted states. In case another state
      * is active at time of calling, {@link IncorrectStateException} is thrown.
      *
