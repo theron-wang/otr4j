@@ -394,7 +394,7 @@
                         </executions>
                         <configuration>
                             <consoleOutput>false</consoleOutput>
-                            <encoding>UTF-8</encoding>
+                            <inputEncoding>UTF-8</inputEncoding>
                             <failOnViolation>true</failOnViolation>
                             <configLocation>${project.basedir}/codecheck/checkstyle.xml</configLocation>
                             <includeTestSourceDirectory>true</includeTestSourceDirectory>
