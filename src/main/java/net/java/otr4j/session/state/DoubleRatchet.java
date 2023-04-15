@@ -377,7 +377,7 @@ final class DoubleRatchet implements AutoCloseable {
 
     /**
      * Rotate the receiver key.
-     *
+     * <p>
      * For convenience, it is allowed to pass in null for each of the keys. Depending on the input, a key rotation will
      * be performed, or it will be skipped.
      *

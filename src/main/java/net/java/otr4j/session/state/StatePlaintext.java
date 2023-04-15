@@ -90,6 +90,12 @@ public final class StatePlaintext extends AbstractCommonState {
     }
 
     @Override
+    @Nonnull
+    public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
+        return message.getCleanText();
+    }
+
+    @Override
     void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException {
         if (!context.getSessionPolicy().isAllowV4()) {
             LOGGER.finest("ALLOW_V4 is not set, ignore this message.");
@@ -140,7 +146,7 @@ public final class StatePlaintext extends AbstractCommonState {
         if (!otrPolicy.isSendWhitespaceTag() || context.getOfferStatus() == REJECTED) {
             // As we do not want to send a specially crafted whitespace tag
             // message, just return the original message text to be sent.
-            return new PlainTextMessage(Collections.<Integer>emptySet(), msgText);
+            return new PlainTextMessage(Collections.emptySet(), msgText);
         }
         // Continue with crafting a special whitespace message tag and embedding it into the original message.
         final Set<Integer> versions = allowedVersions(otrPolicy);

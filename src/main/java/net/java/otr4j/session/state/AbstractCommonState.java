@@ -34,12 +34,6 @@ abstract class AbstractCommonState extends AbstractOTR4State {
         super(authState);
     }
 
-    @Nonnull
-    @Override
-    public String handlePlainTextMessage(final Context context, final PlainTextMessage plainTextMessage) {
-        return plainTextMessage.getCleanText();
-    }
-
     @Override
     public void handleErrorMessage(final Context context, final ErrorMessage errorMessage) throws OtrException {
         showError(context.getHost(), context.getSessionID(), errorMessage.error);

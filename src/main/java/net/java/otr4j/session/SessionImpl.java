@@ -731,16 +731,16 @@ final class SessionImpl implements Session, Context {
 
     @GuardedBy("masterSession")
     @Nonnull
-    private String handlePlainTextMessage(final PlainTextMessage plainTextMessage) {
+    private String handlePlainTextMessage(final PlainTextMessage message) {
         assert this.masterSession == this : "BUG: handlePlainTextMessage should only ever be called from the master session, as no instance tags are known.";
         logger.log(FINEST, "{0} received a plaintext message from {1} through {2}.",
                 new Object[] {this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
-        final String messagetext = this.sessionState.handlePlainTextMessage(this, plainTextMessage);
-        if (plainTextMessage.getVersions().isEmpty()) {
+        final String messagetext = this.sessionState.handlePlainTextMessage(this, message);
+        if (message.getVersions().isEmpty()) {
             logger.finest("Received plaintext message without the whitespace tag.");
         } else {
             logger.finest("Received plaintext message with the whitespace tag.");
-            handleWhitespaceTag(plainTextMessage);
+            handleWhitespaceTag(message);
         }
         return messagetext;
     }

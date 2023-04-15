@@ -19,6 +19,7 @@ import net.java.otr4j.crypto.MixedSharedSecret;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
+import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.AuthIMessage;
 import net.java.otr4j.messages.AuthRMessage;
@@ -58,7 +59,7 @@ import static org.bouncycastle.util.Arrays.clear;
 
 /**
  * The state AWAITING_AUTH_I.
- *
+ * <p>
  * This is a state in which Alice will be while awaiting Bob's final message.
  */
 // TODO check OTRv4 spec for instructions on temporarily storing recently received messages while negotiating.
@@ -142,6 +143,12 @@ final class StateAwaitingAuthI extends AbstractCommonState {
     @Nonnull
     public SMPHandler getSmpHandler() throws IncorrectStateException {
         throw new IncorrectStateException("SMP negotiation is not available until encrypted session is fully established.");
+    }
+
+    @Nonnull
+    @Override
+    public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
+        return message.getCleanText();
     }
 
     @Override

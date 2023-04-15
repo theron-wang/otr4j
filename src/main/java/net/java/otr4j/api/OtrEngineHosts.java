@@ -85,7 +85,7 @@ public final class OtrEngineHosts {
      * Safely call 'unencryptedMessageReceived' event on provided OtrEngineHost.
      * Catch any runtime exceptions and log occurrence of the exception and
      * consequently the misbehaving of the OtrEngineHost instance.
-     *
+     * <p>
      * OtrException exceptions are caught, logged and silenced. Calling code
      * cannot handle interruptions by exception and will result in incomplete
      * message processing.
@@ -107,7 +107,7 @@ public final class OtrEngineHosts {
      * Safely call 'unreadableMessageReceived' event on provided OtrEngineHost.
      * Catch any runtime exceptions and log occurrence of the exception and
      * consequently the misbehaving of the OtrEngineHost instance.
-     *
+     * <p>
      * OtrException exceptions are caught, logged and silenced. Calling code
      * cannot handle interruptions by exception and will result in incomplete
      * message processing.
@@ -149,7 +149,7 @@ public final class OtrEngineHosts {
      * exception and continuing we ensure that the protocol interaction for the
      * current session will continue as expected, even if something went wrong
      * on the Engine Host in showing the error message.
-     *
+     * <p>
      * OtrException exceptions are caught, logged and silenced. Calling code
      * cannot handle interruptions by exception and will result in incomplete
      * message processing.
@@ -169,7 +169,7 @@ public final class OtrEngineHosts {
     /**
      * Signal finished session to Engine Host with provided message. Call Engine
      * Host safely and log any runtime exceptions that are thrown.
-     *
+     * <p>
      * OtrException exceptions are caught, logged and silenced. Calling code
      * cannot handle interruptions by exception and will result in incomplete
      * message processing.
@@ -189,7 +189,7 @@ public final class OtrEngineHosts {
     /**
      * Signal require encryption to Engine Host with provided message. Call
      * Engine Host safely and log any runtime exceptions that are thrown.
-     *
+     * <p>
      * OtrException exceptions are caught, logged and silenced. Calling code
      * cannot handle interruptions by exception and will result in incomplete
      * message processing.

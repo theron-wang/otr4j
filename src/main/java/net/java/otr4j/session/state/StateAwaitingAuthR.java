@@ -19,6 +19,7 @@ import net.java.otr4j.crypto.MixedSharedSecret;
 import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
+import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.AuthIMessage;
 import net.java.otr4j.messages.AuthRMessage;
@@ -129,6 +130,12 @@ final class StateAwaitingAuthR extends AbstractCommonState {
     @Nonnull
     public SMPHandler getSmpHandler() throws IncorrectStateException {
         throw new IncorrectStateException("SMP negotiation is not available until encrypted session is fully established.");
+    }
+
+    @Nonnull
+    @Override
+    public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
+        return message.getCleanText();
     }
 
     @Override

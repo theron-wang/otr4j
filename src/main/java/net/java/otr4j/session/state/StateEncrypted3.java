@@ -127,7 +127,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
         unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
-        return super.handlePlainTextMessage(context, message);
+        return message.getCleanText();
     }
 
     @Override

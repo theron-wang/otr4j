@@ -14,12 +14,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.security.interfaces.DSAPublicKey;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableSet;
 
 /**
  * Interface that defines the OTR session.
@@ -58,7 +54,7 @@ public interface Session {
         /**
          * Set of all supported OTR protocol versions.
          */
-        Set<Integer> SUPPORTED = unmodifiableSet(new HashSet<>(asList(TWO, THREE, FOUR)));
+        Set<Integer> SUPPORTED = Set.of(TWO, THREE, FOUR);
     }
 
     /* Methods that provide session information. */

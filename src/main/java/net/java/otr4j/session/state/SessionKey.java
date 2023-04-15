@@ -37,7 +37,7 @@ final class SessionKey implements AutoCloseable {
 
     /**
      * Sending counter. OTR spec specifies "top half", i.e. first 8 bytes.
-     *
+     * <p>
      * NOTE that the all-zeroes sending counter value should never be used.
      */
     private final byte[] sendingCtr = new byte[8];
@@ -192,7 +192,7 @@ final class SessionKey implements AutoCloseable {
     /**
      * Acquire sending counter.The provided CTR value will be 16-byte in length. The OTR spec defines that only the
      * top-half must be used and incremented.
-     *
+     * <p>
      * NOTE that the sending ctr of all zeroes should never be used. The current implementation prevents this by
      * incrementing first and returning ctr value after.
      *

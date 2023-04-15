@@ -153,7 +153,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * without having to actually be in contact with the owner of the Client Profile.
      * <p>
      * Once a Client Profile payload is successfully published, otr4j expects to be able to re-acquire this payload
-     * on construction. otr4j will call {@link #publishClientProfilePayload(byte[])} to try and acquire the payload.
+     * on construction. otr4j will call {@code publishClientProfilePayload(byte[])} to try and acquire the payload.
      *
      * @param payload the encoded Client Profile payload.
      */
