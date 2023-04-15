@@ -10,7 +10,7 @@ package net.java.otr4j.api;
 
 /**
  * The enum to indicate the status-class of the session.
- *
+ * <p>
  * The status indicates plaintext, encrypted, or finished. This status is independent of the version of the protocol
  * that is in effect.
  *

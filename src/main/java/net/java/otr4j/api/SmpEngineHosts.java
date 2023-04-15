@@ -50,7 +50,7 @@ public final class SmpEngineHosts {
      * exception and continuing we ensure that the SMP error will be handled
      * fully and the session correctly ended, even if something went wrong on
      * the Engine Host.
-     *
+     * <p>
      * OtrException exceptions are caught, logged and silenced. Calling code
      * cannot handle interruptions by exception and will result in incomplete
      * message processing.
@@ -76,7 +76,7 @@ public final class SmpEngineHosts {
      * exception and continuing we ensure that the SMP abort will be handled
      * fully and the session correctly ended, even if something went wrong on
      * the Engine Host.
-     *
+     * <p>
      * OtrException exceptions are caught, logged and silenced. Calling code
      * cannot handle interruptions by exception and will result in incomplete
      * message processing.

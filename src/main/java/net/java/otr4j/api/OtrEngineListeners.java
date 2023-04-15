@@ -28,7 +28,7 @@ public final class OtrEngineListeners {
 
     /**
      * Thread-safely duplicate list of OtrEngineListener listeners.
-     *
+     * <p>
      * The duplicated list can be used to safely iterate over without the need
      * of locking the original list instance. That means that there is no risk
      * of ConcurrentModificationException. This list is a momentary snapsnot and

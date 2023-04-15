@@ -56,7 +56,6 @@
         <exclude name="CommentRequired"/>
     </rule>
     <rule ref="category/java/errorprone.xml">
-        <exclude name="BeanMembersShouldSerialize"/>
         <exclude name="AvoidFieldNameMatchingMethodName"/>
         <exclude name="NullAssignment"/>
         <exclude name="DataflowAnomalyAnalysis"/>

@@ -33,7 +33,7 @@ final class SessionExpirationTimerTask extends TimerTask {
 
     private static final long SESSION_TIMEOUT_NANOSECONDS = 7200_000_000_000L;
 
-    private final List<WeakReference<SessionImpl>> registry = synchronizedList(new ArrayList<WeakReference<SessionImpl>>());
+    private final List<WeakReference<SessionImpl>> registry = synchronizedList(new ArrayList<>());
 
     private SessionExpirationTimerTask() {
         super();
@@ -68,7 +68,7 @@ final class SessionExpirationTimerTask extends TimerTask {
         }
     }
 
-    // TODO very specific requirements for expiration timer (https://github.com/otrv4/otrv4/blob/master/otrv4.md#session-expiration "The session expiration timer begins at different times for the sender and the receiver of the first data message in a conversation. The sender begins their timer as they send the first data message or as they attach an encrypted message to the Non-Interactive-Auth message. The receiver begins their timer when they receive this first data message.")
+    // TODO very specific requirements for expiration timer (<https://github.com/otrv4/otrv4/blob/master/otrv4.md#session-expiration> "The session expiration timer begins at different times for the sender and the receiver of the first data message in a conversation. The sender begins their timer as they send the first data message or as they attach an encrypted message to the Non-Interactive-Auth message. The receiver begins their timer when they receive this first data message.")
     private void expireTimedOutSessions(final long now, final SessionImpl session) {
         try {
             if (now - session.getLastActivityTimestamp() > SESSION_TIMEOUT_NANOSECONDS) {

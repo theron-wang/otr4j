@@ -293,7 +293,7 @@ final class SessionImpl implements Session, Context {
      * @param host      The OTR engine host listener.
      */
     SessionImpl(final SessionID sessionID, final OtrEngineHost host) {
-        this(null, sessionID, host, ZERO_TAG, new SecureRandom(), new ArrayList<String>());
+        this(null, sessionID, host, ZERO_TAG, new SecureRandom(), new ArrayList<>());
     }
 
     /**
@@ -413,7 +413,7 @@ final class SessionImpl implements Session, Context {
             final String message = this.messageQueue.remove(0);
             try {
                 final AbstractEncodedMessage encrypted = toState.transformSending(this, message,
-                        Collections.<TLV>emptyList(), (byte) 0);
+                        Collections.emptyList(), (byte) 0);
                 injectMessage(encrypted);
             } catch (final OtrException e) {
                 logger.log(WARNING, "Failed to send queued message due to network failure.", e);
@@ -785,7 +785,7 @@ final class SessionImpl implements Session, Context {
     @Nonnull
     public String[] transformSending(final String msgText) throws OtrException {
         synchronized (this.masterSession) {
-            return this.transformSending(msgText, Collections.<TLV>emptyList());
+            return this.transformSending(msgText, Collections.emptyList());
         }
     }
 
@@ -1299,7 +1299,7 @@ final class SessionImpl implements Session, Context {
                 return;
             }
             final AbstractEncodedMessage heartbeat = ((StateEncrypted) state).transformSending(this, "",
-                    Collections.<TLV>emptyList(), FLAG_IGNORE_UNREADABLE);
+                    Collections.emptyList(), FLAG_IGNORE_UNREADABLE);
             injectMessage(heartbeat);
         }
     }

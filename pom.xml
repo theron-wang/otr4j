@@ -69,7 +69,7 @@
         <dependency>
             <groupId>com.google.errorprone</groupId>
             <artifactId>error_prone_annotations</artifactId>
-            <version>2.16</version>
+            <version>2.18.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -104,8 +104,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-pmd-plugin</artifactId>
-                    <!-- TODO need to update PMD once extra checks are resolved. -->
-                    <version>3.19.0</version>
+                    <version>3.20.0</version>
                     <configuration>
                         <!--linkXRef seems to require org.apache.maven.plugins:maven-jxr-plugin, which is not currently available. -->
                         <linkXRef>false</linkXRef>
@@ -116,7 +115,7 @@
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.8</version>
+                    <version>0.8.9</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -278,11 +277,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
             </plugin>
-            <!-- TODO I'm not using this plugin anymore, but reporting is still active? -->
-            <!--<plugin>
-                <groupId>com.github.spotbugs</groupId>
-                <artifactId>spotbugs-maven-plugin</artifactId>
-            </plugin>-->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -341,7 +335,7 @@
                                 <path>
                                     <groupId>com.uber.nullaway</groupId>
                                     <artifactId>nullaway</artifactId>
-                                    <version>0.10.2</version>
+                                    <version>0.10.10</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>
@@ -353,12 +347,12 @@
                             <dependency>
                                 <groupId>net.sourceforge.pmd</groupId>
                                 <artifactId>pmd-core</artifactId>
-                                <version>6.50.0</version>
+                                <version>6.55.0</version>
                             </dependency>
                             <dependency>
                                 <groupId>net.sourceforge.pmd</groupId>
                                 <artifactId>pmd-java</artifactId>
-                                <version>6.50.0</version>
+                                <version>6.55.0</version>
                             </dependency>
                         </dependencies>
                         <executions>
@@ -381,13 +375,13 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-checkstyle-plugin</artifactId>
-                        <version>3.2.0</version>
+                        <version>3.2.1</version>
                         <dependencies>
                             <dependency>
                                 <groupId>com.puppycrawl.tools</groupId>
                                 <artifactId>checkstyle</artifactId>
                                 <!-- TODO checkstyle 9.0.1 has issues with string-literals containing certain unicode characters. Restricting to latest 8.x release for now. -->
-                                <version>10.3.4</version>
+                                <version>10.9.3</version>
                             </dependency>
                         </dependencies>
                         <executions>

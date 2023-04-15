@@ -42,7 +42,7 @@ public final class Arrays {
      * Contains search for an element of type E in an array E[]. This is a naive search and is meant to be used only for
      * small arrays where this cannot become a performance issue. The function is there for convenience over the typical
      * approach of sorting-then-binary-searching.
-     *
+     * <p>
      * 'e' is expected to be non-null. To search for null, try {@link #containsEmpty(Object[])}.
      *
      * @param e    The (non-null) element to search for.

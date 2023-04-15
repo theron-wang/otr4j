@@ -91,7 +91,7 @@ public final class InstanceTag {
 
     /**
      * Instance Tag constructor.
-     *
+     * <p>
      * This version of the constructor is provided in order to provide an
      * "pre-generated" random double from which a valid random tag value is
      * derived.

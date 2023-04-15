@@ -14,7 +14,7 @@ import javax.annotation.Nullable;
 
 /**
  * SMP facilities of OTR engine host.
- *
+ * <p>
  * We intentionally define a subset of all available OTR Engine Host methods for
  * use by the SMP "subsystem" to avoid abusing parts of the callback mechanism
  * that should only be used in certain places, such as the over-all session

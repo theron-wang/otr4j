@@ -71,13 +71,13 @@ public final class ClientProfileTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructEmptyVersions() {
-        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey,
-                Collections.<Integer>emptySet(), null);
+        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey, Collections.emptySet(),
+                null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalVersionsList() {
-        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey, singleton(Session.Version.THREE),
-                null);
+        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey,
+                singleton(Session.Version.THREE), null);
     }
 }

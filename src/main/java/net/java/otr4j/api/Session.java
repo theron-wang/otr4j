@@ -26,7 +26,7 @@ import static java.util.Collections.unmodifiableSet;
  * <p>
  * This the primary interface for clients (users of otr4j) to interact with. It provides access to all the (available)
  * OTR functionality. In addition, it manages the session and any (unexpected) state transitions.
- *
+ * <p>
  * {@link Session} must be thread-safe.
  */
 @ThreadSafe
@@ -101,6 +101,7 @@ public interface Session {
      *
      * @return Returns status of whitespace offer.
      */
+    @SuppressWarnings("unused")
     @Nonnull
     OfferStatus getOfferStatus();
 
@@ -271,6 +272,7 @@ public interface Session {
      * @param secret      The secret
      * @throws OtrException In case of failure during response.
      */
+    @SuppressWarnings("unused")
     void respondSmp(InstanceTag receiverTag, @Nullable String question, String secret) throws OtrException;
 
     /**
@@ -311,5 +313,6 @@ public interface Session {
      *
      * @param l OTR engine listener instance.
      */
+    @SuppressWarnings("unused")
     void removeOtrEngineListener(OtrEngineListener l);
 }

@@ -11,7 +11,7 @@ package net.java.otr4j.util;
 
 import org.junit.Test;
 
-import static net.java.otr4j.util.Strings.join;
+import static net.java.otr4j.util.Strings.concat;
 import static org.junit.Assert.assertEquals;
 
 @SuppressWarnings("ConstantConditions")
@@ -19,31 +19,31 @@ public final class StringsTest {
 
     @Test(expected = NullPointerException.class)
     public void testJoinNull() {
-        join((String[]) null);
+        concat((String[]) null);
     }
 
     @Test
     public void testJoinZeroStrings() {
-        assertEquals("", join());
+        assertEquals("", concat());
     }
 
     @Test
     public void testJoinSingleString() {
-        assertEquals("Hello world", join("Hello world"));
+        assertEquals("Hello world", concat("Hello world"));
     }
 
     @Test
     public void testJoinTwoStrings() {
-        assertEquals("HelloWorld", join("Hello", "World"));
+        assertEquals("HelloWorld", concat("Hello", "World"));
     }
 
     @Test
     public void testJoinManyStrings() {
-        assertEquals("HelloWorldThisIsJohnDo", join("Hello", "World", "This", "Is", "John", "Do"));
+        assertEquals("HelloWorldThisIsJohnDo", concat("Hello", "World", "This", "Is", "John", "Do"));
     }
 
     @Test
     public void testJoiningManyEmptyStrings() {
-        assertEquals("", join("", "", "", ""));
+        assertEquals("", concat("", "", "", ""));
     }
 }

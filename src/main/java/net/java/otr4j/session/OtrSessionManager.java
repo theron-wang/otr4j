@@ -77,7 +77,7 @@ public final class OtrSessionManager {
 
     /**
      * Map with known sessions.
-     *
+     * <p>
      * As the session map is needed as soon as we get/create our first session,
      * we might as well construct it immediately.
      */
@@ -86,7 +86,7 @@ public final class OtrSessionManager {
     // ConcurrentHashMap has its own construct for putting conditionally. Currently, it is not worth the benefit as it
     // is a relatively minor issue compared to the introduction of OTRv4 support. For now, we'll leave it as is.
     @SuppressWarnings("PMD.UseConcurrentHashMap")
-    private final Map<SessionID, SessionImpl> sessions = synchronizedMap(new HashMap<SessionID, SessionImpl>());
+    private final Map<SessionID, SessionImpl> sessions = synchronizedMap(new HashMap<>());
 
     /**
      * List for keeping track of listeners.
@@ -122,7 +122,7 @@ public final class OtrSessionManager {
     /**
      * Singleton instance of OtrEngineListener for listeners registered with
      * Session Manager.
-     *
+     * <p>
      * This listener instance will be registered as an OtrEngineListener with
      * all new sessions.
      */

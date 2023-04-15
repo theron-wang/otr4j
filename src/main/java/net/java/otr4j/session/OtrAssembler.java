@@ -19,7 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static net.java.otr4j.util.Arrays.containsEmpty;
-import static net.java.otr4j.util.Strings.join;
+import static net.java.otr4j.util.Strings.concat;
 
 /**
  * Support for re-assembling fragmented OTR-encoded messages.
@@ -148,11 +148,7 @@ final class OtrAssembler {
          */
         @Nullable
         String accumulate(final Fragment fragment) throws ProtocolException {
-            String[] parts = fragments.get(fragment.getIdentifier());
-            if (parts == null) {
-                parts = new String[fragment.getTotal()];
-                fragments.put(fragment.getIdentifier(), parts);
-            }
+            String[] parts = fragments.computeIfAbsent(fragment.getIdentifier(), k -> new String[fragment.getTotal()]);
             if (fragment.getTotal() != parts.length) {
                 LOGGER.log(Level.FINEST, "OTRv4 fragmentation of other party may be broken. Initial total is different from this message. Ignoring this fragment. (Original: {0}, current fragment: {1})",
                         new Object[]{parts.length, fragment.getTotal()});
@@ -170,7 +166,7 @@ final class OtrAssembler {
                 return null;
             }
             fragments.remove(fragment.getIdentifier());
-            return join(parts);
+            return concat(parts);
         }
     }
 }

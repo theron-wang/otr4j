@@ -11,7 +11,7 @@ package net.java.otr4j.api;
 
 import org.junit.Test;
 
-@SuppressWarnings("ThrowableNotThrown")
+@SuppressWarnings({"ThrowableNotThrown", "DataFlowIssue"})
 public class OtrExceptionTest {
 
     public OtrExceptionTest() {

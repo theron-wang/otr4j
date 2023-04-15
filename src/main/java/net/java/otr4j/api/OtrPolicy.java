@@ -52,6 +52,7 @@ public final class OtrPolicy {
     /**
      * Constant for mask containing all supported OTR protocol versions.
      */
+    @SuppressWarnings("unused")
     public static final int VERSION_MASK = ALLOW_V2 | ALLOW_V3 | ALLOW_V4;
 
     // The four old version 1 policies correspond to the following combinations
@@ -79,6 +80,7 @@ public final class OtrPolicy {
     /**
      * OTRv4 Mode indicating backwards-compatibility met OTRv3 is available.
      */
+    @SuppressWarnings("unused")
     public static final int OTRV3_COMPATIBLE_MODE = ALLOW_V3 | ALLOW_V4 | SEND_WHITESPACE_TAG | WHITESPACE_START_AKE
             | ERROR_START_AKE;
 
@@ -150,7 +152,7 @@ public final class OtrPolicy {
 
     /**
      * Policy regarding restarting AKE upon receiving an OTR Error message.
-     *
+     * <p>
      * The answer depends on whether at least one protocol version is enabled.
      * If all versions are denied, we will return false.
      *
@@ -175,7 +177,7 @@ public final class OtrPolicy {
 
     /**
      * Policy regarding automatically sending whitespace tag.
-     *
+     * <p>
      * The answer depends on whether at least one protocol version is enabled.
      * If all versions are denied, we will return false.
      *
@@ -190,7 +192,7 @@ public final class OtrPolicy {
     /**
      * Policy regarding automatically initiating OTR encrypted session upon
      * receiving whitespace tag.
-     *
+     * <p>
      * The answer depends on whether at least one protocol version is enabled.
      * If all versions are denied, we will return false.
      *

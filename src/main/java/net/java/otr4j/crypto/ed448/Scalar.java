@@ -28,7 +28,7 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
 
 /**
  * Scalar representation for Ed448 operations.
- *
+ * <p>
  * The scalar implementation is currently very inefficient as it converts to BigInteger and back in order to perform the
  * arithmetic operations, but it does have the benefit that the current bad implementation is isolated to the innermost
  * implementation details.
