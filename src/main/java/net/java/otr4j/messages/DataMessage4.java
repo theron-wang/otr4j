@@ -133,6 +133,7 @@ public final class DataMessage4 extends AbstractEncodedMessage {
         return MESSAGE_DATA;
     }
 
+    @SuppressWarnings("ConstantValue")
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

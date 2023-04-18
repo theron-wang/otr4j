@@ -62,7 +62,7 @@ import static org.bouncycastle.util.Arrays.concatenate;
  * DoubleRatchet is NOT thread-safe.
  */
 // TODO DoubleRatchet currently does not keep history. Therefore it is not possible to decode out-of-order messages from previous ratchets. (Also needed to keep MessageKeys instances for messages failing verification.)
-// FIXME adopt third-redesigned Double Ratchet algorithm (https://github.com/otrv4/otrv4/commit/979b5cdf039a2bbc8792f5be519e21d4fc7296bd)
+// FIXME adopt third-redesigned Double Ratchet algorithm (<https://github.com/otrv4/otrv4/commit/979b5cdf039a2bbc8792f5be519e21d4fc7296bd>)
 final class DoubleRatchet implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(DoubleRatchet.class.getName());

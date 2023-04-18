@@ -33,7 +33,7 @@ final class HeartBeatTimerTask extends TimerTask {
 
     private static final HeartBeatTimerTask INSTANCE = new HeartBeatTimerTask();
 
-    private final List<WeakReference<SessionImpl>> registry = synchronizedList(new ArrayList<WeakReference<SessionImpl>>());
+    private final List<WeakReference<SessionImpl>> registry = synchronizedList(new ArrayList<>());
 
     private HeartBeatTimerTask() {
         super();

@@ -236,6 +236,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             decrypted = this.ratchet.decrypt(message.i, message.j, encodeDataMessageSections(message),
                     message.authenticator, message.ciphertext);
         } catch (final RotationLimitationException e) {
+            // TODO test SessionTest#testOTR4ExtensiveMessagingManyConsecutiveMessagesShuffled might shuffle message that are part of next ratchet first, causing this case to be triggered. Investigate if this case should be supported in the first place.
             this.logger.log(INFO, "Message received that is part of next ratchet. As we do not have the public keys for that ratchet yet, the message cannot be decrypted. This message is now lost.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
@@ -275,6 +276,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 if (!content.message.isEmpty()) {
                     logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
                 }
+                // TODO this was documented, but what was the rationale to sometimes forget MACs that we should reveal?
                 this.ratchet.forgetRemainingMACsToReveal();
                 context.transition(this, new StateFinished(getAuthState()));
                 break;

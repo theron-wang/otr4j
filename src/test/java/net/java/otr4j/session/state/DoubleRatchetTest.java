@@ -39,7 +39,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({"ConstantConditions", "resource"})
 public class DoubleRatchetTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();

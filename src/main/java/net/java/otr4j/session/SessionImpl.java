@@ -90,20 +90,17 @@ import static net.java.otr4j.util.Objects.requireNotEquals;
 
 /**
  * Implementation of the OTR session.
- *
  * <p>
  * otr4j Session supports OTRv2's single session as well as OTRv3's multiple
  * sessions, even simultaneously (at least in theory). Support is managed
  * through the concept of slave sessions. As OTRv2 does not recognize instance
  * tags, there can be only a single session. The master (non-slave) session will
  * represent the OTRv2 status. (As well as have an instance tag value of 0.)
- *
  * <p>
  * OTRv3 will establish all of its sessions in the {@link #slaveSessions} map.
  * The master session only functions as the inbound rendezvous point, but any
  * outbound activity as well as the session status itself is managed within a
  * (dedicated) slave session.
- *
  * <p>
  * There is an added complication in the fact that DH Commit message may be sent
  * with a receiver tag. At first instance, we have not yet communicated our
@@ -116,7 +113,6 @@ import static net.java.otr4j.util.Objects.requireNotEquals;
  * OTR protocol version. When receiving DH Key message(s) - for this particular
  * case - we copy AKE state to the (possibly newly created) slave sessions and
  * continue AKE message handling there.
- *
  * <p>
  * SessionImpl is thread-safe. Thread-safety is achieved by serializing method calls of a session instance to the
  * corresponding master session. As the master session contains itself as master session, we can serialize both master

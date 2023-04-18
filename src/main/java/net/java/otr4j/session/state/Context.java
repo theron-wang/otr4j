@@ -25,7 +25,7 @@ import java.security.SecureRandom;
 
 /**
  * Session state context.
- *
+ * <p>
  * Context of the session as used by the session state implementations.
  *
  * @author Danny van Heumen

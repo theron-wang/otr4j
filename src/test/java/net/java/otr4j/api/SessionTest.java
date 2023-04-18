@@ -75,7 +75,7 @@ import static org.mockito.Mockito.when;
 
 // TODO handle case where we store skipped message keys such that we can decrypt message that is received out-of-order, i.e. later than it was supposed to arrive.
 // TODO add test to prove that we can start new (D)AKE in encrypted/finished Message state.
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({"ConstantConditions", "resource"})
 public class SessionTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -1438,11 +1438,11 @@ public class SessionTest {
         private Conversation(final int channelCapacity, final int maxMessageSize) {
             final Predicate<String> condition = new MaxMessageSize(maxMessageSize);
             final ConditionalBlockingQueue<String> directChannelAlice = new ConditionalBlockingQueue<>(condition,
-                    new LinkedBlockingQueue<String>(channelCapacity));
+                    new LinkedBlockingQueue<>(channelCapacity));
             submitterAlice = new BlockingSubmitter<>();
             submitterAlice.addQueue(directChannelAlice);
             final ConditionalBlockingQueue<String> directChannelBob = new ConditionalBlockingQueue<>(condition,
-                    new LinkedBlockingQueue<String>(channelCapacity));
+                    new LinkedBlockingQueue<>(channelCapacity));
             submitterBob = new BlockingSubmitter<>();
             submitterBob.addQueue(directChannelBob);
             this.sessionIDBob = new SessionID("bob@InMemoryNetwork4", "alice@InMemoryNetwork4",

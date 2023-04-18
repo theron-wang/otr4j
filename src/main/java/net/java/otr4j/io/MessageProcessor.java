@@ -65,7 +65,7 @@ public final class MessageProcessor {
     /**
      * PATTERN_WHITESPACE recognizes OTR v1, v2, v3 and v4 whitespace tags. We will continue to recognize OTR v1
      * whitespace tag for compatibility purposes and to avoid bad interpretation.
-     *
+     * <p>
      * Group 1: OTRv1 whitespace tag. (OTRv1 tag, if present, must always be first for legacy reasons.)
      * Group 2: OTRv2/OTRv3/OTRv4 (0 or more) whitespace tags.
      */
@@ -111,7 +111,7 @@ public final class MessageProcessor {
                 // Query tag found.
                 if (HEAD_QUERY_Q == contentType && (content.isEmpty() || content.charAt(0) != 'v')) {
                     // OTR v1 ONLY query tags will be caught in this else clause and is unsupported.
-                    return new QueryMessage(Collections.<Integer>emptySet());
+                    return new QueryMessage(Collections.emptySet());
                 }
                 final String versionString;
                 if (HEAD_QUERY_Q == contentType && content.charAt(0) == 'v' && content.indexOf('?') > -1) {
@@ -123,7 +123,7 @@ public final class MessageProcessor {
                     versionString = content.substring(0, content.indexOf('?'));
                 } else {
                     // Illegal OTR query string. Return as plaintext message instead and do not do further processing.
-                    return new PlainTextMessage(Collections.<Integer>emptySet(), content);
+                    return new PlainTextMessage(Collections.emptySet(), content);
                 }
                 final Set<Integer> versions = parseVersionString(versionString);
                 return new QueryMessage(versions);

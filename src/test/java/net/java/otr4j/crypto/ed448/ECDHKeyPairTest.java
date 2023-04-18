@@ -26,7 +26,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
-@SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
+@SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored", "resource"})
 public class ECDHKeyPairTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
