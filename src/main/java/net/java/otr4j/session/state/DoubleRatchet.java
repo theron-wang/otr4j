@@ -161,6 +161,13 @@ final class DoubleRatchet implements AutoCloseable {
      * @return Returns current ratchet ID.
      */
     int getI() {
+        // "When sending a data message in the same DH Ratchet:"
+        if (this.i == 0) {
+            // "(except for when immediately sending data messages after receiving a Auth-I messageIn that it case it
+            // should be Set `i` as the Data message's ratchet id)."
+            return this.i;
+        }
+        // "Set `i - 1` as the Data message's ratchet id."
         return this.i - 1;
     }
 
@@ -235,7 +242,7 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     byte[] encrypt(final byte[] data) {
         LOGGER.log(FINEST, "Generating message keys for encryption of ratchet {0}, message {1}.",
-                new Object[]{this.i - 1, this.senderRatchet.messageID});
+                new Object[]{this.getI(), this.senderRatchet.messageID});
         try (MessageKeys keys = this.generateSendingKeys()) {
             return keys.encrypt(data);
         }
@@ -250,7 +257,7 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     byte[] authenticate(final byte[] dataMessageSectionsContent) {
         LOGGER.log(FINEST, "Generating message keys for authentication of ratchet {0}, message {1}.",
-                new Object[]{this.i - 1, this.senderRatchet.messageID});
+                new Object[]{getI(), this.senderRatchet.messageID});
         try (MessageKeys keys = this.generateSendingKeys()) {
             return keys.authenticate(dataMessageSectionsContent);
         }
@@ -284,7 +291,7 @@ final class DoubleRatchet implements AutoCloseable {
             final byte[] authenticator, final byte[] ciphertext) throws VerificationException,
             RotationLimitationException {
         LOGGER.log(FINEST, "Generating message keys for verification and decryption of ratchet {0}, message {1}.",
-                new Object[] {this.i - 1, this.receiverRatchet.messageID});
+                new Object[] {getI(), this.receiverRatchet.messageID});
         try (MessageKeys keys = generateReceivingKeys(ratchetId, messageId)) {
             keys.verify(encodedDataMessageSections, authenticator);
             this.macsToReveal.write(authenticator, 0, authenticator.length);
@@ -304,7 +311,7 @@ final class DoubleRatchet implements AutoCloseable {
     byte[] extraSymmetricKeySender() {
         requireNotClosed();
         LOGGER.log(FINEST, "Generating extra symmetric keys for encryption of ratchet {0}, message {1}.",
-                new Object[] {this.i - 1, this.senderRatchet.messageID});
+                new Object[] {getI(), this.senderRatchet.messageID});
         try (MessageKeys keys = generateSendingKeys()) {
             return keys.getExtraSymmetricKey();
         }
@@ -319,7 +326,7 @@ final class DoubleRatchet implements AutoCloseable {
     byte[] extraSymmetricKeyReceiver(final int ratchetId, final int messageId) throws RotationLimitationException {
         requireNotClosed();
         LOGGER.log(FINEST, "Generating extra symmetric keys for encryption of ratchet {0}, message {1}.",
-                new Object[] {this.i - 1, this.senderRatchet.messageID});
+                new Object[] {getI(), this.senderRatchet.messageID});
         try (MessageKeys keys = generateReceivingKeys(ratchetId, messageId)) {
             return keys.getExtraSymmetricKey();
         }
@@ -339,9 +346,9 @@ final class DoubleRatchet implements AutoCloseable {
     @MustBeClosed
     private MessageKeys generateReceivingKeys(final int ratchetId, final int messageId) throws RotationLimitationException {
         requireNotClosed();
-        if (this.i - 1 > ratchetId || this.receiverRatchet.messageID > messageId) {
+        if (getI() > ratchetId || this.receiverRatchet.messageID > messageId) {
             throw new UnsupportedOperationException("Retrieval of previous Message Keys has not been implemented yet. Only current Message Keys can be generated.");
-        } else if (this.i - 1 < ratchetId) {
+        } else if (getI() < ratchetId) {
             // The first message in the new ratchet provides us with the information we need to generate missing message
             // keys in previous ratchet, as well as necessary key material to decrypt and authenticate the message.
             // There is no way to process this message given that this information is missing.

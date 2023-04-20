@@ -723,8 +723,6 @@ public class SessionTest {
         assertEquals(FINISHED, c.clientBob.session.getSessionStatus());
     }
 
-    // TODO make this test work once Double Ratchet algorithm is redesigned.
-    @Ignore("As of yet unsupported use case. Depends on redesign of Double Ratchet algorithm.")
     @Test
     public void testEstablishOTR4SessionEarlyMessaging() throws OtrException {
         final Conversation c = new Conversation(3);
@@ -1505,7 +1503,7 @@ public class SessionTest {
 
         private Client(final String id, final SessionID sessionID, final OtrPolicy policy,
                 final BlockingSubmitter<String> sendChannel, final BlockingQueue<String> receiptChannel) {
-            this.logger = Logger.getLogger(Client.class.getName() + ":" + id);
+            this.logger = Logger.getLogger(Client.class.getSimpleName() + ":" + id);
             this.receiptChannel = requireNonNull(receiptChannel);
             this.sendChannel = requireNonNull(sendChannel);
             this.policy = requireNonNull(policy);
@@ -1522,6 +1520,7 @@ public class SessionTest {
 
         String receiveMessage() throws OtrException {
             final String msg = this.receiptChannel.remove();
+            //logger.warning(msg);
             return this.session.transformReceiving(msg);
         }
 
@@ -1540,6 +1539,7 @@ public class SessionTest {
         }
 
         void sendMessage(final String msg) throws OtrException {
+            //logger.warning(msg);
             this.sendChannel.addAll(asList(this.session.transformSending(msg)));
         }
 

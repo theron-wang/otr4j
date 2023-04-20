@@ -13,12 +13,10 @@ import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.Message;
-import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.session.ake.AuthState;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.logging.Logger;
 
