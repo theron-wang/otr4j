@@ -93,7 +93,7 @@ public class ECDHKeyPairTest {
         keypair1.generateSharedSecret(identity());
     }
 
-    // FIXME figure out what the deal is with this contributory behavior and how to trigger this as a unit test
+    // FIXME figure out easiest way to create point in small subgroup (different cofactor) for testing
     @Ignore("We should be able to create circumstances where other point has small contribution and a ValidationException results. So far, I haven't been able to.")
     @Test(expected = ValidationException.class)
     public void testSharedSecretWithIllegalPoint() throws ValidationException {

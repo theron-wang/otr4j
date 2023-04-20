@@ -115,6 +115,7 @@ public final class Ed448 {
     @CheckReturnValue
     public static boolean containsPoint(final Point point) {
         if (checkIdentity(point)) {
+            // TODO is this appropriate to handle as special case? (just curious, stumbled upon this question via some unit tests)
             return false;
         }
         try {

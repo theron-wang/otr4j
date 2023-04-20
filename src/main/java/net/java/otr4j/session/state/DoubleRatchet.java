@@ -70,14 +70,14 @@ final class DoubleRatchet implements AutoCloseable {
     private final ByteArrayOutputStream macsToReveal = new ByteArrayOutputStream();
 
     /**
-     * Sender ratchet represents the ratchet process on the part of the message sender.
+     * Sender ratchet (a.k.a. `j`) represents the ratchet process on the part of the message sender.
      * <p>
      * The sender ratchet contains message ID 'j'.
      */
     private final Ratchet senderRatchet = new Ratchet();
 
     /**
-     * Receiver ratchet represents the ratchet process on part of the message receiver.
+     * Receiver ratchet (a.k.a. `k`) represents the ratchet process on part of the message receiver.
      * <p>
      * The receiver ratchet contains message ID 'k'.
      */
@@ -659,6 +659,7 @@ final class DoubleRatchet implements AutoCloseable {
             final byte[] mac = kdf(MAC_KEY, MK_MAC_LENGTH_BYTES, this.encrypt);
             final byte[] authenticator = hcmac(AUTHENTICATOR, AUTHENTICATOR_LENGTH_BYTES, mac, dataMessageSections);
             clear(mac);
+            assert !allZeroBytes(authenticator) : "Expected non-zero bytes in authenticator";
             return authenticator;
         }
 
@@ -672,6 +673,7 @@ final class DoubleRatchet implements AutoCloseable {
          */
         void verify(final byte[] dataMessageSection, final byte[] authenticator)
                 throws VerificationException {
+            assert !allZeroBytes(authenticator) : "Expected non-zero bytes in authenticator";
             requireNotClosed();
             final byte[] expectedAuthenticator = authenticate(dataMessageSection);
             try {

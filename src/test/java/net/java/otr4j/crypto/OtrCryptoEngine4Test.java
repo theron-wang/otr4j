@@ -191,7 +191,6 @@ public class OtrCryptoEngine4Test {
         assertNotNull(EdDSAKeyPair.generate(RANDOM));
     }
 
-    @Ignore("This test is most likely correct and verification is missing logic. Disabled for now for further research.")
     @Test(expected = OtrCryptoException.class)
     public void testVerifyEdDSAPublicKeyOne() throws OtrCryptoException {
         verifyEdDSAPublicKey(identity());
@@ -422,11 +421,12 @@ public class OtrCryptoEngine4Test {
         generateRandomValueInZq(null);
     }
 
-    @Ignore("There is a FIXME to investigate whether this is necessary. I believe it isn't.")
+    @Ignore("There is an issue with reducing `mod q` when constructing scalar that needs more attention.")
     @Test
     public void testGenerateRandomValueInZq() {
         final Scalar value = generateRandomValueInZq(RANDOM);
         final byte[] bytes = value.encode();
+        // TODO this fails because during construction of Scalar instance, generated random value gets reduced, therefore reinterpreting the clamped bits. 
         assertEquals(0, bytes[0] & 0b00000011);
         assertEquals(0b10000000, bytes[55] & 0b10000000);
         assertEquals(0, bytes[56]);
