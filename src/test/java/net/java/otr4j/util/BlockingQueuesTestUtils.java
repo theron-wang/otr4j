@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.concurrent.BlockingQueue;
 
-import static java.util.Collections.sort;
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.Arrays.contains;
 
@@ -69,13 +68,7 @@ public final class BlockingQueuesTestUtils {
                 fragments.add(new FragmentEntry(i, ((Fragment) m).getIndex(), msg));
             }
         }
-        sort(fragments, new Comparator<FragmentEntry>() {
-
-            @Override
-            public int compare(final FragmentEntry o1, final FragmentEntry o2) {
-                return Integer.compare(o1.index, o2.index);
-            }
-        });
+        fragments.sort(Comparator.comparingInt(o -> o.index));
         int nextFragment = 0;
         for (int i = 0; i < messages.size(); i++) {
             if (containsFragment(fragments, i)) {
