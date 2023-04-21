@@ -212,6 +212,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
                 ourFirstECDHKeyPair, message.ourFirstDHPublicKey, message.ourFirstECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(firstRatchetSecret, kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY,
                 k), BOB);
+        ratchet.rotateSenderKeys();
         secure(context, ssid, ratchet, ourClientProfile.getLongTermPublicKey(), ourClientProfile.getForgingKey(),
                 theirClientProfile.getLongTermPublicKey(), theirClientProfile.getForgingKey());
     }

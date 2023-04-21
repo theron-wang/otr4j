@@ -124,7 +124,6 @@ final class DoubleRatchet implements AutoCloseable {
             break;
         case ALICE:
             generateRatchetKeys(Purpose.SENDING);
-            this.senderRatchet.needsRotation = false;
             break;
         default:
             throw new UnsupportedOperationException("Unsupported purpose.");
