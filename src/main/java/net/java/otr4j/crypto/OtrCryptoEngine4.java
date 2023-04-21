@@ -280,10 +280,10 @@ public final class OtrCryptoEngine4 {
      * @return Returns the resulting digest value.
      */
     @CheckReturnValue
-    public static byte[] kdf(final KDFUsage usageID, final int outputSize, final byte[]... input) {
+    public static byte[] kdf(final int outputSize, final KDFUsage usageID, final byte[]... input) {
         requireAtLeast(0, outputSize);
         final byte[] dst = new byte[outputSize];
-        kdf(dst, 0, usageID, outputSize, input);
+        kdf(dst, 0, outputSize, usageID, input);
         return dst;
     }
 
@@ -296,9 +296,9 @@ public final class OtrCryptoEngine4 {
      * @param input      the input
      * @param outputSize the output size in bytes
      */
-    public static void kdf(final byte[] dst, final int offset, final KDFUsage usageID, final int outputSize,
+    public static void kdf(final byte[] dst, final int offset, final int outputSize, final KDFUsage usageID,
             final byte[]... input) {
-        shake256(dst, offset, usageID, outputSize, input);
+        shake256(dst, offset, outputSize, usageID, input);
     }
 
     /**
@@ -313,7 +313,7 @@ public final class OtrCryptoEngine4 {
     public static byte[] hwc(final KDFUsage usageID, final int outputSize, final byte[]... input) {
         requireAtLeast(0, outputSize);
         final byte[] result = new byte[outputSize];
-        shake256(result, 0, usageID, outputSize, input);
+        shake256(result, 0, outputSize, usageID, input);
         return result;
     }
 
@@ -329,7 +329,7 @@ public final class OtrCryptoEngine4 {
     public static byte[] hcmac(final KDFUsage usageID, final int outputSize, final byte[]... input) {
         requireAtLeast(0, outputSize);
         final byte[] result = new byte[outputSize];
-        shake256(result, 0, usageID, outputSize, input);
+        shake256(result, 0, outputSize, usageID, input);
         return result;
     }
 
@@ -344,7 +344,7 @@ public final class OtrCryptoEngine4 {
      * @param input      The input data to KDF_1.
      * @param outputSize The size of the derivative output.
      */
-    private static void shake256(final byte[] dst, final int offset, final KDFUsage usageID, final int outputSize,
+    private static void shake256(final byte[] dst, final int offset, final int outputSize, final KDFUsage usageID,
             final byte[]... input) {
         requireNonNull(dst);
         requireAtLeast(0, outputSize);

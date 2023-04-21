@@ -242,12 +242,12 @@ public final class MixedSharedSecret implements AutoCloseable {
         }
         if (performDHRatchet) {
             final byte[] k_dh = asUnsignedByteArray(this.dhKeyPair.generateSharedSecret(this.theirDHPublicKey));
-            kdf(this.braceKey, 0, THIRD_BRACE_KEY, BRACE_KEY_LENGTH_BYTES, k_dh);
+            kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, THIRD_BRACE_KEY, k_dh);
             clear(k_dh);
         } else {
-            kdf(this.braceKey, 0, BRACE_KEY, BRACE_KEY_LENGTH_BYTES, this.braceKey);
+            kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, BRACE_KEY, this.braceKey);
         }
-        kdf(this.k, 0, SHARED_SECRET, K_LENGTH_BYTES, k_ecdh, this.braceKey);
+        kdf(this.k, 0, K_LENGTH_BYTES, SHARED_SECRET, k_ecdh, this.braceKey);
         clear(k_ecdh);
     }
 

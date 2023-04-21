@@ -417,7 +417,7 @@ final class DoubleRatchet implements AutoCloseable {
         final byte[] previousRootKey = this.rootKey.clone();
         final byte[] newK = this.sharedSecret.getK();
         final byte[] concatPreviousRootKeyNewK = concatenate(previousRootKey, newK);
-        kdf(this.rootKey, 0, ROOT_KEY, ROOT_KEY_LENGTH_BYTES, concatPreviousRootKeyNewK);
+        kdf(this.rootKey, 0, ROOT_KEY_LENGTH_BYTES, ROOT_KEY, concatPreviousRootKeyNewK);
         switch (purpose) {
         case SENDING:
             this.senderRatchet.rotateKeys(concatPreviousRootKeyNewK);
@@ -460,8 +460,8 @@ final class DoubleRatchet implements AutoCloseable {
     @MustBeClosed
     private MessageKeys generateMessageKeys(final byte[] chainkey) {
         assert !allZeroBytes(chainkey) : "Expected chainkey of random data instead of all zero-bytes.";
-        final byte[] encrypt = kdf(MESSAGE_KEY, MK_ENC_LENGTH_BYTES, chainkey);
-        final byte[] extraSymmetricKey = kdf(EXTRA_SYMMETRIC_KEY, EXTRA_SYMMETRIC_KEY_LENGTH_BYTES,
+        final byte[] encrypt = kdf(MK_ENC_LENGTH_BYTES, MESSAGE_KEY, chainkey);
+        final byte[] extraSymmetricKey = kdf(EXTRA_SYMMETRIC_KEY_LENGTH_BYTES, EXTRA_SYMMETRIC_KEY,
                 new byte[] {(byte) 0xff}, chainkey);
         return new MessageKeys(encrypt, extraSymmetricKey);
     }
@@ -545,7 +545,7 @@ final class DoubleRatchet implements AutoCloseable {
             requireNotClosed();
             requireRotationNotNeeded();
             this.messageID += 1;
-            kdf(this.chainKey, 0, NEXT_CHAIN_KEY, CHAIN_KEY_LENGTH_BYTES, this.chainKey);
+            kdf(this.chainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, this.chainKey);
         }
 
         /**
@@ -554,7 +554,7 @@ final class DoubleRatchet implements AutoCloseable {
         void rotateKeys(final byte[] concatPreviousRootKeyNewK) {
             requireNotClosed();
             this.messageID = 0;
-            kdf(this.chainKey, 0, CHAIN_KEY, CHAIN_KEY_LENGTH_BYTES, concatPreviousRootKeyNewK);
+            kdf(this.chainKey, 0, CHAIN_KEY_LENGTH_BYTES, CHAIN_KEY, concatPreviousRootKeyNewK);
             this.needsRotation = false;
         }
 
@@ -656,7 +656,7 @@ final class DoubleRatchet implements AutoCloseable {
         @Nonnull
         byte[] authenticate(final byte[] dataMessageSections) {
             requireNotClosed();
-            final byte[] mac = kdf(MAC_KEY, MK_MAC_LENGTH_BYTES, this.encrypt);
+            final byte[] mac = kdf(MK_MAC_LENGTH_BYTES, MAC_KEY, this.encrypt);
             final byte[] authenticator = hcmac(AUTHENTICATOR, AUTHENTICATOR_LENGTH_BYTES, mac, dataMessageSections);
             clear(mac);
             assert !allZeroBytes(authenticator) : "Expected non-zero bytes in authenticator";
