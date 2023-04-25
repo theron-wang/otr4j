@@ -212,7 +212,10 @@ final class StateAwaitingAuthR extends AbstractCommonState {
                 ourFirstECDHKeyPair, message.ourFirstDHPublicKey, message.ourFirstECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(firstRatchetSecret, kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY,
                 k), BOB);
-        ratchet.rotateSenderKeys();
+        // NOTE: the spec says to rotate sender keys here. If we do rotate sender keys here, it is not followed up with
+        // logic that includes the new DH public key in the data message. OTOH, existing logic already takes into
+        // account the case for rotation, so it should follow naturally in the process and prior to sending the first
+        // data-message.
         secure(context, ssid, ratchet, ourClientProfile.getLongTermPublicKey(), ourClientProfile.getForgingKey(),
                 theirClientProfile.getLongTermPublicKey(), theirClientProfile.getForgingKey());
     }

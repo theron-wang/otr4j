@@ -18,6 +18,7 @@ import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 
 import static java.util.Objects.requireNonNull;
@@ -47,10 +48,10 @@ public final class BlockingQueuesTestUtils {
      * Shuffle the contents of the provided blocking queue.
      *
      * @param queue  the blocking queue
-     * @param random the SecureRandom instance
+     * @param random the Random instance (allows deterministic random for reproducible testing)
      * @param <T>    the type of the content in the blocking queue
      */
-    public static <T> void shuffle(final BlockingQueue<T> queue, final SecureRandom random) {
+    public static <T> void shuffle(final BlockingQueue<T> queue, final Random random) {
         final ArrayList<T> list = new ArrayList<>();
         queue.drainTo(list);
         java.util.Collections.shuffle(list, random);

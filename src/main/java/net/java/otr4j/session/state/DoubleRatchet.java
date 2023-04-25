@@ -20,12 +20,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import java.net.ProtocolException;
 import java.util.logging.Logger;
 
 import static java.lang.Integer.MIN_VALUE;
 import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
+import static java.util.logging.Level.WARNING;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.EXTRA_SYMMETRIC_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.AUTHENTICATOR;
@@ -160,14 +162,7 @@ final class DoubleRatchet implements AutoCloseable {
      * @return Returns current ratchet ID.
      */
     int getI() {
-        // "When sending a data message in the same DH Ratchet:"
-        if (this.i == 0) {
-            // "(except for when immediately sending data messages after receiving a Auth-I messageIn that it case it
-            // should be Set `i` as the Data message's ratchet id)."
-            return this.i;
-        }
-        // "Set `i - 1` as the Data message's ratchet id."
-        return this.i - 1;
+        return this.i;
     }
 
     /**
@@ -210,9 +205,15 @@ final class DoubleRatchet implements AutoCloseable {
     Point getECDHPublicKey() {
         return this.sharedSecret.getECDHPublicKey();
     }
-
+    
     @Nonnull
-    RotationResult rotateSenderKeys() {
+    BigInteger getDHPublicKey() {
+        return this.sharedSecret.getDHPublicKey();
+    }
+    
+    @CheckReturnValue
+    @Nonnull
+    byte[] rotateSenderKeys() {
         requireNotClosed();
         if (!this.senderRatchet.needsRotation) {
             throw new IllegalStateException("Rotation is only allowed after new public key material was received from the other party.");
@@ -228,7 +229,7 @@ final class DoubleRatchet implements AutoCloseable {
         // Extract MACs to reveal.
         final byte[] revealedMacs = this.macsToReveal.toByteArray();
         this.macsToReveal.reset();
-        return new RotationResult(performDHRatchet ? this.sharedSecret.getDHPublicKey() : null, revealedMacs);
+        return revealedMacs;
     }
 
     /**
@@ -241,7 +242,7 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     byte[] encrypt(final byte[] data) {
         LOGGER.log(FINEST, "Generating message keys for encryption of ratchet {0}, message {1}.",
-                new Object[]{this.getI(), this.senderRatchet.messageID});
+                new Object[]{this.i - 1, this.senderRatchet.messageID});
         try (MessageKeys keys = this.generateSendingKeys()) {
             return keys.encrypt(data);
         }
@@ -256,7 +257,7 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     byte[] authenticate(final byte[] dataMessageSectionsContent) {
         LOGGER.log(FINEST, "Generating message keys for authentication of ratchet {0}, message {1}.",
-                new Object[]{getI(), this.senderRatchet.messageID});
+                new Object[]{this.i - 1, this.senderRatchet.messageID});
         try (MessageKeys keys = this.generateSendingKeys()) {
             return keys.authenticate(dataMessageSectionsContent);
         }
@@ -290,7 +291,7 @@ final class DoubleRatchet implements AutoCloseable {
             final byte[] authenticator, final byte[] ciphertext) throws VerificationException,
             RotationLimitationException {
         LOGGER.log(FINEST, "Generating message keys for verification and decryption of ratchet {0}, message {1}.",
-                new Object[] {getI(), this.receiverRatchet.messageID});
+                new Object[]{this.i - 1, this.receiverRatchet.messageID});
         try (MessageKeys keys = generateReceivingKeys(ratchetId, messageId)) {
             keys.verify(encodedDataMessageSections, authenticator);
             this.macsToReveal.write(authenticator, 0, authenticator.length);
@@ -310,8 +311,9 @@ final class DoubleRatchet implements AutoCloseable {
     byte[] extraSymmetricKeySender() {
         requireNotClosed();
         LOGGER.log(FINEST, "Generating extra symmetric keys for encryption of ratchet {0}, message {1}.",
-                new Object[] {getI(), this.senderRatchet.messageID});
+                new Object[] {Math.max(this.i, 0), this.senderRatchet.messageID});
         try (MessageKeys keys = generateSendingKeys()) {
+            // TODO encapsulate extra symmetric key in AutoCloseable to control exposure/clearing of bytes?
             return keys.getExtraSymmetricKey();
         }
     }
@@ -325,7 +327,7 @@ final class DoubleRatchet implements AutoCloseable {
     byte[] extraSymmetricKeyReceiver(final int ratchetId, final int messageId) throws RotationLimitationException {
         requireNotClosed();
         LOGGER.log(FINEST, "Generating extra symmetric keys for encryption of ratchet {0}, message {1}.",
-                new Object[] {getI(), this.senderRatchet.messageID});
+                new Object[]{ratchetId, messageId});
         try (MessageKeys keys = generateReceivingKeys(ratchetId, messageId)) {
             return keys.getExtraSymmetricKey();
         }
@@ -345,13 +347,14 @@ final class DoubleRatchet implements AutoCloseable {
     @MustBeClosed
     private MessageKeys generateReceivingKeys(final int ratchetId, final int messageId) throws RotationLimitationException {
         requireNotClosed();
-        if (getI() > ratchetId || this.receiverRatchet.messageID > messageId) {
+        if (Math.max(0, this.i - 1) > ratchetId || this.receiverRatchet.messageID > messageId) {
             throw new UnsupportedOperationException("Retrieval of previous Message Keys has not been implemented yet. Only current Message Keys can be generated.");
-        } else if (getI() < ratchetId) {
+        }
+        if (Math.max(0, this.i - 1) < ratchetId) {
             // The first message in the new ratchet provides us with the information we need to generate missing message
             // keys in previous ratchet, as well as necessary key material to decrypt and authenticate the message.
             // There is no way to process this message given that this information is missing.
-            throw new RotationLimitationException("Cannot fast-forward-rotate receiving keys over first message in new ratchet. We have not encountered the first message in the new ratchet.");
+            throw new RotationLimitationException("Cannot fast-forward rotate receiving keys over new ratchet ID. We have not encountered.");
         }
         // TODO verify that number of messages needing to fast-forward is acceptable. (max_skip in OTRv4 spec)
         while (this.receiverRatchet.messageID < messageId) {
@@ -392,7 +395,7 @@ final class DoubleRatchet implements AutoCloseable {
      */
     // TODO preserve message keys in previous ratchet before rotating away.
     // FIXME need to verify that public keys (ECDH and DH) were not encountered previously.
-    void rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH) throws OtrCryptoException {
+    void rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH) throws OtrCryptoException, ProtocolException {
         requireNotClosed();
         LOGGER.log(FINEST, "Rotating root key and receiving chain key for ratchet {0} (nextDH = {1})",
                 new Object[]{this.i, nextDH != null});
@@ -400,12 +403,22 @@ final class DoubleRatchet implements AutoCloseable {
             LOGGER.log(FINE, "Skipping rotating receiver keys as ECDH public key is already known.");
             return;
         }
-        if (nextDH != null && nextDH.equals(this.sharedSecret.getTheirDHPublicKey())) {
-            LOGGER.log(FINE, "Skipping rotating receiver keys as DH public key is already known.");
-            return;
-        }
+        // FIXME check in spec: is this conditional expressed exactly as described in the spec? Seems counter-intuitive.
+//        if (nextDH != null && nextDH.equals(this.sharedSecret.getTheirDHPublicKey())) {
+//            LOGGER.log(FINE, "Skipping rotating receiver keys as DH public key is already known.");
+//            return;
+//        }
         final boolean performDHRatchet = this.i % 3 == 0;
-        this.sharedSecret.rotateTheirKeys(performDHRatchet, nextECDH, nextDH);
+        if (performDHRatchet && nextDH == null) {
+            LOGGER.log(WARNING, "Performing receiver keys rotation for message in new ratchet. DH-ratchet is expected, but DH public key is missing.");
+            throw new ProtocolException("DH public key missing for rotation with DH ratchet. (Buggy implementation of OTR of the other party?)");
+        }
+        if (!performDHRatchet && nextDH != null) {
+            LOGGER.log(WARNING, "Performing receiver keys rotation for message in new ratchet. DH public key is provided but not expected.");
+            throw new ProtocolException("DH public key provided for rotation while not expected. (Buggy implementation of OTR of the other party?)");
+        }
+        final BigInteger maybeNextDH = performDHRatchet ? nextDH : null;
+        this.sharedSecret.rotateTheirKeys(performDHRatchet, nextECDH, maybeNextDH);
         this.pn = this.senderRatchet.messageID;
         generateRatchetKeys(Purpose.RECEIVING);
         this.senderRatchet.needsRotation = true;
@@ -472,26 +485,6 @@ final class DoubleRatchet implements AutoCloseable {
     }
 
     /**
-     * The Sender Key Rotation result.
-     * <p>
-     * Field `ecdhPublicKey` contains the public key of the generated ECDH key pair.
-     * Field `dhPublicKey` contains the public key of the generated DH key pair.
-     * Field `revealedMacs` contains all the MACs that were gathered to be revealed up to now.
-     */
-    static final class RotationResult {
-
-        @Nullable
-        final BigInteger dhPublicKey;
-
-        final byte[] revealedMacs;
-
-        private RotationResult(@Nullable final BigInteger dhPublicKey, final byte[] revealedMacs) {
-            this.dhPublicKey = dhPublicKey;
-            this.revealedMacs = requireNonNull(revealedMacs);
-        }
-    }
-
-    /**
      * Ratchet, the individual ratchet used for either sending or receiving.
      */
     private final static class Ratchet implements AutoCloseable {
@@ -508,6 +501,7 @@ final class DoubleRatchet implements AutoCloseable {
         /**
          * Message ID.
          */
+        // FIXME check to ensure that messageID does not get prematurely incremented, because we rely on an accurate value when rotating because it is copied to `pn`.
         private int messageID = 0;
 
         /**

@@ -26,7 +26,6 @@ import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.smpv4.SMP;
 import net.java.otr4j.session.state.DoubleRatchet.RotationLimitationException;
-import net.java.otr4j.session.state.DoubleRatchet.RotationResult;
 import net.java.otr4j.session.state.DoubleRatchet.VerificationException;
 
 import javax.annotation.Nonnull;
@@ -152,27 +151,30 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         assert providedMACsToReveal.length == 0 || !allZeroBytes(providedMACsToReveal)
                 : "BUG: expected providedMACsToReveal to contains some non-zero values.";
         // Perform ratchet if necessary, possibly collecting MAC codes to reveal.
-        final BigInteger dhPublicKey;
         final byte[] collectedMACs;
         if (this.ratchet.isNeedSenderKeyRotation()) {
-            final RotationResult rotation = this.ratchet.rotateSenderKeys();
-            this.logger.log(FINEST, "Sender keys rotated. DH public key: {0}, revealed MACs size: {1}.",
-                    new Object[] {rotation.dhPublicKey != null, rotation.revealedMacs.length});
-            dhPublicKey = rotation.dhPublicKey;
-            collectedMACs = concatenate(providedMACsToReveal, rotation.revealedMacs);
+            final byte[] revealedMacs = this.ratchet.rotateSenderKeys();
+            this.logger.log(FINEST, "Sender keys rotated. revealed MACs size: {0}.",
+                    new Object[]{revealedMacs.length});
+            collectedMACs = concatenate(providedMACsToReveal, revealedMacs);
         } else {
             this.logger.log(FINEST, "Sender keys rotation is not needed.");
-            dhPublicKey = null;
             collectedMACs = providedMACsToReveal;
         }
         // Construct data message.
         final byte[] msgBytes = new OtrOutputStream().writeMessage(msgText).writeByte(0).writeTLV(tlvs).toByteArray();
         final byte[] ciphertext = this.ratchet.encrypt(msgBytes);
-        final int ratchetId = this.ratchet.getI();
+        // "When sending a data message in the same DH Ratchet: Set `i - 1` as the Data message's ratchet id. (except
+        // for when immediately sending data messages after receiving a Auth-I message. In that it case it should be Set
+        // `i` as the Data message's ratchet id)."
+        // TODO evaluate if this has the desired effect in all cases? (managing an edge case in the spec)
+        final int ratchetId = Math.max(0, this.ratchet.getI() - 1);
         final int messageId = this.ratchet.getJ();
+        final BigInteger dhPublicKey = ratchetId % 3 == 0 ? this.ratchet.getDHPublicKey() : null;
         // We intentionally set the authenticator to `new byte[64]` (all zero-bytes), such that we can calculate the
         // corresponding authenticator value. Then we construct a new DataMessage4 and substitute the real authenticator
         // for the dummy.
+        // TODO now including DH public-key in all messages of ratchet `i % 3 == 0`. Check if consistent with spec.
         final DataMessage4 unauthenticated = new DataMessage4(VERSION, context.getSenderInstanceTag(),
                 context.getReceiverInstanceTag(), flags, this.ratchet.getPn(), ratchetId, messageId,
                 this.ratchet.getECDHPublicKey(), dhPublicKey, ciphertext, new byte[64], collectedMACs);
@@ -209,13 +211,14 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Override
     @SuppressWarnings("PMD.CognitiveComplexity")
     String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException, ProtocolException {
-        if (message.j == 0) {
-            if (message.i < this.ratchet.getI()) {
-                // Ratchet ID < our current ratchet ID. This is technically impossible, so should not be supported.
-                throw new ProtocolException("The double ratchet does not allow for first messages of previous ratchet ID to arrive at a later time. This is an illegal message.");
-            }
-            // If a new ratchet key has been received, any message keys corresponding to skipped messages from the
-            // previous receiving ratchet are stored. A new DH ratchet is performed.
+        if (message.i < this.ratchet.getI() - 1) {
+            // Ratchet ID < our current ratchet ID. This is technically impossible, so should not be supported.
+            throw new ProtocolException("The double ratchet does not allow for first messages of previous ratchet ID to arrive at a later time. This is an illegal message.");
+        }
+        if (message.i > this.ratchet.getI() - 1) {
+            // If any message in a new ratchet is received, a new ratchet key has been received, any message keys
+            // corresponding to skipped messages from the previous receiving ratchet are stored. A new DH ratchet is
+            // performed.
             // TODO generate and store skipped message for previous chain key.
             // The Double Ratchet prescribes alternate rotations, so after a single rotation for each we expect to
             // reveal MAC codes.

@@ -1290,10 +1290,9 @@ public class SessionTest {
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         assertEquals(2, c.clientBob.receiptChannel.size());
 
-        // FIXME We cannot currently verify the early-sent queued messages from Alice, because the Double Ratchet algorithm cannot cope with early messages yet. The redesign is in progress, but not finished yet.
-//        assertEquals("Alice queued encrypted message 1", c.clientBob.receiveMessage());
-//        assertEquals("Alice queued encrypted message 2", c.clientBob.receiveMessage());
-//        assertEquals(0, c.clientBob.receiptChannel.size());
+        assertEquals("Alice queued encrypted message 1", c.clientBob.receiveMessage());
+        assertEquals("Alice queued encrypted message 2", c.clientBob.receiveMessage());
+        assertEquals(0, c.clientBob.receiptChannel.size());
 
         assertEquals("Bob queued message 1", c.clientAlice.receiveMessage());
         assertEquals("Bob encrypted message 1", c.clientAlice.receiveMessage());
@@ -1545,6 +1544,7 @@ public class SessionTest {
         }
 
         void sendMessage(final String msg, final int index) throws OtrException {
+            //logger.warning(msg);
             this.sendChannel.addAll(asList(this.session.getInstances().get(index).transformSending(msg)));
         }
 
