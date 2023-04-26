@@ -39,7 +39,7 @@ import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
 import static net.java.otr4j.crypto.ed448.Ed448.primeOrder;
 import static net.java.otr4j.crypto.ed448.Scalar.SCALAR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
-import static net.java.otr4j.crypto.ed448.Scalars.prune;
+import static net.java.otr4j.crypto.ed448.Scalars.clamp;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthAtLeast;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
@@ -370,7 +370,7 @@ public final class OtrCryptoEngine4 {
         final SHAKEDigest digest = new SHAKEDigest(SHAKE_256_LENGTH_BITS);
         digest.update(value, 0, value.length);
         digest.doFinal(h, 0, h.length);
-        prune(h);
+        clamp(h);
         return decodeScalar(h);
     }
 

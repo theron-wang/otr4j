@@ -9,17 +9,17 @@
 
 package net.java.otr4j.crypto.ed448;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Arrays;
 
 import static net.java.otr4j.crypto.ed448.ECDHKeyPair.generate;
 import static net.java.otr4j.crypto.ed448.Ed448.identity;
 import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
+import static net.java.otr4j.crypto.ed448.Scalar.SCALAR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.ed448.Scalar.fromBigInteger;
-import static net.java.otr4j.crypto.ed448.Scalars.prune;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -93,13 +93,11 @@ public class ECDHKeyPairTest {
         keypair1.generateSharedSecret(identity());
     }
 
-    // FIXME figure out easiest way to create point in small subgroup (different cofactor) for testing
-    @Ignore("We should be able to create circumstances where other point has small contribution and a ValidationException results. So far, I haven't been able to.")
-    @Test(expected = ValidationException.class)
+    @Test(expected = IllegalStateException.class)
     public void testSharedSecretWithIllegalPoint() throws ValidationException {
-        final byte[] otherScalar = randomBytes(RANDOM, new byte[57]);
-        prune(otherScalar);
-        final Point other = multiplyByBase(Scalar.decodeScalar(otherScalar));
+        final Point other = multiplyByBase(new Scalar(randomBytes(RANDOM, new byte[SCALAR_LENGTH_BYTES])));
+        // TODO do better with constructing an invalid point: something closer to corrupted points, instead of arbitrary bytes
+        Arrays.fill(other.getEncoded(), (byte) 1);
         final ECDHKeyPair keypair = ECDHKeyPair.generate(RANDOM);
         keypair.generateSharedSecret(other);
     }

@@ -16,7 +16,7 @@ import java.security.SecureRandom;
 
 import static net.java.otr4j.crypto.ed448.Point.decodePoint;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
-import static net.java.otr4j.crypto.ed448.Scalars.prune;
+import static net.java.otr4j.crypto.ed448.Scalars.clamp;
 import static net.java.otr4j.crypto.ed448.Shake256.shake256;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
@@ -125,7 +125,7 @@ public final class EdDSAKeyPair implements AutoCloseable {
         final byte[] h = shake256(this.symmetricKey, 2 * SECRET_KEY_LENGTH_BYTES);
         final byte[] secretKey = copyOfRange(h, 0, SECRET_KEY_LENGTH_BYTES);
         clear(h);
-        prune(secretKey);
+        clamp(secretKey);
         try {
             return decodeScalar(secretKey);
         } finally {

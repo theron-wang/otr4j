@@ -101,7 +101,7 @@ public final class Ed448 {
     @Nonnull
     public static Point requireValidPoint(final Point point) {
         if (!containsPoint(point)) {
-            throw new IllegalArgumentException("Point is illegal: point is identity.");
+            throw new IllegalArgumentException("Point is illegal.");
         }
         return point;
     }

@@ -50,7 +50,7 @@ public final class Scalars {
     }
 
     /**
-     * Pruning of private key source data.
+     * Clamping private key source data to satisfy requirements, such as cofactor of 8 restriction.
      * <p>
      * The procedure is described in RFC 8032, section 5.2.5. "Key Generation", step 2.
      * <pre>
@@ -62,7 +62,7 @@ public final class Scalars {
      * @param privateKeySourceData Public key source data.
      * @throws IllegalArgumentException In case of invalid length of source data.
      */
-    public static void prune(final byte[] privateKeySourceData) {
+    public static void clamp(final byte[] privateKeySourceData) {
         requireLengthExactly(SCALAR_LENGTH_BYTES, privateKeySourceData);
         privateKeySourceData[0] = (byte) (privateKeySourceData[0] & 0b11111100);
         privateKeySourceData[SCALAR_LENGTH_BYTES - 1] = 0;

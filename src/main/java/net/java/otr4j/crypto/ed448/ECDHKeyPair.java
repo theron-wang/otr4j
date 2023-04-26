@@ -17,7 +17,7 @@ import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.crypto.ed448.Ed448.checkIdentity;
 import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
-import static net.java.otr4j.crypto.ed448.Scalars.prune;
+import static net.java.otr4j.crypto.ed448.Scalars.clamp;
 import static net.java.otr4j.crypto.ed448.Shake256.shake256;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
@@ -86,7 +86,7 @@ public final class ECDHKeyPair implements AutoCloseable {
         //    eight bits of the last byte are cleared, and the highest bit of the second
         //    to last byte is set.
         assert !allZeroBytes(h) : "Expected random data, instead of all-zero byte-array.";
-        prune(h);
+        clamp(h);
         //  - Interpret the buffer as the little-endian integer, forming the secret scalar 's'.
         final Scalar s = decodeScalar(h);
         //  - Securely delete 'r' and 'h'.

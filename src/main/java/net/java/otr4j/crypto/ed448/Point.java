@@ -115,6 +115,7 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
         try {
             return new Point(Points.decode(this.encoded).multiply(scalar.toBigInteger()).encode());
         } catch (final Points.InvalidDataException e) {
+            // TODO probably needs checked exception, because this can happen if intentionally corrupted.
             throw new IllegalStateException("BUG: Point instance encountered with illegal point data.", e);
         }
     }

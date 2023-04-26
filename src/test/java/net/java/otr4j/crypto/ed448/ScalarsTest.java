@@ -16,7 +16,7 @@ import java.util.Arrays;
 
 import static java.util.Arrays.fill;
 import static net.java.otr4j.crypto.ed448.Scalars.one;
-import static net.java.otr4j.crypto.ed448.Scalars.prune;
+import static net.java.otr4j.crypto.ed448.Scalars.clamp;
 import static net.java.otr4j.crypto.ed448.Scalars.zero;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static org.junit.Assert.assertArrayEquals;
@@ -79,29 +79,29 @@ public final class ScalarsTest {
 
     @Test(expected = NullPointerException.class)
     public void testPruneNull() {
-        prune(null);
+        clamp(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testPruneZeroLengthArray() {
-        prune(new byte[0]);
+        clamp(new byte[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testPrune56LengthArray() {
-        prune(new byte[56]);
+        clamp(new byte[56]);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testPrune58LengthArray() {
-        prune(new byte[58]);
+        clamp(new byte[58]);
     }
 
     @Test
     public void testPruneZeroBytes() {
         final byte[] expected = new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (byte) 0x80, 0};
         final byte[] value = new byte[57];
-        prune(value);
+        clamp(value);
         assertArrayEquals(expected, value);
     }
 
@@ -110,7 +110,7 @@ public final class ScalarsTest {
         final byte[] expected = new byte[] {(byte) 0xfc, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, 0};
         final byte[] value = new byte[57];
         fill(value, (byte) 0xff);
-        prune(value);
+        clamp(value);
         assertArrayEquals(expected, value);
     }
 }
