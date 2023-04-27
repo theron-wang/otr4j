@@ -134,7 +134,6 @@ public final class ByteArrays {
      * @param second second byte-array
      * @return Returns a new byte-array with contents of first byte-array followed by second byte-array.
      */
-    // FIXME needs tests.
     @Nonnull
     public static byte[] concatenate(final byte[] first, final byte[] second) {
         final byte[] dst = new byte[first.length + second.length];

@@ -385,6 +385,7 @@ final class SessionImpl implements Session, Context {
         requireEquals(this.sessionState, fromState,
                 "BUG: provided \"from\" state is not the current state. Expected " + this.sessionState + ", but got " + fromState);
         if (toState instanceof StateEncrypted) {
+            // TODO evaluate what to do with situation where multiple instances establish private messaging session concurrently. One will be first, it will receive the queued messages. These might not go to the client instance that we want to.
             sendQueuedMessages((StateEncrypted) toState);
         }
         logger.log(FINE, "Transitioning to message state: " + toState);
@@ -486,7 +487,7 @@ final class SessionImpl implements Session, Context {
                 offerStatus = OfferStatus.ACCEPTED;
             }
 
-            // FIXME evaluate inter-play between master and slave sessions. How much of certainty do we have if we reset the state from within one of the AKE states, that we actually reset sufficiently? In most cases, context.setState will manipulate the slave session, not the master session, so the influence limited.
+            // FIXME evaluate inter-play between master and slave sessions. How much of certainty do we have if we reset the state from within one of the AKE states, that we actually reset sufficiently? In most cases, context.setState will manipulate the slave session, not the master session, so the influence limited. (Consider redesigning now that the Rust implementation, otrr, uses a different approach.)
             if (masterSession == this && m instanceof Fragment && (((Fragment) m).getVersion() == THREE
                     || ((Fragment) m).getVersion() == FOUR)) {
                 final Fragment fragment = (Fragment) m;
@@ -1306,7 +1307,6 @@ final class SessionImpl implements Session, Context {
         }
     }
 
-    // TODO evaluate what to do with situation where multiple instances establish private messaging session concurrently. One will be first, it will receive the queued messages. These might not go to the client instance that we want to.
     @Override
     public void queueMessage(final String message) {
         synchronized (this.masterSession) {

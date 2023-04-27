@@ -21,7 +21,7 @@ import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
- * OTRv2 AKE DH-Commit message.
+ * OTRv2/OTRv3 AKE DH-Commit message.
  *
  * @author George Politis
  * @author Danny van Heumen

@@ -398,7 +398,7 @@ public final class ClientProfilePayload implements OtrEncodable {
         ED448_FORGING_PUBLIC_KEY(0x0003),
         /**
          * Versions (DATA)
-         *
+         * <p>
          * A string corresponding to supported OTR protocol versions.
          */
         VERSIONS(0x0004),
@@ -415,7 +415,7 @@ public final class ClientProfilePayload implements OtrEncodable {
         TRANSITIONAL_DSA_PUBLIC_KEY(0x0006),
         /**
          * Transitional Signature (CLIENT-SIG)
-         *
+         * <p>
          * This signature is defined as a signature over fields 0x0001, 0x0002, 0x0003, 0x0004, 0x0005 and 0x006 only.
          */
         TRANSITIONAL_SIGNATURE(0x0007);

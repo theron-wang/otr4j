@@ -21,7 +21,7 @@ import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
- * OTRv2 AKE Reveal Signature message.
+ * OTRv2/OTRv3 AKE Reveal Signature message.
  *
  * @author George Politis
  * @author Danny van Heumen

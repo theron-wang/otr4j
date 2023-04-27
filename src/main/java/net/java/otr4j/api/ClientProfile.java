@@ -23,9 +23,9 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.Objects.requireNonNull;
+import static net.java.otr4j.util.Collections.requireAbsent;
 import static net.java.otr4j.util.Collections.requireElements;
 import static net.java.otr4j.util.Collections.requireMinElements;
-import static net.java.otr4j.util.Collections.requireNoIllegalValues;
 
 /**
  * The validated representation of the ClientProfile.
@@ -87,7 +87,7 @@ public final class ClientProfile {
         this.longTermPublicKey = requireNonNull(longTermPublicKey);
         this.forgingKey = requireNonNull(forgingKey);
         this.versions = unmodifiableSet(requireMinElements(1, requireElements(MANDATORY_VERSIONS,
-                requireNoIllegalValues(FORBIDDEN_VERSIONS, versions))));
+                requireAbsent(FORBIDDEN_VERSIONS, versions))));
         this.dsaPublicKey = dsaPublicKey;
     }
 

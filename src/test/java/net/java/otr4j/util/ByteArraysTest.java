@@ -14,8 +14,10 @@ import org.junit.Test;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.concatenate;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.constantTimeEqualsOrSame;
 import static net.java.otr4j.util.ByteArrays.fromHexString;
@@ -231,5 +233,16 @@ public class ByteArraysTest {
     public void testRequireLengthAtLeastOverMinimum() {
         final byte[] data = new byte[15];
         assertSame(data, requireLengthAtLeast(10, data));
+    }
+
+    @Test
+    public void testConcatenate() {
+        assertArrayEquals("".getBytes(US_ASCII), concatenate(new byte[0], new byte[0]));
+        assertArrayEquals(concatenate(new byte[0], new byte[]{(byte) 0xD8, 0x3D, (byte) 0xDE, 0x04}),
+                concatenate(new byte[]{(byte) 0xD8, 0x3D, (byte) 0xDE, 0x04}, new byte[0]));
+        assertArrayEquals("Hello world!".getBytes(US_ASCII),
+                concatenate(new byte[]{'H', 'e', 'l', 'l', 'o', ' '}, new byte[]{'w', 'o', 'r', 'l', 'd', '!'}));
+        assertArrayEquals("Hello!".getBytes(US_ASCII),
+                concatenate(new byte[]{'H', 'e', 'l'}, new byte[]{'l', 'o', '!'}));
     }
 }

@@ -19,9 +19,9 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static net.java.otr4j.util.Collections.requireAbsent;
 import static net.java.otr4j.util.Collections.requireElements;
 import static net.java.otr4j.util.Collections.requireMinElements;
-import static net.java.otr4j.util.Collections.requireNoIllegalValues;
 import static org.junit.Assert.assertSame;
 
 @SuppressWarnings("ConstantConditions")
@@ -29,25 +29,25 @@ public final class CollectionsTest {
 
     @Test(expected = NullPointerException.class)
     public void testRequireNoIllegalValuesNullList() {
-        requireNoIllegalValues(null, emptyList());
+        requireAbsent(null, emptyList());
     }
 
     @Test
     public void testRequireNoIllegalValuesNoIllegals() {
         final List<String> list = asList("a", "b", "c");
-        assertSame(list, requireNoIllegalValues(java.util.Collections.<String>emptyList(), list));
+        assertSame(list, requireAbsent(java.util.Collections.emptyList(), list));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testRequireNoIllegalValuesWithIllegalValue() {
         final List<String> list = asList("a", "b", "c");
-        requireNoIllegalValues(list, singletonList("a"));
+        requireAbsent(list, singletonList("a"));
     }
 
     @Test
     public void testRequireNoIllegalValuesNonintersectingIllegals() {
         final List<String> list = asList("a", "b", "c");
-        assertSame(list, requireNoIllegalValues(singletonList("d"), list));
+        assertSame(list, requireAbsent(singletonList("d"), list));
     }
 
     @Test(expected = NullPointerException.class)

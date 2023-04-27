@@ -20,7 +20,7 @@ import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
- * OTRv2 AKE DH-Key message.
+ * OTRv2/OTRv3 AKE DH-Key message.
  *
  * @author George Politis
  * @author Danny van Heumen
