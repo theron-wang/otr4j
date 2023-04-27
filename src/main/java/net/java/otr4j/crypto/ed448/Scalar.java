@@ -68,7 +68,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      */
     @Nonnull
     static Scalar fromBigInteger(final BigInteger value) {
-        // FIXME is it a problem if `value mod q` again contains pruned bits? See also <https://github.com/dalek-cryptography/curve25519-dalek/issues/514>
+        // FIXME is it a problem if `value mod q` again contains clamped bits? See also <https://github.com/dalek-cryptography/curve25519-dalek/issues/514>
         return new Scalar(reverse(asUnsignedByteArray(SCALAR_LENGTH_BYTES, value.mod(primeOrder()))));
     }
 

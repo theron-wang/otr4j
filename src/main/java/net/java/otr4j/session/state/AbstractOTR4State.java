@@ -55,7 +55,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
     @Override
     public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         if (message.version != FOUR) {
-            // FIXME is it going to be an issue if we always delegate on message != OTRv4, even if (*OTRv4*) DAKE in progress/finished?
+            // TODO is it going to be an issue if we always delegate on message != OTRv4, even if (*OTRv4*) DAKE in progress/finished?
             return super.handleEncodedMessage(context, message);
         }
         final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
@@ -67,7 +67,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
                     new Object[]{sessionID.getAccountID(), sessionID.getUserID(), this.getClass().getName()});
             return handleDataMessage(context, (DataMessage4) encodedM);
         }
-        // Anything that is not a Data message is some type of AKE message.
+        // OTRv4 messages that are not data messages, should therefore be DAKE messages.
         handleAKEMessage(context, encodedM);
         return null;
     }

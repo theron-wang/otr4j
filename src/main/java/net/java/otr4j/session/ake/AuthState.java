@@ -19,7 +19,7 @@ import java.net.ProtocolException;
 
 /**
  * Interface for the AKE states.
- *
+ * <p>
  * This interface defines the methods that need to be implemented. Implementors
  * are expected to be immutable. That is, they may receive some support data at
  * construction time, but they are not supposed to mutate data inside. Instead,
@@ -28,12 +28,12 @@ import java.net.ProtocolException;
  *
  * @author Danny van Heumen
  */
-// FIXME check at what times we allow OTRv3 AKE messages to be processed. (Check with spec, probably not clear.)
+// FIXME check at what times we allow OTRv3 AKE messages to be processed. (Check with spec, probably not clear.) (Note: pretty much always, because there can be simultaneous sessions, as soon as InstanceTag is known.)
 public interface AuthState {
 
     /**
      * Creation timestamp for the instance.
-     *
+     * <p>
      * The timestamp indicates when the instance was created. As we should always work with the most recent state, we
      * can determine, based on the timestamp information, which is the most recent instance of AuthState.
      *
@@ -98,7 +98,7 @@ public interface AuthState {
 
     /**
      * Get active protocol version in AKE negotiation.
-     *
+     * <p>
      * Returns a version &gt; 0 in case of an active AKE negotiation in which a
      * protocol version is already negotiated. Returns 0 in case no negotiation
      * is in progress.

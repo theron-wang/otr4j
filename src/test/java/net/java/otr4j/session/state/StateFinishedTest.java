@@ -229,6 +229,7 @@ public class StateFinishedTest {
         state.handleDataMessage(context, (DataMessage) null);
     }
 
+    @SuppressWarnings("resource")
     @Test
     public void testHandleDataMessage4() throws OtrException {
         final Context context = mock(Context.class);
@@ -248,6 +249,7 @@ public class StateFinishedTest {
         verify(context).injectMessage(isA(ErrorMessage.class));
     }
 
+    @SuppressWarnings("resource")
     @Test
     public void testHandleDataMessage4IgnoreUnreadable() throws OtrException {
         final Context context = mock(Context.class);
@@ -280,6 +282,7 @@ public class StateFinishedTest {
         state.handleDataMessage(context, (DataMessage4) null);
     }
 
+    @SuppressWarnings("resource")
     @Test(expected = NullPointerException.class)
     public void testHandleDataMessage4NullContext() throws OtrException {
         final StateFinished state = new StateFinished(StateInitial.instance());
@@ -303,6 +306,7 @@ public class StateFinishedTest {
         state.handleAKEMessage(context, new RevealSignatureMessage(THREE, new byte[0], new byte[0], new byte[0], SMALLEST_TAG, HIGHEST_TAG));
     }
 
+    @SuppressWarnings("resource")
     @Test
     public void testHandleAKEMessageIdentityMessage() throws OtrException {
         final Context context = mock(Context.class);

@@ -205,8 +205,6 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         throw new IllegalStateException("BUG: OTRv4 encrypted message state does not handle OTRv2/OTRv3 data messages.");
     }
 
-    // FIXME handle case where first data messages (Data messages with ratchet id 0) arrive before very first message is received, hence Double Ratchet not yet fully initialized. (Redesigned Double Ratchet init mentions something about keeping messages for something like 50 minutes, until DAKE is completed.)
-    // FIXME write tests for SMP_ABORT sets UNREADABLE flag, SMP payload corrupted, SMP payload incomplete, ...
     @Nullable
     @Override
     @SuppressWarnings("PMD.CognitiveComplexity")

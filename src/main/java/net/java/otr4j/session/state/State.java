@@ -23,7 +23,6 @@ import net.java.otr4j.session.api.SMPHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
-import java.security.interfaces.DSAPublicKey;
 
 /**
  * Interface to the Message state.
