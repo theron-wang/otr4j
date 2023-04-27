@@ -11,6 +11,7 @@ package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
+import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.io.Message;
@@ -25,7 +26,6 @@ import net.java.otr4j.session.api.SMPHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.security.interfaces.DSAPublicKey;
 import java.util.Collections;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -41,9 +41,8 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAG
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 
 /**
- * Message state PLAINTEXT. This is the only message state that is publicly
- * accessible. Message states and transitions are always initiated from the
- * initial state.
+ * Message state PLAINTEXT. This is the only message state that is publicly accessible. Message states and transitions
+ * are always initiated from the initial state.
  *
  * @author Danny van Heumen
  */
@@ -71,16 +70,16 @@ public final class StatePlaintext extends AbstractCommonState {
         return PLAINTEXT;
     }
 
-    @Override
     @Nonnull
-    public SMPHandler getSmpHandler() throws IncorrectStateException {
-        throw new IncorrectStateException("SMP negotiation is not available in plaintext state.");
+    @Override
+    public RemoteInfo getRemoteInfo() throws IncorrectStateException {
+        throw new IncorrectStateException("No OTR session is established yet.");
     }
 
     @Override
     @Nonnull
-    public DSAPublicKey getRemotePublicKey() throws IncorrectStateException {
-        throw new IncorrectStateException("Remote public key is not available in plaintext state.");
+    public SMPHandler getSmpHandler() throws IncorrectStateException {
+        throw new IncorrectStateException("SMP negotiation is not available in plaintext state.");
     }
 
     @Override

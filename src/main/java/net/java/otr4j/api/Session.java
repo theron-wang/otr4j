@@ -9,11 +9,11 @@
 package net.java.otr4j.api;
 
 import com.google.errorprone.annotations.CheckReturnValue;
+import net.java.otr4j.session.state.IncorrectStateException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.security.interfaces.DSAPublicKey;
 import java.util.List;
 import java.util.Set;
 
@@ -133,18 +133,18 @@ public interface Session {
      * no long-term public key is known.
      */
     @Nonnull
-    DSAPublicKey getRemotePublicKey() throws OtrException;
+    RemoteInfo getRemoteInfo() throws OtrException;
 
     /**
      * Get remote's long-term public key.
      *
      * @param tag receiver instance tag
      * @return Returns long-term public key.
-     * @throws OtrException Thrown in case message state is not ENCRYPTED, hence
-     * no long-term public key is known.
+     * @throws IncorrectStateException Thrown in case message state is not ENCRYPTED, hence no long-term public key is
+     *                                 known.
      */
     @Nonnull
-    DSAPublicKey getRemotePublicKey(InstanceTag tag) throws OtrException;
+    RemoteInfo getRemoteInfo(InstanceTag tag) throws IncorrectStateException;
 
     /**
      * Get list of session instances.

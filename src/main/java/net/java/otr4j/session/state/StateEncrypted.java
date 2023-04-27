@@ -9,6 +9,7 @@
 
 package net.java.otr4j.session.state;
 
+import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.session.api.SMPHandler;
@@ -22,6 +23,10 @@ import javax.annotation.Nonnull;
  * working with any kind of encrypted messaging state.
  */
 public interface StateEncrypted extends State {
+
+    @Nonnull
+    @Override
+    RemoteInfo getRemoteInfo();
 
     @Nonnull
     @Override

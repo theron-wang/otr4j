@@ -10,6 +10,7 @@
 package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
@@ -32,7 +33,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.net.ProtocolException;
-import java.security.interfaces.DSAPublicKey;
 import java.util.logging.Logger;
 
 import static java.util.Collections.singleton;
@@ -112,9 +112,10 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
 
     @Nonnull
     @Override
-    public DSAPublicKey getRemotePublicKey() {
-        // FIXME to be implemented.
-        throw new UnsupportedOperationException("To be implemented.");
+    public RemoteInfo getRemoteInfo() {
+        // FIXME implement construction and return of RemoteInfo.
+        throw new UnsupportedOperationException("To be implemented: getRemoteInfo");
+        //return new RemoteInfo(Version.FOUR, null, null, null);
     }
 
     /**

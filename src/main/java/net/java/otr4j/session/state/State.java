@@ -11,6 +11,7 @@ package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.io.EncodedMessage;
@@ -57,16 +58,9 @@ public interface State {
     @Nonnull
     SessionStatus getStatus();
 
-    /**
-     * Get remote public key.
-     *
-     * @return Returns the remote public key.
-     * @throws IncorrectStateException Throws IncorrectStateException in any
-     * non-encrypted state, since no public key is available there.
-     */
     @Nonnull
-    DSAPublicKey getRemotePublicKey() throws IncorrectStateException;
-
+    RemoteInfo getRemoteInfo() throws IncorrectStateException;
+    
     /**
      * Acquire the extra symmetric key for this session.
      *

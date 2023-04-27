@@ -11,6 +11,7 @@ package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.crypto.DHKeyPair;
@@ -36,7 +37,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.security.interfaces.DSAPublicKey;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
@@ -129,8 +129,8 @@ final class StateAwaitingAuthI extends AbstractCommonState {
 
     @Nonnull
     @Override
-    public DSAPublicKey getRemotePublicKey() throws IncorrectStateException {
-        throw new IncorrectStateException("Remote public key is not available until encrypted session is fully established.");
+    public RemoteInfo getRemoteInfo() throws IncorrectStateException {
+        throw new IncorrectStateException("No OTR session is established yet.");
     }
 
     @Nonnull

@@ -10,6 +10,7 @@
 package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.io.Message;
@@ -24,7 +25,6 @@ import net.java.otr4j.session.api.SMPHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.security.interfaces.DSAPublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,16 +60,16 @@ final class StateFinished extends AbstractCommonState {
         return SessionStatus.FINISHED;
     }
 
-    @Override
     @Nonnull
-    public SMPHandler getSmpHandler() throws IncorrectStateException {
-        throw new IncorrectStateException("SMP negotiation is not available in finished state.");
+    @Override
+    public RemoteInfo getRemoteInfo() throws IncorrectStateException {
+        throw new IncorrectStateException("No OTR session is established yet.");
     }
 
     @Override
     @Nonnull
-    public DSAPublicKey getRemotePublicKey() throws IncorrectStateException {
-        throw new IncorrectStateException("Remote public key is not available in finished state.");
+    public SMPHandler getSmpHandler() throws IncorrectStateException {
+        throw new IncorrectStateException("SMP negotiation is not available in finished state.");
     }
 
     @Override

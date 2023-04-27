@@ -19,6 +19,7 @@ import net.java.otr4j.api.OtrEngineListener;
 import net.java.otr4j.api.OtrEngineListeners;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
+import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
@@ -48,7 +49,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
-import java.security.interfaces.DSAPublicKey;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -899,12 +899,12 @@ final class SessionImpl implements Session, Context {
 
     @Override
     @Nonnull
-    public DSAPublicKey getRemotePublicKey() throws IncorrectStateException {
+    public RemoteInfo getRemoteInfo() throws IncorrectStateException {
         synchronized (this.masterSession) {
             if (this != outgoingSession) {
-                return outgoingSession.getRemotePublicKey();
+                return outgoingSession.getRemoteInfo();
             }
-            return this.sessionState.getRemotePublicKey();
+            return this.sessionState.getRemoteInfo();
         }
     }
 
@@ -1038,16 +1038,16 @@ final class SessionImpl implements Session, Context {
      */
     @Override
     @Nonnull
-    public DSAPublicKey getRemotePublicKey(final InstanceTag tag) throws IncorrectStateException {
+    public RemoteInfo getRemoteInfo(final InstanceTag tag) throws IncorrectStateException {
         synchronized (this.masterSession) {
             if (tag.equals(this.receiverTag)) {
-                return this.sessionState.getRemotePublicKey();
+                return this.sessionState.getRemoteInfo();
             }
             final SessionImpl slave = slaveSessions.get(tag);
             if (slave == null) {
                 throw new IllegalArgumentException("Unknown tag specified: " + tag.getValue());
             }
-            return slave.getRemotePublicKey();
+            return slave.getRemoteInfo();
         }
     }
 

@@ -13,7 +13,6 @@ import net.java.otr4j.api.ClientProfileTestUtils;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.SessionID;
-import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
@@ -89,7 +88,7 @@ public class StateFinishedTest {
     @Test(expected = IncorrectStateException.class)
     public void testGetRemotePublicKeyFails() throws IncorrectStateException {
         final StateFinished state = new StateFinished(StateInitial.instance());
-        state.getRemotePublicKey();
+        state.getRemoteInfo();
     }
 
     @Test
@@ -112,7 +111,7 @@ public class StateFinishedTest {
         when(context.getHost()).thenReturn(host);
         final SessionID sessionID = new SessionID("alice", "bob", "network");
         when(context.getSessionID()).thenReturn(sessionID);
-        final PlainTextMessage message = new PlainTextMessage(Collections.<Integer>emptySet(), "Hello world!");
+        final PlainTextMessage message = new PlainTextMessage(Collections.emptySet(), "Hello world!");
         final StateFinished state = new StateFinished(StateInitial.instance());
         assertEquals("Hello world!", state.handlePlainTextMessage(context, message));
         verify(host).unencryptedMessageReceived(eq(sessionID), eq("Hello world!"));
@@ -131,7 +130,7 @@ public class StateFinishedTest {
 
     @Test(expected = NullPointerException.class)
     public void testHandlePlaintextMessageNullContext() {
-        final PlainTextMessage message = new PlainTextMessage(Collections.<Integer>emptySet(), "Hello world!");
+        final PlainTextMessage message = new PlainTextMessage(Collections.emptySet(), "Hello world!");
         final StateFinished state = new StateFinished(StateInitial.instance());
         state.handlePlainTextMessage(null, message);
     }
@@ -144,7 +143,7 @@ public class StateFinishedTest {
         final SessionID sessionID = new SessionID("alice", "bob", "network");
         when(context.getSessionID()).thenReturn(sessionID);
         final StateFinished state = new StateFinished(StateInitial.instance());
-        assertNull(state.transformSending(context, "Hello world!", Collections.<TLV>emptySet(), (byte) 0));
+        assertNull(state.transformSending(context, "Hello world!", Collections.emptySet(), (byte) 0));
         verify(context).queueMessage(eq("Hello world!"));
         verify(host).finishedSessionMessage(eq(sessionID), eq("Hello world!"));
     }
@@ -158,13 +157,13 @@ public class StateFinishedTest {
         final SessionID sessionID = new SessionID("alice", "bob", "network");
         when(context.getSessionID()).thenReturn(sessionID);
         final StateFinished state = new StateFinished(StateInitial.instance());
-        assertNull(state.transformSending(context, null, Collections.<TLV>emptySet(), (byte) 0));
+        assertNull(state.transformSending(context, null, Collections.emptySet(), (byte) 0));
     }
 
     @Test(expected = NullPointerException.class)
     public void testTransformSendingNullContext() {
         final StateFinished state = new StateFinished(StateInitial.instance());
-        assertNull(state.transformSending(null, "Hello world!", Collections.<TLV>emptySet(), (byte) 0));
+        assertNull(state.transformSending(null, "Hello world!", Collections.emptySet(), (byte) 0));
     }
 
     @Test

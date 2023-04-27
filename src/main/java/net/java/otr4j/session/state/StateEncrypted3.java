@@ -11,7 +11,8 @@ package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
-import net.java.otr4j.api.Session;
+import net.java.otr4j.api.RemoteInfo;
+import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
@@ -141,6 +142,12 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         return SessionStatus.ENCRYPTED;
     }
 
+    @Nonnull
+    @Override
+    public RemoteInfo getRemoteInfo() {
+        return new RemoteInfo(Version.THREE, this.remotePublicKey, null, null);
+    }
+
     @Override
     @Nonnull
     public SmpTlvHandler getSmpHandler() {
@@ -149,14 +156,8 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
 
     @Override
     @Nonnull
-    public DSAPublicKey getRemotePublicKey() {
-        return remotePublicKey;
-    }
-
-    @Override
-    @Nonnull
     public byte[] getExtraSymmetricKey() {
-        if (this.protocolVersion == Session.Version.TWO) {
+        if (this.protocolVersion == Version.TWO) {
             throw new UnsupportedOperationException("An OTR version 2 session was negotiated. The Extra Symmetric Key is not available in this version of the protocol.");
         }
         return this.sessionKeyManager.extraSymmetricKey();

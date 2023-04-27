@@ -15,7 +15,6 @@ import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.api.SessionID;
-import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
@@ -84,7 +83,7 @@ public class StatePlaintextTest {
         final OtrPolicy policy = new OtrPolicy(OPPORTUNISTIC);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(IDLE);
-        final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList(), FLAG_NONE);
+        final Message m = state.transformSending(context, "Hello world!", Collections.emptyList(), FLAG_NONE);
         assertEquals(expected, m);
         verify(context, atLeastOnce()).setOfferStatusSent();
     }
@@ -97,7 +96,7 @@ public class StatePlaintextTest {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V2 | SEND_WHITESPACE_TAG);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(IDLE);
-        final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList(), FLAG_NONE);
+        final Message m = state.transformSending(context, "Hello world!", Collections.emptyList(), FLAG_NONE);
         assertEquals(expected, m);
         verify(context, atLeastOnce()).setOfferStatusSent();
     }
@@ -110,7 +109,7 @@ public class StatePlaintextTest {
         final OtrPolicy policy = new OtrPolicy(ALLOW_V3 | SEND_WHITESPACE_TAG);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(IDLE);
-        final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList(), FLAG_NONE);
+        final Message m = state.transformSending(context, "Hello world!", Collections.emptyList(), FLAG_NONE);
         assertEquals(expected, m);
         verify(context, atLeastOnce()).setOfferStatusSent();
     }
@@ -126,7 +125,7 @@ public class StatePlaintextTest {
             final OtrPolicy policy = new OtrPolicy(SEND_WHITESPACE_TAG);
             when(context.getSessionPolicy()).thenReturn(policy);
             when(context.getOfferStatus()).thenReturn(IDLE);
-            state.transformSending(context, "Hello world!", Collections.<TLV>emptyList(), FLAG_NONE);
+            state.transformSending(context, "Hello world!", Collections.emptyList(), FLAG_NONE);
         } finally {
             logger.setLevel(original);
         }
@@ -134,26 +133,26 @@ public class StatePlaintextTest {
 
     @Test
     public void testTransformDoNotSendWhitespaceTag() throws OtrException {
-        final PlainTextMessage expected = new PlainTextMessage(Collections.<Integer>emptySet(), "Hello world!");
+        final PlainTextMessage expected = new PlainTextMessage(Collections.emptySet(), "Hello world!");
         final Context context = mock(Context.class);
         final StatePlaintext state = new StatePlaintext(StateInitial.instance());
         final OtrPolicy policy = new OtrPolicy(ALLOW_V3);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(IDLE);
-        final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList(), FLAG_NONE);
+        final Message m = state.transformSending(context, "Hello world!", Collections.emptyList(), FLAG_NONE);
         assertEquals(expected, m);
         verify(context, never()).setOfferStatusSent();
     }
 
     @Test
     public void testTransformAlreadySentWhitespaceTag() throws OtrException {
-        final PlainTextMessage expected = new PlainTextMessage(Collections.<Integer>emptySet(), "Hello world!");
+        final PlainTextMessage expected = new PlainTextMessage(Collections.emptySet(), "Hello world!");
         final Context context = mock(Context.class);
         final StatePlaintext state = new StatePlaintext(StateInitial.instance());
         final OtrPolicy policy = new OtrPolicy(OPPORTUNISTIC);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(REJECTED);
-        final Message m = state.transformSending(context, "Hello world!", Collections.<TLV>emptyList(), FLAG_NONE);
+        final Message m = state.transformSending(context, "Hello world!", Collections.emptyList(), FLAG_NONE);
         assertEquals(expected, m);
         verify(context, never()).setOfferStatusSent();
     }
@@ -165,7 +164,7 @@ public class StatePlaintextTest {
         final OtrPolicy policy = new OtrPolicy(REQUIRE_ENCRYPTION);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(REJECTED);
-        state.transformSending(context, "Hello world!", Collections.<TLV>emptyList(), FLAG_NONE);
+        state.transformSending(context, "Hello world!", Collections.emptyList(), FLAG_NONE);
     }
 
     @Test
@@ -177,7 +176,7 @@ public class StatePlaintextTest {
         when(context.getOfferStatus()).thenReturn(REJECTED);
         when(context.getHost()).thenReturn(mock(OtrEngineHost.class));
         when(context.getSessionID()).thenReturn(new SessionID("bob", "alice", "network"));
-        assertNull(state.transformSending(context, "Hello world!", Collections.<TLV>emptyList(), FLAG_NONE));
+        assertNull(state.transformSending(context, "Hello world!", Collections.emptyList(), FLAG_NONE));
         verify(context).startSession();
         verify(context).queueMessage(eq("Hello world!"));
     }
@@ -210,7 +209,7 @@ public class StatePlaintextTest {
 
     @Test(expected = IncorrectStateException.class)
     public void testGetRemotePublicKey() throws IncorrectStateException {
-        new StatePlaintext(StateInitial.instance()).getRemotePublicKey();
+        new StatePlaintext(StateInitial.instance()).getRemoteInfo();
     }
 
     @Test(expected = IncorrectStateException.class)
@@ -280,6 +279,7 @@ public class StatePlaintextTest {
         state.handleDataMessage(context, (DataMessage) null);
     }
 
+    @SuppressWarnings("resource")
     @Test
     public void testHandleDataMessage4() throws OtrException {
         final Context context = mock(Context.class);
@@ -299,6 +299,7 @@ public class StatePlaintextTest {
         verify(context).injectMessage(isA(ErrorMessage.class));
     }
 
+    @SuppressWarnings("resource")
     @Test
     public void testHandleDataMessage4IgnoreUnreadable() throws OtrException {
         final Context context = mock(Context.class);
@@ -331,6 +332,7 @@ public class StatePlaintextTest {
         state.handleDataMessage(context, (DataMessage4) null);
     }
 
+    @SuppressWarnings("resource")
     @Test(expected = NullPointerException.class)
     public void testHandleDataMessage4NullContext() throws OtrException {
         final StatePlaintext state = new StatePlaintext(StateInitial.instance());
@@ -366,6 +368,7 @@ public class StatePlaintextTest {
         state.handleAKEMessage(context, null);
     }
 
+    @SuppressWarnings("resource")
     @Test
     public void testHandleAKEMessageIdentityMessage() throws OtrException {
         final StatePlaintext state = new StatePlaintext(StateInitial.instance());
@@ -403,6 +406,7 @@ public class StatePlaintextTest {
         verify(context, times(1)).transition(eq(state), isA(StateAwaitingAuthI.class));
     }
 
+    @SuppressWarnings("resource")
     @Test
     public void testHandleAKEMessageInvalidIdentityMessage() throws OtrException {
         final StatePlaintext state = new StatePlaintext(StateInitial.instance());
