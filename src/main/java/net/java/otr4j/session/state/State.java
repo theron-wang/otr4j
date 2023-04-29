@@ -58,9 +58,16 @@ public interface State {
     @Nonnull
     SessionStatus getStatus();
 
+    /**
+     * getRemoteInfo provides a RemoteInfo object that contains information about the established OTR session about the
+     * other party.
+     *
+     * @return Returns RemoteInfo with information on the other party. (on the remote end)
+     * @throws IncorrectStateException thrown in case no OTR session has been established (yet).
+     */
     @Nonnull
     RemoteInfo getRemoteInfo() throws IncorrectStateException;
-    
+
     /**
      * Acquire the extra symmetric key for this session.
      *
@@ -78,8 +85,8 @@ public interface State {
      *
      * @param context The message state context.
      * @param msgText The message ready to be sent.
-     * @param tlvs    TLVs.
-     * @param flags   (Encoded) message flags, see constants in {@link State}, such as {@link #FLAG_IGNORE_UNREADABLE}.
+     * @param tlvs TLVs.
+     * @param flags (Encoded) message flags, see constants in {@link State}, such as {@link #FLAG_IGNORE_UNREADABLE}.
      * @return Returns message to be sent over IM transport.
      * @throws OtrException In case an exception occurs.
      */
@@ -89,7 +96,7 @@ public interface State {
     /**
      * Handle the received plaintext message.
      *
-     * @param context          The message state context.
+     * @param context The message state context.
      * @param plainTextMessage The received plaintext message.
      * @return Returns the cleaned plaintext message. (The message excluding
      * possible whitespace tags or other OTR artifacts.)
@@ -127,8 +134,8 @@ public interface State {
     /**
      * Initiate AKE.
      *
-     * @param context     The message state context.
-     * @param version     the protocol version
+     * @param context The message state context.
+     * @param version the protocol version
      * @param receiverTag the receiver instance tag to be targeted, or {@link InstanceTag#ZERO_TAG} if unknown.
      * @throws OtrException In case of failure to inject message into network.
      */
@@ -137,7 +144,7 @@ public interface State {
     /**
      * Handle the received error message.
      *
-     * @param context      The message state context.
+     * @param context The message state context.
      * @param errorMessage The error message.
      * @throws OtrException In case an exception occurs.
      */
@@ -162,8 +169,8 @@ public interface State {
      *
      * @param context the session state context
      * @throws OtrException Thrown in case of failure during expiration of the state. (Or in the most benign case,
-     *                      {@link IncorrectStateException} is thrown to indicate expiration is not applicable to this
-     *                      state.
+     * {@link IncorrectStateException} is thrown to indicate expiration is not applicable to this
+     * state.
      */
     void expire(Context context) throws OtrException;
 
