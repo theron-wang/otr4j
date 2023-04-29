@@ -28,6 +28,7 @@
     </licenses>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.outputTimestamp>2023-01-01T00:00:00Z</project.build.outputTimestamp>
         <project-java-version>11</project-java-version>
     </properties>
     <!-- force HTTPS access for downloading jars -->
@@ -174,6 +175,11 @@
                     <quiet>false</quiet>
                 </configuration>
             </plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-artifact-plugin</artifactId>
+                <version>3.4.1</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
