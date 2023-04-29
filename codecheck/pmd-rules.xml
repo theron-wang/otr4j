@@ -61,8 +61,6 @@
         <exclude name="DataflowAnomalyAnalysis"/>
         <exclude name="AvoidDuplicateLiterals"/>
         <exclude name="CompareObjectsWithEquals"/>
-        <!-- FIXME temporarily added -->
-        <exclude name="CloseResource"/>
     </rule>
     <rule ref="category/java/multithreading.xml">
         <exclude name="AvoidUsingVolatile"/>

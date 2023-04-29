@@ -182,7 +182,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
                 .writeFingerprint(fingerprint(initiatorPublicKey, initiatorForgingKey))
                 .writeFingerprint(fingerprint(responderPublicKey, responderForgingKey))
                 .writeSSID(this.ssid).writeData(answer).toByteArray();
-        return decodeScalar(hwc(SMP_SECRET, SMP_SECRET_LENGTH_BYTES, secretInputData));
+        return decodeScalar(hwc(SMP_SECRET_LENGTH_BYTES, SMP_SECRET, secretInputData));
     }
 
     @Nonnull

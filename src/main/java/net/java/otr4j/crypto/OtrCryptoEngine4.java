@@ -268,7 +268,7 @@ public final class OtrCryptoEngine4 {
      * @return Returns the fingerprint derived from the provided public key.
      */
     public static byte[] fingerprint(final Point publicKey, final Point forgingKey) {
-        return hwc(FINGERPRINT, FINGERPRINT_LENGTH_BYTES, publicKey.encode(), forgingKey.encode());
+        return hwc(FINGERPRINT_LENGTH_BYTES, FINGERPRINT, publicKey.encode(), forgingKey.encode());
     }
 
     /**
@@ -283,7 +283,7 @@ public final class OtrCryptoEngine4 {
     public static byte[] kdf(final int outputSize, final KDFUsage usageID, final byte[]... input) {
         requireAtLeast(0, outputSize);
         final byte[] dst = new byte[outputSize];
-        kdf(dst, 0, outputSize, usageID, input);
+        kdf(dst, 0, dst.length, usageID, input);
         return dst;
     }
 
@@ -310,10 +310,10 @@ public final class OtrCryptoEngine4 {
      * @return Returns the resulting digest value.
      */
     @Nonnull
-    public static byte[] hwc(final KDFUsage usageID, final int outputSize, final byte[]... input) {
+    public static byte[] hwc(final int outputSize, final KDFUsage usageID, final byte[]... input) {
         requireAtLeast(0, outputSize);
         final byte[] result = new byte[outputSize];
-        shake256(result, 0, outputSize, usageID, input);
+        shake256(result, 0, result.length, usageID, input);
         return result;
     }
 
@@ -386,7 +386,7 @@ public final class OtrCryptoEngine4 {
     @Nonnull
     public static Scalar hashToScalar(final KDFUsage usageID, final byte[]... d) {
         // "Compute h = KDF_1(d, 64) as an unsigned value, little-endian."
-        final byte[] h = hwc(usageID, HASH_TO_SCALAR_LENGTH_BYTES, d);
+        final byte[] h = hwc(HASH_TO_SCALAR_LENGTH_BYTES, usageID, d);
         try {
             // "Return h (mod q)"
             return decodeScalar(h);

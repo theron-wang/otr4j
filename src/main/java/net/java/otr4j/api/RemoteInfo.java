@@ -18,10 +18,12 @@ public final class RemoteInfo {
     @Nullable
     public final Point forgingKeyV4;
 
-    public RemoteInfo(int version, @Nullable final DSAPublicKey publicKeyV3, @Nullable final Point publicKeyV4, @Nullable final Point forgingKeyV4) {
+    public RemoteInfo(final int version, @Nullable final DSAPublicKey publicKeyV3, @Nullable final Point publicKeyV4,
+            @Nullable final Point forgingKeyV4) {
         this.version = version;
         this.publicKeyV3 = publicKeyV3;
         this.publicKeyV4 = publicKeyV4;
+        // FIXME let forging key to internal-only, i.e. auto-generated and not exposed?
         this.forgingKeyV4 = forgingKeyV4;
     }
 }

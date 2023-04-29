@@ -99,9 +99,9 @@ public final class MysteriousT4 {
         default:
             throw new UnsupportedOperationException("Unsupported purpose.");
         }
-        final byte[] bobsProfileEncoded = hwc(bobsProfileUsage, USER_PROFILE_DERIVATIVE_LENGTH_BYTES,
+        final byte[] bobsProfileEncoded = hwc(USER_PROFILE_DERIVATIVE_LENGTH_BYTES, bobsProfileUsage,
                 OtrEncodables.encode(profileBob));
-        final byte[] alicesProfileEncoded = hwc(alicesProfileUsage, USER_PROFILE_DERIVATIVE_LENGTH_BYTES,
+        final byte[] alicesProfileEncoded = hwc(USER_PROFILE_DERIVATIVE_LENGTH_BYTES, alicesProfileUsage,
                 OtrEncodables.encode(profileAlice));
         final byte[] yEncoded = y.encode();
         final byte[] xEncoded = x.encode();
@@ -109,7 +109,7 @@ public final class MysteriousT4 {
         final byte[] aEncoded = new OtrOutputStream().writeBigInt(a).toByteArray();
         final byte[] phi = generatePhi(senderTag, receiverTag, senderFirstECDHPublicKey, senderFirstDHPublicKey,
                 receiverFirstECDHPublicKey, receiverFirstDHPublicKey, senderContactID, receiverContactID);
-        final byte[] sharedSessionDerivative = hwc(phiUsage, PHI_DERIVATIVE_LENGTH_BYTES, phi);
+        final byte[] sharedSessionDerivative = hwc(PHI_DERIVATIVE_LENGTH_BYTES, phiUsage, phi);
         return concatenate(new byte[][] {prefix, bobsProfileEncoded, alicesProfileEncoded, yEncoded, xEncoded,
                 bEncoded, aEncoded, sharedSessionDerivative});
     }

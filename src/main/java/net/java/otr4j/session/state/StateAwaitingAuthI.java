@@ -196,8 +196,8 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         final byte[] newK;
         final byte[] newSSID;
         // FIXME we cannot reuse ourDHKeyPair and ourECDHKeyPair as they will have been closed already. (As of yet unresolved issue in Double Ratchet init redesign.)
-        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.ourDHKeyPair, this.ourECDHKeyPair,
-                message.b, message.y)) {
+        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.ourDHKeyPair,
+                this.ourECDHKeyPair, message.b, message.y)) {
             newK = sharedSecret.getK();
             newSSID = sharedSecret.generateSSID();
         }

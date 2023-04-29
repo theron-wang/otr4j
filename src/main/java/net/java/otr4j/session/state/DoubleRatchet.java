@@ -500,7 +500,6 @@ final class DoubleRatchet implements AutoCloseable {
         /**
          * Message ID.
          */
-        // FIXME check to ensure that messageID does not get prematurely incremented, because we rely on an accurate value when rotating because it is copied to `pn`.
         private int messageID = 0;
 
         /**

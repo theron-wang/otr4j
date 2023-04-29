@@ -33,6 +33,7 @@ public final class Ed448Test {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    @SuppressWarnings("resource")
     @Test
     public void testExpectedModulus() throws Points.InvalidDataException {
         final nl.dannyvanheumen.joldilocks.Point basePoint = Points.decode(basePoint().encode());
@@ -90,6 +91,7 @@ public final class Ed448Test {
         checkIdentity(new Point(data));
     }
 
+    @SuppressWarnings("resource")
     @Test(expected = NullPointerException.class)
     public void testMultiplyByBaseNull() {
         multiplyByBase(null);

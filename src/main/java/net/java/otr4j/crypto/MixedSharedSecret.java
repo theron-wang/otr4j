@@ -178,7 +178,7 @@ public final class MixedSharedSecret implements AutoCloseable {
     @Nonnull
     public byte[] generateSSID() {
         expectNotClosed();
-        return hwc(SSID, SSID_LENGTH_BYTES, this.k);
+        return hwc(SSID_LENGTH_BYTES, SSID, this.k);
     }
 
     /**

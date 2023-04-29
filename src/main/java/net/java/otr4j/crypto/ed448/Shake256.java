@@ -40,7 +40,7 @@ final class Shake256 {
         final SHAKEDigest digest = new SHAKEDigest(SHAKE_256_LENGTH_BITS);
         digest.update(input, 0, input.length);
         final byte[] result = new byte[outputSize];
-        digest.doFinal(result, 0, outputSize);
+        digest.doFinal(result, 0, result.length);
         return result;
     }
 }
