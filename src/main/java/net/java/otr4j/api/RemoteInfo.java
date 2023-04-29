@@ -1,3 +1,12 @@
+/*
+ * otr4j, the open source java otr library.
+ *
+ * Distributable under LGPL license.
+ * See terms of license at gnu.org.
+ *
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package net.java.otr4j.api;
 
 import net.java.otr4j.crypto.ed448.Point;

@@ -9,7 +9,6 @@
 package net.java.otr4j.api;
 
 import com.google.errorprone.annotations.CheckReturnValue;
-import net.java.otr4j.session.state.IncorrectStateException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -140,11 +139,11 @@ public interface Session {
      *
      * @param tag receiver instance tag
      * @return Returns long-term public key.
-     * @throws IncorrectStateException Thrown in case message state is not ENCRYPTED, hence no long-term public key is
-     *                                 known.
+     * @throws OtrException Thrown in case message state is not ENCRYPTED, hence no long-term public key is
+     * known.
      */
     @Nonnull
-    RemoteInfo getRemoteInfo(InstanceTag tag) throws IncorrectStateException;
+    RemoteInfo getRemoteInfo(InstanceTag tag) throws OtrException;
 
     /**
      * Get list of session instances.
