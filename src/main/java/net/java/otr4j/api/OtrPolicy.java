@@ -18,6 +18,7 @@ package net.java.otr4j.api;
  *
  * @author George Politis
  */
+// TODO no longer ALLOW_V2 by default?
 public final class OtrPolicy {
 
     /**
@@ -62,6 +63,10 @@ public final class OtrPolicy {
      * Constant for completely disabling OTR by policy.
      */
     public static final int NEVER = 0x00;
+    /**
+     * Constant to define OTR policy that reacts to opportunities to establish OTR session, but does not itself initiate.
+     */
+    public static final int REACTIVE = ALLOW_V2 | ALLOW_V3 | ALLOW_V4 | WHITESPACE_START_AKE | ERROR_START_AKE;
     /**
      * Constant to define OTR policy that opportunistically initiates OTR.
      */

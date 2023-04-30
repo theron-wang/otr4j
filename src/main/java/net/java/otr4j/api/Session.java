@@ -236,7 +236,8 @@ public interface Session {
     // TODO consider if this is the ideal way to provide message+instancetag+status, making concrete type Msg part of interface.
     final class Msg {
         /**
-         * The status of the session under which the output was produced.
+         * The status of the session under which the output was produced. This status may be different from the current
+         * status of the session, if the message initiated a state change.
          */
         @Nonnull
         public final SessionStatus status;
