@@ -9,7 +9,7 @@
 
 package net.java.otr4j.util;
 
-import static java.util.Objects.requireNonNull;
+import javax.annotation.Nonnull;
 
 /**
  * Additional utilities for Objects.
@@ -19,7 +19,7 @@ public final class Objects {
     private Objects() {
         // No need to instantiate utility class.
     }
-
+    
     /**
      * Require two objects to be equal.
      *
@@ -49,5 +49,19 @@ public final class Objects {
         if (java.util.Objects.equals(requireNonNull(o1), requireNonNull(o2))) {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    /**
+     * requireNonNull is same as {@link java.util.Objects#requireNonNull} but annotated with @Nonnull such that enhanced
+     * static analysis is able to detect inconsistencies with local variables and parameters of calling functions.
+     *
+     * @param obj an instance
+     * @param <T> parametric type to preserve type of instance
+     * @return returns the instance if indeed non-null
+     */
+    // TODO is this function weird? We annotate with @Nonnull, but at the same time, the annotations help to spot the error earlier than java.util.Objects#requireNonNull().
+    @Nonnull
+    public static <T> T requireNonNull(@Nonnull final T obj) {
+        return java.util.Objects.requireNonNull(obj);
     }
 }
