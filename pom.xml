@@ -224,6 +224,7 @@
                     </descriptorRefs>
                 </configuration>
                 <executions>
+                    <!-- TODO repackaged "single assembly" artifacts are not compatible with 'reproducible builds'. -->
                     <execution>
                         <id>make-assembly</id>
                         <phase>install</phase>
