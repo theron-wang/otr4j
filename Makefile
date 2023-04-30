@@ -35,3 +35,8 @@ fuzz-Fragment: target/test-classes
 
 release:
 	mvn -P'!development' clean install
+
+# 'reproducible' requires the current version to be installed. The second build will then be compared to the installed artifact.
+reproducible: release
+	mvn -P'!development' clean install artifact:compare -DskipTests
+
