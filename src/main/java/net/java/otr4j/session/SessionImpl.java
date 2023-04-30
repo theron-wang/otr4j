@@ -346,12 +346,6 @@ final class SessionImpl implements Session, Context {
         this.fragmenter = new OtrFragmenter(this.secureRandom, host, this.sessionID);
     }
 
-    /**
-     * Expose secure random instance to other classes in the package.
-     * Don't expose to public, though.
-     *
-     * @return Returns the Session's secure random instance.
-     */
     @Override
     @Nonnull
     public SecureRandom secureRandom() {
@@ -456,20 +450,20 @@ final class SessionImpl implements Session, Context {
     }
 
     @Override
-    @Nullable
+    @Nonnull
     @SuppressWarnings("PMD.CognitiveComplexity")
-    public String transformReceiving(final String msgText) throws OtrException {
+    public Msg transformReceiving(final String msgText) throws OtrException {
         synchronized (this.masterSession) {
             logger.log(FINEST, "Entering {0} session.", masterSession == this ? "master" : "slave");
 
             if (msgText.length() == 0) {
-                return msgText;
+                return new Msg(PLAINTEXT, ZERO_TAG, msgText);
             }
 
             final OtrPolicy policy = getSessionPolicy();
             if (!policy.viable()) {
                 logger.info("Policy does not allow any version of OTR. OTR messages will not be processed at all.");
-                return msgText;
+                return new Msg(PLAINTEXT, ZERO_TAG, msgText);
             }
 
             final Message m;
@@ -495,7 +489,7 @@ final class SessionImpl implements Session, Context {
                 if (ZERO_TAG.equals(fragment.getSenderTag())) {
                     logger.log(INFO, "Message fragment contains 0 sender tag. Ignoring message. (Message ID: {0}, index: {1}, total: {2})",
                             new Object[] {fragment.getIdentifier(), fragment.getIndex(), fragment.getTotal()});
-                    return null;
+                    return new Msg(PLAINTEXT, ZERO_TAG, null);
                 }
 
                 if (!ZERO_TAG.equals(fragment.getReceiverTag())
@@ -503,7 +497,7 @@ final class SessionImpl implements Session, Context {
                     // The message is not intended for us. Discarding...
                     logger.finest("Received a message fragment with receiver instance tag that is different from ours. Ignore this message.");
                     messageFromAnotherInstanceReceived(this.host, this.sessionID);
-                    return null;
+                    return new Msg(PLAINTEXT, ZERO_TAG, null);
                 }
 
                 if (!this.slaveSessions.containsKey(fragment.getSenderTag())) {
@@ -523,14 +517,14 @@ final class SessionImpl implements Session, Context {
                 if (ZERO_TAG.equals(message.senderTag)) {
                     // An encoded message without a sender instance tag is always bad.
                     logger.warning("Encoded message is missing sender instance tag. Ignoring message.");
-                    return null;
+                    return new Msg(PLAINTEXT, ZERO_TAG, null);
                 }
 
                 if (!ZERO_TAG.equals(message.receiverTag) && !message.receiverTag.equals(this.profile.getInstanceTag())) {
                     // The message is not intended for us. Discarding...
                     logger.finest("Received an encoded message with receiver instance tag that is different from ours. Ignore this message.");
                     messageFromAnotherInstanceReceived(this.host, sessionID);
-                    return null;
+                    return new Msg(PLAINTEXT, ZERO_TAG, null);
                 }
 
                 if (!this.slaveSessions.containsKey(message.senderTag)) {
@@ -555,12 +549,12 @@ final class SessionImpl implements Session, Context {
                 return handleEncodedMessage((EncodedMessage) m);
             } else if (m instanceof ErrorMessage) {
                 handleErrorMessage((ErrorMessage) m);
-                return null;
+                return new Msg(PLAINTEXT, ZERO_TAG, null);
             } else if (m instanceof PlainTextMessage) {
                 return handlePlainTextMessage((PlainTextMessage) m);
             } else if (m instanceof QueryMessage) {
                 handleQueryMessage((QueryMessage) m);
-                return null;
+                return new Msg(PLAINTEXT, ZERO_TAG, null);
             } else {
                 // At this point, the message m has a known type, but support was not implemented at this point in the code.
                 // This should be considered a programming error. We should handle any known message type gracefully.
@@ -578,8 +572,8 @@ final class SessionImpl implements Session, Context {
      * null in case fragment is not the last fragment and processing is delayed until remaining fragments are received.
      */
     @GuardedBy("masterSession")
-    @Nullable
-    private String handleFragment(final Fragment fragment) throws OtrException {
+    @Nonnull
+    private Msg handleFragment(final Fragment fragment) throws OtrException {
         assert this.masterSession != this || fragment.getVersion() == TWO
                 : "BUG: Expect to only handle OTRv2 message fragments on master session. All other fragments should be handled on dedicated slave session.";
         final String reassembledText;
@@ -587,12 +581,12 @@ final class SessionImpl implements Session, Context {
             reassembledText = assembler.accumulate(fragment);
             if (reassembledText == null) {
                 logger.log(FINEST, "Fragment received, but message is still incomplete.");
-                return null;
+                return new Msg(PLAINTEXT, this.receiverTag, null);
             }
         } catch (final ProtocolException e) {
             logger.log(FINE, "Rejected message fragment from sender instance "
                     + fragment.getSenderTag().getValue(), e);
-            return null;
+            return new Msg(PLAINTEXT, this.receiverTag, null);
         }
         final EncodedMessage message;
         try {
@@ -600,12 +594,12 @@ final class SessionImpl implements Session, Context {
             if (!(m instanceof EncodedMessage)) {
                 logger.fine("Expected fragments to combine into an encoded message, but was something else. "
                         + m.getClass().getName());
-                return null;
+                return new Msg(PLAINTEXT, this.receiverTag, null);
             }
             message = (EncodedMessage) m;
         } catch (final ProtocolException e) {
             logger.log(WARNING, "Reassembled message violates the OTR protocol for encoded messages.", e);
-            return null;
+            return new Msg(PLAINTEXT, this.receiverTag, null);
         }
         // There is no good reason why the reassembled message should have any other protocol version, sender
         // instance tag or receiver instance tag than the fragments themselves. For now, be safe and drop any
@@ -613,7 +607,7 @@ final class SessionImpl implements Session, Context {
         if (message.version != fragment.getVersion() || !message.senderTag.equals(fragment.getSenderTag())
                 || !message.receiverTag.equals(fragment.getReceiverTag())) {
             logger.log(INFO, "Inconsistent OTR-encoded message: message contains different protocol version, sender tag or receiver tag than last received fragment. Message is ignored.");
-            return null;
+            return new Msg(PLAINTEXT, this.receiverTag, null);
         }
         return handleEncodedMessage(message);
     }
@@ -626,8 +620,8 @@ final class SessionImpl implements Session, Context {
      * @throws OtrException In case of failure to process.
      */
     @GuardedBy("masterSession")
-    @Nullable
-    private String handleEncodedMessage(final EncodedMessage message) throws OtrException {
+    @Nonnull
+    private Msg handleEncodedMessage(final EncodedMessage message) throws OtrException {
         assert this.masterSession != this || message.version == TWO : "BUG: We should not process encoded message in master session for protocol version 3 or higher.";
         assert !ZERO_TAG.equals(message.senderTag) : "BUG: No encoded message without sender instance tag should reach this point.";
         if (message.version == THREE && checkDHKeyMessage(message)) {
@@ -649,11 +643,12 @@ final class SessionImpl implements Session, Context {
             }
         }
         try {
-            return this.sessionState.handleEncodedMessage(this, message);
+            final String content = this.sessionState.handleEncodedMessage(this, message);
+            return new Msg(this.sessionState.getStatus(), this.receiverTag, content);
         } catch (final ProtocolException e) {
             logger.log(FINE, "An illegal message was received. Processing was aborted.", e);
             // TODO consider how we should signal unreadable message for illegal data messages and potentially show error to client. (Where we escape handling logic through ProtocolException.)
-            return null;
+            return new Msg(this.sessionState.getStatus(), this.receiverTag, null);
         }
     }
 
@@ -728,7 +723,7 @@ final class SessionImpl implements Session, Context {
 
     @GuardedBy("masterSession")
     @Nonnull
-    private String handlePlainTextMessage(final PlainTextMessage message) {
+    private Msg handlePlainTextMessage(final PlainTextMessage message) {
         assert this.masterSession == this : "BUG: handlePlainTextMessage should only ever be called from the master session, as no instance tags are known.";
         logger.log(FINEST, "{0} received a plaintext message from {1} through {2}.",
                 new Object[] {this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
@@ -739,7 +734,7 @@ final class SessionImpl implements Session, Context {
             logger.finest("Received plaintext message with the whitespace tag.");
             handleWhitespaceTag(message);
         }
-        return messagetext;
+        return new Msg(PLAINTEXT, ZERO_TAG, messagetext);
     }
 
     @GuardedBy("masterSession")
@@ -1032,10 +1027,10 @@ final class SessionImpl implements Session, Context {
      * Get remote public key for specified session.
      *
      * @param tag Instance tag identifying session. In case of
-     *            {@link InstanceTag#ZERO_TAG} queries session status for OTRv2 session.
+     * {@link InstanceTag#ZERO_TAG} queries session status for OTRv2 session.
      * @return Returns remote (long-term) public key.
      * @throws IncorrectStateException Thrown in case session's message state is
-     *                                 not ENCRYPTED.
+     * not ENCRYPTED.
      */
     @Override
     @Nonnull

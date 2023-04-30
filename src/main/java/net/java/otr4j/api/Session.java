@@ -16,6 +16,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.Set;
 
+import static net.java.otr4j.util.Objects.requireNonNull;
+
 /**
  * Interface that defines the OTR session.
  * <p>
@@ -209,7 +211,7 @@ public interface Session {
      * OTR facilities.
      *
      * @param msgText plain message content
-     * @param tlvs    any TLV records to be packed with the other message contents.
+     * @param tlvs any TLV records to be packed with the other message contents.
      * @return Returns OTR-processed (possibly ENCRYPTED) message content in
      * suitable fragments according to host information on the transport
      * fragmentation.
@@ -225,8 +227,44 @@ public interface Session {
      * @return Returns the plaintext message content.
      * @throws OtrException Thrown in case of problems during transformation.
      */
-    @Nullable
-    String transformReceiving(String msgText) throws OtrException;
+    @Nonnull
+    Msg transformReceiving(String msgText) throws OtrException;
+
+    /**
+     * Msg struct to compose aspects of the final message output.
+     */
+    // TODO consider if this is the ideal way to provide message+instancetag+status, making concrete type Msg part of interface.
+    final class Msg {
+        /**
+         * The status of the session under which the output was produced.
+         */
+        @Nonnull
+        public final SessionStatus status;
+        /**
+         * The instance tag for the instance that processed the message.
+         */
+        @Nonnull
+        public final InstanceTag tag;
+        /**
+         * The (original/decrypted) message content.
+         */
+        @Nullable
+        public final String content;
+
+        /**
+         * Constructor for Msg.
+         *
+         * @param status the session status of the session that processed the message.
+         * @param tag the instance tag of the session that processed the message.
+         * @param content String content(-body). This is the message, whether the full original content because it was
+         * plaintext or the decrypted content.
+         */
+        public Msg(@Nonnull final SessionStatus status, @Nonnull final InstanceTag tag, @Nullable final String content) {
+            this.status = requireNonNull(status);
+            this.tag = requireNonNull(tag);
+            this.content = content;
+        }
+    }
 
     /**
      * Refresh an existing OTR session, i.e. perform new AKE. If sufficient
@@ -243,8 +281,8 @@ public interface Session {
      * End ENCRYPTED session.
      *
      * @throws OtrException in case of failure to inject OTR message to inform
-     *                      counter party. (The transition to PLAINTEXT will
-     *                      happen regardless.)
+     * counter party. (The transition to PLAINTEXT will
+     * happen regardless.)
      */
     void endSession() throws OtrException;
 
@@ -254,7 +292,7 @@ public interface Session {
      * Initiate a new SMP negotiation by providing an optional question and a secret.
      *
      * @param question The optional question, may be null.
-     * @param secret   The secret that we should verify the other side knows about.
+     * @param secret The secret that we should verify the other side knows about.
      * @throws OtrException In case of failure during initiation.
      */
     void initSmp(@Nullable String question, String secret) throws OtrException;
@@ -263,8 +301,8 @@ public interface Session {
      * Respond to an SMP request for a specific receiver instance tag.
      *
      * @param receiverTag receiver instance tag
-     * @param question    The question
-     * @param secret      The secret
+     * @param question The question
+     * @param secret The secret
      * @throws OtrException In case of failure during response.
      */
     @SuppressWarnings("unused")
@@ -273,8 +311,8 @@ public interface Session {
     /**
      * Respond to an SMP request for a specific receiver instance tag.
      *
-     * @param question    The question
-     * @param secret      The secret
+     * @param question The question
+     * @param secret The secret
      * @throws OtrException In case of failure during response.
      */
     void respondSmp(@Nullable String question, String secret) throws OtrException;

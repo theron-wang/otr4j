@@ -160,26 +160,26 @@ public class SessionTest {
         // Start setting up an encrypted session.
         c.clientAlice.session.startSession();
         // Expecting Query message from Alice.
-        assertNull(c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
         // Expecting Identity message from Bob, DH-Commit message from Bob 2.
-        assertNull(c.clientAlice.receiveMessage());
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting Auth-R message, DH-Key message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         assertEquals(FOUR, c.clientBob.session.getOutgoingSession().getProtocolVersion());
-        assertNull(c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
-        assertNull(bob2.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
         // Expecting Auth-I message from Bob, Signature message from Bob 2.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus(c.clientBob.session.getSenderInstanceTag()));
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus(bob2.session.getSenderInstanceTag()));
         // Expecting Reveal Signature message from Alice.
-        assertNull(c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
         assertEquals(ENCRYPTED, bob2.session.getSessionStatus());
         assertEquals(Version.THREE, bob2.session.getOutgoingSession().getProtocolVersion());
 
@@ -189,16 +189,16 @@ public class SessionTest {
         assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg1, bob2.receiptChannel.peek());
         assertTrue(otrEncoded(bob2.receiptChannel.peek()));
-        assertEquals(msg1, c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
+        assertEquals(msg1, c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
         c.clientAlice.session.setOutgoingSession(bob2.session.getSenderInstanceTag());
         c.clientAlice.sendMessage(msg1);
         assertNotEquals(msg1, c.clientBob.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg1, bob2.receiptChannel.peek());
         assertTrue(otrEncoded(bob2.receiptChannel.peek()));
-        assertEquals(msg1, bob2.receiveMessage());
-        assertNull(c.clientBob.receiveMessage());
+        assertEquals(msg1, bob2.receiveMessage().content);
+        assertNull(c.clientBob.receiveMessage().content);
 
         assertEquals(0, c.clientAlice.receiptChannel.size());
         assertEquals(0, c.clientBob.receiptChannel.size());
@@ -290,26 +290,26 @@ public class SessionTest {
 
         // Start setting up an encrypted session.
         c.clientBob.sendMessage(OTRv23QueryMessage);
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting DH-Commit message from Alice.
-        assertNull(c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
         // Expecting DH-Key message from both of Bob's clients.
-        assertNull(c.clientAlice.receiveMessage());
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting Signature message from Alice.
-        assertNull(c.clientBob.receiveMessage());
-        assertNull(c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
-        assertNull(bob2.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
+        assertNull(c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         assertEquals(Session.Version.THREE, c.clientBob.session.getOutgoingSession().getProtocolVersion());
         assertEquals(ENCRYPTED, bob2.session.getSessionStatus());
         // TODO there is an issue with the OTR protocol such that acting on a received DH-Commit message skips the check of whether higher versions of the OTR protocol are available. (Consider not responding unless a query tag was previously sent.)
         assertEquals(Version.THREE, bob2.session.getOutgoingSession().getProtocolVersion());
         // Expecting Reveal Signature message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus(c.clientBob.session.getSenderInstanceTag()));
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus(bob2.session.getSenderInstanceTag()));
 
@@ -319,8 +319,8 @@ public class SessionTest {
         assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg1, bob2.receiptChannel.peek());
         assertTrue(otrEncoded(bob2.receiptChannel.peek()));
-        assertEquals(msg1, c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
+        assertEquals(msg1, c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
     }
 
     @Test
@@ -340,32 +340,32 @@ public class SessionTest {
 
         // Start setting up an encrypted session.
         c.clientBob.sendMessage(OTRv23QueryMessage);
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting DH-Commit message from Alice.
-        assertNull(c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
-        assertNull(bob3.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
+        assertNull(bob3.receiveMessage().content);
         // Expecting DH-Key message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
-        assertNull(c.clientAlice.receiveMessage());
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
+        assertNull(c.clientAlice.receiveMessage().content);
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting Signature message from Alice.
-        assertNull(c.clientBob.receiveMessage());
-        assertNull(c.clientBob.receiveMessage());
-        assertNull(c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
-        assertNull(bob2.receiveMessage());
-        assertNull(bob2.receiveMessage());
-        assertNull(bob3.receiveMessage());
-        assertNull(bob3.receiveMessage());
-        assertNull(bob3.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
+        assertNull(c.clientBob.receiveMessage().content);
+        assertNull(c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
+        assertNull(bob3.receiveMessage().content);
+        assertNull(bob3.receiveMessage().content);
+        assertNull(bob3.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         assertEquals(ENCRYPTED, bob2.session.getSessionStatus());
         assertEquals(ENCRYPTED, bob3.session.getSessionStatus());
         // Expecting Reveal Signature message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
-        assertNull(c.clientAlice.receiveMessage());
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
+        assertNull(c.clientAlice.receiveMessage().content);
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus(c.clientBob.session.getSenderInstanceTag()));
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus(bob2.session.getSenderInstanceTag()));
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus(bob3.session.getSenderInstanceTag()));
@@ -378,16 +378,16 @@ public class SessionTest {
         assertTrue(otrEncoded(bob2.receiptChannel.peek()));
         assertNotEquals(msg1, bob3.receiptChannel.peek());
         assertTrue(otrEncoded(bob3.receiptChannel.peek()));
-        assertEquals(msg1, c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
-        assertNull(bob3.receiveMessage());
+        assertEquals(msg1, c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
+        assertNull(bob3.receiveMessage().content);
 
         // Continue conversation with first of Bob's clients.
         final String msg2 = "Hey Alice, it means that our communication is encrypted and authenticated.";
         c.clientBob.sendMessage(msg2);
         assertNotEquals(msg2, c.clientAlice.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-        assertEquals(msg2, c.clientAlice.receiveMessage());
+        assertEquals(msg2, c.clientAlice.receiveMessage().content);
 
         final String msg3 = "Oh, is that all?";
         c.clientAlice.sendMessage(msg3);
@@ -397,15 +397,15 @@ public class SessionTest {
         assertTrue(otrEncoded(bob2.receiptChannel.peek()));
         assertNotEquals(msg3, bob3.receiptChannel.peek());
         assertTrue(otrEncoded(bob3.receiptChannel.peek()));
-        assertEquals(msg3, c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
-        assertNull(bob3.receiveMessage());
+        assertEquals(msg3, c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
+        assertNull(bob3.receiveMessage().content);
 
         final String msg4 = "Actually no, our communication has the properties of perfect forward secrecy and deniable authentication.";
         c.clientBob.sendMessage(msg4);
         assertNotEquals(msg4, c.clientAlice.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-        assertEquals(msg4, c.clientAlice.receiveMessage());
+        assertEquals(msg4, c.clientAlice.receiveMessage().content);
 
         final String msg5 = "Oh really?! pouvons-nous parler en français?";
         c.clientAlice.sendMessage(msg5);
@@ -415,15 +415,15 @@ public class SessionTest {
         assertTrue(otrEncoded(bob2.receiptChannel.peek()));
         assertNotEquals(msg5, bob3.receiptChannel.peek());
         assertTrue(otrEncoded(bob3.receiptChannel.peek()));
-        assertEquals(msg5, c.clientBob.receiveMessage());
-        assertNull(bob2.receiveMessage());
-        assertNull(bob3.receiveMessage());
+        assertEquals(msg5, c.clientBob.receiveMessage().content);
+        assertNull(bob2.receiveMessage().content);
+        assertNull(bob3.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         c.clientBob.session.endSession();
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         assertEquals(PLAINTEXT, c.clientBob.session.getSessionStatus());
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(FINISHED, c.clientAlice.session.getSessionStatus());
         c.clientAlice.session.endSession();
         assertEquals(PLAINTEXT, c.clientAlice.session.getSessionStatus());
@@ -443,42 +443,42 @@ public class SessionTest {
         c.clientAlice.setPolicy(new OtrPolicy(OPPORTUNISTIC & ~ALLOW_V4));
         c.clientBob.setPolicy(new OtrPolicy(OPPORTUNISTIC & ~ALLOW_V4));
         c.clientBob.sendMessage(OTRv23QueryMessage);
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting DH-Commit message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting DH-Key message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting Signature message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting Reveal Signature message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         final String msg1 = "Hello Bob, this new IM software you installed on my PC the other day says we are talking Off-the-Record, what's that supposed to mean?";
         c.clientAlice.sendMessage(msg1);
         assertNotEquals(msg1, c.clientBob.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
-        assertEquals(msg1, c.clientBob.receiveMessage());
+        assertEquals(msg1, c.clientBob.receiveMessage().content);
         final String msg2 = "Hey Alice, it means that our communication is encrypted and authenticated.";
         c.clientBob.sendMessage(msg2);
         assertNotEquals(msg2, c.clientAlice.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-        assertEquals(msg2, c.clientAlice.receiveMessage());
+        assertEquals(msg2, c.clientAlice.receiveMessage().content);
         final String msg3 = "Oh, is that all?";
         c.clientAlice.sendMessage(msg3);
         assertNotEquals(msg3, c.clientBob.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
-        assertEquals(msg3, c.clientBob.receiveMessage());
+        assertEquals(msg3, c.clientBob.receiveMessage().content);
         final String msg4 = "Actually no, our communication has the properties of perfect forward secrecy and deniable authentication.";
         c.clientBob.sendMessage(msg4);
         assertNotEquals(msg4, c.clientAlice.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-        assertEquals(msg4, c.clientAlice.receiveMessage());
+        assertEquals(msg4, c.clientAlice.receiveMessage().content);
         final String msg5 = "Oh really?! pouvons-nous parler en français?";
         c.clientAlice.sendMessage(msg5);
         assertNotEquals(msg5, c.clientBob.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
-        assertEquals(msg5, c.clientBob.receiveMessage());
+        assertEquals(msg5, c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         c.clientBob.session.endSession();
@@ -496,45 +496,45 @@ public class SessionTest {
         c.clientAlice.setPolicy(new OtrPolicy(OTRL_POLICY_MANUAL & ~ALLOW_V4));
         c.clientBob.setPolicy(new OtrPolicy(OTRL_POLICY_MANUAL & ~ALLOW_V4));
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting DH-Commit message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting DH-Key message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Signature message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         // Expecting Reveal Signature message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         final String msg1 = "Hello Bob, this new IM software you installed on my PC the other day says we are talking Off-the-Record, what's that supposed to mean?";
         c.clientAlice.sendMessage(msg1);
         assertNotEquals(msg1, c.clientBob.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
-        assertEquals(msg1, c.clientBob.receiveMessage());
+        assertEquals(msg1, c.clientBob.receiveMessage().content);
         final String msg2 = "Hey Alice, it means that our communication is encrypted and authenticated.";
         c.clientBob.sendMessage(msg2);
         assertNotEquals(msg2, c.clientAlice.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-        assertEquals(msg2, c.clientAlice.receiveMessage());
+        assertEquals(msg2, c.clientAlice.receiveMessage().content);
         final String msg3 = "Oh, is that all?";
         c.clientAlice.sendMessage(msg3);
         assertNotEquals(msg3, c.clientBob.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
-        assertEquals(msg3, c.clientBob.receiveMessage());
+        assertEquals(msg3, c.clientBob.receiveMessage().content);
         final String msg4 = "Actually no, our communication has the properties of perfect forward secrecy and deniable authentication.";
         c.clientBob.sendMessage(msg4);
         assertNotEquals(msg4, c.clientAlice.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-        assertEquals(msg4, c.clientAlice.receiveMessage());
+        assertEquals(msg4, c.clientAlice.receiveMessage().content);
         final String msg5 = "Oh really?! pouvons-nous parler en français?";
         c.clientAlice.sendMessage(msg5);
         assertNotEquals(msg5, c.clientBob.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
-        assertEquals(msg5, c.clientBob.receiveMessage());
+        assertEquals(msg5, c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         c.clientBob.session.endSession();
@@ -551,27 +551,27 @@ public class SessionTest {
         final Conversation c = new Conversation(1);
         final String msg1 = "Hello Bob, this new IM software you installed on my PC the other day says we are talking Off-the-Record, what's that supposed to mean?";
         c.clientAlice.sendMessage(msg1);
-        assertEquals(msg1, c.clientBob.receiveMessage());
+        assertEquals(msg1, c.clientBob.receiveMessage().content);
         assertEquals(PLAINTEXT, c.clientAlice.session.getSessionStatus());
         assertEquals(PLAINTEXT, c.clientBob.session.getSessionStatus());
         final String msg2 = "Hey Alice, it means that our communication is encrypted and authenticated.";
         c.clientBob.sendMessage(msg2);
-        assertEquals(msg2, c.clientAlice.receiveMessage());
+        assertEquals(msg2, c.clientAlice.receiveMessage().content);
         assertEquals(PLAINTEXT, c.clientAlice.session.getSessionStatus());
         assertEquals(PLAINTEXT, c.clientBob.session.getSessionStatus());
         final String msg3 = "Oh, is that all?";
         c.clientAlice.sendMessage(msg3);
-        assertEquals(msg3, c.clientBob.receiveMessage());
+        assertEquals(msg3, c.clientBob.receiveMessage().content);
         assertEquals(PLAINTEXT, c.clientAlice.session.getSessionStatus());
         assertEquals(PLAINTEXT, c.clientBob.session.getSessionStatus());
         final String msg4 = "Actually no, our communication has the properties of perfect forward secrecy and deniable authentication.";
         c.clientBob.sendMessage(msg4);
-        assertEquals(msg4, c.clientAlice.receiveMessage());
+        assertEquals(msg4, c.clientAlice.receiveMessage().content);
         assertEquals(PLAINTEXT, c.clientAlice.session.getSessionStatus());
         assertEquals(PLAINTEXT, c.clientBob.session.getSessionStatus());
         final String msg5 = "Oh really?! pouvons-nous parler en français?";
         c.clientAlice.sendMessage(msg5);
-        assertEquals(msg5, c.clientBob.receiveMessage());
+        assertEquals(msg5, c.clientBob.receiveMessage().content);
         assertEquals(PLAINTEXT, c.clientAlice.session.getSessionStatus());
         assertEquals(PLAINTEXT, c.clientBob.session.getSessionStatus());
         c.clientBob.session.endSession();
@@ -584,9 +584,9 @@ public class SessionTest {
     public void testPlainTextMessagingNewClients() throws OtrException {
         final Conversation c = new Conversation(1);
         c.clientBob.sendMessage("hello world");
-        assertEquals("hello world", c.clientAlice.receiveMessage());
+        assertEquals("hello world", c.clientAlice.receiveMessage().content);
         c.clientAlice.sendMessage("hello bob");
-        assertEquals("hello bob", c.clientBob.receiveMessage());
+        assertEquals("hello bob", c.clientBob.receiveMessage().content);
     }
 
     @Test
@@ -596,16 +596,18 @@ public class SessionTest {
             assertEquals(SessionStatus.PLAINTEXT, c.clientAlice.session.getSessionStatus());
             c.clientAlice.sendMessage(message);
             assertEquals(message, c.clientBob.receiptChannel.peek());
-            final String receivedBob = c.clientBob.receiveMessage();
+            final Session.Msg receivedBob = c.clientBob.receiveMessage();
             assertEquals(SessionStatus.PLAINTEXT, c.clientBob.session.getSessionStatus());
-            assertEquals(message, receivedBob);
+            assertEquals(SessionStatus.PLAINTEXT, receivedBob.status);
+            assertEquals(message, receivedBob.content);
 
             assertEquals(SessionStatus.PLAINTEXT, c.clientBob.session.getSessionStatus());
             c.clientBob.sendMessage(message);
             assertEquals(message, c.clientAlice.receiptChannel.peek());
-            final String receivedAlice = c.clientAlice.receiveMessage();
+            final Session.Msg receivedAlice = c.clientAlice.receiveMessage();
             assertEquals(SessionStatus.PLAINTEXT, c.clientAlice.session.getSessionStatus());
-            assertEquals(message, receivedAlice);
+            assertEquals(SessionStatus.PLAINTEXT, receivedAlice.status);
+            assertEquals(message, receivedAlice.content);
         }
     }
 
@@ -616,16 +618,18 @@ public class SessionTest {
             assertEquals(SessionStatus.PLAINTEXT, c.clientAlice.session.getSessionStatus());
             c.clientAlice.sendMessage(line);
             assertEquals(line, c.clientBob.receiptChannel.peek());
-            final String receivedBob = c.clientBob.receiveMessage();
+            final Session.Msg receivedBob = c.clientBob.receiveMessage();
             assertEquals(SessionStatus.PLAINTEXT, c.clientBob.session.getSessionStatus());
-            assertEquals(line, receivedBob);
+            assertEquals(SessionStatus.PLAINTEXT, receivedBob.status);
+            assertEquals(line, receivedBob.content);
 
             assertEquals(SessionStatus.PLAINTEXT, c.clientBob.session.getSessionStatus());
             c.clientBob.sendMessage(line);
             assertEquals(line, c.clientAlice.receiptChannel.peek());
-            final String receivedAlice = c.clientAlice.receiveMessage();
+            final Session.Msg receivedAlice = c.clientAlice.receiveMessage();
             assertEquals(SessionStatus.PLAINTEXT, c.clientAlice.session.getSessionStatus());
-            assertEquals(line, receivedAlice);
+            assertEquals(SessionStatus.PLAINTEXT, receivedAlice.status);
+            assertEquals(line, receivedAlice.content);
         }
     }
 
@@ -646,16 +650,18 @@ public class SessionTest {
             final String sanitizedLine = line.replace('\0', '?');
             assertNotEquals(sanitizedLine, c.clientBob.receiptChannel.peek());
             assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
-            final String receivedBob = c.clientBob.receiveMessage();
+            final Session.Msg receivedBob = c.clientBob.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientBob.session.getSessionStatus());
-            assertEquals(sanitizedLine, receivedBob);
+            assertEquals(SessionStatus.ENCRYPTED, receivedBob.status);
+            assertEquals(sanitizedLine, receivedBob.content);
 
             c.clientBob.sendMessage(line);
             assertNotEquals(sanitizedLine, c.clientAlice.receiptChannel.peek());
             assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-            final String receivedAlice = c.clientAlice.receiveMessage();
+            final Session.Msg receivedAlice = c.clientAlice.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientAlice.session.getSessionStatus());
-            assertEquals(sanitizedLine, receivedAlice);
+            assertEquals(SessionStatus.ENCRYPTED, receivedAlice.status);
+            assertEquals(sanitizedLine, receivedAlice.content);
         }
     }
 
@@ -675,17 +681,19 @@ public class SessionTest {
             c.clientAlice.sendMessage(message);
             assertNotEquals(message, c.clientBob.receiptChannel.peek());
             assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
-            final String receivedBob = c.clientBob.receiveMessage();
+            final Session.Msg receivedBob = c.clientBob.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientBob.session.getSessionStatus());
-            assertEquals(message, receivedBob);
+            assertEquals(SessionStatus.ENCRYPTED, receivedBob.status);
+            assertEquals(message, receivedBob.content);
 
             assertEquals(SessionStatus.ENCRYPTED, c.clientBob.session.getSessionStatus());
             c.clientBob.sendMessage(message);
             assertNotEquals(message, c.clientAlice.receiptChannel.peek());
             assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-            final String receivedAlice = c.clientAlice.receiveMessage();
+            final Session.Msg receivedAlice = c.clientAlice.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientAlice.session.getSessionStatus());
-            assertEquals(message, receivedAlice);
+            assertEquals(SessionStatus.ENCRYPTED, receivedAlice.status);
+            assertEquals(message, receivedAlice.content);
         }
         c.clientBob.session.endSession();
         assertEquals(SessionStatus.PLAINTEXT, c.clientBob.session.getSessionStatus());
@@ -699,27 +707,27 @@ public class SessionTest {
     public void testEstablishOTR4Session() throws OtrException {
         final Conversation c = new Conversation(1);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         // Start sending messages
         c.clientBob.sendMessage("Hello Alice!");
         assertNotEquals("Hello Alice!", c.clientAlice.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-        assertEquals("Hello Alice!", c.clientAlice.receiveMessage());
+        assertEquals("Hello Alice!", c.clientAlice.receiveMessage().content);
         c.clientAlice.session.endSession();
         assertEquals(PLAINTEXT, c.clientAlice.session.getSessionStatus());
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(FINISHED, c.clientBob.session.getSessionStatus());
     }
 
@@ -727,35 +735,35 @@ public class SessionTest {
     public void testEstablishOTR4SessionEarlyMessaging() throws OtrException {
         final Conversation c = new Conversation(3);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         c.clientBob.sendMessage("Bob's early message 1");
         c.clientBob.sendMessage("Bob's early message 2");
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         c.clientAlice.sendMessage("Alice's early message 1");
         c.clientAlice.sendMessage("Alice's early message 2");
         // Start sending messages
-        assertEquals("Bob's early message 1", c.clientAlice.receiveMessage());
-        assertEquals("Bob's early message 2", c.clientAlice.receiveMessage());
-        assertEquals("Alice's early message 1", c.clientBob.receiveMessage());
-        assertEquals("Alice's early message 2", c.clientBob.receiveMessage());
+        assertEquals("Bob's early message 1", c.clientAlice.receiveMessage().content);
+        assertEquals("Bob's early message 2", c.clientAlice.receiveMessage().content);
+        assertEquals("Alice's early message 1", c.clientBob.receiveMessage().content);
+        assertEquals("Alice's early message 2", c.clientBob.receiveMessage().content);
         c.clientBob.sendMessage("Hello Alice, I got your messages.");
-        assertEquals("Hello Alice, I got your messages.", c.clientAlice.receiveMessage());
+        assertEquals("Hello Alice, I got your messages.", c.clientAlice.receiveMessage().content);
         assertEquals(0, c.clientBob.receiptChannel.size());
         assertEquals(0, c.clientAlice.receiptChannel.size());
         c.clientAlice.session.endSession();
         assertEquals(PLAINTEXT, c.clientAlice.session.getSessionStatus());
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(FINISHED, c.clientBob.session.getSessionStatus());
     }
 
@@ -765,38 +773,38 @@ public class SessionTest {
     public void testEstablishOTR4SessionEarlyMessagingOutOfOrder() throws OtrException {
         final Conversation c = new Conversation(3);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         c.clientBob.sendMessage("Bob's early message 1");
         c.clientBob.sendMessage("Bob's early message 2");
 
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         c.clientAlice.sendMessage("Alice's early message 1");
         c.clientAlice.sendMessage("Alice's early message 2");
         // Receive messages out-of-order.
         c.clientAlice.receiptChannel.add(c.clientAlice.receiptChannel.remove());
-        assertEquals("Bob's early message 2", c.clientAlice.receiveMessage());
-        assertEquals("Bob's early message 1", c.clientAlice.receiveMessage());
+        assertEquals("Bob's early message 2", c.clientAlice.receiveMessage().content);
+        assertEquals("Bob's early message 1", c.clientAlice.receiveMessage().content);
         c.clientBob.receiptChannel.add(c.clientBob.receiptChannel.remove());
-        assertEquals("Alice's early message 2", c.clientBob.receiveMessage());
-        assertEquals("Alice's early message 1", c.clientBob.receiveMessage());
+        assertEquals("Alice's early message 2", c.clientBob.receiveMessage().content);
+        assertEquals("Alice's early message 1", c.clientBob.receiveMessage().content);
         c.clientBob.sendMessage("Hello Alice, I got your messages.");
-        assertEquals("Hello Alice, I got your messages.", c.clientAlice.receiveMessage());
+        assertEquals("Hello Alice, I got your messages.", c.clientAlice.receiveMessage().content);
         assertEquals(0, c.clientBob.receiptChannel.size());
         assertEquals(0, c.clientAlice.receiptChannel.size());
         c.clientAlice.session.endSession();
         assertEquals(PLAINTEXT, c.clientAlice.session.getSessionStatus());
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(FINISHED, c.clientBob.session.getSessionStatus());
     }
 
@@ -804,23 +812,23 @@ public class SessionTest {
     public void testEstablishOTR4SessionThenDisallowSendingQueryMessage() throws OtrException {
         final Conversation c = new Conversation(1);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         // Start sending messages
         c.clientBob.sendMessage("Hello Alice!");
         assertNotEquals("Hello Alice!", c.clientAlice.receiptChannel.peek());
         assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-        assertEquals("Hello Alice!", c.clientAlice.receiveMessage());
+        assertEquals("Hello Alice!", c.clientAlice.receiveMessage().content);
         // Even though encrypted now, start a new session. This should not follow through.
         c.clientBob.session.startSession();
         assertTrue(c.clientAlice.receiptChannel.isEmpty());
@@ -829,7 +837,7 @@ public class SessionTest {
         c.clientAlice.session.endSession();
         assertEquals(PLAINTEXT, c.clientAlice.session.getSessionStatus());
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(FINISHED, c.clientBob.session.getSessionStatus());
     }
 
@@ -837,10 +845,10 @@ public class SessionTest {
     public void testEstablishOTR4SessionFragmented() throws OtrException {
         final Conversation c = new Conversation(21, 150);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
         assertArrayEquals(new String[0], c.clientAlice.receiveAllMessages(true));
         // Expecting AUTH_R message from Alice.
@@ -855,10 +863,10 @@ public class SessionTest {
     public void testEstablishOTR4SessionFragmentedMessageFragmentDropped() throws OtrException {
         final Conversation c = new Conversation(21, 150);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
         assertArrayEquals(new String[0], c.clientAlice.receiveAllMessages(true));
         // Expecting AUTH_R message from Alice.
@@ -883,28 +891,28 @@ public class SessionTest {
     public void testOTR4ExtensiveMessagingToVerifyRatcheting() throws OtrException {
         final Conversation c = new Conversation(1);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
         for (int i = 0; i < 25; i++) {
             // Bob sending a message (alternating, to enable ratchet)
             final String messageBob = randomMessage(300);
             c.clientBob.sendMessage(messageBob);
-            assertMessage("Iteration: " + i + ", message Bob: " + messageBob, messageBob, c.clientAlice.receiveMessage());
+            assertMessage("Iteration: " + i + ", message Bob: " + messageBob, messageBob, c.clientAlice.receiveMessage().content);
             // Alice sending a message (alternating, to enable ratchet)
             final String messageAlice = randomMessage(300);
             c.clientAlice.sendMessage(messageAlice);
-            assertMessage("Iteration: " + i + ", message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage());
+            assertMessage("Iteration: " + i + ", message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage().content);
         }
     }
 
@@ -912,17 +920,17 @@ public class SessionTest {
     public void testOTR4ExtensiveMessagingToVerifyRatchetingManyConsecutiveMessages() throws OtrException {
         final Conversation c = new Conversation(25);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
         final String[] messages = new String[25];
@@ -934,29 +942,29 @@ public class SessionTest {
             c.clientBob.sendMessage(message);
         }
         for (final String message : messages) {
-            assertMessage("Message Bob: " + message, message, c.clientAlice.receiveMessage());
+            assertMessage("Message Bob: " + message, message, c.clientAlice.receiveMessage().content);
         }
         // Alice sending one message in response
         final String messageAlice = "Man, you talk a lot!";
         c.clientAlice.sendMessage(messageAlice);
-        assertMessage("Message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage());
+        assertMessage("Message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage().content);
     }
 
     @Test
     public void testOTR4ExtensiveMessagingManyConsecutiveMessagesIncidentallyDropped() throws OtrException {
         final Conversation c = new Conversation(25);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
         final String[] messages = new String[25];
@@ -977,12 +985,12 @@ public class SessionTest {
             if (i == drop1 || i == drop2 || i == drop3) {
                 continue;
             }
-            assertMessage("Message Bob: " + messages[i], messages[i], c.clientAlice.receiveMessage());
+            assertMessage("Message Bob: " + messages[i], messages[i], c.clientAlice.receiveMessage().content);
         }
         // Alice sending one message in response
         final String messageAlice = "Man, you talk a lot!";
         c.clientAlice.sendMessage(messageAlice);
-        assertMessage("Message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage());
+        assertMessage("Message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage().content);
     }
 
     @Ignore("Test demonstrates support for out-of-order messages and specifically messages that arrive later than expected. This is not yet supported in the library. We need to store message keys for later look-back to make this test work.")
@@ -990,7 +998,7 @@ public class SessionTest {
     public void testOTR4ExtensiveMessagingManyConsecutiveMessagesShuffled() throws OtrException {
         final Conversation c = new Conversation(25);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
         assertNull(c.clientBob.receiveMessage());
@@ -1014,7 +1022,7 @@ public class SessionTest {
         shuffle(c.clientAlice.receiptChannel, RANDOM);
         final HashSet<String> receivedMessages = new HashSet<>();
         for (int i = 0; i < messages.length; i++) {
-            final String received = c.clientAlice.receiveMessage();
+            final String received = c.clientAlice.receiveMessage().content;
             if (!contains(received, messages)) {
                 fail("Expected message to be present in the list of sent messages: " + received);
             }
@@ -1024,7 +1032,7 @@ public class SessionTest {
         // Alice sending one message in response
         final String messageAlice = "Man, you talk a lot!";
         c.clientAlice.sendMessage(messageAlice);
-        assertMessage("Message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage());
+        assertMessage("Message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage().content);
         c.clientAlice.session.endSession();
         c.clientBob.session.endSession();
     }
@@ -1038,14 +1046,14 @@ public class SessionTest {
 
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
         // Initiate SMP negotiation
@@ -1055,20 +1063,20 @@ public class SessionTest {
         assertTrue(c.clientBob.session.isSmpInProgress());
         assertFalse(c.clientAlice.session.isSmpInProgress());
 
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         c.clientAlice.session.respondSmp("What's the secret?", "Nobody knows!");
         assertTrue(c.clientBob.session.isSmpInProgress());
         assertTrue(c.clientAlice.session.isSmpInProgress());
 
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertTrue(c.clientBob.session.isSmpInProgress());
         assertTrue(c.clientAlice.session.isSmpInProgress());
 
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertTrue(c.clientBob.session.isSmpInProgress());
         assertFalse(c.clientAlice.session.isSmpInProgress());
 
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertFalse(c.clientBob.session.isSmpInProgress());
         assertFalse(c.clientAlice.session.isSmpInProgress());
 
@@ -1085,28 +1093,28 @@ public class SessionTest {
 
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
         // Initiate SMP negotiation
         c.clientBob.session.initSmp("What's the secret?", "Nobody knows!");
         assertTrue(c.clientBob.session.isSmpInProgress());
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         c.clientAlice.session.respondSmp("What's the secret?", "Everybody knows!");
         assertTrue(c.clientAlice.session.isSmpInProgress());
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertTrue(c.clientAlice.session.isSmpInProgress());
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertFalse(c.clientAlice.session.isSmpInProgress());
         assertTrue(c.clientBob.session.isSmpInProgress());
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertFalse(c.clientBob.session.isSmpInProgress());
 
         assertTrue(c.clientAlice.verified.isEmpty());
@@ -1118,14 +1126,14 @@ public class SessionTest {
         final Conversation c = new Conversation(1);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
         for (int i = 0; i < UNICODE_LINES.length; ++i) {
@@ -1135,15 +1143,15 @@ public class SessionTest {
             // Initiate SMP negotiation
             c.clientBob.session.initSmp(UNICODE_LINES[i], UNICODE_LINES[UNICODE_LINES.length - 1 - i]);
             assertTrue(c.clientBob.session.isSmpInProgress());
-            assertNull(c.clientAlice.receiveMessage());
+            assertNull(c.clientAlice.receiveMessage().content);
             c.clientAlice.session.respondSmp(UNICODE_LINES[i], UNICODE_LINES[UNICODE_LINES.length - 1 - i]);
             assertTrue(c.clientAlice.session.isSmpInProgress());
-            assertNull(c.clientBob.receiveMessage());
+            assertNull(c.clientBob.receiveMessage().content);
             assertTrue(c.clientAlice.session.isSmpInProgress());
-            assertNull(c.clientAlice.receiveMessage());
+            assertNull(c.clientAlice.receiveMessage().content);
             assertFalse(c.clientAlice.session.isSmpInProgress());
             assertTrue(c.clientBob.session.isSmpInProgress());
-            assertNull(c.clientBob.receiveMessage());
+            assertNull(c.clientBob.receiveMessage().content);
             assertFalse(c.clientBob.session.isSmpInProgress());
 
             assertEquals(1, c.clientBob.verified.size());
@@ -1155,10 +1163,10 @@ public class SessionTest {
     public void testOTR4ExtensiveMessagingFragmentation() throws OtrException {
         final Conversation c = new Conversation(21, 150);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
         assertArrayEquals(new String[0], c.clientAlice.receiveAllMessages(true));
         // Expecting AUTH_R message from Alice.
@@ -1186,10 +1194,10 @@ public class SessionTest {
     public void testOTR4ExtensiveMessagingFragmentationShuffled() throws OtrException {
         final Conversation c = new Conversation(21, 150);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
         shuffle(c.clientAlice.receiptChannel, RANDOM);
         assertArrayEquals(new String[0], c.clientAlice.receiveAllMessages(true));
@@ -1225,28 +1233,28 @@ public class SessionTest {
     public void testOTR4SmallConversationWithHugeMessages() throws OtrException {
         final Conversation c = new Conversation(1);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
         for (int i = 0; i < 5; i++) {
             // Bob sending a message (alternating, to enable ratchet)
             final String messageBob = randomMessage(1000000);
             c.clientBob.sendMessage(messageBob);
-            assertMessage("Iteration: " + i + ", message Bob: " + messageBob, messageBob, c.clientAlice.receiveMessage());
+            assertMessage("Iteration: " + i + ", message Bob: " + messageBob, messageBob, c.clientAlice.receiveMessage().content);
             // Alice sending a message (alternating, to enable ratchet)
             final String messageAlice = randomMessage(1000000);
             c.clientAlice.sendMessage(messageAlice);
-            assertMessage("Iteration: " + i + ", message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage());
+            assertMessage("Iteration: " + i + ", message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage().content);
         }
     }
 
@@ -1254,20 +1262,20 @@ public class SessionTest {
     public void testOTR4MessageQueuing() throws OtrException {
         final Conversation c = new Conversation(3);
         c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage());
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
 
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
         assertEquals(1, c.clientAlice.session.getInstances().size());
         assertEquals(1, c.clientBob.session.getInstances().size());
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(1, c.clientAlice.session.getInstances().size());
         assertEquals(1, c.clientBob.session.getInstances().size());
         c.clientBob.sendMessage("Bob queued message 1");
         assertEquals(1, c.clientAlice.receiptChannel.size());
 
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(2, c.clientAlice.session.getInstances().size());
         assertEquals(1, c.clientBob.session.getInstances().size());
         c.clientAlice.sendMessage("Alice queued encrypted message 1", 1);
@@ -1276,7 +1284,7 @@ public class SessionTest {
         assertEquals(1, c.clientBob.receiptChannel.size());
 
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(2, c.clientAlice.session.getInstances().size());
         assertEquals(2, c.clientBob.session.getInstances().size());
         c.clientBob.sendMessage("Bob encrypted message 1", 1);
@@ -1286,16 +1294,16 @@ public class SessionTest {
 
         // Expecting AUTH_I message from Bob.
         assertEquals(0, c.clientBob.receiptChannel.size());
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         assertEquals(2, c.clientBob.receiptChannel.size());
 
-        assertEquals("Alice queued encrypted message 1", c.clientBob.receiveMessage());
-        assertEquals("Alice queued encrypted message 2", c.clientBob.receiveMessage());
+        assertEquals("Alice queued encrypted message 1", c.clientBob.receiveMessage().content);
+        assertEquals("Alice queued encrypted message 2", c.clientBob.receiveMessage().content);
         assertEquals(0, c.clientBob.receiptChannel.size());
 
-        assertEquals("Bob queued message 1", c.clientAlice.receiveMessage());
-        assertEquals("Bob encrypted message 1", c.clientAlice.receiveMessage());
+        assertEquals("Bob queued message 1", c.clientAlice.receiveMessage().content);
+        assertEquals("Bob encrypted message 1", c.clientAlice.receiveMessage().content);
         assertEquals(0, c.clientAlice.receiptChannel.size());
     }
 
@@ -1321,7 +1329,7 @@ public class SessionTest {
         // Using incorrect sender tag.
         final String illegalFragment = "?OTR|00000001|00000100|"
                 + Integer.toHexString(clientProfile.getInstanceTag().getValue()) + ",1,1," + message + ",";
-        assertNull(session.transformReceiving(illegalFragment));
+        assertNull(session.transformReceiving(illegalFragment).content);
     }
 
     @Test
@@ -1345,7 +1353,7 @@ public class SessionTest {
 
         // Using incorrect receiver tag.
         final String illegalFragment = "?OTR|00000001|00000100|fffffffe,1,1," + message + ",";
-        assertNull(session.transformReceiving(illegalFragment));
+        assertNull(session.transformReceiving(illegalFragment).content);
     }
 
     @Test
@@ -1370,7 +1378,7 @@ public class SessionTest {
         // Using OTRv3 protocol format, hence protocol version mismatches with OTRv4 Identity message.
         final String illegalFragment = "?OTR|00000100|" + Integer.toHexString(clientProfile.getInstanceTag().getValue())
                 + ",1,1," + message + ",";
-        assertNull(session.transformReceiving(illegalFragment));
+        assertNull(session.transformReceiving(illegalFragment).content);
     }
 
     private static void assertMessage(final String message, final String expected, final String actual) {
@@ -1518,22 +1526,25 @@ public class SessionTest {
             this.messageSize = messageSize;
         }
 
-        String receiveMessage() throws OtrException {
+        @Nonnull
+        Session.Msg receiveMessage() throws OtrException {
             final String msg = this.receiptChannel.remove();
             //logger.warning(msg);
             return this.session.transformReceiving(msg);
         }
 
+        @Nonnull
         String[] receiveAllMessages(@SuppressWarnings("SameParameterValue") final boolean skipNulls) throws OtrException {
             final ArrayList<String> messages = new ArrayList<>();
             this.receiptChannel.drainTo(messages);
             final ArrayList<String> results = new ArrayList<>();
             for (final String msg : messages) {
-                final String result = this.session.transformReceiving(msg);
-                if (result == null && skipNulls) {
+                // TODO API changed to Session.Msg
+                final Session.Msg result = this.session.transformReceiving(msg);
+                if (result.content == null && skipNulls) {
                     continue;
                 }
-                results.add(result);
+                results.add(result.content);
             }
             return results.toArray(new String[0]);
         }
