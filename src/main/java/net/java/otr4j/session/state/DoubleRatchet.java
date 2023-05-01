@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import static java.lang.Integer.MIN_VALUE;
 import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.FINER;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.WARNING;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES;
@@ -218,7 +219,7 @@ final class DoubleRatchet implements AutoCloseable {
             throw new IllegalStateException("Rotation is only allowed after new public key material was received from the other party.");
         }
         // Perform sender key rotation.
-        LOGGER.log(FINEST, "Rotating root key and sending chain key for ratchet " + this.i);
+        LOGGER.log(FINE, "Rotating root key and sending chain key for ratchet " + this.i);
         final boolean performDHRatchet = this.i % 3 == 0;
         this.sharedSecret.rotateOurKeys(performDHRatchet);
         generateRatchetKeys(Purpose.SENDING);
@@ -240,7 +241,7 @@ final class DoubleRatchet implements AutoCloseable {
      */
     @Nonnull
     byte[] encrypt(final byte[] data) {
-        LOGGER.log(FINEST, "Generating message keys for encryption of ratchet {0}, message {1}.",
+        LOGGER.log(FINER, "Generating message keys for encryption of ratchet {0}, message {1}.",
                 new Object[]{this.i - 1, this.senderRatchet.messageID});
         try (MessageKeys keys = this.generateSendingKeys()) {
             return keys.encrypt(data);
@@ -255,7 +256,7 @@ final class DoubleRatchet implements AutoCloseable {
      */
     @Nonnull
     byte[] authenticate(final byte[] dataMessageSectionsContent) {
-        LOGGER.log(FINEST, "Generating message keys for authentication of ratchet {0}, message {1}.",
+        LOGGER.log(FINER, "Generating message keys for authentication of ratchet {0}, message {1}.",
                 new Object[]{this.i - 1, this.senderRatchet.messageID});
         try (MessageKeys keys = this.generateSendingKeys()) {
             return keys.authenticate(dataMessageSectionsContent);
@@ -289,7 +290,7 @@ final class DoubleRatchet implements AutoCloseable {
     byte[] decrypt(final int ratchetId, final int messageId, final byte[] encodedDataMessageSections,
             final byte[] authenticator, final byte[] ciphertext) throws VerificationException,
             RotationLimitationException {
-        LOGGER.log(FINEST, "Generating message keys for verification and decryption of ratchet {0}, message {1}.",
+        LOGGER.log(FINER, "Generating message keys for verification and decryption of ratchet {0}, message {1}.",
                 new Object[]{this.i - 1, this.receiverRatchet.messageID});
         try (MessageKeys keys = generateReceivingKeys(ratchetId, messageId)) {
             keys.verify(encodedDataMessageSections, authenticator);
@@ -396,7 +397,7 @@ final class DoubleRatchet implements AutoCloseable {
     // FIXME need to verify that public keys (ECDH and DH) were not encountered previously.
     void rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH) throws OtrCryptoException, ProtocolException {
         requireNotClosed();
-        LOGGER.log(FINEST, "Rotating root key and receiving chain key for ratchet {0} (nextDH = {1})",
+        LOGGER.log(FINE, "Rotating root key and receiving chain key for ratchet {0} (nextDH = {1})",
                 new Object[]{this.i, nextDH != null});
         if (nextECDH.constantTimeEquals(this.sharedSecret.getTheirECDHPublicKey())) {
             LOGGER.log(FINE, "Skipping rotating receiver keys as ECDH public key is already known.");

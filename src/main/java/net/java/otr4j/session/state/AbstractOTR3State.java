@@ -28,6 +28,7 @@ import net.java.otr4j.session.ake.SecurityParameters;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
@@ -157,6 +158,7 @@ abstract class AbstractOTR3State implements State {
 
     @Override
     public void initiateAKE(final Context context, final int version, final InstanceTag receiverTag) throws OtrException {
+        LOGGER.log(Level.FINE, "Initiating AKE…");
         context.injectMessage(this.authState.initiate(context, version, receiverTag));
     }
 

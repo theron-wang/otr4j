@@ -31,6 +31,7 @@ import net.java.otr4j.session.ake.AuthState;
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.logging.Level.FINEST;
@@ -131,6 +132,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
             super.initiateAKE(context, version, receiverInstanceTag);
             return;
         }
+        LOGGER.log(Level.FINE, "Generating new short-term keypairs for DAKE…");
         final SecureRandom secureRandom = context.secureRandom();
         final ECDHKeyPair ourECDHkeyPair = ECDHKeyPair.generate(secureRandom);
         final DHKeyPair ourDHkeyPair = DHKeyPair.generate(secureRandom);

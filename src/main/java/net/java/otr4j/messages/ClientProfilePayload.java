@@ -44,11 +44,9 @@ import static net.java.otr4j.crypto.DSAKeyPair.verifySignature;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.verifyEdDSAPublicKey;
 import static net.java.otr4j.io.MessageProcessor.encodeVersionString;
 import static net.java.otr4j.io.MessageProcessor.parseVersionString;
-import static net.java.otr4j.io.OtrEncodables.encode;
 import static net.java.otr4j.messages.Validators.validateAtMost;
 import static net.java.otr4j.messages.Validators.validateDateAfter;
 import static net.java.otr4j.messages.Validators.validateExactly;
-import static net.java.otr4j.util.ByteArrays.concatenate;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.Iterables.findByType;
 
@@ -120,9 +118,10 @@ public final class ClientProfilePayload implements OtrEncodable {
             m = partialM;
         } else {
             final DSASignature transitionalSignature = dsaKeyPair.signRS(partialM);
-            final TransitionalSignatureField sigField = new TransitionalSignatureField(transitionalSignature);
-            fields.add(sigField);
-            m = concatenate(partialM, encode(sigField));
+            final TransitionalSignatureField transSigField = new TransitionalSignatureField(transitionalSignature);
+            fields.add(transSigField);
+            out.write(transSigField);
+            m = out.toByteArray();
         }
         final byte[] signature = eddsaKeyPair.sign(m);
         // We assume that the internally generated client profiles are correct, however it is tested when assertions are

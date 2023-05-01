@@ -29,7 +29,10 @@ import java.security.spec.DSAPublicKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
@@ -41,6 +44,8 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
  */
 @SuppressWarnings("InsecureCryptoUsage")
 public final class DSAKeyPair {
+
+    private static final Logger LOGGER = Logger.getLogger(DSAKeyPair.class.getName());
 
     private static final String ALGORITHM_DSA = "DSA";
     private static final int DSA_KEY_LENGTH_BITS = 1024;
@@ -253,6 +258,8 @@ public final class DSAKeyPair {
         final BigInteger bmpi = new BigInteger(1, b);
         final BigInteger[] signature = dsaSigner.generateSignature(asUnsignedByteArray(bmpi.mod(q)));
         assert signature.length == 2 : "signRS result does not contain the expected 2 components: r and s";
+        LOGGER.log(Level.FINEST, "DSA signature (r,s): ({0},{1}), Message: {2}",
+                new Object[]{signature[0], signature[1], Arrays.toString(b)});
         return new DSASignature(signature[0], signature[1]);
     }
 
@@ -316,6 +323,8 @@ public final class DSAKeyPair {
         final DSASigner dsaSigner = new DSASigner();
         dsaSigner.init(false, dsaPubParams);
 
+        LOGGER.log(Level.FINEST, "Verifying DSA signature (r,s): ({0},{1}), Message: {2}",
+                new Object[]{r, s, Arrays.toString(b)});
         final BigInteger bmpi = new BigInteger(1, b);
         if (!dsaSigner.verifySignature(asUnsignedByteArray(bmpi.mod(q)), r, s)) {
             throw new OtrCryptoException("DSA signature verification failed.");
