@@ -79,6 +79,8 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     private final SMP smp;
 
     private long lastMessageSentTimestamp = System.nanoTime();
+    
+    private final RemoteInfo remoteinfo;
 
     StateEncrypted4(final Context context, final byte[] ssid, final Point ourLongTermPublicKey,
             final Point ourForgingKey, final Point theirLongTermPublicKey, final Point theirForgingKey,
@@ -89,6 +91,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         this.ratchet = requireNonNull(ratchet);
         this.smp = new SMP(context.secureRandom(), context.getHost(), sessionID, ssid, ourLongTermPublicKey,
                 ourForgingKey, theirLongTermPublicKey, theirForgingKey, context.getReceiverInstanceTag());
+        this.remoteinfo = new RemoteInfo(FOUR, null, theirLongTermPublicKey, theirForgingKey);
     }
 
     @Nonnull
@@ -113,9 +116,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Nonnull
     @Override
     public RemoteInfo getRemoteInfo() {
-        // FIXME implement construction and return of RemoteInfo.
-        throw new UnsupportedOperationException("To be implemented: getRemoteInfo");
-        //return new RemoteInfo(Version.FOUR, null, null, null);
+        return this.remoteinfo;
     }
 
     /**
