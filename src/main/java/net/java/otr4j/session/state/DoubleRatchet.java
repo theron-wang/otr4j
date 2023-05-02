@@ -242,7 +242,7 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     byte[] encrypt(final byte[] data) {
         LOGGER.log(FINER, "Generating message keys for encryption of ratchet {0}, message {1}.",
-                new Object[]{this.i - 1, this.senderRatchet.messageID});
+                new Object[]{Math.max(0, this.i - 1), this.senderRatchet.messageID});
         try (MessageKeys keys = this.generateSendingKeys()) {
             return keys.encrypt(data);
         }
@@ -257,7 +257,7 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     byte[] authenticate(final byte[] dataMessageSectionsContent) {
         LOGGER.log(FINER, "Generating message keys for authentication of ratchet {0}, message {1}.",
-                new Object[]{this.i - 1, this.senderRatchet.messageID});
+                new Object[]{Math.max(0, this.i - 1), this.senderRatchet.messageID});
         try (MessageKeys keys = this.generateSendingKeys()) {
             return keys.authenticate(dataMessageSectionsContent);
         }
