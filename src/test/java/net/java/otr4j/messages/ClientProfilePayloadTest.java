@@ -23,7 +23,7 @@ import org.junit.Test;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
 
-import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static net.java.otr4j.crypto.DSAKeyPair.generateDSAKeyPair;
 import static net.java.otr4j.messages.ClientProfilePayload.readFrom;
 import static net.java.otr4j.messages.ClientProfilePayload.signClientProfile;
@@ -54,29 +54,29 @@ public final class ClientProfilePayloadTest {
 
     @Test
     public void testConstructedPayloadIsReversible() throws ValidationException {
-        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey, singleton(Version.FOUR),
-                null);
+        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
+                singletonList(Version.FOUR), null);
         assertEquals(profile, signClientProfile(profile, Long.MAX_VALUE / 1000, null, keypair).validate());
     }
 
     @Test
     public void testConstructedPayloadWithDSAIsReversible() throws ValidationException {
-        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey, singleton(Version.FOUR),
-                this.dsaKeyPair.getPublic());
+        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
+                singletonList(Version.FOUR), this.dsaKeyPair.getPublic());
         assertEquals(profile, signClientProfile(profile, Long.MAX_VALUE / 1000, dsaKeyPair, keypair).validate());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructedPayloadWithDSAPublicKeyWithoutDSASignature() throws ValidationException {
-        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey, singleton(Version.FOUR),
-                this.dsaKeyPair.getPublic());
+        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
+                singletonList(Version.FOUR), this.dsaKeyPair.getPublic());
         assertEquals(profile, signClientProfile(profile, Long.MAX_VALUE / 1000, null, keypair).validate());
     }
 
     @Test
     public void testConstructedPayloadWithoutDSAPublicKeyWithDSASignature() throws ValidationException {
-        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey, singleton(Version.FOUR),
-                null);
+        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
+                singletonList(Version.FOUR), null);
         assertEquals(profile, signClientProfile(profile, Long.MAX_VALUE / 1000, this.dsaKeyPair, keypair).validate());
     }
 
@@ -87,21 +87,21 @@ public final class ClientProfilePayloadTest {
 
     @Test(expected = AssertionError.class)
     public void testSignProfileZeroTimestamp() {
-        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey, singleton(Version.FOUR),
-                null);
+        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
+                singletonList(Version.FOUR), null);
         signClientProfile(profile, 0, null, this.keypair);
     }
 
     @Test(expected = NullPointerException.class)
     public void testSignNullKeypair() {
-        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey, singleton(Version.FOUR),
-                null);
+        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
+                singletonList(Version.FOUR), null);
         signClientProfile(profile, Long.MAX_VALUE / 1000, null, null);
     }
 
     @Test
     public void testReadingWrittenClientProfilePayload() throws OtrCryptoException, ProtocolException, ValidationException {
-        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey, singleton(Version.FOUR),
+        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey, singletonList(Version.FOUR),
                 null);
         final ClientProfilePayload payload = signClientProfile(profile, Long.MAX_VALUE / 1000, null, keypair);
         final ClientProfilePayload parsedPayload = readFrom(new OtrInputStream(new OtrOutputStream().write(payload).toByteArray()));
@@ -110,8 +110,8 @@ public final class ClientProfilePayloadTest {
 
     @Test
     public void testReadingWrittenClientProfilePayloadWithDSA() throws OtrCryptoException, ProtocolException, ValidationException {
-        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey, singleton(Version.FOUR),
-                this.dsaKeyPair.getPublic());
+        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
+                singletonList(Version.FOUR), this.dsaKeyPair.getPublic());
         final ClientProfilePayload payload = signClientProfile(profile, Long.MAX_VALUE / 1000, this.dsaKeyPair, keypair);
         final ClientProfilePayload parsedPayload = readFrom(new OtrInputStream(new OtrOutputStream().write(payload).toByteArray()));
         assertEquals(payload, parsedPayload);
@@ -179,7 +179,7 @@ public final class ClientProfilePayloadTest {
         readFrom(new OtrInputStream(input));
     }
 
-    @Test(expected = ValidationException.class)
+    @Test(expected = ProtocolException.class)
     public void testReadIllegalVersionStringTooHigh() throws OtrCryptoException, ProtocolException, ValidationException {
         final byte[] input = new byte[] {0, 0, 0, 5, 0, 1, 0, 0, 1, 0, 0, 2, 0, 16, -80, 117, -92, -124, -52, 119, -75, -102, -128, -35, -102, 33, 49, 107, 58, -101, -89, -71, 93, -19, 26, -75, -39, 50, -11, -48, 0, -116, -29, 119, 57, -36, 123, 37, -110, -61, 74, 94, 68, -48, -120, 1, -26, -61, 50, 76, -25, 20, 56, 111, 61, -84, 99, -40, -82, -73, -128, 0, 3, 0, 18, -59, -76, 59, 124, -64, 85, 106, -14, 115, 46, -125, -77, -3, 8, -64, 40, 121, -65, -27, 121, -55, 98, -64, 12, 87, 2, -92, 37, -63, 100, -85, 81, 43, 82, 39, -127, -62, 77, -85, 107, 71, -66, 62, 48, -21, -31, 98, -124, -90, 98, -29, 91, -34, -119, -3, -11, -128, 0, 4, 0, 0, 0, 1, 59, 0, 5, 0, 32, -60, -101, -91, -29, 83, -9, 37, -66, -102, 61, -40, 28, 18, -4, -17, 116, -92, -103, 86, 109, 122, -6, 61, 56, -9, -12, 6, -58, 34, 13, -113, -127, 53, 114, -20, -68, 25, -103, 57, -14, 29, 85, 41, -45, -122, -36, 8, -80, 96, -100, -99, 90, 72, -61, -1, -82, 53, 109, -112, -63, -26, -124, 0, -49, -86, -38, -59, 39, 101, 66, 122, 73, -74, 59, 21, 8, 80, -52, -42, 76, 42, -62, -1, -104, 96, -106, 117, -43, -16, 75, 63, -24, 104, 114, 112, 78, -88, -40, -48, -62, -121, 67, 74, 84, 44, -24, 109, 49, 30, -27, 8, 113, -48, -91, 64, 104, -82, -112, 14, 0};
         readFrom(new OtrInputStream(input));

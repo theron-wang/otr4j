@@ -19,6 +19,9 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import javax.annotation.Nonnull;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.ByteArrayOutputStream;
+import java.math.BigInteger;
+import java.net.ProtocolException;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -34,6 +37,8 @@ import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
  * @author George Politis
  * @author Danny van Heumen
  */
+// TODO consider reducing complexity.
+@SuppressWarnings("PMD.GodClass")
 public final class OtrCryptoEngine {
 
     private static final String MD_SHA1 = "SHA-1";
@@ -285,5 +290,56 @@ public final class OtrCryptoEngine {
         if (!constantTimeEquals(a, b)) {
             throw new OtrCryptoException(message);
         }
+    }
+
+    @Nonnull
+    static BigInteger[] convertSignatureASN1ToP1363(@Nonnull final byte[] signature) throws ProtocolException {
+        // NOTE: this implementation is copied from the `github.com/jitsi/otr4j` implementation where I first
+        // implemented it myself.
+        final ByteBuffer in = ByteBuffer.wrap(signature);
+        if (in.remaining() < 1 || in.get() != 0x30) {
+            throw new ProtocolException("Invalid signature content: missing or unsupported type.");
+        }
+        final byte signatureLength = in.remaining() > 0 ? in.get() : 0;
+        if (signatureLength < 0 || signatureLength != in.remaining()) {
+            throw new ProtocolException("Invalid signature content: unexpected length for signature.");
+        }
+        if (in.remaining() < 1 || in.get() != 0x02) {
+            throw new ProtocolException("Invalid signature content: missing or unexpected type for parameter r.");
+        }
+        final byte rLength = in.remaining() > 0 ? in.get() : 0;
+        if (rLength <= 0 || rLength > in.remaining()) {
+            throw new ProtocolException("Invalid signature content: unexpected length or missing bytes for parameter r.");
+        }
+        final byte[] rBytes = new byte[rLength];
+        in.get(rBytes);
+        if (in.remaining() < 1 || in.get() != 0x02) {
+            throw new ProtocolException("Invalid signature content: missing or unexpected type for parameter s.");
+        }
+        final byte sLength = in.remaining() > 0 ? in.get() : 0;
+        if (sLength <= 0 || sLength > in.remaining()) {
+            throw new ProtocolException("Invalid signature content: unexpected length or missing bytes for parameter s.");
+        }
+        final byte[] sBytes = new byte[sLength];
+        in.get(sBytes);
+        return new BigInteger[]{new BigInteger(rBytes), new BigInteger(sBytes)};
+    }
+
+    @Nonnull
+    static byte[] convertSignatureP1363ToASN1(@Nonnull final BigInteger r, @Nonnull final BigInteger s) {
+        // NOTE: this implementation is copied from the `github.com/jitsi/otr4j` implementation where I first
+        // implemented it myself.
+        final byte[] rBytes = r.toByteArray();
+        final byte[] sBytes = s.toByteArray();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(0x30);
+        out.write(2 + rBytes.length + 2 + sBytes.length);
+        out.write(0x02);
+        out.write(rBytes.length);
+        out.write(rBytes, 0, rBytes.length);
+        out.write(0x02);
+        out.write(sBytes.length);
+        out.write(sBytes, 0, sBytes.length);
+        return out.toByteArray();
     }
 }

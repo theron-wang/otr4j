@@ -25,7 +25,7 @@ import org.mockito.internal.util.reflection.Whitebox;
 import java.security.SecureRandom;
 import java.util.HashSet;
 
-import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
@@ -46,7 +46,7 @@ public final class SessionImplTest {
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final SessionID sessionID = new SessionID("bob@network", "alice@network", "network");
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), forgingKey,
-                singleton(Version.FOUR), null);
+                singletonList(Version.FOUR), null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
         when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
@@ -61,7 +61,7 @@ public final class SessionImplTest {
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final SessionID sessionID = new SessionID("bob@network", "alice@network", "network");
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), forgingKey,
-                singleton(Version.FOUR), null);
+                singletonList(Version.FOUR), null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
         when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
@@ -76,7 +76,7 @@ public final class SessionImplTest {
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final SessionID sessionID = new SessionID("bob@network", "alice@network", "network");
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), forgingKey,
-                singleton(Version.FOUR), null);
+                singletonList(Version.FOUR), null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
         when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
@@ -95,7 +95,7 @@ public final class SessionImplTest {
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final SessionID sessionID = new SessionID("bob@network", "alice@network", "network");
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), forgingKey,
-                singleton(Version.FOUR), null);
+                singletonList(Version.FOUR), null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
         when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
@@ -117,7 +117,7 @@ public final class SessionImplTest {
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final SessionID sessionID = new SessionID("bob@network", "alice@network", "network");
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), forgingKey,
-                singleton(Version.FOUR), null);
+                singletonList(Version.FOUR), null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
         when(host.getClientProfile(eq(sessionID))).thenReturn(profile);

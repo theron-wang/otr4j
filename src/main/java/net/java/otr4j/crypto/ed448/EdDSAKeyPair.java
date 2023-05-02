@@ -13,9 +13,6 @@ import org.bouncycastle.math.ec.rfc8032.Ed448;
 
 import javax.annotation.Nonnull;
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static net.java.otr4j.crypto.ed448.Point.decodePoint;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
@@ -36,9 +33,6 @@ import static org.bouncycastle.util.Arrays.copyOfRange;
 // FIXME check how we should restore the EdDSAKeyPair from the OtrEngineHost perspective. It needs to store and restore the EdDSAKeyPair on every execution session.
 // TODO consider changing some assertions into full checks with run-time exceptions.
 public final class EdDSAKeyPair implements AutoCloseable {
-
-    private static final Logger LOGGER = Logger.getLogger(EdDSAKeyPair.class.getName());
-
     private static final int SECRET_KEY_LENGTH_BYTES = SECRET_KEY_SIZE;
 
     private static final int PUBLIC_KEY_LENGTH_BYTES = PUBLIC_KEY_SIZE;
@@ -85,7 +79,6 @@ public final class EdDSAKeyPair implements AutoCloseable {
     public static void verify(final Point publicKey, final byte[] message, final byte[] signature)
             throws ValidationException {
         assert !allZeroBytes(signature) : "Expected random data for signature instead of all zero-bytes.";
-        LOGGER.log(Level.FINEST, "Verifying EdDSA signature: {0}, Message: {1}", new Object[]{Arrays.toString(signature), Arrays.toString(message)});
         if (!Ed448.verify(signature, 0, publicKey.getEncoded(), 0, ED448_CONTEXT, message, 0, message.length)) {
             throw new ValidationException("Signature is not valid for provided message.");
         }
@@ -104,7 +97,6 @@ public final class EdDSAKeyPair implements AutoCloseable {
         requireNotCleared();
         final byte[] signature = new byte[Ed448.SIGNATURE_SIZE];
         Ed448.sign(this.symmetricKey, 0, ED448_CONTEXT, message, 0, message.length, signature, 0);
-        LOGGER.log(Level.FINEST, "EdDSA signature: {0}, Message: {1}", new Object[]{Arrays.toString(signature), Arrays.toString(message)});
         return signature;
     }
 

@@ -45,7 +45,7 @@ public class OtrSessionManagerTest {
     private static final Point PUBLIC_KEY = ECDHKeyPair.generate(RANDOM).getPublicKey();
     private static final DSAKeyPair DSA_KEY_PAIR = DSAKeyPair.generateDSAKeyPair(RANDOM);
     private static final ClientProfile PROFILE = new ClientProfile(SMALLEST_TAG, EDDSA_KEY_PAIR.getPublicKey(),
-            PUBLIC_KEY, Collections.singleton(Version.FOUR), DSA_KEY_PAIR.getPublic());
+            PUBLIC_KEY, Collections.singletonList(Version.FOUR), DSA_KEY_PAIR.getPublic());
 
     @Test
     public void testGetSession() {

@@ -15,9 +15,9 @@ import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.messages.ClientProfilePayload;
 
 import java.security.SecureRandom;
-import java.util.TreeSet;
+import java.util.ArrayList;
 
-import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.crypto.DSAKeyPair.generateDSAKeyPair;
 import static net.java.otr4j.messages.ClientProfilePayload.signClientProfile;
@@ -46,12 +46,12 @@ public final class ClientProfileTestUtils {
 
     public ClientProfilePayload createClientProfile() {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, this.eddsaLongTermKeyPair.getPublicKey(),
-                this.forgingKey, singleton(Session.Version.FOUR), null);
+                this.forgingKey, singletonList(Session.Version.FOUR), null);
         return signClientProfile(profile, this.expirationTime, null, this.eddsaLongTermKeyPair);
     }
 
     public ClientProfilePayload createTransitionalClientProfile() {
-        final TreeSet<Integer> versions = new TreeSet<>();
+        final ArrayList<Integer> versions = new ArrayList<>();
         versions.add(Session.Version.THREE);
         versions.add(Session.Version.FOUR);
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, this.eddsaLongTermKeyPair.getPublicKey(),

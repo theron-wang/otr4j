@@ -16,12 +16,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.security.interfaces.DSAPublicKey;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
-import static java.util.Collections.unmodifiableSet;
+import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.Collections.requireAbsent;
 import static net.java.otr4j.util.Collections.requireElements;
@@ -58,7 +58,7 @@ public final class ClientProfile {
      * List of supported versions.
      */
     @Nonnull
-    private final Set<Integer> versions;
+    private final List<Integer> versions;
 
     /**
      * DSA public key.
@@ -81,12 +81,12 @@ public final class ClientProfile {
      *                          {@link OtrEngineHost#getLocalKeyPair(SessionID)}.
      */
     public ClientProfile(final InstanceTag instanceTag, final Point longTermPublicKey, final Point forgingKey,
-            final Set<Integer> versions, @Nullable final DSAPublicKey dsaPublicKey) {
+            final List<Integer> versions, @Nullable final DSAPublicKey dsaPublicKey) {
         // TODO should check for `> 0` instance tag?
         this.instanceTag = requireNonNull(instanceTag);
         this.longTermPublicKey = requireNonNull(longTermPublicKey);
         this.forgingKey = requireNonNull(forgingKey);
-        this.versions = unmodifiableSet(requireMinElements(1, requireElements(MANDATORY_VERSIONS,
+        this.versions = unmodifiableList(requireMinElements(1, requireElements(MANDATORY_VERSIONS,
                 requireAbsent(FORBIDDEN_VERSIONS, versions))));
         this.dsaPublicKey = dsaPublicKey;
     }
@@ -127,7 +127,7 @@ public final class ClientProfile {
      * @return Returns the versions.
      */
     @Nonnull
-    public Set<Integer> getVersions() {
+    public List<Integer> getVersions() {
         return this.versions;
     }
 

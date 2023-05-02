@@ -26,7 +26,7 @@ import java.security.SecureRandom;
 
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
-import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static net.java.otr4j.api.InstanceTag.HIGHEST_TAG;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ringSign;
@@ -48,7 +48,7 @@ public final class AuthRMessagesTest {
         final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
         final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
-                forgingKey, singleton(Version.FOUR), theirDSAKeyPair.getPublic());
+                forgingKey, singletonList(Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirPayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
         final ECDHKeyPair theirX = ECDHKeyPair.generate(RANDOM);
@@ -62,7 +62,7 @@ public final class AuthRMessagesTest {
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
-                ourForgingKey, singleton(Session.Version.FOUR), ourDSAKeyPair.getPublic());
+                ourForgingKey, singletonList(Session.Version.FOUR), ourDSAKeyPair.getPublic());
         final ClientProfilePayload ourPayload = signClientProfile(ourProfile, Long.MAX_VALUE / 1000,
                 ourDSAKeyPair, ourLongTermKeyPair);
         // Define the message to be validated
@@ -85,7 +85,7 @@ public final class AuthRMessagesTest {
         final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(new InstanceTag(257), theirLongTermKeyPair.getPublicKey(),
-                forgingKey, singleton(Session.Version.FOUR), theirDSAKeyPair.getPublic());
+                forgingKey, singletonList(Session.Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirPayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
         final Point theirX = ECDHKeyPair.generate(RANDOM).getPublicKey();
@@ -101,7 +101,7 @@ public final class AuthRMessagesTest {
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
-                ourForgingKey, singleton(Session.Version.FOUR), ourDSAKeyPair.getPublic());
+                ourForgingKey, singletonList(Session.Version.FOUR), ourDSAKeyPair.getPublic());
         final ClientProfilePayload ourPayload = signClientProfile(ourProfile, Long.MAX_VALUE / 1000,
                 ourDSAKeyPair, ourLongTermKeyPair);
         // Define the message to be validated
@@ -123,7 +123,7 @@ public final class AuthRMessagesTest {
         final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
-                forgingKey, singleton(Version.FOUR), theirDSAKeyPair.getPublic());
+                forgingKey, singletonList(Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirPayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
         final Point theirX = createPoint(ONE, ONE);
@@ -139,7 +139,7 @@ public final class AuthRMessagesTest {
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
-                ourForgingKey, singleton(Session.Version.FOUR), ourDSAKeyPair.getPublic());
+                ourForgingKey, singletonList(Session.Version.FOUR), ourDSAKeyPair.getPublic());
         final ClientProfilePayload ourPayload = signClientProfile(ourProfile, Long.MAX_VALUE / 1000,
                 ourDSAKeyPair, ourLongTermKeyPair);
         // Define the message to be validated
@@ -161,7 +161,7 @@ public final class AuthRMessagesTest {
         final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
-                forgingKey, singleton(Session.Version.FOUR), theirDSAKeyPair.getPublic());
+                forgingKey, singletonList(Session.Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirPayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
         final Point theirX = ECDHKeyPair.generate(RANDOM).getPublicKey();
@@ -177,7 +177,7 @@ public final class AuthRMessagesTest {
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
-                ourForgingKey, singleton(Session.Version.FOUR), ourDSAKeyPair.getPublic());
+                ourForgingKey, singletonList(Session.Version.FOUR), ourDSAKeyPair.getPublic());
         final ClientProfilePayload ourPayload = signClientProfile(ourProfile, Long.MAX_VALUE / 1000,
                 ourDSAKeyPair, ourLongTermKeyPair);
         // Define the message to be validated
@@ -199,7 +199,7 @@ public final class AuthRMessagesTest {
         final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
-                forgingKey, singleton(Version.FOUR), theirDSAKeyPair.getPublic());
+                forgingKey, singletonList(Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirPayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
         final Point theirX = ECDHKeyPair.generate(RANDOM).getPublicKey();
@@ -215,7 +215,7 @@ public final class AuthRMessagesTest {
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
-                ourForgingKey, singleton(Session.Version.FOUR), ourDSAKeyPair.getPublic());
+                ourForgingKey, singletonList(Session.Version.FOUR), ourDSAKeyPair.getPublic());
         final ClientProfilePayload ourPayload = signClientProfile(ourProfile, Long.MAX_VALUE / 1000,
                 ourDSAKeyPair, ourLongTermKeyPair);
         // Define the message to be validated

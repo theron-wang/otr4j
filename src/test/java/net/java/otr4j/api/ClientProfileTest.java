@@ -18,7 +18,7 @@ import org.junit.Test;
 import java.security.SecureRandom;
 import java.util.Collections;
 
-import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.crypto.DSAKeyPair.generateDSAKeyPair;
 import static net.java.otr4j.crypto.ed448.EdDSAKeyPair.generate;
@@ -36,31 +36,31 @@ public final class ClientProfileTest {
 
     @Test
     public void testConstructWithoutDSAPublicKey() {
-        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey, singleton(Session.Version.FOUR),
+        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey, singletonList(Session.Version.FOUR),
                 null);
     }
 
     @Test
     public void testConstructWithDSAPublicKey() {
-        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey, singleton(Version.FOUR),
+        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey, singletonList(Version.FOUR),
                 dsaKeyPair.getPublic());
     }
 
     @Test(expected = NullPointerException.class)
     public void testConsructNullInstanceTag() {
-        new ClientProfile(null, this.longTermKeyPair.getPublicKey(), forgingPublicKey, singleton(Session.Version.FOUR),
+        new ClientProfile(null, this.longTermKeyPair.getPublicKey(), forgingPublicKey, singletonList(Session.Version.FOUR),
                 null);
     }
 
     @Test(expected = NullPointerException.class)
     public void testConsructNullPublicKey() {
-        new ClientProfile(SMALLEST_TAG, null, forgingPublicKey, singleton(Session.Version.FOUR),
+        new ClientProfile(SMALLEST_TAG, null, forgingPublicKey, singletonList(Session.Version.FOUR),
                 null);
     }
 
     @Test(expected = NullPointerException.class)
     public void testConsructNullForgingKey() {
-        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), null, singleton(Version.FOUR),
+        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), null, singletonList(Version.FOUR),
                 null);
     }
 
@@ -71,13 +71,13 @@ public final class ClientProfileTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructEmptyVersions() {
-        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey, Collections.emptySet(),
+        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey, Collections.emptyList(),
                 null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalVersionsList() {
         new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey,
-                singleton(Session.Version.THREE), null);
+                singletonList(Session.Version.THREE), null);
     }
 }

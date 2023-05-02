@@ -10,8 +10,8 @@
 package net.java.otr4j.crypto;
 
 import javax.annotation.Nonnull;
-import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import java.net.ProtocolException;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -29,9 +29,10 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
+import static net.java.otr4j.crypto.OtrCryptoEngine.convertSignatureASN1ToP1363;
+import static net.java.otr4j.crypto.OtrCryptoEngine.convertSignatureP1363ToASN1;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
@@ -42,12 +43,9 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
 @SuppressWarnings("InsecureCryptoUsage")
 public final class DSAKeyPair {
 
-    private static final Logger LOGGER = Logger.getLogger(DSAKeyPair.class.getName());
-
     private static final String ALGORITHM_DSA = "DSA";
     private static final int DSA_KEY_LENGTH_BITS = 1024;
 
-    // FIXME test for algorithm availability upon class-loading
     private static final String ALGORITHM_DSA_SIGNATURE = "NONEwithDSA";
     /**
      * Length of DSA signature in bytes.
@@ -57,6 +55,7 @@ public final class DSAKeyPair {
     static {
         try {
             KeyPairGenerator.getInstance(ALGORITHM_DSA);
+            Signature.getInstance(ALGORITHM_DSA_SIGNATURE);
         } catch (final NoSuchAlgorithmException e) {
             throw new UnsupportedOperationException("DSA algorithm is not available.", e);
         }
@@ -217,8 +216,9 @@ public final class DSAKeyPair {
     public byte[] sign(final byte[] b) {
         final BigInteger q = this.privateKey.getParams().getQ();
         final DSASignature signature = signRS(b);
-
         final int siglen = q.bitLength() / 4;
+        assert siglen == DSA_SIGNATURE_LENGTH_BYTES : "BUG: unexpected signature length, are DSA parameters correct?";
+
         final int rslen = siglen / 2;
         final byte[] rb = asUnsignedByteArray(signature.r);
         final byte[] sb = asUnsignedByteArray(signature.s);
@@ -244,15 +244,17 @@ public final class DSAKeyPair {
             signer = Signature.getInstance(ALGORITHM_DSA_SIGNATURE);
             signer.initSign(this.privateKey);
         } catch (final NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new IllegalStateException("DSA signer initialization failed.", e);
+            // NOTE this should not happen, as we test for availability of algorithms in the static initializer.
+            throw new IllegalStateException("BUG: DSA signer initialization failed.", e);
         }
         final DSAParams dsaParams = privateKey.getParams();
         try {
             signer.update(asUnsignedByteArray(20, new BigInteger(1, b).mod(dsaParams.getQ())));
-            return convertSignatureASN1ToP1363(signer.sign());
+            final BigInteger[] signature = convertSignatureASN1ToP1363(signer.sign());
+            return new DSASignature(signature[0], signature[1]);
         } catch (final SignatureException e) {
             throw new IllegalStateException("Failed to produce signature for message.", e);
-        } catch (final OtrCryptoException e) {
+        } catch (final ProtocolException e) {
             throw new IllegalStateException("BUG: DSA signature algorithm failed to produce valid signature.", e);
         }
     }
@@ -309,60 +311,10 @@ public final class DSAKeyPair {
         final DSAParams dsaParams = pubKey.getParams();
         try {
             verifier.update(asUnsignedByteArray(20, new BigInteger(1, b).mod(dsaParams.getQ())));
-            final byte[] signature = convertSignatureP1363ToASN1(r, s);
-            verifier.verify(signature);
+            verifier.verify(convertSignatureP1363ToASN1(r, s));
         } catch (final SignatureException e) {
             throw new OtrCryptoException("DSA signature validation failed.");
         }
-    }
-
-    @Nonnull
-    private static DSASignature convertSignatureASN1ToP1363(@Nonnull final byte[] signature) throws OtrCryptoException {
-        final ByteBuffer in = ByteBuffer.wrap(signature);
-        if (in.remaining() < 1 || in.get() != 0x30) {
-            throw new OtrCryptoException("Invalid signature content: missing or unsupported type.");
-        }
-        final byte signatureLength = in.remaining() > 0 ? in.get() : 0;
-        if (signatureLength < 0 || signatureLength != in.remaining()) {
-            throw new OtrCryptoException("Invalid signature content: unexpected length for signature.");
-        }
-        if (in.remaining() < 1 || in.get() != 0x02) {
-            throw new OtrCryptoException("Invalid signature content: missing or unexpected type for parameter r.");
-        }
-        final byte rLength = in.remaining() > 0 ? in.get() : 0;
-        if (rLength <= 0 || rLength > in.remaining()) {
-            throw new OtrCryptoException("Invalid signature content: unexpected length or missing bytes for parameter r.");
-        }
-        final byte[] rBytes = new byte[rLength];
-        in.get(rBytes);
-        final BigInteger r = new BigInteger(rBytes);
-        if (in.remaining() < 1 || in.get() != 0x02) {
-            throw new OtrCryptoException("Invalid signature content: missing or unexpected type for parameter s.");
-        }
-        final byte sLength = in.remaining() > 0 ? in.get() : 0;
-        if (sLength <= 0 || sLength > in.remaining()) {
-            throw new OtrCryptoException("Invalid signature content: unexpected length or missing bytes for parameter s.");
-        }
-        final byte[] sBytes = new byte[sLength];
-        in.get(sBytes);
-        final BigInteger s = new BigInteger(sBytes);
-        return new DSASignature(r, s);
-    }
-
-    @Nonnull
-    private static byte[] convertSignatureP1363ToASN1(@Nonnull final BigInteger r, @Nonnull final BigInteger s) {
-        final byte[] rBytes = r.toByteArray();
-        final byte[] sBytes = s.toByteArray();
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        out.write(0x30);
-        out.write(2 + rBytes.length + 2 + sBytes.length);
-        out.write(0x02);
-        out.write(rBytes.length);
-        out.write(rBytes, 0, rBytes.length);
-        out.write(0x02);
-        out.write(sBytes.length);
-        out.write(sBytes, 0, sBytes.length);
-        return out.toByteArray();
     }
 
     /**

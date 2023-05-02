@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,7 +42,6 @@ import static net.java.otr4j.api.InstanceTag.isValidInstanceTag;
 import static net.java.otr4j.crypto.DSAKeyPair.verifySignature;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.verifyEdDSAPublicKey;
 import static net.java.otr4j.io.MessageProcessor.encodeVersionString;
-import static net.java.otr4j.io.MessageProcessor.parseVersionString;
 import static net.java.otr4j.messages.Validators.validateAtMost;
 import static net.java.otr4j.messages.Validators.validateDateAfter;
 import static net.java.otr4j.messages.Validators.validateExactly;
@@ -64,6 +62,8 @@ import static net.java.otr4j.util.Iterables.findByType;
 public final class ClientProfilePayload implements OtrEncodable {
 
     private static final Logger LOGGER = Logger.getLogger(ClientProfilePayload.class.getName());
+
+    private static final String NUMBERINDEX = "0123456789";
 
     private final List<Field> fields;
 
@@ -99,7 +99,7 @@ public final class ClientProfilePayload implements OtrEncodable {
         fields.add(new InstanceTagField(profile.getInstanceTag().getValue()));
         fields.add(new ED448PublicKeyField(profile.getLongTermPublicKey()));
         fields.add(new ED448ForgingKeyField(profile.getForgingKey()));
-        fields.add(new VersionsField(profile.getVersions()));
+        fields.add(new VersionsField(new ArrayList<>(profile.getVersions())));
         fields.add(new ExpirationDateField(expirationUnixTimeSeconds));
         final DSAPublicKey dsaPublicKey = profile.getDsaPublicKey();
         if (dsaPublicKey != null) {
@@ -182,8 +182,7 @@ public final class ClientProfilePayload implements OtrEncodable {
                 break;
             case VERSIONS:
                 try {
-                    final Set<Integer> versions = parseVersionString(new String(in.readData(), US_ASCII));
-                    fields.add(new VersionsField(versions));
+                    fields.add(new VersionsField(parseVersions(in.readData())));
                 } catch (final UnsupportedLengthException e) {
                     throw new ProtocolException("Versions are not expected to be stored in an exceptionally large data field. This is not according to specification.");
                 }
@@ -210,6 +209,19 @@ public final class ClientProfilePayload implements OtrEncodable {
         final byte[] signature = in.readEdDSASignature();
         validate(fields, signature, Instant.now());
         return new ClientProfilePayload(fields, signature);
+    }
+
+    @Nonnull
+    private static ArrayList<Integer> parseVersions(@Nonnull final byte[] versiondata) throws ProtocolException {
+        final ArrayList<Integer> versions = new ArrayList<>();
+        for (final byte b : versiondata) {
+            final int idx = NUMBERINDEX.indexOf(b);
+            if (idx < 0) {
+                throw new ProtocolException("Unknown or illegal version specifier found.");
+            }
+            versions.add(idx);
+        }
+        return versions;
     }
 
     @Override
@@ -265,7 +277,7 @@ public final class ClientProfilePayload implements OtrEncodable {
         final InstanceTag instanceTag = new InstanceTag(findByType(this.fields, InstanceTagField.class).instanceTag);
         final Point longTermPublicKey = findByType(this.fields, ED448PublicKeyField.class).publicKey;
         final Point forgingKey = findByType(this.fields, ED448ForgingKeyField.class).publicKey;
-        final Set<Integer> versions = findByType(this.fields, VersionsField.class).versions;
+        final List<Integer> versions = findByType(this.fields, VersionsField.class).versions;
         final DSAPublicKeyField dsaPublicKeyField = findByType(this.fields, DSAPublicKeyField.class, null);
         return new ClientProfile(instanceTag, longTermPublicKey, forgingKey, versions,
             dsaPublicKeyField == null ? null : dsaPublicKeyField.publicKey);
@@ -571,9 +583,9 @@ public final class ClientProfilePayload implements OtrEncodable {
 
         private static final FieldType TYPE = FieldType.VERSIONS;
 
-        private final Set<Integer> versions;
+        private final List<Integer> versions;
 
-        private VersionsField(final Set<Integer> versions) {
+        private VersionsField(final List<Integer> versions) {
             this.versions = requireNonNull(versions);
         }
 
