@@ -145,7 +145,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     @Nonnull
     @Override
     public RemoteInfo getRemoteInfo() {
-        return new RemoteInfo(Version.THREE, this.remotePublicKey, null, null);
+        return new RemoteInfo(Version.THREE, this.remotePublicKey, null);
     }
 
     @Override

@@ -217,7 +217,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         // account the case for rotation, so it should follow naturally in the process and prior to sending the first
         // data-message.
         secure(context, ssid, ratchet, ourClientProfile.getLongTermPublicKey(), ourClientProfile.getForgingKey(),
-                theirClientProfile.getLongTermPublicKey(), theirClientProfile.getForgingKey());
+                theirClientProfile);
     }
 
     @Nullable

@@ -9,8 +9,6 @@
 
 package net.java.otr4j.api;
 
-import net.java.otr4j.crypto.ed448.Point;
-
 import javax.annotation.Nullable;
 import java.security.interfaces.DSAPublicKey;
 
@@ -25,37 +23,30 @@ public final class RemoteInfo {
     public final int version;
 
     /**
-     * publicKeyV3 contains the long-term public key (DSA) if OTR version 3 is active.
+     * publicKeyV3 contains the long-term public key (DSA) if OTR version 3 is active, or contains the legacy long-term
+     * public key, in case it was part of the ClientProfile for an OTR version 4 session.
      */
     @Nullable
     public final DSAPublicKey publicKeyV3;
 
     /**
-     * publicKeyV4 contains the long-term public key (Ed448) if OTR version 4 is active.
+     * clientProfile contains the long-term public keys (identity, forging key) and legacy key, if OTR version 4 is
+     * active. This represents the identity of the remote party once a secure session has been established.
      */
     @Nullable
-    public final Point publicKeyV4;
-
-    /**
-     * forgingKeyV4 contains the forging public key (Ed448) if OTR version 4 is active.
-     */
-    @Nullable
-    public final Point forgingKeyV4;
+    public final ClientProfile clientProfile;
 
     /**
      * Constructor for RemoteInfo.
      *
      * @param version      the active OTR protocol version
-     * @param publicKeyV3  the protocol version 3 long-term public key
-     * @param publicKeyV4  the protocol version 4 long-term public key
-     * @param forgingKeyV4 the protocol version 4 forging key
+     * @param publicKeyV3  the protocol version 3 long-term public key (or OTRv4 legacy public key)
+     * @param clientProfile the protocol version 4 client profile
      */
-    public RemoteInfo(final int version, @Nullable final DSAPublicKey publicKeyV3, @Nullable final Point publicKeyV4,
-            @Nullable final Point forgingKeyV4) {
+    public RemoteInfo(final int version, @Nullable final DSAPublicKey publicKeyV3,
+            @Nullable final ClientProfile clientProfile) {
         this.version = version;
         this.publicKeyV3 = publicKeyV3;
-        this.publicKeyV4 = publicKeyV4;
-        // FIXME let forging key to internal-only, i.e. auto-generated and not exposed?
-        this.forgingKeyV4 = forgingKeyV4;
+        this.clientProfile = clientProfile;
     }
 }

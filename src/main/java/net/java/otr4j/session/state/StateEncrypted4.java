@@ -9,6 +9,7 @@
 
 package net.java.otr4j.session.state;
 
+import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionID;
@@ -82,16 +83,17 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     
     private final RemoteInfo remoteinfo;
 
-    StateEncrypted4(final Context context, final byte[] ssid, final Point ourLongTermPublicKey,
-            final Point ourForgingKey, final Point theirLongTermPublicKey, final Point theirForgingKey,
-            final DoubleRatchet ratchet, final AuthState authState) {
+    StateEncrypted4(final Context context, final byte[] ssid, final DoubleRatchet ratchet,
+            final Point ourLongTermPublicKey, final Point ourForgingKey, final ClientProfile theirProfile,
+             final AuthState authState) {
         super(authState);
         final SessionID sessionID = context.getSessionID();
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.ratchet = requireNonNull(ratchet);
         this.smp = new SMP(context.secureRandom(), context.getHost(), sessionID, ssid, ourLongTermPublicKey,
-                ourForgingKey, theirLongTermPublicKey, theirForgingKey, context.getReceiverInstanceTag());
-        this.remoteinfo = new RemoteInfo(FOUR, null, theirLongTermPublicKey, theirForgingKey);
+                ourForgingKey, theirProfile.getLongTermPublicKey(), theirProfile.getForgingKey(),
+                context.getReceiverInstanceTag());
+        this.remoteinfo = new RemoteInfo(FOUR, theirProfile.getDsaPublicKey(), theirProfile);
     }
 
     @Nonnull

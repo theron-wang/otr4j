@@ -237,8 +237,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY,
                 this.k), ALICE);
         secure(context, this.ssid, ratchet, ourProfileValidated.getLongTermPublicKey(),
-                ourProfileValidated.getForgingKey(), profileBobValidated.getLongTermPublicKey(),
-                profileBobValidated.getForgingKey());
+                ourProfileValidated.getForgingKey(), profileBobValidated);
     }
 
     @Nullable

@@ -156,13 +156,13 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
      * @param ssid                   the session's SSID
      * @param ratchet                the initialized double ratchet
      * @param ourLongTermPublicKey   our long-term public key as used in the DAKE
-     * @param theirLongTermPublicKey their long-term public key as used in the DAKE
+     * @param ourForgingKey          our forging key
+     * @param theirProfile           their client profile
      */
     final void secure(final Context context, final byte[] ssid, final DoubleRatchet ratchet,
-            final Point ourLongTermPublicKey, final Point ourForgingKey, final Point theirLongTermPublicKey,
-            final Point theirForgingKey) {
-        context.transition(this, new StateEncrypted4(context, ssid, ourLongTermPublicKey, ourForgingKey,
-                theirLongTermPublicKey, theirForgingKey, ratchet, getAuthState()));
+            final Point ourLongTermPublicKey, final Point ourForgingKey, final ClientProfile theirProfile) {
+        context.transition(this, new StateEncrypted4(context, ssid, ratchet, ourLongTermPublicKey, ourForgingKey,
+                theirProfile, getAuthState()));
         if (context.getSessionStatus() != ENCRYPTED) {
             throw new IllegalStateException("Session failed to transition to ENCRYPTED (OTRv4).");
         }
