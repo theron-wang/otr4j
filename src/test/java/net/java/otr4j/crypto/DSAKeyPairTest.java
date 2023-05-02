@@ -13,20 +13,24 @@ import net.java.otr4j.crypto.DSAKeyPair.DSASignature;
 import net.java.otr4j.crypto.DSAKeyPair.EncodedDSAKeyPair;
 import org.junit.Test;
 
+import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPublicKey;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static net.java.otr4j.crypto.DSAKeyPair.DSA_SIGNATURE_LENGTH_BYTES;
 import static net.java.otr4j.crypto.DSAKeyPair.createDSAPublicKey;
 import static net.java.otr4j.crypto.DSAKeyPair.generateDSAKeyPair;
 import static net.java.otr4j.crypto.DSAKeyPair.restoreDSAKeyPair;
 import static net.java.otr4j.crypto.DSAKeyPair.verifySignature;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
+import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
 @SuppressWarnings("ConstantConditions")
@@ -53,6 +57,33 @@ public final class DSAKeyPairTest {
         final byte[] m = "hello".getBytes(UTF_8);
         final DSASignature sig = DSA_KEYPAIR.signRS(m);
         verifySignature(m, DSA_KEYPAIR.getPublic(), sig.r, sig.s);
+    }
+
+    @Test
+    public void testVerifySignature() {
+        final DSAPublicKey publickey = DSA_KEYPAIR.getPublic();
+        final int signatureLength = publickey.getParams().getQ().bitLength() / 8 * 2;
+        assertEquals(signatureLength, DSA_SIGNATURE_LENGTH_BYTES);
+        final BigInteger r = new BigInteger(1, randomBytes(RANDOM, new byte[signatureLength / 2]))
+                .mod(publickey.getParams().getQ());
+        final BigInteger s = new BigInteger(1, randomBytes(RANDOM, new byte[signatureLength / 2]))
+                .mod(publickey.getParams().getQ());
+        final byte[] msg = randomBytes(RANDOM, new byte[50]);
+        try {
+            verifySignature(msg, publickey, r, s);
+            fail("Should not reach here as we expect invalid signature.");
+        } catch (final OtrCryptoException e) {
+            assertEquals("DSA signature failed verification.", e.getMessage());
+        }
+        final byte[] signature = new byte[signatureLength];
+        asUnsignedByteArray(r, signature, 0, 20);
+        asUnsignedByteArray(s, signature, 20, 20);
+        try {
+            verifySignature(msg, publickey, signature);
+            fail("Should not reach here as we expect invalid signature.");
+        } catch (final OtrCryptoException e) {
+            assertEquals("DSA signature failed verification.", e.getMessage());
+        }
     }
 
     @Test(expected = NullPointerException.class)

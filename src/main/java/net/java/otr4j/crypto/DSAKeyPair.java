@@ -21,7 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
-import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPrivateKey;
 import java.security.interfaces.DSAPublicKey;
 import java.security.spec.DSAPublicKeySpec;
@@ -239,19 +238,16 @@ public final class DSAKeyPair {
     @Nonnull
     public DSASignature signRS(final byte[] b) {
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
-        final Signature signer;
         try {
-            signer = Signature.getInstance(ALGORITHM_DSA_SIGNATURE);
+            final Signature signer = Signature.getInstance(ALGORITHM_DSA_SIGNATURE);
             signer.initSign(this.privateKey);
+            signer.update(asUnsignedByteArray(20, new BigInteger(1, b)
+                    .mod(this.privateKey.getParams().getQ())));
+            final BigInteger[] signature = convertSignatureASN1ToP1363(signer.sign());
+            return new DSASignature(signature[0], signature[1]);
         } catch (final NoSuchAlgorithmException | InvalidKeyException e) {
             // NOTE this should not happen, as we test for availability of algorithms in the static initializer.
             throw new IllegalStateException("BUG: DSA signer initialization failed.", e);
-        }
-        final DSAParams dsaParams = privateKey.getParams();
-        try {
-            signer.update(asUnsignedByteArray(20, new BigInteger(1, b).mod(dsaParams.getQ())));
-            final BigInteger[] signature = convertSignatureASN1ToP1363(signer.sign());
-            return new DSASignature(signature[0], signature[1]);
         } catch (final SignatureException e) {
             throw new IllegalStateException("Failed to produce signature for message.", e);
         } catch (final ProtocolException e) {
@@ -301,19 +297,19 @@ public final class DSAKeyPair {
             throws OtrCryptoException {
         requireNonNull(b);
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
-        final Signature verifier;
+        final boolean success;
         try {
-            verifier = Signature.getInstance(ALGORITHM_DSA_SIGNATURE);
+            final Signature verifier = Signature.getInstance(ALGORITHM_DSA_SIGNATURE);
             verifier.initVerify(pubKey);
+            verifier.update(asUnsignedByteArray(20, new BigInteger(1, b).mod(pubKey.getParams().getQ())));
+            success = verifier.verify(convertSignatureP1363ToASN1(r, s));
         } catch (final NoSuchAlgorithmException | InvalidKeyException e) {
             throw new OtrCryptoException("DSA verifier initialization failed.", e);
-        }
-        final DSAParams dsaParams = pubKey.getParams();
-        try {
-            verifier.update(asUnsignedByteArray(20, new BigInteger(1, b).mod(dsaParams.getQ())));
-            verifier.verify(convertSignatureP1363ToASN1(r, s));
         } catch (final SignatureException e) {
-            throw new OtrCryptoException("DSA signature validation failed.");
+            throw new OtrCryptoException("DSA signature is illegal.", e);
+        }
+        if (!success) {
+            throw new OtrCryptoException("DSA signature failed verification.");
         }
     }
 
