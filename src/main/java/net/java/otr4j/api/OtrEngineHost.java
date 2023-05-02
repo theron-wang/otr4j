@@ -142,6 +142,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID The session ID for which the Client Profile is requested.
      * @return Returns the Client Profile for this client.
      */
+    // FIXME whole control-flow needs checking: session instances store keypairs, so we cannot just arbitrarily change the profile, but at the same time we ask the EngineHost to manage the ClientProfile.
     @Nonnull
     ClientProfile getClientProfile(SessionID sessionID);
 
@@ -153,11 +154,11 @@ public interface OtrEngineHost extends SmpEngineHost {
      * without having to actually be in contact with the owner of the Client Profile.
      * <p>
      * Once a Client Profile payload is successfully published, otr4j expects to be able to re-acquire this payload
-     * on construction. otr4j will call {@code publishClientProfilePayload(byte[])} to try and acquire the payload.
+     * on construction. otr4j will call {@code updateClientProfilePayload(byte[])} to try and acquire the payload.
      *
      * @param payload the encoded Client Profile payload.
      */
-    void publishClientProfilePayload(byte[] payload);
+    void updateClientProfilePayload(@Nonnull byte[] payload);
 
     /**
      * Restore a previously published Client Profile payload.
@@ -166,7 +167,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * Client Profile changes, we will need to refresh the payload by acquiring a new client profile
      * {@link #getClientProfile(SessionID)}.
      * <p>
-     * Note: only payloads that are successfully published ({@link #publishClientProfilePayload(byte[])}) should be
+     * Note: only payloads that are successfully published ({@link #updateClientProfilePayload(byte[])}) should be
      * restored. otr4j assumes that the payload acquired through this method is already made public.
      *
      * @return Returns bytes of Client Profile payload, or zero-length array if unavailable.

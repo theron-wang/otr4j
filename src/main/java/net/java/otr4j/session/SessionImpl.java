@@ -339,7 +339,7 @@ final class SessionImpl implements Session, Context {
             payload = signClientProfile(profile, expirationDate.getTimeInMillis() / 1000,
                     this.host.getLocalKeyPair(sessionID), this.host.getLongTermKeyPair(sessionID));
             // FIXME publishing doesn't make sense if the long-term keypairs aren't stored anywhere.
-            this.host.publishClientProfilePayload(new OtrOutputStream().write(payload).toByteArray());
+            this.host.updateClientProfilePayload(new OtrOutputStream().write(payload).toByteArray());
         }
         this.profile = profile;
         this.profilePayload = payload;

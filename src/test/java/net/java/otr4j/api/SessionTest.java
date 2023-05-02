@@ -1518,7 +1518,7 @@ public class SessionTest {
             final Calendar expirationCalendar = Calendar.getInstance();
             expirationCalendar.add(Calendar.DAY_OF_YEAR, 7);
             this.profile = new ClientProfile(this.instanceTag, this.ed448KeyPair.getPublicKey(), this.forgingPublicKey,
-                    Collections.singleton(FOUR), null);
+                    Collections.singletonList(FOUR), null);
             this.session = createSession(sessionID, this);
         }
 
@@ -1687,7 +1687,7 @@ public class SessionTest {
         }
 
         @Override
-        public void publishClientProfilePayload(final byte[] payload) {
+        public void updateClientProfilePayload(final byte[] payload) {
             // No need to do anything as we don't publish in this test dummy.
         }
     }
