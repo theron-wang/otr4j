@@ -68,11 +68,13 @@ public final class OtrSessionManager {
         LOGGER.info("OTR session expiration timer started.");
         HEARTBEAT_TIMER.schedule(HeartBeatTimerTask.instance(), HEARTBEAT_TIMER_INITIAL_DELAY, HEARTBEAT_TIMER_PERIOD);
         LOGGER.info("OTR heartbeat timer started.");
+        // TODO consider adding early-loading cryptography classes such that algorithm available is checked on static-initialization.
     }
 
     /**
      * The OTR Engine Host instance.
      */
+    @Nonnull
     private final OtrEngineHost host;
 
     /**
@@ -152,7 +154,7 @@ public final class OtrSessionManager {
      * @param sessionID The session's ID.
      * @return Returns Session instance that corresponds to provided sessionID.
      */
-    public Session getSession(final SessionID sessionID) {
+    public synchronized Session getSession(final SessionID sessionID) {
         synchronized (sessions) {
             SessionImpl session = sessions.get(sessionID);
             if (session == null) {
@@ -173,7 +175,7 @@ public final class OtrSessionManager {
      *
      * @param l the listener
      */
-    public void addOtrEngineListener(final OtrEngineListener l) {
+    public synchronized void addOtrEngineListener(final OtrEngineListener l) {
         requireNonNull(l, "null is not a valid listener");
         synchronized (listeners) {
             if (!listeners.contains(l)) {
@@ -187,7 +189,7 @@ public final class OtrSessionManager {
      *
      * @param l the listener
      */
-    public void removeOtrEngineListener(final OtrEngineListener l) {
+    public synchronized void removeOtrEngineListener(final OtrEngineListener l) {
         requireNonNull(l, "null is not a valid listener");
         synchronized (listeners) {
             listeners.remove(l);

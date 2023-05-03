@@ -25,6 +25,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Danny van Heumen
  */
+// FIXME rename to remove 'Otr' prefix, no purpose, internal only
 final class OtrFragmenter {
 
     /**

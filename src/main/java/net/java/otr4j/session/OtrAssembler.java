@@ -24,6 +24,7 @@ import static net.java.otr4j.util.Strings.concat;
 /**
  * Support for re-assembling fragmented OTR-encoded messages.
  */
+// FIXME rename to remove 'Otr' prefix, no purpose, internal only
 final class OtrAssembler {
 
     private final InOrderAssembler inOrder = new InOrderAssembler();

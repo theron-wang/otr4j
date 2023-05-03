@@ -15,11 +15,9 @@ import net.java.otr4j.session.state.IncorrectStateException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 
-import static java.util.Collections.synchronizedList;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.WARNING;
@@ -33,7 +31,7 @@ final class SessionExpirationTimerTask extends TimerTask {
 
     private static final long SESSION_TIMEOUT_NANOSECONDS = 7200_000_000_000L;
 
-    private final List<WeakReference<SessionImpl>> registry = synchronizedList(new ArrayList<>());
+    private final ArrayList<WeakReference<SessionImpl>> registry = new ArrayList<>();
 
     private SessionExpirationTimerTask() {
         super();
@@ -44,7 +42,9 @@ final class SessionExpirationTimerTask extends TimerTask {
     }
 
     void register(final SessionImpl session) {
-        this.registry.add(new WeakReference<>(session));
+        synchronized (this.registry) {
+            this.registry.add(new WeakReference<>(session));
+        }
     }
 
     @Override
