@@ -15,8 +15,11 @@ import net.java.otr4j.api.OtrEngineListener;
 import net.java.otr4j.api.OtrEngineListeners;
 import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
+import net.java.otr4j.crypto.Init;
+import net.java.otr4j.util.Classes;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +42,7 @@ import static net.java.otr4j.api.OtrEngineListeners.duplicate;
  * @author George Politis
  * @author Danny van Heumen
  */
+@ThreadSafe
 public final class OtrSessionManager {
 
     private static final Logger LOGGER = Logger.getLogger(OtrSessionManager.class.getName());
@@ -63,6 +67,7 @@ public final class OtrSessionManager {
     private static final Timer HEARTBEAT_TIMER = new Timer("otr-heartbeat-timer", true);
 
     static {
+        Classes.initialize(Init.class);
         EXPIRATION_TIMER.schedule(SessionExpirationTimerTask.instance(), EXPIRATION_TIMER_INITIAL_DELAY,
                 EXPIRATION_TIMER_PERIOD);
         LOGGER.info("OTR session expiration timer started.");
@@ -154,7 +159,7 @@ public final class OtrSessionManager {
      * @param sessionID The session's ID.
      * @return Returns Session instance that corresponds to provided sessionID.
      */
-    public synchronized Session getSession(final SessionID sessionID) {
+    public Session getSession(final SessionID sessionID) {
         synchronized (sessions) {
             SessionImpl session = sessions.get(sessionID);
             if (session == null) {
@@ -175,7 +180,7 @@ public final class OtrSessionManager {
      *
      * @param l the listener
      */
-    public synchronized void addOtrEngineListener(final OtrEngineListener l) {
+    public void addOtrEngineListener(final OtrEngineListener l) {
         requireNonNull(l, "null is not a valid listener");
         synchronized (listeners) {
             if (!listeners.contains(l)) {
@@ -189,7 +194,7 @@ public final class OtrSessionManager {
      *
      * @param l the listener
      */
-    public synchronized void removeOtrEngineListener(final OtrEngineListener l) {
+    public void removeOtrEngineListener(final OtrEngineListener l) {
         requireNonNull(l, "null is not a valid listener");
         synchronized (listeners) {
             listeners.remove(l);
