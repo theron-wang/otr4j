@@ -224,10 +224,9 @@
                     </descriptorRefs>
                 </configuration>
                 <executions>
-                    <!-- TODO repackaged "single assembly" artifacts are not compatible with 'reproducible builds'. -->
                     <execution>
                         <id>make-assembly</id>
-                        <phase>install</phase>
+                        <phase>verify</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
@@ -395,7 +394,6 @@
                             <dependency>
                                 <groupId>com.puppycrawl.tools</groupId>
                                 <artifactId>checkstyle</artifactId>
-                                <!-- TODO checkstyle 9.0.1 has issues with string-literals containing certain unicode characters. Restricting to latest 8.x release for now. -->
                                 <version>10.9.3</version>
                             </dependency>
                         </dependencies>
