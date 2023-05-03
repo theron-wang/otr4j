@@ -596,7 +596,7 @@ public class SessionTest {
             assertEquals(SessionStatus.PLAINTEXT, c.clientAlice.session.getSessionStatus());
             c.clientAlice.sendMessage(message);
             assertEquals(message, c.clientBob.receiptChannel.peek());
-            final Session.Msg receivedBob = c.clientBob.receiveMessage();
+            final Session.Result receivedBob = c.clientBob.receiveMessage();
             assertEquals(SessionStatus.PLAINTEXT, c.clientBob.session.getSessionStatus());
             assertEquals(SessionStatus.PLAINTEXT, receivedBob.status);
             assertEquals(message, receivedBob.content);
@@ -604,7 +604,7 @@ public class SessionTest {
             assertEquals(SessionStatus.PLAINTEXT, c.clientBob.session.getSessionStatus());
             c.clientBob.sendMessage(message);
             assertEquals(message, c.clientAlice.receiptChannel.peek());
-            final Session.Msg receivedAlice = c.clientAlice.receiveMessage();
+            final Session.Result receivedAlice = c.clientAlice.receiveMessage();
             assertEquals(SessionStatus.PLAINTEXT, c.clientAlice.session.getSessionStatus());
             assertEquals(SessionStatus.PLAINTEXT, receivedAlice.status);
             assertEquals(message, receivedAlice.content);
@@ -618,7 +618,7 @@ public class SessionTest {
             assertEquals(SessionStatus.PLAINTEXT, c.clientAlice.session.getSessionStatus());
             c.clientAlice.sendMessage(line);
             assertEquals(line, c.clientBob.receiptChannel.peek());
-            final Session.Msg receivedBob = c.clientBob.receiveMessage();
+            final Session.Result receivedBob = c.clientBob.receiveMessage();
             assertEquals(SessionStatus.PLAINTEXT, c.clientBob.session.getSessionStatus());
             assertEquals(SessionStatus.PLAINTEXT, receivedBob.status);
             assertEquals(line, receivedBob.content);
@@ -626,7 +626,7 @@ public class SessionTest {
             assertEquals(SessionStatus.PLAINTEXT, c.clientBob.session.getSessionStatus());
             c.clientBob.sendMessage(line);
             assertEquals(line, c.clientAlice.receiptChannel.peek());
-            final Session.Msg receivedAlice = c.clientAlice.receiveMessage();
+            final Session.Result receivedAlice = c.clientAlice.receiveMessage();
             assertEquals(SessionStatus.PLAINTEXT, c.clientAlice.session.getSessionStatus());
             assertEquals(SessionStatus.PLAINTEXT, receivedAlice.status);
             assertEquals(line, receivedAlice.content);
@@ -650,7 +650,7 @@ public class SessionTest {
             final String sanitizedLine = line.replace('\0', '?');
             assertNotEquals(sanitizedLine, c.clientBob.receiptChannel.peek());
             assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
-            final Session.Msg receivedBob = c.clientBob.receiveMessage();
+            final Session.Result receivedBob = c.clientBob.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientBob.session.getSessionStatus());
             assertEquals(SessionStatus.ENCRYPTED, receivedBob.status);
             assertEquals(sanitizedLine, receivedBob.content);
@@ -658,7 +658,7 @@ public class SessionTest {
             c.clientBob.sendMessage(line);
             assertNotEquals(sanitizedLine, c.clientAlice.receiptChannel.peek());
             assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-            final Session.Msg receivedAlice = c.clientAlice.receiveMessage();
+            final Session.Result receivedAlice = c.clientAlice.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientAlice.session.getSessionStatus());
             assertEquals(SessionStatus.ENCRYPTED, receivedAlice.status);
             assertEquals(sanitizedLine, receivedAlice.content);
@@ -681,7 +681,7 @@ public class SessionTest {
             c.clientAlice.sendMessage(message);
             assertNotEquals(message, c.clientBob.receiptChannel.peek());
             assertTrue(otrEncoded(c.clientBob.receiptChannel.peek()));
-            final Session.Msg receivedBob = c.clientBob.receiveMessage();
+            final Session.Result receivedBob = c.clientBob.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientBob.session.getSessionStatus());
             assertEquals(SessionStatus.ENCRYPTED, receivedBob.status);
             assertEquals(message, receivedBob.content);
@@ -690,7 +690,7 @@ public class SessionTest {
             c.clientBob.sendMessage(message);
             assertNotEquals(message, c.clientAlice.receiptChannel.peek());
             assertTrue(otrEncoded(c.clientAlice.receiptChannel.peek()));
-            final Session.Msg receivedAlice = c.clientAlice.receiveMessage();
+            final Session.Result receivedAlice = c.clientAlice.receiveMessage();
             assertEquals(SessionStatus.ENCRYPTED, c.clientAlice.session.getSessionStatus());
             assertEquals(SessionStatus.ENCRYPTED, receivedAlice.status);
             assertEquals(message, receivedAlice.content);
@@ -1527,7 +1527,7 @@ public class SessionTest {
         }
 
         @Nonnull
-        Session.Msg receiveMessage() throws OtrException {
+        Session.Result receiveMessage() throws OtrException {
             final String msg = this.receiptChannel.remove();
             //logger.warning(msg);
             return this.session.transformReceiving(msg);
@@ -1540,7 +1540,7 @@ public class SessionTest {
             final ArrayList<String> results = new ArrayList<>();
             for (final String msg : messages) {
                 // TODO API changed to Session.Msg
-                final Session.Msg result = this.session.transformReceiving(msg);
+                final Session.Result result = this.session.transformReceiving(msg);
                 if (result.content == null && skipNulls) {
                     continue;
                 }

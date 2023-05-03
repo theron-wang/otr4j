@@ -228,13 +228,12 @@ public interface Session {
      * @throws OtrException Thrown in case of problems during transformation.
      */
     @Nonnull
-    Msg transformReceiving(String msgText) throws OtrException;
+    Result transformReceiving(String msgText) throws OtrException;
 
     /**
-     * Msg struct to compose aspects of the final message output.
+     * Result struct to compose parts of the final (transformation) result.
      */
-    // TODO consider if this is the ideal way to provide message+instancetag+status, making concrete type Msg part of interface.
-    final class Msg {
+    final class Result {
         /**
          * The status of the session under which the output was produced. This status may be different from the current
          * status of the session, if the message initiated a state change.
@@ -253,14 +252,14 @@ public interface Session {
         public final String content;
 
         /**
-         * Constructor for Msg.
+         * Constructor for Result.
          *
          * @param status the session status of the session that processed the message.
          * @param tag the instance tag of the session that processed the message.
          * @param content String content(-body). This is the message, whether the full original content because it was
          * plaintext or the decrypted content.
          */
-        public Msg(@Nonnull final SessionStatus status, @Nonnull final InstanceTag tag, @Nullable final String content) {
+        public Result(final SessionStatus status, final InstanceTag tag, @Nullable final String content) {
             this.status = requireNonNull(status);
             this.tag = requireNonNull(tag);
             this.content = content;
