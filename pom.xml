@@ -187,6 +187,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-artifact-plugin</artifactId>
                 <version>3.4.1</version>
+                <!-- FIXME document reproducible builds process for verifying otr4j builds, assuming publication to Maven Central or local. -->
+                <!-- FIXME due to lack of SCM/source information, it is not possible for independent automated rebuilders to acquire the sources in order to rebuild the project and independently verify reproducibility. -->
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

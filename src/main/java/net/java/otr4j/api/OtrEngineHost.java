@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
  *
  * @author George Politis
  */
+// FIXME check how we should restore the EdDSAKeyPair from the OtrEngineHost perspective. It needs to store and restore the EdDSAKeyPair on every execution session.
 public interface OtrEngineHost extends SmpEngineHost {
 
     /**
@@ -142,7 +143,6 @@ public interface OtrEngineHost extends SmpEngineHost {
      * @param sessionID The session ID for which the Client Profile is requested.
      * @return Returns the Client Profile for this client.
      */
-    // FIXME whole control-flow needs checking: session instances store keypairs, so we cannot just arbitrarily change the profile, but at the same time we ask the EngineHost to manage the ClientProfile.
     @Nonnull
     ClientProfile getClientProfile(SessionID sessionID);
 
@@ -158,7 +158,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      *
      * @param payload the encoded Client Profile payload.
      */
-    void updateClientProfilePayload(@Nonnull byte[] payload);
+    void updateClientProfilePayload(byte[] payload);
 
     /**
      * Restore a previously published Client Profile payload.

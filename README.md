@@ -38,7 +38,6 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
 - _ Review comments to spot out-of-date quotes from the spec. (Probably better to ignore or generalize.)
 - _ Review and clean up logging statements. Ensure that no secret data is exposed through logging. Verify if log levels are reasonable.
 
-
 ## Architectural considerations
 
 Architectural constraints that are respected in the design.

@@ -15,6 +15,7 @@ import java.security.interfaces.DSAPublicKey;
 /**
  * RemoteInfo contains information on the remote party of the OTR connection.
  */
+// TODO consider if this is sufficient, or whether we need some sort of "general session details" type which also contains local (security) information.
 public final class RemoteInfo {
 
     /**

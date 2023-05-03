@@ -6,7 +6,6 @@
  *
  * SPDX-License-Identifier: LGPL-3.0-only
  */
-// FIXME document reproducible builds process for verifying otr4j builds, assuming publication to Maven Central or local.
 // TODO Review rule exclusions for maven-compiler-plugin, SpotBugs, pmd, ...
 // NOTE OTRv3 does not document that SMP TLVs should have IGNORE_UNREADABLE flag set. So for now, we're not setting the flag for SMP TLVs.
 // TODO out-of-order messaging: can we mitigate when first message of the ratchet does not arrive first? (it's the only one that contains the DH public key if any. Other keys too?)

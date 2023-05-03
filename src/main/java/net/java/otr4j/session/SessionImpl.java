@@ -326,19 +326,20 @@ final class SessionImpl implements Session, Context {
         ClientProfilePayload payload;
         ClientProfile profile;
         try {
-            // Try to restore previous Client Profile payload from host application.
             payload = ClientProfilePayload.readFrom(new OtrInputStream(this.host.restoreClientProfilePayload()));
             profile = payload.validate();
+            logger.log(FINE, "Successfully restored client profile from OTR Engine Host.");
         } catch (final OtrCryptoException | ProtocolException | ValidationException e) {
-            // We need to construct a new Client Profile payload based on the Client Profile received from the host
-            // application.
+            logger.log(FINE,
+                    "Failed to load client profile from OTR Engine Host. Generating new client profile… (Problem: {0})",
+                    e.getMessage());
             profile = this.host.getClientProfile(sessionID);
-            requireNotEquals(ZERO_TAG, profile.getInstanceTag(), "Only actual instance tags are allowed. The 'zero' tag is not valid.");
+            requireNotEquals(ZERO_TAG, profile.getInstanceTag(),
+                    "Only actual instance tags are allowed. The 'zero' tag is not valid.");
             final Calendar expirationDate = Calendar.getInstance();
             expirationDate.add(Calendar.DAY_OF_YEAR, 14);
             payload = signClientProfile(profile, expirationDate.getTimeInMillis() / 1000,
                     this.host.getLocalKeyPair(sessionID), this.host.getLongTermKeyPair(sessionID));
-            // FIXME publishing doesn't make sense if the long-term keypairs aren't stored anywhere.
             this.host.updateClientProfilePayload(new OtrOutputStream().write(payload).toByteArray());
         }
         this.profile = profile;
@@ -482,7 +483,7 @@ final class SessionImpl implements Session, Context {
                 offerStatus = OfferStatus.ACCEPTED;
             }
 
-            // FIXME evaluate inter-play between master and slave sessions. How much of certainty do we have if we reset the state from within one of the AKE states, that we actually reset sufficiently? In most cases, context.setState will manipulate the slave session, not the master session, so the influence limited. (Consider redesigning now that the Rust implementation, otrr, uses a different approach.)
+            // TODO evaluate inter-play between master and slave sessions. How much of certainty do we have if we reset the state from within one of the AKE states, that we actually reset sufficiently? In most cases, context.setState will manipulate the slave session, not the master session, so the influence limited. (Consider redesigning now that the Rust implementation, otrr, uses a different approach.)
             if (masterSession == this && m instanceof Fragment && (((Fragment) m).getVersion() == THREE
                     || ((Fragment) m).getVersion() == FOUR)) {
                 final Fragment fragment = (Fragment) m;
