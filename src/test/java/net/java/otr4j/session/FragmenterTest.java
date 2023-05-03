@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
  * @author Danny van Heumen
  */
 @SuppressWarnings("ConstantConditions")
-public class OtrFragmenterTest {
+public class FragmenterTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -74,25 +74,25 @@ public class OtrFragmenterTest {
     @Test(expected = NullPointerException.class)
     @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public void testNullSecureRandomConstruction() {
-        new OtrFragmenter(RANDOM, null, sessionID);
+        new Fragmenter(RANDOM, null, sessionID);
     }
 
     @Test(expected = NullPointerException.class)
     @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public void testNullHostConstruction() {
-        new OtrFragmenter(RANDOM, null, sessionID);
+        new Fragmenter(RANDOM, null, sessionID);
     }
 
     @Test(expected = NullPointerException.class)
     public void testNullSessionID() {
         final OtrEngineHost host = host(100);
-        new OtrFragmenter(RANDOM, host, null);
+        new Fragmenter(RANDOM, host, null);
     }
 
     @Test
     @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public void testConstruction() {
-        new OtrFragmenter(RANDOM, host(100), sessionID);
+        new Fragmenter(RANDOM, host(100), sessionID);
     }
 
     @Test
@@ -102,7 +102,7 @@ public class OtrFragmenterTest {
         final String message = "Some message that shouldn't be fragmented.";
 
         final int version = 3;
-        final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         final int number = fragmenter.numberOfFragments(version, message);
         assertEquals(1, number);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -113,7 +113,7 @@ public class OtrFragmenterTest {
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getMaxFragmentSize(any(SessionID.class))).thenReturn(Integer.MAX_VALUE);
         final String message = "?OTR:" + toBase64String("Some message that shouldn't be fragmented.".getBytes(UTF_8)) + ".";
-        final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         final String[] fragments = fragmenter.fragment(3, senderTagOTRv3, receiverTagOTRv3, message);
         assertArrayEquals(new String[] {message}, fragments);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -123,7 +123,7 @@ public class OtrFragmenterTest {
     public void testUnlimitedSizedFragmentToSingleMessage() throws OtrException {
         final OtrEngineHost host = host(Integer.MAX_VALUE);
 
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(3, senderTagOTRv3, receiverTagOTRv3, specV3MessageFull);
         assertArrayEquals(new String[] {specV3MessageFull}, msg);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -133,7 +133,7 @@ public class OtrFragmenterTest {
     public void testUnlimitedSizedFragmentToSingleMessageV2() throws OtrException {
         final OtrEngineHost host = host(Integer.MAX_VALUE);
 
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(2, ZERO_VALUE, ZERO_VALUE, specV2MessageFull);
         assertArrayEquals(new String[] {specV2MessageFull}, msg);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -143,7 +143,7 @@ public class OtrFragmenterTest {
     public void testLargeEnoughFragmentToSingleMessage() throws OtrException {
         final OtrEngineHost host = host(354);
 
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(3, senderTagOTRv3, receiverTagOTRv3, specV3MessageFull);
         assertArrayEquals(new String[] {specV3MessageFull}, msg);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -153,7 +153,7 @@ public class OtrFragmenterTest {
     public void testLargeEnoughFragmentToSingleMessageV2() throws OtrException {
         final OtrEngineHost host = host(830);
 
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(2, ZERO_VALUE, ZERO_VALUE, specV2MessageFull);
         assertArrayEquals(new String[] {specV2MessageFull}, msg);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -163,7 +163,7 @@ public class OtrFragmenterTest {
     public void testCalculateNumberOfFragmentsUnlimitedSize() throws OtrException {
         final OtrEngineHost host = host(Integer.MAX_VALUE);
 
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         int num = fragmenter.numberOfFragments(3, specV3MessageFull);
         assertEquals(1, num);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -173,7 +173,7 @@ public class OtrFragmenterTest {
     public void testCalculateNumberOfFragmentsLargeEnoughSize() throws OtrException {
         final OtrEngineHost host = host(1000);
 
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         int num = fragmenter.numberOfFragments(3, specV3MessageFull);
         assertEquals(1, num);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -183,7 +183,7 @@ public class OtrFragmenterTest {
     public void testCalculateNumberOfFragmentsNumFragmentsSmallFragmentSize() throws OtrException {
         final OtrEngineHost host = host(199);
 
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         int num = fragmenter.numberOfFragments(3, specV3MessageFull);
         assertEquals(3, num);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -193,7 +193,7 @@ public class OtrFragmenterTest {
     public void testCalculateNumberOfFragmentsNumFragmentsSmallFragmentSize2() throws OtrException {
         final OtrEngineHost host = host(80);
 
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         int num = fragmenter.numberOfFragments(3, specV3MessageFull);
         assertEquals(9, num);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -203,13 +203,13 @@ public class OtrFragmenterTest {
     public void testFragmentSizeTooSmallForOverhead() throws OtrException {
         final OtrEngineHost host = host(35);
 
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         fragmenter.numberOfFragments(3, specV3MessageFull);
     }
 
     @Test(expected = OtrException.class)
     public void testFragmentSizeTooSmallForPayload() throws OtrException {
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host(36), this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host(36), this.sessionID);
         fragmenter.numberOfFragments(3, specV3MessageFull);
     }
 
@@ -217,7 +217,7 @@ public class OtrFragmenterTest {
     public void testV3MessageToSplit() throws OtrException {
         final OtrEngineHost host = host(199);
 
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(3, senderTagOTRv3, receiverTagOTRv3, specV3MessageFull);
         assertArrayEquals(specV3MessageParts199, msg);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -227,7 +227,7 @@ public class OtrFragmenterTest {
     public void testV2MessageToSplit() throws OtrException {
         final OtrEngineHost host = host(318);
 
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(2, ZERO_VALUE, ZERO_VALUE, specV2MessageFull);
         assertArrayEquals(specV2MessageParts318, msg);
         verify(host, times(1)).getMaxFragmentSize(isA(SessionID.class));
@@ -235,20 +235,20 @@ public class OtrFragmenterTest {
 
     @Test
     public void testV1ComputeHeaderSize() throws OtrException {
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host(310), this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host(310), this.sessionID);
         assertEquals(1, fragmenter.numberOfFragments(1, specV2MessageFull));
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void testV1MessageToSplit() throws OtrException {
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host(310), this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host(310), this.sessionID);
         assertArrayEquals(new String[] {specV2MessageFull}, fragmenter.fragment(1, ZERO_VALUE, ZERO_VALUE, specV2MessageFull));
     }
 
     @Test(expected = OtrException.class)
     public void testExceedProtocolMaximumNumberOfFragments() throws OtrException {
         final String veryLongString = "?OTR:" + new String(new char[65537]).replace('\0', 'a') + ".";
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host(37), this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host(37), this.sessionID);
         fragmenter.fragment(3, senderTagOTRv3, receiverTagOTRv3, veryLongString);
     }
 
@@ -257,7 +257,7 @@ public class OtrFragmenterTest {
         final Pattern OTRv3_FRAGMENT_PATTERN = Pattern.compile("^\\?OTR\\|[0-9abcdef]{8}\\|[0-9abcdef]{8},\\d{5},\\d{5},[a-zA-Z0-9+/=?:.]+,$");
         final String payload = "?OTR:" + toBase64String(RandomStringUtils.random(1700).getBytes(UTF_8)) + ".";
         final OtrEngineHost host = host(150);
-        OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         String[] msg = fragmenter.fragment(3, senderTagOTRv3, receiverTagOTRv3, payload);
         int count = 1;
         for (String part : msg) {
@@ -275,7 +275,7 @@ public class OtrFragmenterTest {
         final Pattern OTRv2_FRAGMENT_PATTERN = Pattern.compile("^\\?OTR,\\d{1,5},\\d{1,5},[a-zA-Z0-9+/=?:.]+,$");
         final String payload = "?OTR:" + toBase64String(RandomStringUtils.random(700).getBytes(UTF_8)) + ".";
         final OtrEngineHost host = host(150);
-        final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         final String[] msg = fragmenter.fragment(2, ZERO_VALUE, ZERO_VALUE, payload);
         int count = 1;
         for (final String part : msg) {
@@ -292,28 +292,28 @@ public class OtrFragmenterTest {
     @Test
     public void testPreventFragmentationOfPlainTextMessage() throws OtrException {
         final OtrEngineHost host = host(150);
-        final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         assertArrayEquals(new String[] {"Hello world!"}, fragmenter.fragment(3, senderTagOTRv3, receiverTagOTRv3, "Hello world!"));
     }
 
     @Test
     public void testMessageFitsWithoutFragmentation() throws OtrException {
         final OtrEngineHost host = host(45);
-        final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         assertEquals(1, fragmenter.numberOfFragments(4, "?OTR:abc"));
     }
 
     @Test(expected = OtrException.class)
     public void testOTRv4OverheadTooLarge() throws OtrException {
         final OtrEngineHost host = host(45);
-        final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         assertEquals(0, fragmenter.numberOfFragments(4, "?OTR:abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"));
     }
 
     @Test
     public void testNumberOfFragmentsForOTRv4() throws OtrException {
         final OtrEngineHost host = host(46);
-        final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         assertEquals(57, fragmenter.numberOfFragments(4, "?OTR:abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"));
     }
 
@@ -329,7 +329,7 @@ public class OtrFragmenterTest {
                 return 0x3c5b5f03;
             }
         };
-        final OtrFragmenter fragmenter = new OtrFragmenter(fakeRandom, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(fakeRandom, host, this.sessionID);
         assertArrayEquals(specV4MessageParts208, fragmenter.fragment(4, senderTagOTRv4, receiverTagOTRv4,
                 getSpecV4MessageFull));
     }
@@ -337,14 +337,14 @@ public class OtrFragmenterTest {
     @Test(expected = OtrException.class)
     public void testFragmentOTRv4SizeTooSmall() throws OtrException {
         final OtrEngineHost host = host(45);
-        final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         fragmenter.fragment(4, senderTagOTRv4, receiverTagOTRv4, getSpecV4MessageFull);
     }
 
     @Test(expected = OtrException.class)
     public void testFragmentOTRv4SizeTooSmallForHeader() throws OtrException {
         final OtrEngineHost host = host(44);
-        final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         fragmenter.fragment(4, senderTagOTRv4, receiverTagOTRv4, getSpecV4MessageFull);
     }
 
@@ -352,7 +352,7 @@ public class OtrFragmenterTest {
     public void testFragmentOTRv4MessageSizeExactlyRight() throws OtrException {
         final String message = "?OTR:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.";
         final OtrEngineHost host = host(46);
-        final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         assertArrayEquals(new String[] {message}, fragmenter.fragment(4, senderTagOTRv4, receiverTagOTRv4, message));
     }
 
@@ -361,7 +361,7 @@ public class OtrFragmenterTest {
         final Pattern OTRv4_FRAGMENT_PATTERN = Pattern.compile("^\\?OTR\\|[0-9abcdef]{8}\\|[0-9abcdef]{8}\\|[0-9abcdef]{8},\\d{5},\\d{5},[a-zA-Z0-9+/=?:.]+,$");
         final String message = "?OTR:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.";
         final OtrEngineHost host = host(46);
-        final OtrFragmenter fragmenter = new OtrFragmenter(RANDOM, host, this.sessionID);
+        final Fragmenter fragmenter = new Fragmenter(RANDOM, host, this.sessionID);
         final String[] fragments = fragmenter.fragment(4, senderTagOTRv4, receiverTagOTRv4, message);
         assertEquals(47, fragments.length);
         for (final String fragment : fragments) {

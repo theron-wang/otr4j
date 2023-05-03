@@ -25,8 +25,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Danny van Heumen
  */
-// FIXME rename to remove 'Otr' prefix, no purpose, internal only
-final class OtrFragmenter {
+final class Fragmenter {
 
     /**
      * The maximum number of fragments supported by the OTR (v3) protocol.
@@ -68,7 +67,7 @@ final class OtrFragmenter {
      *
      * @param host OTR engine host calling upon OTR session
      */
-    OtrFragmenter(final SecureRandom random, final OtrEngineHost host, final SessionID sessionID) {
+    Fragmenter(final SecureRandom random, final OtrEngineHost host, final SessionID sessionID) {
         this.random = requireNonNull(random);
         this.host = requireNonNull(host);
         this.sessionID = requireNonNull(sessionID);

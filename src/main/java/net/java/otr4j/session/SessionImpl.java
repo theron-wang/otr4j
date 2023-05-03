@@ -216,13 +216,13 @@ final class SessionImpl implements Session, Context {
      * OTR-encoded message-assembler.
      */
     @GuardedBy("masterSession")
-    private final OtrAssembler assembler = new OtrAssembler();
+    private final Assembler assembler = new Assembler();
 
     /**
      * Message fragmenter.
      */
     @GuardedBy("masterSession")
-    private final OtrFragmenter fragmenter;
+    private final Fragmenter fragmenter;
 
     /**
      * Secure random instance to be used for this Session. This single SecureRandom instance is there to be shared among
@@ -344,7 +344,7 @@ final class SessionImpl implements Session, Context {
         this.profile = profile;
         this.profilePayload = payload;
         // Initialize message fragmentation support.
-        this.fragmenter = new OtrFragmenter(this.secureRandom, host, this.sessionID);
+        this.fragmenter = new Fragmenter(this.secureRandom, host, this.sessionID);
     }
 
     @Override
