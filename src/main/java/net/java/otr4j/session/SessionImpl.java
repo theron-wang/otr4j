@@ -982,6 +982,7 @@ final class SessionImpl implements Session, Context {
      * Receiver instance tag. Setting the outgoing session is only allowed for
      * master sessions.
      */
+    // TODO consider making the case for nonexistant instance tag a checked exception. 
     @Override
     public void setOutgoingSession(final InstanceTag tag) {
         synchronized (this.masterSession) {

@@ -186,10 +186,8 @@ public interface OtrEngineHost extends SmpEngineHost {
     byte[] getLocalFingerprintRaw(SessionID sessionID);
 
     /**
-     * When a message is received that is unreadable for some reason, for
-     * example the session keys are lost/deleted already, then the Engine Host
-     * is asked to provide a suitable reply to send back as an OTR error
-     * message.
+     * When a message is received that is unreadable for some reason, for example the session keys are lost/deleted
+     * already, then the Engine Host is asked to provide a suitable reply to send back as an OTR error message.
      * <p>
      * OTRv4 specifies an identifier that can be used to identify distinct types of errors and as such allow localizing
      * error messages based on the identifier. If case is custom / not predefined by OTRv4, an empty string will be
