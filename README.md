@@ -2,6 +2,11 @@
 
 The repository for otr4j OTRv4 development is [gitlab.com/cobratbq/otr4j](https://gitlab.com/cobratbq/otr4j).
 
+__Status__
+
+- _operational_: OTRv4 interactive sessions,  backwards-compatible with OTR version 3
+- _feature-incomplete_: missing out-of-order messages, non-interactive session initiation, client-profile renewals during execution, … (see _checklist_ below for details)
+
 # otr4j
 
 This is a fork of the [original otr4j](https://github.com/jitsi/otr4j). The original otr4j started development as an GSoC 2009 project. A few years ago, a attempt was made to create a "community-friendly fork" of otr4j with the intention to lower the barrier for contribution: it is not required to sign a CLA. The original attempt never took off due to most of the original otr4j developers no longer focused on further development and improvement of otr4j.
@@ -10,9 +15,7 @@ This repository contains the community-friendly fork with the addition of signif
 
 ## Progress
 
-Current work should be considered __at most__ _prototype-quality and guaranteed insecure._ The development follows the _master_ branch of [OTRv4], but may lag behind in areas that currently lack development focus.
-
-__2019-10-28__ Due to third-party contributions made under dubious circumstances, i.e. possibly made during working time instead of personal time, some merges in the commit history have been redone. There are no longer any third-party contributions in the OTRv4 work. The [original master-branch content][original-master] is still available.
+Current work should be considered __at most__ _prototype-quality._ The development follows the _master_ branch of [OTRv4], but may lag behind in areas that currently lack development focus.
 
 __Development stages__:
 
@@ -22,21 +25,19 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
   _a.k.a. "at least the bugs are symmetric in nature :-)"_
 - ✔ Socialist Millionaire's Protocol for OTRv4.
 - ✔ Migrate OTRv4 DAKE state machine into OTRv4 Message state machine.
-- ⌛ Redesigned Double Ratchet algorithm.
+- ✔ Redesigned Double Ratchet algorithm.
 - ⌛ Migrate Ed448-Goldilocks and EdDSA implementation to Bouncy Castle.  
   _Requires additions to the BouncyCastle API, as certain necessary operations are not currently supplied._
   - ⌛ ECDH operations
   - _ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
 - _ Support for skipped messages, keeping track of skipped message keys.
-- _ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer></s>, refreshing client profile)
-- _ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive" use cases (including all FIXMEs)
-  - _ Full review against the (finalized) OTRv4 spec.  
-    _As the specification has been modified during implementation of support in otr4j, a full review against current spec is needed._
-  - _ Stabilize, fix and then guard (AnimalSniffer) the public API offered by otr4j.
+- _ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer></s>, refreshing client profile)  
+    - TODO consider actual requirements: long-running application that needs to refresh as periodic action in its execution seems far-fetched with 2-week valid profiles. 
+- _ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive" use cases:
 - _ Clean up OTRv2 support.
 - _ Clean up remaining TODOs
-- _ Review comments to spot out-of-date quotes from the spec. (Probably better to ignore or generalize.)
-- _ Review and clean up logging statements. Ensure that no secret data is exposed through logging. Verify if log levels are reasonable.
+- _ Review and clean up logging statements. Ensure that no secret data is exposed through logging.
+- _ Review and clean up comments to spot out-of-date quotes from the spec.
 
 ## Architectural considerations
 
@@ -45,7 +46,7 @@ Architectural constraints that are respected in the design.
 1. Correctness of protocol implementation.
 1. Encapsulation of cryptographic material to prevent mistakes, misuse, excessive exposure.
 1. Design that prevents or makes obvious programming errors.
-1. Simplicity: restricted implementation with only as much complexity and abstraction as needed.
+1. Simplicity: restricted implementation to only as much complexity and abstraction as needed.
 
 ## Using otr4j
 
@@ -55,15 +56,8 @@ The easiest way to start adoption of this new version given an earlier implement
 
 1. Throw away existing imports and import types as _many of the existing types_ have moved to the `net.java.otr4j.api` package.
 1. Extend your implementation of `net.java.otr4j.api.OtrEngineHost` with the additional methods that are now required.
-1. Fix any other syntactic failures / build failures. The javadoc on the various methods should clearly describe the
-   method's API and expectations. If this is not the case, file a bug as this should be expected.  
-   _As there are new features and upgraded cryptographic primitives in OTRv4, upgrading will not be effortless. However
-   it should be possible to do a basic implementation in a reasonable amount of time._  
-
-To further secure access to _otr4j_ state:
-
-- Use security manager and policy files to prevent reflective access to `net.java.otr4j.crypto` and subpackages:  
-  The architectural constraint prescribes that all sensitive cryptographic material is concentrated in `net.java.otr4j.crypto`. Secrets are encapsulated, but reflection would still allow access and extraction of this sensitive data.
+1. Fix any other syntactic failures / build failures. The javadoc on the various methods should clearly describe the method's API and expectations. If this is not the case, file a bug as this should be expected.  
+   _As there are new features and upgraded cryptographic primitives in OTRv4, upgrading will not be effortless. However it should be possible to do a basic conversion in a reasonable amount of time._  
 
 ## Checklist
 
@@ -92,7 +86,7 @@ __Functionality__
 - Cryptographic primitives:
   - Ed448-Goldilocks elliptic curve
     - ☑ Temporary working solution
-    - ⌛ Migrate to BouncyCastle 1.60.
+    - ⌛ Migrate to BouncyCastle `>= 1.60`.
   - 3072-bit Diffie-Hellman
     - ☑ Temporary working solution
     - ☐ Verify if current solution is acceptable, otherwise migrate to JCA/BC
@@ -105,8 +99,8 @@ __Functionality__
 - Key Management:
   - Double Ratchet:
     - ☑ Generate next message keys (in-order messages)
-    - ☑ Generate future message keys (skip over missing messages)
-    - ☐ Implementation of Double Ratchet algorithm redesign.
+    - ☐ Generate future message keys (skip over missing messages)
+    - ☑ Implementation of Double Ratchet algorithm redesign.
   - Shared secrets management:
     - ☑ Ephemeral DH with 3072-bit parameters
     - ☑ Ephemeral ECDH based on Ed448-Goldilocks
@@ -137,6 +131,9 @@ __Functionality__
   - ☐ Verify if API still fully suitable for clients to adopt.
   - ☐ Ability to import/export DSA and EdDSA key pairs, such that `ClientProfile`s can be persisted/restored.
   - ☐ `OtrKeyManager` was removed. Evaluate whether this is a problem for adopters. (I prefer to leave it out or put it in its own repository.)
+- Interoperability (limited testing):
+  - ☑ backwards-compatible with Jitsi's otr4j implementation
+  - ☐ testing against other OTRv4 implementations
 - Misc
   - ☑ Set flag `IGNORE_UNREADABLE` also for OTRv3 DISCONNECT and all SMP messages.  
   _Although not explicitly document that this is necessary, it should not break any existing applications. This makes implementations of OTRv3 and OTRv4 more similar and promotes better behavior in general, being: the other party is not needlessly warned for (lost) messages that do not contain valuable content, i.e. they are part of the OTR process, but do not contain user content themselves._
@@ -204,7 +201,7 @@ __Developmental__
     _Google Error-Prone annotations prove to be more interesting. Adoption of those annotations has started already._
 - ⌛ Issue: some tests fail on a rare occasion due to the `assert` checks that are embedded in the code. These tests should be updated to assume successful execution if input would trigger the assertion.
 - ⌛ Significant amount of unit tests to accompany the library. (Currently: 1200+)
-- ☐ Interoperability testing with other OTRv4 implementations.
+
 </details>
 
 ## Limitations
@@ -243,6 +240,9 @@ In addition to syntactic correctness checking, we enforce javadoc for anything t
 
 Due to initial lack of support for Ed448-Goldilocks, a _very_ basic, limited Java library was written to support Ed448-Goldilocks. This library is by no means production-ready, does not provide any of the operational requirements necessary for security purposes and is not even guaranteed to be functionally correct. It did however enable further implementation of otr4j. We aim to completely migrate away from _joldilocks_ for otr4j. At most, we may keep it as a second opinion in unit testing code. _joldilocks_ needs Java 9 to compile so this dependency also raises our minimum required Java version for otr4j.
 
+## Misc
+
+- __2019-10-28__ Due to third-party contributions made under dubious circumstances, i.e. possibly made during working time instead of personal time, some merges in the commit history have been redone. There are no longer any third-party contributions in the OTRv4 work. The [original master-branch content][original-master] is still available.
 
 
 [OTR]: https://otr.cypherpunks.ca/
@@ -250,6 +250,6 @@ Due to initial lack of support for Ed448-Goldilocks, a _very_ basic, limited Jav
 [OTRv2]: https://otr.cypherpunks.ca/Protocol-v2-3.1.0.html
 [OTRv3]: https://otr.cypherpunks.ca/Protocol-v3-4.1.1.html
 [OTRv4]: https://github.com/otrv4/otrv4
-[joldilocks]: https://gitlab.com/cobratbq/joldilocks "A beginner-level (functional) implementation of Ed448-Goldilocks."
+[joldilocks]: https://gitlab.com/cobratbq/joldilocks "A functional, custom implementation of Ed448-Goldilocks."
 [original-master]: https://gitlab.com/cobratbq/otr4j/tree/original-master "The original master branch. Before the history rewrite occurred."
 [checklist]: docs/checklist.md "Checklist with functional, operational and developmental requirements."
