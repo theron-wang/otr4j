@@ -2,16 +2,19 @@
 
 The repository for otr4j OTRv4 development is [gitlab.com/cobratbq/otr4j](https://gitlab.com/cobratbq/otr4j).
 
-__Status__
+## Status
 
-- _operational_: OTRv4 interactive sessions,  backwards-compatible with OTR version 3
-- _feature-incomplete_: missing out-of-order messages, non-interactive session initiation, client-profile renewals during execution, … (see _checklist_ below for details)
+- __operational__: OTRv4 interactive: confidentiality, authentication (SMP),  backwards-compatible with OTR version 3
+- __feature-incomplete__, missing: managing skipped encryption keys for out-of-order message handling, non-interactive session initiation, client-profile renewals during continuous execution, … (see _checklist_ below for details)
+- __in development__: _not reviewed_, _not widely adopted_ yet.
 
-# otr4j
+## otr4j
 
-This is a fork of the [original otr4j](https://github.com/jitsi/otr4j). The original otr4j started development as an GSoC 2009 project. A few years ago, a attempt was made to create a "community-friendly fork" of otr4j with the intention to lower the barrier for contribution: it is not required to sign a CLA. The original attempt never took off due to most of the original otr4j developers no longer focused on further development and improvement of otr4j.
+This is a fork of the [original otr4j](https://github.com/jitsi/otr4j). The original otr4j started development as an GSoC 2009 project. A few years ago, a attempt was made to create a "community-friendly fork" of otr4j with the intention to lower the barrier for contribution: it is not required to sign a CLA.
 
 This repository contains the community-friendly fork with the addition of significant refactoring effort and recently the addition of [OTRv4][OTRv4] support. [OTRv4][OTRv4] is [still in draft](<https://github.com/otrv4/otrv4/issues/230> "Checking status as there has been a long communication silence ..."). The implementation of this otr4j implementation itself is not stable (or secure).
+
+NOTE: another security protocol [MLS] is in development and has overlapping characteristics with OTRv4.
 
 ## Progress
 
@@ -26,24 +29,24 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
 - ✔ Socialist Millionaire's Protocol for OTRv4.
 - ✔ Migrate OTRv4 DAKE state machine into OTRv4 Message state machine.
 - ✔ Redesigned Double Ratchet algorithm.
-- ⌛ Migrate Ed448-Goldilocks and EdDSA implementation to Bouncy Castle.  
+- ❓ Migrate Ed448-Goldilocks and EdDSA implementation to Bouncy Castle.  
   _Requires additions to the BouncyCastle API, as certain necessary operations are not currently supplied._
-  - ⌛ ECDH operations
-  - _ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
-- _ Support for skipped messages, keeping track of skipped message keys.
-- _ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer></s>, refreshing client profile)  
+  - ❓ ECDH operations
+  - ❓ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
+- ⏳ Support for skipped messages and keep track of skipped message keys.
+- ⏳ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer></s>, refreshing client profile)  
     - TODO consider actual requirements: long-running application that needs to refresh as periodic action in its execution seems far-fetched with 2-week valid profiles. 
-- _ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive" use cases:
-- _ Clean up OTRv2 support.
-- _ Clean up remaining TODOs
-- _ Review and clean up logging statements. Ensure that no secret data is exposed through logging.
-- _ Review and clean up comments to spot out-of-date quotes from the spec.
+- ⏳ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive".
+- Clean up OTRv2 support.
+- Clean up remaining TODOs
+- Review and clean up logging statements. Ensure that no secret data is exposed through logging.
+- Review and clean up comments to spot out-of-date quotes from the spec.
 
 ## Architectural considerations
 
 Architectural constraints that are respected in the design.
 
-1. Correctness of protocol implementation.
+1. Correctness of protocol (and) implementation.
 1. Encapsulation of cryptographic material to prevent mistakes, misuse, excessive exposure.
 1. Design that prevents or makes obvious programming errors.
 1. Simplicity: restricted implementation to only as much complexity and abstraction as needed.
@@ -132,7 +135,7 @@ __Functionality__
   - ☐ Ability to import/export DSA and EdDSA key pairs, such that `ClientProfile`s can be persisted/restored.
   - ☐ `OtrKeyManager` was removed. Evaluate whether this is a problem for adopters. (I prefer to leave it out or put it in its own repository.)
 - Interoperability (limited testing):
-  - ☑ backwards-compatible with Jitsi's otr4j implementation
+  - ☑ backwards-compatible with Jitsi's otr4j implementation (for OTR version 3 support)
   - ☐ testing against other OTRv4 implementations
 - Misc
   - ☑ Set flag `IGNORE_UNREADABLE` also for OTRv3 DISCONNECT and all SMP messages.  
@@ -161,7 +164,7 @@ __Operational__
   - ☑ Points kept as byte-arrays.
   - ☑ Scalar values kept as byte-arrays.
 - Mathematical operations act on byte-array representations directly:  
-  _See also [BearSSL big integer operations](https://www.bearssl.org/bigint.html)_
+  _See also [BearSSL big integer operations](<https://www.bearssl.org/bigint.html>)_
   - ☐ Scalar arithmetic operations
   - ☐ Point arithmetic operations
 - Robustness
@@ -215,9 +218,6 @@ __Developmental__
 
 Please open an issue to discuss contributions early. As OTRv4 is still in draft and work on otr4j is active, things might change quickly.
 
-- Helping with implementation work:
-  - See the [Functional/Operational/Developmental action points][checklist].
-  - Look for `FIXME`/`TODO` in the code.
 - Peer-reviewing (for correctness, security and improvements in general)  
   _Don't trust me. I have done most of the work, so you can contribute the fixes to make it more trustworthy._
 - Integration into chat clients
@@ -245,11 +245,12 @@ Due to initial lack of support for Ed448-Goldilocks, a _very_ basic, limited Jav
 - __2019-10-28__ Due to third-party contributions made under dubious circumstances, i.e. possibly made during working time instead of personal time, some merges in the commit history have been redone. There are no longer any third-party contributions in the OTRv4 work. The [original master-branch content][original-master] is still available.
 
 
-[OTR]: https://otr.cypherpunks.ca/
-[jitsi]: https://jitsi.org/
-[OTRv2]: https://otr.cypherpunks.ca/Protocol-v2-3.1.0.html
-[OTRv3]: https://otr.cypherpunks.ca/Protocol-v3-4.1.1.html
-[OTRv4]: https://github.com/otrv4/otrv4
-[joldilocks]: https://gitlab.com/cobratbq/joldilocks "A functional, custom implementation of Ed448-Goldilocks."
-[original-master]: https://gitlab.com/cobratbq/otr4j/tree/original-master "The original master branch. Before the history rewrite occurred."
-[checklist]: docs/checklist.md "Checklist with functional, operational and developmental requirements."
+[OTR]: <https://otr.cypherpunks.ca/>
+[jitsi]: <https://jitsi.org/>
+[OTRv2]: <https://otr.cypherpunks.ca/Protocol-v2-3.1.0.html>
+[OTRv3]: <https://otr.cypherpunks.ca/Protocol-v3-4.1.1.html>
+[OTRv4]: <https://github.com/otrv4/otrv4>
+[joldilocks]: <https://gitlab.com/cobratbq/joldilocks> "A functional, custom implementation of Ed448-Goldilocks."
+[original-master]: <https://gitlab.com/cobratbq/otr4j/tree/original-master> "The original master branch. Before the history rewrite occurred."
+[checklist]: <docs/checklist.md> "Checklist with functional, operational and developmental requirements."
+[MLS]: <https://datatracker.ietf.org/wg/mls/about/> "IETF WG Messaging Layer Security (mls)"

@@ -188,11 +188,13 @@ final class SessionImpl implements Session, Context {
      * Offer status for whitespace-tagged message indicating OTR supported.
      */
     @GuardedBy("masterSession")
+    @Nonnull
     private OfferStatus offerStatus;
 
     /**
      * The Client Profile.
      */
+    @Nonnull
     private final ClientProfile profile;
 
     /**
@@ -202,6 +204,7 @@ final class SessionImpl implements Session, Context {
     // TODO consider keeping an internal class-level cache of signed payload per client profile, such that we do not keep constructing it again and again
     // TODO ability for user to specify amount of expiration time on a profile
     // TODO ability to identify when a new Client Profile is composed such that we need to refresh and republish the Client Profile payload.
+    @Nonnull
     private final ClientProfilePayload profilePayload;
 
     /**
@@ -210,6 +213,7 @@ final class SessionImpl implements Session, Context {
      * The receiver tag is only used in OTRv3. In case of OTRv2 the instance tag
      * will be zero-tag ({@link InstanceTag#ZERO_TAG}).
      */
+    @Nonnull
     private final InstanceTag receiverTag;
 
     /**
@@ -222,6 +226,7 @@ final class SessionImpl implements Session, Context {
      * Message fragmenter.
      */
     @GuardedBy("masterSession")
+    @Nonnull
     private final Fragmenter fragmenter;
 
     /**
@@ -229,6 +234,7 @@ final class SessionImpl implements Session, Context {
      * the classes in this package in order to support this specific Session instance. The SecureRandom instance should
      * not be shared between sessions.
      */
+    @Nonnull
     private final SecureRandom secureRandom;
 
     /**
@@ -323,6 +329,7 @@ final class SessionImpl implements Session, Context {
         outgoingSession = this;
         this.sessionState = new StatePlaintext(StateInitial.instance());
         // Initialize the Client Profile and payload.
+        // FIXME be clear on what needs to be done to make the ClientProfile fully workable/recreatable.
         ClientProfilePayload payload;
         ClientProfile profile;
         try {
@@ -346,6 +353,7 @@ final class SessionImpl implements Session, Context {
         this.profilePayload = payload;
         // Initialize message fragmentation support.
         this.fragmenter = new Fragmenter(this.secureRandom, host, this.sessionID);
+        // FIXME we need to verify that ClientProfile, long-term EdDSA keypair and legacy DSA keypair correspond.
     }
 
     @Override

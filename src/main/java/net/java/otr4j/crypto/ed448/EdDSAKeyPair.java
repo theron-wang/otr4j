@@ -30,6 +30,7 @@ import static org.bouncycastle.util.Arrays.copyOfRange;
 /**
  * EdDSA key pair.
  */
+// TODO need a way to export (the symmetric key) for persistent storage purposes.
 // TODO consider changing some assertions into full checks with run-time exceptions.
 public final class EdDSAKeyPair implements AutoCloseable {
     private static final int SECRET_KEY_LENGTH_BYTES = SECRET_KEY_SIZE;
@@ -48,6 +49,7 @@ public final class EdDSAKeyPair implements AutoCloseable {
     private EdDSAKeyPair(final byte[] symmetricKey, final byte[] publicKey) {
         assert !allZeroBytes(symmetricKey);
         this.symmetricKey = requireLengthExactly(SECRET_KEY_LENGTH_BYTES, symmetricKey);
+        // FIXME either generate public key from symmetric key or check correctness, because now we are able to construct inconsistent keypairs.
         assert !allZeroBytes(publicKey);
         this.publicKey = requireLengthExactly(PUBLIC_KEY_LENGTH_BYTES, publicKey);
     }
