@@ -34,7 +34,7 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
   - ❓ ECDH operations
   - ❓ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
 - ⏳ Support for skipped messages and keep track of skipped message keys.
-- ⏳ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer></s>, refreshing client profile)  
+- ⏳ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer</s>, refreshing client profile)  
     - TODO consider actual requirements: long-running application that needs to refresh as periodic action in its execution seems far-fetched with 2-week valid profiles. 
 - ⏳ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive".
 - ✔ [Reproducible build][maven-reproducible-builds]  
