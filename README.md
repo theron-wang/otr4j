@@ -37,6 +37,8 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
 - ⏳ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer></s>, refreshing client profile)  
     - TODO consider actual requirements: long-running application that needs to refresh as periodic action in its execution seems far-fetched with 2-week valid profiles. 
 - ⏳ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive".
+- ✔ [Reproducible build][maven-reproducible-builds]  
+  (`mvn -o clean install; mvn -o clean verify artifact:compare -DskipTests`)
 - Clean up OTRv2 support.
 - Clean up remaining TODOs
 - Review and clean up logging statements. Ensure that no secret data is exposed through logging.
@@ -181,6 +183,7 @@ __Operational__
 - OTRv3 - catching up:
   - ☐ In-memory representation for OTRv3.
   - ☐ Arithmetical operations on byte-arrays for OTRv2 and/or OTRv3 logic.
+- ☑ Make builds of _otr4j_ reproducible.
 
 __Developmental__
 
@@ -254,3 +257,4 @@ Due to initial lack of support for Ed448-Goldilocks, a _very_ basic, limited Jav
 [original-master]: <https://gitlab.com/cobratbq/otr4j/tree/original-master> "The original master branch. Before the history rewrite occurred."
 [checklist]: <docs/checklist.md> "Checklist with functional, operational and developmental requirements."
 [MLS]: <https://datatracker.ietf.org/wg/mls/about/> "IETF WG Messaging Layer Security (mls)"
+[maven-reproducible-builds]: <https://maven.apache.org/guides/mini/guide-reproducible-builds.html> "Configuring for Reproducible Builds"
