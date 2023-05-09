@@ -154,10 +154,10 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--<plugin>
+            <plugin>
                 <groupId>org.simplify4u.plugins</groupId>
                 <artifactId>pgpverify-maven-plugin</artifactId>
-                <version>1.14.1</version>
+                <version>1.17.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -169,8 +169,6 @@
                     <scope>test</scope>
                     <pgpKeyServer>https://keyserver.ubuntu.com</pgpKeyServer>
                     <failWeakSignature>true</failWeakSignature>
-                    <failNoSignature>false</failNoSignature>
-                    <strictNoSignature>true</strictNoSignature>
                     <keysMapLocation>${project.basedir}/pgpkeys.list</keysMapLocation>
                     <verifySnapshots>false</verifySnapshots>
                     <verifyPlugins>true</verifyPlugins>
@@ -180,9 +178,9 @@
                     <verifyPomFiles>true</verifyPomFiles>
                     <verifyReactorDependencies>true</verifyReactorDependencies>
                     <verifySystemDependencies>true</verifySystemDependencies>
-                    <quiet>false</quiet>
+                    <quiet>true</quiet>
                 </configuration>
-            </plugin>-->
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-artifact-plugin</artifactId>
