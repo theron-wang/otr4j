@@ -29,8 +29,9 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
 - ✔ Socialist Millionaire's Protocol for OTRv4.
 - ✔ Migrate OTRv4 DAKE state machine into OTRv4 Message state machine.
 - ✔ Redesigned Double Ratchet algorithm.
-- ❓ Migrate Ed448-Goldilocks and EdDSA implementation to Bouncy Castle.  
+- ⏳ Migrate Ed448-Goldilocks and EdDSA implementation to Bouncy Castle.  
   _Requires additions to the BouncyCastle API, as certain necessary operations are not currently supplied._
+  - ✔ EdDSA (the long-term keypair)
   - ❓ ECDH operations
   - ❓ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
 - ⏳ Support for skipped messages and keep track of skipped message keys.
@@ -190,6 +191,8 @@ __Developmental__
 - ☑ Support Java 7+ to be compatible with Android.
 - ☑ Encapsulate cryptographic material such that design facilitates appropriate use and maintenance.
 - ☑ States, such as Message states, isolated as to prevent mistakes in mixing up variables and state management for different states.
+- ☑ Use of exceptions to force alternative control flow paths for verification/validation failures.
+- ☑ Use of identity checks to ensure we do not compare an instance/byte-array with itself.
 - ☑ Strategically placed assertions to discover mistakes such as uninitialized/cleared byte-arrays.
 - Tool support:
   - ☑ JSR-305 annotations for static analysis

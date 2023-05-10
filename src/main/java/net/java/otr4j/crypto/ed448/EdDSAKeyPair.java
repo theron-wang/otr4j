@@ -20,10 +20,6 @@ import static net.java.otr4j.crypto.ed448.Scalars.clamp;
 import static net.java.otr4j.crypto.ed448.Shake256.shake256;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static net.java.otr4j.util.SecureRandoms.randomBytes;
-import static org.bouncycastle.math.ec.rfc8032.Ed448.PUBLIC_KEY_SIZE;
-import static org.bouncycastle.math.ec.rfc8032.Ed448.SECRET_KEY_SIZE;
-import static org.bouncycastle.math.ec.rfc8032.Ed448.generatePublicKey;
 import static org.bouncycastle.util.Arrays.clear;
 import static org.bouncycastle.util.Arrays.copyOfRange;
 
@@ -33,9 +29,9 @@ import static org.bouncycastle.util.Arrays.copyOfRange;
 // TODO need a way to export (the symmetric key) for persistent storage purposes.
 // TODO consider changing some assertions into full checks with run-time exceptions.
 public final class EdDSAKeyPair implements AutoCloseable {
-    private static final int SECRET_KEY_LENGTH_BYTES = SECRET_KEY_SIZE;
+    private static final int SECRET_KEY_LENGTH_BYTES = Ed448.SECRET_KEY_SIZE;
 
-    private static final int PUBLIC_KEY_LENGTH_BYTES = PUBLIC_KEY_SIZE;
+    private static final int PUBLIC_KEY_LENGTH_BYTES = Ed448.PUBLIC_KEY_SIZE;
 
     /**
      * Context value as applied in OTRv4.
@@ -46,10 +42,11 @@ public final class EdDSAKeyPair implements AutoCloseable {
     private final byte[] publicKey;
     private boolean cleared = false;
 
-    private EdDSAKeyPair(final byte[] symmetricKey, final byte[] publicKey) {
+    private EdDSAKeyPair(final byte[] symmetricKey) {
         assert !allZeroBytes(symmetricKey);
         this.symmetricKey = requireLengthExactly(SECRET_KEY_LENGTH_BYTES, symmetricKey);
-        // FIXME either generate public key from symmetric key or check correctness, because now we are able to construct inconsistent keypairs.
+        final byte[] publicKey = new byte[PUBLIC_KEY_LENGTH_BYTES];
+        Ed448.generatePublicKey(symmetricKey, 0, publicKey, 0);
         assert !allZeroBytes(publicKey);
         this.publicKey = requireLengthExactly(PUBLIC_KEY_LENGTH_BYTES, publicKey);
     }
@@ -63,10 +60,9 @@ public final class EdDSAKeyPair implements AutoCloseable {
      */
     @Nonnull
     public static EdDSAKeyPair generate(final SecureRandom random) {
-        final byte[] symmetricKey = randomBytes(random, new byte[SECRET_KEY_LENGTH_BYTES]);
-        final byte[] publicKey = new byte[PUBLIC_KEY_LENGTH_BYTES];
-        generatePublicKey(symmetricKey, 0, publicKey, 0);
-        return new EdDSAKeyPair(symmetricKey, publicKey);
+        final byte[] symmetricKey = new byte[SECRET_KEY_LENGTH_BYTES];
+        Ed448.generatePrivateKey(random, symmetricKey);
+        return new EdDSAKeyPair(symmetricKey);
     }
 
     /**
