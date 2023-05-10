@@ -104,6 +104,15 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.10.1</version>
+                    <configuration>
+                        <release>${project-java-version}</release>
+                        <showWarnings>true</showWarnings>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-pmd-plugin</artifactId>
                     <version>3.20.0</version>
                     <configuration>
@@ -198,11 +207,6 @@
                 <!-- See 'development' profile for additional build parameters for extensive verification. -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
-                <configuration>
-                    <release>${project-java-version}</release>
-                    <showWarnings>true</showWarnings>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -377,7 +381,6 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <!-- TODO need to fix/update PMD and fix custom prefix '1.' below in targetJdk field. -->
                             <targetJdk>${project-java-version}</targetJdk>
                             <rulesets>
                                 <ruleset>codecheck/pmd-rules.xml</ruleset>
