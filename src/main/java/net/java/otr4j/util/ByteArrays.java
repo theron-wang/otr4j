@@ -71,6 +71,15 @@ public final class ByteArrays {
         return bytes;
     }
 
+    @CanIgnoreReturnValue
+    @Nonnull
+    public static byte[] requireNonZeroBytes(final byte[] bytes) {
+        if (allZeroBytes(bytes)) {
+            throw new IllegalArgumentException("all zero-bytes in byte-array");
+        }
+        return bytes;
+    }
+
     /**
      * Test if all bytes are zero for provided byte-array.
      *
@@ -112,11 +121,11 @@ public final class ByteArrays {
      */
     @CheckReturnValue
     public static boolean constantTimeEquals(final byte[] data1, final byte[] data2) {
-        if (data1.length != data2.length) {
-            return false;
-        }
         if (data1 == data2) {
             throw new IllegalArgumentException("BUG: Same instance is compared.");
+        }
+        if (data1.length != data2.length) {
+            return false;
         }
         assert !allZeroBytes(data1) : "Expected non-zero bytes for data1. This may indicate that a critical bug is present, or it may be a false warning.";
         assert !allZeroBytes(data2) : "Expected non-zero bytes for data1. This may indicate that a critical bug is present, or it may be a false warning.";

@@ -20,14 +20,13 @@ import static net.java.otr4j.crypto.ed448.Scalars.clamp;
 import static net.java.otr4j.crypto.ed448.Shake256.shake256;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
+import static net.java.otr4j.util.ByteArrays.requireNonZeroBytes;
 import static org.bouncycastle.util.Arrays.clear;
 import static org.bouncycastle.util.Arrays.copyOfRange;
 
 /**
- * EdDSA key pair.
+ * EdDSA key pair. (Backed by BouncyCastle)
  */
-// TODO need a way to export (the symmetric key) for persistent storage purposes.
-// TODO consider changing some assertions into full checks with run-time exceptions.
 public final class EdDSAKeyPair implements AutoCloseable {
     private static final int SECRET_KEY_LENGTH_BYTES = Ed448.SECRET_KEY_SIZE;
 

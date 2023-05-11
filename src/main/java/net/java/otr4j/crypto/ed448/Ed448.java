@@ -133,7 +133,7 @@ public final class Ed448 {
     }
 
     /**
-     * Method for testing if a point is the identity point.
+     * checkIdentity tests if a point is the identity.
      *
      * @param point point
      * @return Returns true if p is identity, or false otherwise.

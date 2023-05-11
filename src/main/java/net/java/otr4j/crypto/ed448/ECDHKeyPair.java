@@ -120,11 +120,12 @@ public final class ECDHKeyPair implements AutoCloseable {
             throw new IllegalStateException("Secret key material has been cleared. Only public key is still available.");
         }
         final Point sharedSecret = otherPublicKey.multiply(this.secretKey);
-        // TODO is this sufficient to discover all illegal public keys?
         if (allZeroBytes(sharedSecret.getEncoded())) {
             throw new ValidationException("Illegal ECDH public key: other point has small contribution.");
         }
         if (checkIdentity(sharedSecret)) {
+            // NOTE: OTRv4 spec is not clear on this. They claim that comparing to zero is sufficient. However, BC dev
+            // pointed this out. (Discussed in issue: <https://github.com/otrv4/otrv4/issues/231>.)
             throw new ValidationException("Illegal ECDH shared secret.");
         }
         return sharedSecret;
