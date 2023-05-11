@@ -107,6 +107,10 @@ public interface Context extends AuthContext {
 
     /**
      * Get the OTR-encodable payload of the client profile.
+     * <p>
+     * NOTE: this client profile payload must correspond to the client profile acquired via
+     * {@link OtrEngineHost#getClientProfile(SessionID)} using {@link #getSessionID()}. It accesses a prepared client
+     * profile payload hosted by the session instance.
      *
      * @return Returns the OTR-encodable payload.
      */
