@@ -49,6 +49,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
+import java.security.interfaces.DSAPublicKey;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -182,6 +183,7 @@ final class SessionImpl implements Session, Context {
     private final OtrEngineHost host;
 
     @SuppressWarnings({"NonConstantLogger", "PMD.LoggerIsNotStaticFinal"})
+    @Nonnull
     private final Logger logger;
 
     /**
@@ -319,6 +321,7 @@ final class SessionImpl implements Session, Context {
         this.host = requireNonNull(host);
         this.receiverTag = requireNonNull(receiverTag);
         this.messageQueue = requireNonNull(messageQueue);
+        this.fragmenter = new Fragmenter(this.secureRandom, this.host, this.sessionID);
         this.offerStatus = OfferStatus.IDLE;
         // Master session uses the map to manage slave sessions. Slave sessions do not use the map.
         if (this.masterSession == this) {
@@ -329,7 +332,6 @@ final class SessionImpl implements Session, Context {
         outgoingSession = this;
         this.sessionState = new StatePlaintext(StateInitial.instance());
         // Initialize the Client Profile and payload.
-        // FIXME be clear on what needs to be done to make the ClientProfile fully workable/recreatable.
         ClientProfilePayload payload;
         ClientProfile profile;
         try {
@@ -351,9 +353,14 @@ final class SessionImpl implements Session, Context {
         }
         this.profile = profile;
         this.profilePayload = payload;
-        // Initialize message fragmentation support.
-        this.fragmenter = new Fragmenter(this.secureRandom, host, this.sessionID);
-        // FIXME we need to verify that ClientProfile, long-term EdDSA keypair and legacy DSA keypair correspond.
+        // Verify consistent use of keypairs…
+        requireEquals(this.profile.getLongTermPublicKey(), this.host.getLongTermKeyPair(this.sessionID).getPublicKey(),
+                "Long-term keypair provided by OtrEngineHost must be same as in the client profile.");
+        final DSAPublicKey profileDSAPublicKey = this.profile.getDsaPublicKey();
+        if (profileDSAPublicKey != null) {
+            requireEquals(profileDSAPublicKey, this.host.getLocalKeyPair(this.sessionID).getPublic(),
+                    "Local (OTRv3) keypair provided by OtrEngineHost must be same as in the client profile.");
+        }
     }
 
     @Override
