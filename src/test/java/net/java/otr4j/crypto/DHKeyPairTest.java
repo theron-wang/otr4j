@@ -45,15 +45,15 @@ public class DHKeyPairTest {
     public void testGenerateKeyPair() {
         final DHKeyPair keypair = DHKeyPair.generate(RANDOM);
         assertNotNull(keypair);
-        assertNotNull(keypair.getPublicKey());
+        assertNotNull(keypair.publicKey());
     }
 
     @Test
     public void testGeneratingKeyPairs() {
         for (int i = 0; i < 50; i++) {
             final DHKeyPair keypair = DHKeyPair.generate(RANDOM);
-            if (!checkPublicKey(keypair.getPublicKey())) {
-                fail("Generated public key failed verification: " + keypair.getPublicKey());
+            if (!checkPublicKey(keypair.publicKey())) {
+                fail("Generated public key failed verification: " + keypair.publicKey());
             }
         }
     }
@@ -68,14 +68,14 @@ public class DHKeyPairTest {
     public void testGenerateSharedSecretSymmetry() {
         final DHKeyPair keypairA = DHKeyPair.generate(RANDOM);
         final DHKeyPair keypairB = DHKeyPair.generate(RANDOM);
-        assertEquals(keypairA.generateSharedSecret(keypairB.getPublicKey()),
-                keypairB.generateSharedSecret(keypairA.getPublicKey()));
+        assertEquals(keypairA.generateSharedSecret(keypairB.publicKey()),
+                keypairB.generateSharedSecret(keypairA.publicKey()));
     }
 
     @Test
     public void testVerifyPublicKey() throws OtrCryptoException {
         final DHKeyPair keypair = DHKeyPair.generate(RANDOM);
-        verifyDHPublicKey(keypair.getPublicKey());
+        verifyDHPublicKey(keypair.publicKey());
     }
 
     @Test(expected = NullPointerException.class)
@@ -129,6 +129,6 @@ public class DHKeyPairTest {
         final DHKeyPair kp1 = DHKeyPair.generate(RANDOM);
         final DHKeyPair kp2 = DHKeyPair.generate(RANDOM);
         kp1.close();
-        kp1.generateSharedSecret(kp2.getPublicKey());
+        kp1.generateSharedSecret(kp2.publicKey());
     }
 }

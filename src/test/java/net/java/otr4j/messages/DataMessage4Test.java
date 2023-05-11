@@ -36,9 +36,9 @@ public final class DataMessage4Test {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private static final Point ECDH_PUBLIC_KEY = ECDHKeyPair.generate(RANDOM).getPublicKey();
+    private static final Point ECDH_PUBLIC_KEY = ECDHKeyPair.generate(RANDOM).publicKey();
 
-    private static final BigInteger DH_PUBLIC_KEY = DHKeyPair.generate(RANDOM).getPublicKey();
+    private static final BigInteger DH_PUBLIC_KEY = DHKeyPair.generate(RANDOM).publicKey();
 
     @Test
     public void testConstructDataMessage4() {

@@ -123,7 +123,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      */
     @Nonnull
     public Point getECDHPublicKey() {
-        return this.ecdhKeyPair.getPublicKey();
+        return this.ecdhKeyPair.publicKey();
     }
 
     /**
@@ -133,7 +133,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      */
     @Nonnull
     public BigInteger getDHPublicKey() {
-        return this.dhKeyPair.getPublicKey();
+        return this.dhKeyPair.publicKey();
     }
 
     /**
@@ -209,11 +209,11 @@ public final class MixedSharedSecret implements AutoCloseable {
         if (!containsPoint(requireNonNull(theirECDHPublicKey))) {
             throw new OtrCryptoException("ECDH public key failed verification.");
         }
-        if (this.ecdhKeyPair.getPublicKey().constantTimeEquals(theirECDHPublicKey)
+        if (this.ecdhKeyPair.publicKey().constantTimeEquals(theirECDHPublicKey)
                 || this.theirECDHPublicKey.constantTimeEquals(theirECDHPublicKey)) {
             throw new OtrCryptoException("A new, different ECDH public key is expected for initializing the new ratchet.");
         }
-        if (this.dhKeyPair.getPublicKey().equals(theirDHPublicKey) || this.theirDHPublicKey.equals(theirDHPublicKey)) {
+        if (this.dhKeyPair.publicKey().equals(theirDHPublicKey) || this.theirDHPublicKey.equals(theirDHPublicKey)) {
             throw new OtrCryptoException("A new, different DH public key is expected for initializing the new ratchet.");
         }
         this.theirECDHPublicKey = theirECDHPublicKey;

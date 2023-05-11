@@ -32,8 +32,8 @@ public final class IdentityMessageTest {
         final ClientProfilePayload clientProfile = profileTestUtils.createTransitionalClientProfile();
         final Point y = basePoint();
         final BigInteger b = BigInteger.TEN;
-        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         new IdentityMessage(4, ZERO_TAG, ZERO_TAG, clientProfile, y, b, firstECDHPublicKey, firstDHPublicKey);
     }
 
@@ -41,8 +41,8 @@ public final class IdentityMessageTest {
     public void testConstructionNullUserProfile() {
         final Point y = basePoint();
         final BigInteger b = BigInteger.TEN;
-        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         new IdentityMessage(4, ZERO_TAG, ZERO_TAG, null, y, b, firstECDHPublicKey, firstDHPublicKey);
     }
 
@@ -50,8 +50,8 @@ public final class IdentityMessageTest {
     public void testConstructIdentityMessageNullY() {
         final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final BigInteger b = BigInteger.TEN;
-        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         new IdentityMessage(4, ZERO_TAG, ZERO_TAG, clientProfile, null, b, firstECDHPublicKey, firstDHPublicKey);
     }
 
@@ -59,8 +59,8 @@ public final class IdentityMessageTest {
     public void testConstructIdentityMessageNullB() {
         final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final Point y = basePoint();
-        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         new IdentityMessage(4, ZERO_TAG, ZERO_TAG, clientProfile, y, null, firstECDHPublicKey, firstDHPublicKey);
     }
 
@@ -69,8 +69,8 @@ public final class IdentityMessageTest {
         final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final Point y = basePoint();
         final BigInteger b = BigInteger.TEN;
-        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         new IdentityMessage(3, ZERO_TAG, ZERO_TAG, clientProfile, y, b, firstECDHPublicKey, firstDHPublicKey);
     }
 
@@ -79,7 +79,7 @@ public final class IdentityMessageTest {
         final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final Point y = basePoint();
         final BigInteger b = BigInteger.TEN;
-        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         new IdentityMessage(3, ZERO_TAG, ZERO_TAG, clientProfile, y, b, null, firstDHPublicKey);
     }
 
@@ -88,7 +88,7 @@ public final class IdentityMessageTest {
         final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final Point y = basePoint();
         final BigInteger b = BigInteger.TEN;
-        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         new IdentityMessage(3, ZERO_TAG, ZERO_TAG, clientProfile, y, b, firstECDHPublicKey, null);
     }
 }

@@ -41,17 +41,17 @@ public final class AuthRMessageTest {
 
     private static final DSAKeyPair DSA_KEYPAIR = DSAKeyPair.generateDSAKeyPair(RANDOM);
 
-    private static final Point FORGING_KEY = ECDHKeyPair.generate(RANDOM).getPublicKey();
+    private static final Point FORGING_KEY = ECDHKeyPair.generate(RANDOM).publicKey();
 
     private static final EdDSAKeyPair ED_DSA_KEYPAIR = EdDSAKeyPair.generate(RANDOM);
 
-    private static final Point X = ECDHKeyPair.generate(RANDOM).getPublicKey();
+    private static final Point X = ECDHKeyPair.generate(RANDOM).publicKey();
 
-    private static final BigInteger A = DHKeyPair.generate(RANDOM).getPublicKey();
+    private static final BigInteger A = DHKeyPair.generate(RANDOM).publicKey();
 
-    private static final Point FIRST_ECDH_PUBLIC_KEY = ECDHKeyPair.generate(RANDOM).getPublicKey();
+    private static final Point FIRST_ECDH_PUBLIC_KEY = ECDHKeyPair.generate(RANDOM).publicKey();
 
-    private static final BigInteger FIRST_DH_PUBLIC_KEY = DHKeyPair.generate(RANDOM).getPublicKey();
+    private static final BigInteger FIRST_DH_PUBLIC_KEY = DHKeyPair.generate(RANDOM).publicKey();
 
     private static final ClientProfilePayload PAYLOAD = ClientProfilePayload.signClientProfile(
             new ClientProfile(SMALLEST_TAG, ED_DSA_KEYPAIR.getPublicKey(), FORGING_KEY,
@@ -194,6 +194,6 @@ public final class AuthRMessageTest {
     private static Sigma generateSigma(final EdDSAKeyPair keypair, final byte[] message) {
         final ECDHKeyPair pair1 = ECDHKeyPair.generate(RANDOM);
         final ECDHKeyPair pair2 = ECDHKeyPair.generate(RANDOM);
-        return ringSign(RANDOM, keypair, keypair.getPublicKey(), pair1.getPublicKey(), pair2.getPublicKey(), message);
+        return ringSign(RANDOM, keypair, keypair.getPublicKey(), pair1.publicKey(), pair2.publicKey(), message);
     }
 }

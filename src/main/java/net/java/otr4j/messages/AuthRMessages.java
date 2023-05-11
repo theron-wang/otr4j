@@ -34,23 +34,22 @@ public final class AuthRMessages {
     /**
      * Validate an AuthRMessage, using additional parameters to provide required data.
      *
-     * @param message                    the AUTH_R message
-     * @param ourClientProfilePayload    our ClientProfile payload instance (non-validated)
-     * @param ourProfile                 our Client Profile instance (the same as the payload, but validated)
-     * @param theirProfile               their Client Profile instance
-     * @param senderAccountID            the sender's account ID
-     * @param receiverAccountID          the Receiver's account ID
-     * @param receiverECDHPublicKey      the receiver's ECDH public key
-     * @param receiverDHPublicKey        the receiver's DH public key
-     * @param receiverFirstECDHPublicKey the receiver's first ECDH public key after DAKE completes
-     * @param receiverFirstDHPublicKey   the receiver's first DH public key after DAKE completes
+     * @param message the AUTH_R message
+     * @param ourProfilePayload our ClientProfile payload instance (non-validated)
+     * @param ourProfile our Client Profile instance (the same as the payload, but validated)
+     * @param theirProfile their Client Profile instance
+     * @param senderAccountID the sender's account ID
+     * @param receiverAccountID the Receiver's account ID
+     * @param y the receiver's ECDH public key
+     * @param b the receiver's DH public key
+     * @param firstECDHPublicKey the receiver's (our) first ECDH public key after DAKE completes
+     * @param firstDHPublicKey the receiver's (our) first DH public key after DAKE completes
      * @throws ValidationException In case the message fails validation.
      */
-    public static void validate(final AuthRMessage message, final ClientProfilePayload ourClientProfilePayload,
+    public static void validate(final AuthRMessage message, final ClientProfilePayload ourProfilePayload,
             final ClientProfile ourProfile, final ClientProfile theirProfile, final String senderAccountID,
-            final String receiverAccountID, final Point receiverECDHPublicKey, final BigInteger receiverDHPublicKey,
-            final Point receiverFirstECDHPublicKey, final BigInteger receiverFirstDHPublicKey)
-            throws ValidationException {
+            final String receiverAccountID, final Point y, final BigInteger b, final Point firstECDHPublicKey,
+            final BigInteger firstDHPublicKey) throws ValidationException {
         try {
             verifyECDHPublicKey(message.x);
             verifyDHPublicKey(message.a);
@@ -60,13 +59,11 @@ public final class AuthRMessages {
             throw new ValidationException("Illegal ephemeral public key.", e);
         }
         validateEquals(message.senderTag, theirProfile.getInstanceTag(), "Sender instance tag does not match with owner instance tag in client profile.");
-        final byte[] t = encode(AUTH_R, message.clientProfile, ourClientProfilePayload, message.x,
-                receiverECDHPublicKey, message.a, receiverDHPublicKey, message.firstECDHPublicKey,
-                message.firstDHPublicKey, receiverFirstECDHPublicKey, receiverFirstDHPublicKey,
+        final byte[] t = encode(AUTH_R, message.clientProfile, ourProfilePayload, message.x, y, message.a, b,
+                message.firstECDHPublicKey, message.firstDHPublicKey, firstECDHPublicKey, firstDHPublicKey,
                 message.senderTag, message.receiverTag, senderAccountID, receiverAccountID);
         try {
-            ringVerify(ourProfile.getForgingKey(), theirProfile.getLongTermPublicKey(), receiverECDHPublicKey,
-                    message.sigma, t);
+            ringVerify(ourProfile.getForgingKey(), theirProfile.getLongTermPublicKey(), y, message.sigma, t);
         } catch (final OtrCryptoException e) {
             throw new ValidationException("Ring signature failed verification.", e);
         }

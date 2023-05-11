@@ -71,26 +71,26 @@ public final class AuthRMessage extends AbstractEncodedMessage {
     /**
      * Auth-R Message as used in OTRv4.
      *
-     * @param protocolVersion       the protocol version
-     * @param senderInstance        the sender instance tag
-     * @param receiverInstance      the receiver instance tag
-     * @param clientProfile         the client profile (as payload)
-     * @param x                     the ECDH public key 'X'
-     * @param a                     the DH public key 'A'
-     * @param sigma                 the ring signature
-     * @param ourFirstECDHPublicKey the first ECDH public key to be used once DAKE has completed
-     * @param ourFirstDHPublicKey   the first DH public key to be used once DAKE has completed
+     * @param protocolVersion the protocol version
+     * @param senderInstance the sender instance tag
+     * @param receiverInstance the receiver instance tag
+     * @param clientProfile the client profile (as payload)
+     * @param x the ECDH public key 'X'
+     * @param a the DH public key 'A'
+     * @param sigma the ring signature
+     * @param firstECDHPublicKey the first ECDH public key to be used once DAKE has completed
+     * @param firstDHPublicKey the first DH public key to be used once DAKE has completed
      */
     public AuthRMessage(final int protocolVersion, final InstanceTag senderInstance, final InstanceTag receiverInstance,
             final ClientProfilePayload clientProfile, final Point x, final BigInteger a, final Sigma sigma,
-            final Point ourFirstECDHPublicKey, final BigInteger ourFirstDHPublicKey) {
+            final Point firstECDHPublicKey, final BigInteger firstDHPublicKey) {
         super(requireInRange(Version.FOUR, Version.FOUR, protocolVersion), senderInstance, receiverInstance);
         this.clientProfile = requireNonNull(clientProfile);
         this.x = requireNonNull(x);
         this.a = requireNonNull(a);
         this.sigma = requireNonNull(sigma);
-        this.firstECDHPublicKey = requireNonNull(ourFirstECDHPublicKey);
-        this.firstDHPublicKey = requireNonNull(ourFirstDHPublicKey);
+        this.firstECDHPublicKey = requireNonNull(firstECDHPublicKey);
+        this.firstDHPublicKey = requireNonNull(firstDHPublicKey);
     }
 
     @Override

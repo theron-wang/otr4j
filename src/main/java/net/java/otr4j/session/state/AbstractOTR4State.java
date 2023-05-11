@@ -111,16 +111,16 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         final ClientProfilePayload profile = context.getClientProfilePayload();
         final SessionID sessionID = context.getSessionID();
         final EdDSAKeyPair longTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
-        final byte[] t = encode(AUTH_R, profile, message.clientProfile, x.getPublicKey(), message.y, a.getPublicKey(),
-                message.b, ourFirstECDHKeyPair.getPublicKey(), ourFirstDHKeyPair.getPublicKey(),
+        final byte[] t = encode(AUTH_R, profile, message.clientProfile, x.publicKey(), message.y, a.publicKey(),
+                message.b, ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey(),
                 message.firstECDHPublicKey, message.firstDHPublicKey, context.getSenderInstanceTag(),
                 context.getReceiverInstanceTag(), sessionID.getAccountID(), sessionID.getUserID());
         final Sigma sigma = ringSign(secureRandom, longTermKeyPair, theirClientProfile.getForgingKey(),
                 longTermKeyPair.getPublicKey(), message.y, t);
         // Generate response message and transition into next state.
         context.injectMessage(new AuthRMessage(FOUR, context.getSenderInstanceTag(),
-                context.getReceiverInstanceTag(), profile, x.getPublicKey(), a.getPublicKey(), sigma,
-                ourFirstECDHKeyPair.getPublicKey(), ourFirstDHKeyPair.getPublicKey()));
+                context.getReceiverInstanceTag(), profile, x.publicKey(), a.publicKey(), sigma,
+                ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), k, ssid, x, a, ourFirstECDHKeyPair,
                 ourFirstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey, message.y, message.b,
                 profile, message.clientProfile));
@@ -135,17 +135,17 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         }
         LOGGER.log(Level.FINE, "Generating new short-term keypairs for DAKE…");
         final SecureRandom secureRandom = context.secureRandom();
-        final ECDHKeyPair ourECDHkeyPair = ECDHKeyPair.generate(secureRandom);
-        final DHKeyPair ourDHkeyPair = DHKeyPair.generate(secureRandom);
+        final ECDHKeyPair y = ECDHKeyPair.generate(secureRandom);
+        final DHKeyPair b  = DHKeyPair.generate(secureRandom);
         final ClientProfilePayload profilePayload = context.getClientProfilePayload();
         final ECDHKeyPair ourFirstECDHKeyPair = ECDHKeyPair.generate(secureRandom);
         final DHKeyPair ourFirstDHKeyPair = DHKeyPair.generate(secureRandom);
         final IdentityMessage message = new IdentityMessage(FOUR, context.getSenderInstanceTag(),
-                receiverInstanceTag, profilePayload, ourECDHkeyPair.getPublicKey(), ourDHkeyPair.getPublicKey(),
-                ourFirstECDHKeyPair.getPublicKey(), ourFirstDHKeyPair.getPublicKey());
+                receiverInstanceTag, profilePayload, y.publicKey(), b.publicKey(),
+                ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey());
         context.injectMessage(message);
-        context.transition(this, new StateAwaitingAuthR(getAuthState(), ourECDHkeyPair, ourDHkeyPair,
-                ourFirstECDHKeyPair, ourFirstDHKeyPair, profilePayload, message));
+        context.transition(this, new StateAwaitingAuthR(getAuthState(), y, b, ourFirstECDHKeyPair, ourFirstDHKeyPair,
+                profilePayload, message));
     }
 
     /**

@@ -69,37 +69,33 @@ final class StateAwaitingAuthR extends AbstractCommonState {
     private final IdentityMessage previousMessage;
 
     /**
-     * Our user's client profile payload.
+     * Our client profile payload.
      */
-    private final ClientProfilePayload ourProfilePayload;
+    private final ClientProfilePayload profilePayload;
 
     /**
-     * Our ECDH key pair.
-     * <p>
-     * The public key from this key pair is also known as 'y'.
+     * Our ECDH key pair 'Y', 'y'.
      */
-    private final ECDHKeyPair ecdhKeyPair;
+    private final ECDHKeyPair y;
 
     /**
-     * Our DH key pair.
-     * <p>
-     * The public key from this key pair is also known as 'b'.
+     * Our DH key pair 'B', 'b'.
      */
-    private final DHKeyPair dhKeyPair;
+    private final DHKeyPair b;
 
-    private final ECDHKeyPair ourFirstECDHKeyPair;
+    private final ECDHKeyPair firstECDHKeyPair;
 
-    private final DHKeyPair ourFirstDHKeyPair;
+    private final DHKeyPair firstDHKeyPair;
 
-    StateAwaitingAuthR(final AuthState authState, final ECDHKeyPair ecdhKeyPair, final DHKeyPair dhKeyPair,
-            final ECDHKeyPair ourFirstECDHKeyPair, final DHKeyPair ourFirstDHKeyPair,
-            final ClientProfilePayload ourProfilePayload, final IdentityMessage previousMessage) {
+    StateAwaitingAuthR(final AuthState authState, final ECDHKeyPair y, final DHKeyPair b,
+            final ECDHKeyPair firstECDHKeyPair, final DHKeyPair firstDHKeyPair,
+            final ClientProfilePayload profilePayload, final IdentityMessage previousMessage) {
         super(authState);
-        this.ecdhKeyPair = requireNonNull(ecdhKeyPair);
-        this.dhKeyPair = requireNonNull(dhKeyPair);
-        this.ourFirstECDHKeyPair = requireNonNull(ourFirstECDHKeyPair);
-        this.ourFirstDHKeyPair = requireNonNull(ourFirstDHKeyPair);
-        this.ourProfilePayload = requireNonNull(ourProfilePayload);
+        this.y = requireNonNull(y);
+        this.b = requireNonNull(b);
+        this.firstECDHKeyPair = requireNonNull(firstECDHKeyPair);
+        this.firstDHKeyPair = requireNonNull(firstDHKeyPair);
+        this.profilePayload = requireNonNull(profilePayload);
         this.previousMessage = requireNonNull(previousMessage);
     }
 
@@ -172,8 +168,8 @@ final class StateAwaitingAuthR extends AbstractCommonState {
             return;
         }
         // Clear old key material, then start a new DAKE from scratch with different keys.
-        this.dhKeyPair.close();
-        this.ecdhKeyPair.close();
+        this.b.close();
+        this.y.close();
         // Pretend we are still in initial state and handle Identity message accordingly.
         super.handleIdentityMessage(context, message);
     }
@@ -182,18 +178,18 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         final SessionID sessionID = context.getSessionID();
         final EdDSAKeyPair ourLongTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
         // Validate received Auth-R message.
-        final ClientProfile ourClientProfile = this.ourProfilePayload.validate();
+        final ClientProfile ourClientProfile = this.profilePayload.validate();
         final ClientProfile theirClientProfile = message.clientProfile.validate();
-        validate(message, this.ourProfilePayload, ourClientProfile, theirClientProfile, sessionID.getUserID(),
-                sessionID.getAccountID(), this.ecdhKeyPair.getPublicKey(), this.dhKeyPair.getPublicKey(),
-                this.ourFirstECDHKeyPair.getPublicKey(), this.ourFirstDHKeyPair.getPublicKey());
+        validate(message, this.profilePayload, ourClientProfile, theirClientProfile, sessionID.getUserID(),
+                sessionID.getAccountID(), this.y.publicKey(), this.b.publicKey(),
+                this.firstECDHKeyPair.publicKey(), this.firstDHKeyPair.publicKey());
         final SecureRandom secureRandom = context.secureRandom();
         // Prepare Auth-I message to be sent.
         final InstanceTag senderTag = context.getSenderInstanceTag();
         final InstanceTag receiverTag = context.getReceiverInstanceTag();
-        final byte[] t = encode(AUTH_I, message.clientProfile, this.ourProfilePayload, message.x,
-                this.ecdhKeyPair.getPublicKey(), message.a, this.dhKeyPair.getPublicKey(),
-                this.ourFirstECDHKeyPair.getPublicKey(), this.ourFirstDHKeyPair.getPublicKey(),
+        final byte[] t = encode(AUTH_I, message.clientProfile, this.profilePayload, message.x,
+                this.y.publicKey(), message.a, this.b.publicKey(),
+                this.firstECDHKeyPair.publicKey(), this.firstDHKeyPair.publicKey(),
                 message.firstECDHPublicKey, message.firstDHPublicKey, senderTag, receiverTag,
                 sessionID.getAccountID(), sessionID.getUserID());
         final OtrCryptoEngine4.Sigma sigma = ringSign(secureRandom, ourLongTermKeyPair,
@@ -202,14 +198,13 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         // Calculate mixed shared secret and SSID.
         final byte[] k;
         final byte[] ssid;
-        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.dhKeyPair, this.ecdhKeyPair,
-                message.a, message.x)) {
+        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.b, this.y, message.a, message.x)) {
             k = sharedSecret.getK();
             ssid = sharedSecret.generateSSID();
         }
         // Initialize Double Ratchet.
-        final MixedSharedSecret firstRatchetSecret = new MixedSharedSecret(secureRandom, ourFirstDHKeyPair,
-                ourFirstECDHKeyPair, message.firstDHPublicKey, message.firstECDHPublicKey);
+        final MixedSharedSecret firstRatchetSecret = new MixedSharedSecret(secureRandom, this.firstDHKeyPair,
+                this.firstECDHKeyPair, message.firstDHPublicKey, message.firstECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(firstRatchetSecret, kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY,
                 k), BOB);
         // NOTE: the spec says to rotate sender keys here. If we do rotate sender keys here, it is not followed up with
@@ -238,10 +233,10 @@ final class StateAwaitingAuthR extends AbstractCommonState {
 
     @Override
     public void end(final Context context) {
-        this.dhKeyPair.close();
-        this.ecdhKeyPair.close();
-        this.ourFirstDHKeyPair.close();
-        this.ourFirstECDHKeyPair.close();
+        this.b.close();
+        this.y.close();
+        this.firstDHKeyPair.close();
+        this.firstECDHKeyPair.close();
         context.transition(this, new StatePlaintext(getAuthState()));
     }
 

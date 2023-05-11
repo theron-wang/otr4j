@@ -32,37 +32,37 @@ public final class AuthIMessages {
     /**
      * Validate an Auth-I message.
      *
-     * @param message                    the Auth-I message to be validated
-     * @param ourProfilePayload          our client profile (non-validated, as payload)
-     * @param ourProfile                 our client profile
-     * @param profileBobPayload          other party's client profile (as payload)
-     * @param profileBob                 other party's client profile, validated
-     * @param x                          ephemeral ECDH public key 'X'
-     * @param y                          ephemeral ECDH public key 'Y'
-     * @param a                          ephemeral DH public key 'A'
-     * @param b                          ephemeral DH public key 'B'
-     * @param senderAccountID            sender account ID
-     * @param receiverAccountID          receiver account ID
-     * @param senderFirstECDHPublicKey   the sender's first ECDH public key to use after DAKE completes
-     * @param senderFirstDHPublicKey     the sender's first DH public key to use after DAKE completes
-     * @param receiverFirstECDHPublicKey the receiver's first ECDH public key to use after DAKE completes
-     * @param receiverFirstDHPublicKey   the receiver's first DH public key to use after DAKE completes
+     * @param message the Auth-I message to be validated
+     * @param payloadAlice our client profile (non-validated, as payload)
+     * @param profileAlice our client profile
+     * @param payloadBob other party's client profile (as payload)
+     * @param profileBob other party's client profile, validated
+     * @param x ephemeral ECDH public key 'X'
+     * @param y ephemeral ECDH public key 'Y'
+     * @param a ephemeral DH public key 'A'
+     * @param b ephemeral DH public key 'B'
+     * @param bobAccountID sender account ID
+     * @param aliceAccountID receiver account ID
+     * @param bobFirstECDHPublicKey the sender's first ECDH public key to use after DAKE completes
+     * @param bobFirstDHPublicKey the sender's first DH public key to use after DAKE completes
+     * @param aliceFirstECDHPublicKey the receiver's first ECDH public key to use after DAKE completes
+     * @param aliceFirstDHPublicKey the receiver's first DH public key to use after DAKE completes
      * @throws ValidationException In case validation fails.
      */
-    public static void validate(final AuthIMessage message, final ClientProfilePayload ourProfilePayload,
-            final ClientProfile ourProfile, final ClientProfilePayload profileBobPayload, final ClientProfile profileBob,
-            final Point x, final Point y, final BigInteger a, final BigInteger b, final Point senderFirstECDHPublicKey,
-            final BigInteger senderFirstDHPublicKey, final Point receiverFirstECDHPublicKey,
-            final BigInteger receiverFirstDHPublicKey, final String senderAccountID, final String receiverAccountID)
+    public static void validate(final AuthIMessage message, final ClientProfilePayload payloadAlice,
+            final ClientProfile profileAlice, final ClientProfilePayload payloadBob, final ClientProfile profileBob,
+            final Point x, final Point y, final BigInteger a, final BigInteger b, final Point bobFirstECDHPublicKey,
+            final BigInteger bobFirstDHPublicKey, final Point aliceFirstECDHPublicKey,
+            final BigInteger aliceFirstDHPublicKey, final String bobAccountID, final String aliceAccountID)
             throws ValidationException {
         validateEquals(message.senderTag, profileBob.getInstanceTag(), "Sender instance tag does not match with owner instance tag in client profile.");
         // We don't do extra verification of points here, as these have been verified upon receiving the Identity
         // message. This was the previous message that was sent. So we can assume points are trustworthy.
-        final byte[] t = encode(AUTH_I, ourProfilePayload, profileBobPayload, x, y, a, b,
-                senderFirstECDHPublicKey, senderFirstDHPublicKey, receiverFirstECDHPublicKey, receiverFirstDHPublicKey,
-                message.senderTag, message.receiverTag, senderAccountID, receiverAccountID);
+        final byte[] t = encode(AUTH_I, payloadAlice, payloadBob, x, y, a, b,
+                bobFirstECDHPublicKey, bobFirstDHPublicKey, aliceFirstECDHPublicKey, aliceFirstDHPublicKey,
+                message.senderTag, message.receiverTag, bobAccountID, aliceAccountID);
         try {
-            ringVerify(profileBob.getLongTermPublicKey(), ourProfile.getForgingKey(), x, message.sigma, t);
+            ringVerify(profileBob.getLongTermPublicKey(), profileAlice.getForgingKey(), x, message.sigma, t);
         } catch (final OtrCryptoException e) {
             throw new ValidationException("Ring signature verification failed.", e);
         }

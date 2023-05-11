@@ -242,7 +242,7 @@ public class StateFinishedTest {
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(FOUR, SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
-                ecdh.getPublicKey(), dh.getPublicKey(), new byte[80], new byte[64], new byte[0]);
+                ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
         assertNull(state.handleDataMessage(context, message));
         verify(host).unreadableMessageReceived(eq(sessionID));
         verify(context).injectMessage(isA(ErrorMessage.class));
@@ -262,7 +262,7 @@ public class StateFinishedTest {
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(FOUR, SMALLEST_TAG, HIGHEST_TAG, FLAG_IGNORE_UNREADABLE, 0, 0, 0,
-                ecdh.getPublicKey(), dh.getPublicKey(), new byte[80], new byte[64], new byte[0]);
+                ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
         assertNull(state.handleDataMessage(context, message));
         verify(host, never()).unreadableMessageReceived(eq(sessionID));
         verify(context, never()).injectMessage(isA(ErrorMessage.class));
@@ -288,7 +288,7 @@ public class StateFinishedTest {
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(FOUR, SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
-                ecdh.getPublicKey(), dh.getPublicKey(), new byte[80], new byte[64], new byte[0]);
+                ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
         state.handleDataMessage(null, message);
     }
 
@@ -327,7 +327,7 @@ public class StateFinishedTest {
 
 
         state.handleAKEMessage(context, new IdentityMessage(FOUR, SMALLEST_TAG, HIGHEST_TAG, profile,
-                Ed448.identity(), dh1.getPublicKey(), ecdh1.getPublicKey(), dh2.getPublicKey()));
+                Ed448.identity(), dh1.publicKey(), ecdh1.publicKey(), dh2.publicKey()));
         verify(context, never()).injectMessage(isA(AuthRMessage.class));
         verify(context, never()).transition(eq(state), isA(StateAwaitingAuthI.class));
     }

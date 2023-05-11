@@ -116,7 +116,7 @@ public final class DHKeyPair implements AutoCloseable {
      * @return Returns the public key.
      */
     @Nonnull
-    public BigInteger getPublicKey() {
+    public BigInteger publicKey() {
         return this.publicKey;
     }
 

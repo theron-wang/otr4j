@@ -37,8 +37,8 @@ public final class AuthIMessageTest {
 
     static {
         final EdDSAKeyPair longTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point pk2 = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final Point pk3 = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final Point pk2 = ECDHKeyPair.generate(RANDOM).publicKey();
+        final Point pk3 = ECDHKeyPair.generate(RANDOM).publicKey();
         SIG = ringSign(RANDOM, longTermKeyPair, longTermKeyPair.getPublicKey(), pk2, pk3, M);
     }
 

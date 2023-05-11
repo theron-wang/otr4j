@@ -74,8 +74,8 @@ public final class StateEncrypted4Test {
                 theirForgingKey, singletonList(Session.Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
-        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
@@ -93,8 +93,8 @@ public final class StateEncrypted4Test {
                 theirForgingKey, singletonList(Session.Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
-        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
@@ -113,8 +113,8 @@ public final class StateEncrypted4Test {
                 theirForgingKey, singletonList(Session.Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
-        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
@@ -133,8 +133,8 @@ public final class StateEncrypted4Test {
                 theirForgingKey, singletonList(Session.Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
-        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
@@ -150,8 +150,8 @@ public final class StateEncrypted4Test {
         final Point myForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
-        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
@@ -171,8 +171,8 @@ public final class StateEncrypted4Test {
                 theirForgingKey, singletonList(Session.Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
-        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
@@ -192,8 +192,8 @@ public final class StateEncrypted4Test {
                 theirForgingKey, singletonList(Session.Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
-        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
@@ -214,8 +214,8 @@ public final class StateEncrypted4Test {
                 theirForgingKey, singletonList(Session.Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
-        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);
@@ -245,8 +245,8 @@ public final class StateEncrypted4Test {
                 theirForgingKey, singletonList(Session.Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
-        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final byte[] rootKey = randomBytes(RANDOM, new byte[64]);
@@ -288,8 +288,8 @@ public final class StateEncrypted4Test {
                 theirForgingKey, singletonList(Session.Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
-        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, dhKeyPair, ecdhKeyPair, theirDHPublicKey,
                 theirECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, rootKey, DoubleRatchet.Role.ALICE);

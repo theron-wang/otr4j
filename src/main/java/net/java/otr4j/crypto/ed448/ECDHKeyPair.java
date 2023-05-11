@@ -102,7 +102,7 @@ public final class ECDHKeyPair implements AutoCloseable {
      * @return Returns the public key.
      */
     @Nonnull
-    public Point getPublicKey() {
+    public Point publicKey() {
         return this.publicKey;
     }
 

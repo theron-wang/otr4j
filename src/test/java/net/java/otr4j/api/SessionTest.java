@@ -1319,10 +1319,10 @@ public class SessionTest {
         when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());
         final Session session = createSession(sessionID, host);
-        final Point y = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger b = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point firstECDH = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger firstDH = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point y = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
+        final Point firstECDH = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger firstDH = DHKeyPair.generate(RANDOM).publicKey();
         final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(0xffffffff),
                 clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
 
@@ -1344,10 +1344,10 @@ public class SessionTest {
         when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());
         final Session session = createSession(sessionID, host);
-        final Point y = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger b = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point firstECDH = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger firstDH = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point y = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
+        final Point firstECDH = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger firstDH = DHKeyPair.generate(RANDOM).publicKey();
         final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(256),
                 clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
 
@@ -1368,10 +1368,10 @@ public class SessionTest {
         when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());
         final Session session = createSession(sessionID, host);
-        final Point y = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger b = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point firstECDH = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger firstDH = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point y = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
+        final Point firstECDH = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger firstDH = DHKeyPair.generate(RANDOM).publicKey();
         final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(256),
                 clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
 

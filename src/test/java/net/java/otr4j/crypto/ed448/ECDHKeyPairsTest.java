@@ -34,6 +34,6 @@ public class ECDHKeyPairsTest {
     @Test
     public void testVerifyECDHPublicKey() throws ValidationException {
         final ECDHKeyPair keypair = ECDHKeyPair.generate(RANDOM);
-        verifyECDHPublicKey(keypair.getPublicKey());
+        verifyECDHPublicKey(keypair.publicKey());
     }
 }

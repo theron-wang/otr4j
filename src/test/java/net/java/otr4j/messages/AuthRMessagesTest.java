@@ -45,8 +45,8 @@ public final class AuthRMessagesTest {
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
                 forgingKey, singletonList(Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirPayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
@@ -57,8 +57,8 @@ public final class AuthRMessagesTest {
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final ECDHKeyPair ourY = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair ourB = DHKeyPair.generate(RANDOM);
-        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
@@ -66,16 +66,16 @@ public final class AuthRMessagesTest {
         final ClientProfilePayload ourPayload = signClientProfile(ourProfile, Long.MAX_VALUE / 1000,
                 ourDSAKeyPair, ourLongTermKeyPair);
         // Define the message to be validated
-        final byte[] m = MysteriousT4.encode(AUTH_R, theirPayload, ourPayload, theirX.getPublicKey(), ourY.getPublicKey(),
-                theirA.getPublicKey(), ourB.getPublicKey(), theirFirstECDHPublicKey, theirFirstDHPublicKey,
+        final byte[] m = MysteriousT4.encode(AUTH_R, theirPayload, ourPayload, theirX.publicKey(), ourY.publicKey(),
+                theirA.publicKey(), ourB.publicKey(), theirFirstECDHPublicKey, theirFirstDHPublicKey,
                 ourFirstECDHPublicKey, ourFirstDHPublicKey, SMALLEST_TAG, HIGHEST_TAG, "alice@network",
                 "bob@network");
         final Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, ourForgingKey, theirLongTermKeyPair.getPublicKey(),
-                ourY.getPublicKey(), m);
+                ourY.publicKey(), m);
         final AuthRMessage message = new AuthRMessage(Session.Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, theirPayload,
-                theirX.getPublicKey(), theirA.getPublicKey(), sigma, theirFirstECDHPublicKey, theirFirstDHPublicKey);
+                theirX.publicKey(), theirA.publicKey(), sigma, theirFirstECDHPublicKey, theirFirstDHPublicKey);
         validate(message, ourPayload, ourProfile, theirProfile, "alice@network", "bob@network",
-                ourY.getPublicKey(), ourB.getPublicKey(), ourFirstECDHPublicKey, ourFirstDHPublicKey);
+                ourY.publicKey(), ourB.publicKey(), ourFirstECDHPublicKey, ourFirstDHPublicKey);
     }
 
     @Test(expected = ValidationException.class)
@@ -88,16 +88,16 @@ public final class AuthRMessagesTest {
                 forgingKey, singletonList(Session.Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirPayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
-        final Point theirX = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger theirA = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirX = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger theirA = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         // Define our client
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point ourY = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourB = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ourY = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourB = DHKeyPair.generate(RANDOM).publicKey();
+        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
@@ -127,15 +127,15 @@ public final class AuthRMessagesTest {
         final ClientProfilePayload theirPayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
         final Point theirX = createPoint(ONE, ONE);
-        final BigInteger theirA = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final BigInteger theirA = DHKeyPair.generate(RANDOM).publicKey();
+        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         // Define our client
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point ourY = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourB = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ourY = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourB = DHKeyPair.generate(RANDOM).publicKey();
+        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
@@ -164,16 +164,16 @@ public final class AuthRMessagesTest {
                 forgingKey, singletonList(Session.Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirPayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
-        final Point theirX = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirX = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger theirA = ZERO;
-        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         // Define our client
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point ourY = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourB = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ourY = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourB = DHKeyPair.generate(RANDOM).publicKey();
+        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
@@ -202,16 +202,16 @@ public final class AuthRMessagesTest {
                 forgingKey, singletonList(Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirPayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
-        final Point theirX = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirX = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger theirA = ZERO;
-        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         // Define our client
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point ourY = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourB = DHKeyPair.generate(RANDOM).getPublicKey();
-        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ourY = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourB = DHKeyPair.generate(RANDOM).publicKey();
+        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),

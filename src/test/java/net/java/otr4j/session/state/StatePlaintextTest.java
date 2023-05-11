@@ -293,7 +293,7 @@ public class StatePlaintextTest {
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(FOUR, SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
-                ecdh.getPublicKey(), dh.getPublicKey(), new byte[80], new byte[64], new byte[0]);
+                ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
         assertNull(state.handleDataMessage(context, message));
         verify(host).unreadableMessageReceived(eq(sessionID));
         verify(context).injectMessage(isA(ErrorMessage.class));
@@ -313,7 +313,7 @@ public class StatePlaintextTest {
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(FOUR, SMALLEST_TAG, HIGHEST_TAG, FLAG_IGNORE_UNREADABLE, 0, 0, 0,
-                ecdh.getPublicKey(), dh.getPublicKey(), new byte[80], new byte[64], new byte[0]);
+                ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
         assertNull(state.handleDataMessage(context, message));
         verify(host, never()).unreadableMessageReceived(eq(sessionID));
         verify(context, never()).injectMessage(isA(ErrorMessage.class));
@@ -339,7 +339,7 @@ public class StatePlaintextTest {
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(FOUR, SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
-                ecdh.getPublicKey(), dh.getPublicKey(), new byte[80], new byte[64], new byte[0]);
+                ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
         state.handleDataMessage(null, message);
     }
 
@@ -391,7 +391,7 @@ public class StatePlaintextTest {
         final ECDHKeyPair firstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair firstDH = DHKeyPair.generate(RANDOM);
         final IdentityMessage message = new IdentityMessage(FOUR, SMALLEST_TAG, HIGHEST_TAG, profile,
-                dakeECDH.getPublicKey(), dakeDH.getPublicKey(), firstECDH.getPublicKey(), firstDH.getPublicKey());
+                dakeECDH.publicKey(), dakeDH.publicKey(), firstECDH.publicKey(), firstDH.publicKey());
 
         state.handleAKEMessage(context, message);
 
@@ -418,7 +418,7 @@ public class StatePlaintextTest {
         final ECDHKeyPair firstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair firstDH = DHKeyPair.generate(RANDOM);
         final IdentityMessage message = new IdentityMessage(FOUR, SMALLEST_TAG, HIGHEST_TAG, profile,
-                dakeECDH.getPublicKey(), ZERO, firstECDH.getPublicKey(), firstDH.getPublicKey());
+                dakeECDH.publicKey(), ZERO, firstECDH.publicKey(), firstDH.publicKey());
         state.handleAKEMessage(context, message);
     }
 

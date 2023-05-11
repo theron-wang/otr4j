@@ -32,6 +32,6 @@ public class DHKeyPairsTest {
 
     @Test
     public void testVerifyGeneratedPublicKeySucceeds() throws OtrCryptoException {
-        verifyDHPublicKey(DHKeyPair.generate(RANDOM).getPublicKey());
+        verifyDHPublicKey(DHKeyPair.generate(RANDOM).publicKey());
     }
 }

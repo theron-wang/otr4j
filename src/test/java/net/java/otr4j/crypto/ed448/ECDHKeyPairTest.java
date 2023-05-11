@@ -47,13 +47,13 @@ public class ECDHKeyPairTest {
     public void testGenerateKeyPair() {
         final ECDHKeyPair keypair = generate(RANDOM);
         assertNotNull(keypair);
-        assertNotNull(keypair.getPublicKey());
+        assertNotNull(keypair.publicKey());
     }
 
     @Test
     public void testPublicKeyRegeneratable() {
         final ECDHKeyPair keypair = generate(RANDOM);
-        final Point expected = keypair.getPublicKey();
+        final Point expected = keypair.publicKey();
         final Point generated = multiplyByBase((Scalar) getInternalState(keypair, "secretKey"));
         assertEquals(expected, generated);
     }
@@ -62,7 +62,7 @@ public class ECDHKeyPairTest {
     public void testGetPublicKeyAfterClose() {
         final ECDHKeyPair keypair = generate(RANDOM);
         keypair.close();
-        keypair.getPublicKey();
+        keypair.publicKey();
     }
 
     @Test
@@ -82,8 +82,8 @@ public class ECDHKeyPairTest {
     public void testSharedSecretIsSymmetric() throws ValidationException {
         final ECDHKeyPair keypair1 = ECDHKeyPair.generate(RANDOM);
         final ECDHKeyPair keypair2 = ECDHKeyPair.generate(RANDOM);
-        final Point shared1 = keypair1.generateSharedSecret(keypair2.getPublicKey());
-        final Point shared2 = keypair2.generateSharedSecret(keypair1.getPublicKey());
+        final Point shared1 = keypair1.generateSharedSecret(keypair2.publicKey());
+        final Point shared2 = keypair2.generateSharedSecret(keypair1.publicKey());
         assertEquals(shared1, shared2);
     }
 
@@ -105,7 +105,7 @@ public class ECDHKeyPairTest {
     @Test(expected = IllegalStateException.class)
     public void testGenerateSharedSecretAfterClose() throws ValidationException {
         final ECDHKeyPair keypair = generate(RANDOM);
-        final Point otherPoint = generate(RANDOM).getPublicKey();
+        final Point otherPoint = generate(RANDOM).publicKey();
         keypair.close();
         keypair.generateSharedSecret(otherPoint);
     }

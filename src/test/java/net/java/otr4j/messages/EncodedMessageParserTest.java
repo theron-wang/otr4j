@@ -201,8 +201,8 @@ public class EncodedMessageParserTest {
 
     @Test
     public void testParsingDataMessage4() throws ProtocolException, OtrCryptoException, UnsupportedLengthException, ValidationException {
-        final Point ecdhPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger dhPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ecdhPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger dhPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final byte[] content = randomBytes(RANDOM, new byte[RANDOM.nextInt(10000)]);
         final DataMessage4 input = new DataMessage4(Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
                 ecdhPublicKey, dhPublicKey, content, randomBytes(RANDOM, new byte[64]), new byte[0]);
@@ -215,7 +215,7 @@ public class EncodedMessageParserTest {
 
     @Test
     public void testParsingDataMessage4WithoutDHPublicKey() throws ProtocolException, OtrCryptoException, UnsupportedLengthException, ValidationException {
-        final Point ecdhPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ecdhPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final byte[] content = randomBytes(RANDOM, new byte[RANDOM.nextInt(10000)]);
         final DataMessage4 input = new DataMessage4(Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
                 ecdhPublicKey, null, content, randomBytes(RANDOM, new byte[64]), new byte[0]);
@@ -232,14 +232,14 @@ public class EncodedMessageParserTest {
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
-        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
                 ourForgingKey, singletonList(Version.FOUR), ourDSAKeyPair.getPublic());
         final ClientProfilePayload ourProfilePayload = signClientProfile(ourProfile, Long.MAX_VALUE / 1000,
                 ourDSAKeyPair, ourLongTermKeyPair);
-        final Point ourY = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourB = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ourY = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourB = DHKeyPair.generate(RANDOM).publicKey();
         // Generate Identity message and parse result.
         final IdentityMessage message = new IdentityMessage(Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, ourProfilePayload,
                 ourY, ourB, ourFirstECDHPublicKey, ourFirstDHPublicKey);
@@ -255,26 +255,26 @@ public class EncodedMessageParserTest {
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
-        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
                 ourForgingKey, singletonList(Version.FOUR), ourDSAKeyPair.getPublic());
         final ClientProfilePayload ourProfilePayload = signClientProfile(ourProfile, Long.MAX_VALUE / 1000,
                 ourDSAKeyPair, ourLongTermKeyPair);
-        final Point ourX = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourA = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ourX = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourA = DHKeyPair.generate(RANDOM).publicKey();
         // Their client profile
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
                 theirForgingKey, singletonList(Session.Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirProfilePayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
-        final Point theirY = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger theirB = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirY = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger theirB = DHKeyPair.generate(RANDOM).publicKey();
         // The ring signature
         final byte[] m = MysteriousT4.encode(MysteriousT4.Purpose.AUTH_I, ourProfilePayload, theirProfilePayload, ourX,
                 theirY, ourA, theirB, ourFirstECDHPublicKey, ourFirstDHPublicKey, theirFirstECDHPublicKey,
@@ -296,26 +296,26 @@ public class EncodedMessageParserTest {
         final EdDSAKeyPair ourLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
         final Point ourForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final DSAKeyPair ourDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
-        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final ClientProfile ourProfile = new ClientProfile(HIGHEST_TAG, ourLongTermKeyPair.getPublicKey(),
                 ourForgingKey, singletonList(Version.FOUR), ourDSAKeyPair.getPublic());
         final ClientProfilePayload ourProfilePayload = signClientProfile(ourProfile, Long.MAX_VALUE / 1000,
                 ourDSAKeyPair, ourLongTermKeyPair);
-        final Point ourX = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger ourA = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point ourX = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger ourA = DHKeyPair.generate(RANDOM).publicKey();
         // Their client profile
         final EdDSAKeyPair theirLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger theirFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
                 theirForgingKey, singletonList(Session.Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirProfilePayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
-        final Point theirY = ECDHKeyPair.generate(RANDOM).getPublicKey();
-        final BigInteger theirB = DHKeyPair.generate(RANDOM).getPublicKey();
+        final Point theirY = ECDHKeyPair.generate(RANDOM).publicKey();
+        final BigInteger theirB = DHKeyPair.generate(RANDOM).publicKey();
         // The Auth-I message
         final byte[] m = MysteriousT4.encode(MysteriousT4.Purpose.AUTH_I, ourProfilePayload, theirProfilePayload, ourX,
                 theirY, ourA, theirB, ourFirstECDHPublicKey, ourFirstDHPublicKey, theirFirstECDHPublicKey,

@@ -29,8 +29,8 @@ public class Main {
 
     public static void main(final String[] args) throws IOException {
         final OtrEncodable message = new DataMessage4(Version.FOUR, InstanceTag.random(RANDOM),
-                InstanceTag.random(RANDOM), (byte) 0, 0, 0, 0, ECDHKeyPair.generate(RANDOM).getPublicKey(),
-                DHKeyPair.generate(RANDOM).getPublicKey(), randomBytes(RANDOM, new byte[80]),
+                InstanceTag.random(RANDOM), (byte) 0, 0, 0, 0, ECDHKeyPair.generate(RANDOM).publicKey(),
+                DHKeyPair.generate(RANDOM).publicKey(), randomBytes(RANDOM, new byte[80]),
                 randomBytes(RANDOM, new byte[64]), new byte[0]);
         final byte[] result = new OtrOutputStream().write(message).toByteArray();
         try (FileOutputStream output = new FileOutputStream("temp", false)) {

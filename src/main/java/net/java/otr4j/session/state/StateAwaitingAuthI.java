@@ -70,16 +70,16 @@ final class StateAwaitingAuthI extends AbstractCommonState {
     /**
      * Our ECDH key pair. (Its public key is also known as X.)
      */
-    private final ECDHKeyPair ourECDHKeyPair;
+    private final ECDHKeyPair x;
 
     /**
      * Our DH key pair. (Its public key is also known as A.)
      */
-    private final DHKeyPair ourDHKeyPair;
+    private final DHKeyPair a;
 
-    private final ECDHKeyPair ourFirstECDHKeyPair;
+    private final ECDHKeyPair firstECDHKeyPair;
 
-    private final DHKeyPair ourFirstDHKeyPair;
+    private final DHKeyPair firstDHKeyPair;
 
     private final Point theirFirstECDHPublicKey;
 
@@ -97,17 +97,17 @@ final class StateAwaitingAuthI extends AbstractCommonState {
 
     private final byte[] k;
 
-    StateAwaitingAuthI(final AuthState authState, final byte[] k, final byte[] ssid, final ECDHKeyPair ourECDHKeyPair,
-            final DHKeyPair ourDHKeyPair, final ECDHKeyPair ourFirstECDHKeyPair, final DHKeyPair ourFirstDHKeyPair,
+    StateAwaitingAuthI(final AuthState authState, final byte[] k, final byte[] ssid, final ECDHKeyPair x,
+            final DHKeyPair a, final ECDHKeyPair ourFirstECDHKeyPair, final DHKeyPair ourFirstDHKeyPair,
             final Point theirFirstECDHPublicKey, final BigInteger theirFirstDHPublicKey, final Point y,
             final BigInteger b, final ClientProfilePayload ourProfile, final ClientProfilePayload profileBob) {
         super(authState);
         // TODO add requireNotEquals checks for y, b, ourFirst, etc.
         // TODO reorder parameters for predictability, easier to distinguish
-        this.ourECDHKeyPair = requireNonNull(ourECDHKeyPair);
-        this.ourDHKeyPair = requireNonNull(ourDHKeyPair);
-        this.ourFirstECDHKeyPair = requireNonNull(ourFirstECDHKeyPair);
-        this.ourFirstDHKeyPair = requireNonNull(ourFirstDHKeyPair);
+        this.x = requireNonNull(x);
+        this.a = requireNonNull(a);
+        this.firstECDHKeyPair = requireNonNull(ourFirstECDHKeyPair);
+        this.firstDHKeyPair = requireNonNull(ourFirstDHKeyPair);
         this.theirFirstECDHPublicKey = requireNonNull(theirFirstECDHPublicKey);
         this.theirFirstDHPublicKey = requireNonNull(theirFirstDHPublicKey);
         this.y = requireNonNull(y);
@@ -213,16 +213,16 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         // Generate t value and calculate sigma based on known facts and generated t value.
         final ClientProfilePayload profilePayload = context.getClientProfilePayload();
         final EdDSAKeyPair longTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
-        final byte[] t = encode(AUTH_R, profilePayload, message.clientProfile, newX.getPublicKey(), message.y,
-                newA.getPublicKey(), message.b, newFirstECDHKeyPair.getPublicKey(), newFirstDHKeyPair.getPublicKey(),
+        final byte[] t = encode(AUTH_R, profilePayload, message.clientProfile, newX.publicKey(), message.y,
+                newA.publicKey(), message.b, newFirstECDHKeyPair.publicKey(), newFirstDHKeyPair.publicKey(),
                 message.firstECDHPublicKey, message.firstDHPublicKey, context.getSenderInstanceTag(),
                 context.getReceiverInstanceTag(), sessionID.getUserID(), sessionID.getAccountID());
         final OtrCryptoEngine4.Sigma sigma = ringSign(context.secureRandom(), longTermKeyPair,
                 theirNewClientProfile.getForgingKey(), longTermKeyPair.getPublicKey(), message.y, t);
         // Generate response message and transition into next state.
         context.injectMessage(new AuthRMessage(FOUR, context.getSenderInstanceTag(), context.getReceiverInstanceTag(),
-                profilePayload, newX.getPublicKey(), newA.getPublicKey(), sigma, newFirstECDHKeyPair.getPublicKey(),
-                newFirstDHKeyPair.getPublicKey()));
+                profilePayload, newX.publicKey(), newA.publicKey(), sigma, newFirstECDHKeyPair.publicKey(),
+                newFirstDHKeyPair.publicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), newK, newSSID, newX, newA, newFirstECDHKeyPair,
                 newFirstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey, message.y, message.b,
                 ourProfile, message.clientProfile));
@@ -233,14 +233,13 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         final ClientProfile profileBobValidated = this.profileBob.validate();
         final ClientProfile ourProfileValidated = this.ourProfile.validate();
         validate(message, this.ourProfile, ourProfileValidated, this.profileBob, profileBobValidated,
-                this.ourECDHKeyPair.getPublicKey(), this.y, this.ourDHKeyPair.getPublicKey(), this.b,
-                this.theirFirstECDHPublicKey, this.theirFirstDHPublicKey, this.ourFirstECDHKeyPair.getPublicKey(),
-                this.ourFirstDHKeyPair.getPublicKey(), context.getSessionID().getUserID(),
-                context.getSessionID().getAccountID());
+                this.x.publicKey(), this.y, this.a.publicKey(), this.b, this.theirFirstECDHPublicKey,
+                this.theirFirstDHPublicKey, this.firstECDHKeyPair.publicKey(), this.firstDHKeyPair.publicKey(),
+                context.getSessionID().getUserID(), context.getSessionID().getAccountID());
         final SecureRandom secureRandom = context.secureRandom();
         // Initialize Double Ratchet.
-        final MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.ourFirstDHKeyPair,
-                this.ourFirstECDHKeyPair, this.theirFirstDHPublicKey, this.theirFirstECDHPublicKey);
+        final MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.firstDHKeyPair,
+                this.firstECDHKeyPair, this.theirFirstDHPublicKey, this.theirFirstECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY,
                 this.k), ALICE);
         secure(context, this.ssid, ratchet, ourProfileValidated.getLongTermPublicKey(),
@@ -265,10 +264,10 @@ final class StateAwaitingAuthI extends AbstractCommonState {
 
     @Override
     public void end(final Context context) {
-        this.ourDHKeyPair.close();
-        this.ourECDHKeyPair.close();
-        this.ourFirstDHKeyPair.close();
-        this.ourFirstECDHKeyPair.close();
+        this.a.close();
+        this.x.close();
+        this.firstDHKeyPair.close();
+        this.firstECDHKeyPair.close();
         clear(this.k);
         clear(this.ssid);
         context.transition(this, new StatePlaintext(getAuthState()));
