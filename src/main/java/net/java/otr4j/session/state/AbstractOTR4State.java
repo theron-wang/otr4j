@@ -105,6 +105,9 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
             k = sharedSecret.getK();
             ssid = sharedSecret.generateSSID();
         }
+        // FIXME can we indeed close a, x already?
+        x.close();
+        a.close();
         // Generate t value and calculate sigma based on known facts and generated t value.
         final ClientProfilePayload profile = context.getClientProfilePayload();
         final SessionID sessionID = context.getSessionID();
