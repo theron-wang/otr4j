@@ -29,7 +29,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.outputTimestamp>2023-01-01T00:00:00Z</project.build.outputTimestamp>
-        <project-java-version>11</project-java-version>
+        <project-java-version>9</project-java-version>
     </properties>
     <!-- force HTTPS access for downloading jars -->
     <repositories>
@@ -322,7 +322,7 @@
                                 <phase>compile</phase>
                                 <configuration>
                                     <compilerArgs>
-                                        <arg>-Xlint:all</arg>
+                                        <arg>-Xlint:all,-requires-automatic</arg>
                                         <arg>-Xdoclint:all/protected</arg>
                                         <arg>-XDcompilePolicy=simple</arg>
                                         <!-- TODO update list of warns/errors for errorprone to include newer checks. -->

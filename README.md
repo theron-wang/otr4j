@@ -147,6 +147,7 @@ __Functionality__
   _Under consideration as part of the [OTRv4 client implementation recommendations](https://github.com/otrv4/otrv4-client-imp-recommendations/issues/3)._
   - ☐ Evaluate whether there really is an advantage to having `OtrEngineHost` calls specify a session instance. (Does it make sense to make the distinction?)
   - ☐ Evaluate cases of `OtrException` being thrown. Reduce number of cases where user has to handle an exception without there being a real resolution.
+  - ☐ Protect access to critical data for internal use in `otr4j`/`joldilocks`. (Previously Java's `SecurityManager`, possibly Java 9+ module support.)
 
 __Operational__
 
@@ -188,7 +189,8 @@ __Operational__
 
 __Developmental__
 
-- ☑ Support Java 7+ to be compatible with Android.
+- ☐ Support Java 7+ to be compatible with Android.  
+  _Reevaluate requirements, given Java 9+ modules, newer Android versions, etc._
 - ☑ Encapsulate cryptographic material such that design facilitates appropriate use and maintenance.
 - ☑ States, such as Message states, isolated as to prevent mistakes in mixing up variables and state management for different states.
 - ☑ Use of exceptions to force alternative control flow paths for verification/validation failures.
