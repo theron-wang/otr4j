@@ -39,7 +39,7 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
     - TODO consider actual requirements: long-running application that needs to refresh as periodic action in its execution seems far-fetched with 2-week valid profiles. 
 - ⏳ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive".
 - ✔ [Reproducible build][maven-reproducible-builds]  
-  (`mvn -o clean install; mvn -o clean verify artifact:compare -DskipTests`)
+  (`mvn -o clean install && mvn -o clean verify artifact:compare -DskipTests`)
 - Clean up OTRv2 support.
 - Clean up remaining TODOs
 - Review and clean up logging statements. Ensure that no secret data is exposed through logging.
