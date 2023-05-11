@@ -60,13 +60,13 @@ public final class AuthRMessage extends AbstractEncodedMessage {
      * The first ECDH public key to be used after DAKE completes.
      */
     @Nonnull
-    public final Point ourFirstECDHPublicKey;
+    public final Point firstECDHPublicKey;
 
     /**
      * The first DH public key to be used after DAKE completes.
      */
     @Nonnull
-    public final BigInteger ourFirstDHPublicKey;
+    public final BigInteger firstDHPublicKey;
 
     /**
      * Auth-R Message as used in OTRv4.
@@ -89,8 +89,8 @@ public final class AuthRMessage extends AbstractEncodedMessage {
         this.x = requireNonNull(x);
         this.a = requireNonNull(a);
         this.sigma = requireNonNull(sigma);
-        this.ourFirstECDHPublicKey = requireNonNull(ourFirstECDHPublicKey);
-        this.ourFirstDHPublicKey = requireNonNull(ourFirstDHPublicKey);
+        this.firstECDHPublicKey = requireNonNull(ourFirstECDHPublicKey);
+        this.firstDHPublicKey = requireNonNull(ourFirstDHPublicKey);
     }
 
     @Override
@@ -105,8 +105,8 @@ public final class AuthRMessage extends AbstractEncodedMessage {
         writer.writePoint(this.x);
         writer.writeBigInt(this.a);
         writer.write(this.sigma);
-        writer.writePoint(this.ourFirstECDHPublicKey);
-        writer.writeBigInt(this.ourFirstDHPublicKey);
+        writer.writePoint(this.firstECDHPublicKey);
+        writer.writeBigInt(this.firstDHPublicKey);
     }
 
     @Override
@@ -122,12 +122,12 @@ public final class AuthRMessage extends AbstractEncodedMessage {
         }
         final AuthRMessage that = (AuthRMessage) o;
         return clientProfile.equals(that.clientProfile) && x.constantTimeEquals(that.x) && a.equals(that.a)
-                && sigma.equals(that.sigma) && ourFirstECDHPublicKey.constantTimeEquals(that.ourFirstECDHPublicKey)
-                && ourFirstDHPublicKey.equals(that.ourFirstDHPublicKey);
+                && sigma.equals(that.sigma) && firstECDHPublicKey.constantTimeEquals(that.firstECDHPublicKey)
+                && firstDHPublicKey.equals(that.firstDHPublicKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), clientProfile, x, a, sigma, ourFirstECDHPublicKey, ourFirstDHPublicKey);
+        return Objects.hash(super.hashCode(), clientProfile, x, a, sigma, firstECDHPublicKey, firstDHPublicKey);
     }
 }

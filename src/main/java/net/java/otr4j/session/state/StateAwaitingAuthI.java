@@ -102,6 +102,8 @@ final class StateAwaitingAuthI extends AbstractCommonState {
             final Point theirFirstECDHPublicKey, final BigInteger theirFirstDHPublicKey, final Point y,
             final BigInteger b, final ClientProfilePayload ourProfile, final ClientProfilePayload profileBob) {
         super(authState);
+        // TODO add requireNotEquals checks for y, b, ourFirst, etc.
+        // TODO reorder parameters for predictability, easier to distinguish
         this.ourECDHKeyPair = requireNonNull(ourECDHKeyPair);
         this.ourDHKeyPair = requireNonNull(ourDHKeyPair);
         this.ourFirstECDHKeyPair = requireNonNull(ourFirstECDHKeyPair);
@@ -197,6 +199,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         final byte[] newK;
         final byte[] newSSID;
         // REMARK not yet corrected in OTRv4 specification: generating new key material, not-clearing public key because needed in validation with ring-signatures.
+        // TODO this looks like it is effectively same as clearing the existing state and calling super.handleIdentityMessage(). (Just like in StateAwaitingAuthR.)
         final ECDHKeyPair newX = ECDHKeyPair.generate(secureRandom);
         final DHKeyPair newA = DHKeyPair.generate(secureRandom);
         final ECDHKeyPair newFirstECDHKeyPair = ECDHKeyPair.generate(secureRandom);
@@ -212,7 +215,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         final EdDSAKeyPair longTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
         final byte[] t = encode(AUTH_R, profilePayload, message.clientProfile, newX.getPublicKey(), message.y,
                 newA.getPublicKey(), message.b, newFirstECDHKeyPair.getPublicKey(), newFirstDHKeyPair.getPublicKey(),
-                message.ourFirstECDHPublicKey, message.ourFirstDHPublicKey, context.getSenderInstanceTag(),
+                message.firstECDHPublicKey, message.firstDHPublicKey, context.getSenderInstanceTag(),
                 context.getReceiverInstanceTag(), sessionID.getUserID(), sessionID.getAccountID());
         final OtrCryptoEngine4.Sigma sigma = ringSign(context.secureRandom(), longTermKeyPair,
                 theirNewClientProfile.getForgingKey(), longTermKeyPair.getPublicKey(), message.y, t);
@@ -221,7 +224,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
                 profilePayload, newX.getPublicKey(), newA.getPublicKey(), sigma, newFirstECDHKeyPair.getPublicKey(),
                 newFirstDHKeyPair.getPublicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), newK, newSSID, newX, newA, newFirstECDHKeyPair,
-                newFirstDHKeyPair, message.ourFirstECDHPublicKey, message.ourFirstDHPublicKey, message.y, message.b,
+                newFirstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey, message.y, message.b,
                 ourProfile, message.clientProfile));
     }
 

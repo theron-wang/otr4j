@@ -105,7 +105,6 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
             k = sharedSecret.getK();
             ssid = sharedSecret.generateSSID();
         }
-        // FIXME can we indeed close a, x already?
         x.close();
         a.close();
         // Generate t value and calculate sigma based on known facts and generated t value.
@@ -114,7 +113,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         final EdDSAKeyPair longTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
         final byte[] t = encode(AUTH_R, profile, message.clientProfile, x.getPublicKey(), message.y, a.getPublicKey(),
                 message.b, ourFirstECDHKeyPair.getPublicKey(), ourFirstDHKeyPair.getPublicKey(),
-                message.ourFirstECDHPublicKey, message.ourFirstDHPublicKey, context.getSenderInstanceTag(),
+                message.firstECDHPublicKey, message.firstDHPublicKey, context.getSenderInstanceTag(),
                 context.getReceiverInstanceTag(), sessionID.getAccountID(), sessionID.getUserID());
         final Sigma sigma = ringSign(secureRandom, longTermKeyPair, theirClientProfile.getForgingKey(),
                 longTermKeyPair.getPublicKey(), message.y, t);
@@ -123,7 +122,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
                 context.getReceiverInstanceTag(), profile, x.getPublicKey(), a.getPublicKey(), sigma,
                 ourFirstECDHKeyPair.getPublicKey(), ourFirstDHKeyPair.getPublicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), k, ssid, x, a, ourFirstECDHKeyPair,
-                ourFirstDHKeyPair, message.ourFirstECDHPublicKey, message.ourFirstDHPublicKey, message.y, message.b,
+                ourFirstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey, message.y, message.b,
                 profile, message.clientProfile));
     }
 

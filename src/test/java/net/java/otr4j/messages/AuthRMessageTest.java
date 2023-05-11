@@ -34,7 +34,7 @@ import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({"ConstantConditions", "SameParameterValue", "resource"})
 public final class AuthRMessageTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -70,8 +70,8 @@ public final class AuthRMessageTest {
         assertEquals(PAYLOAD, message.clientProfile);
         assertEquals(X, message.x);
         assertEquals(A, message.a);
-        assertEquals(FIRST_ECDH_PUBLIC_KEY, message.ourFirstECDHPublicKey);
-        assertEquals(FIRST_DH_PUBLIC_KEY, message.ourFirstDHPublicKey);
+        assertEquals(FIRST_ECDH_PUBLIC_KEY, message.firstECDHPublicKey);
+        assertEquals(FIRST_DH_PUBLIC_KEY, message.firstDHPublicKey);
         assertEquals(sigma, message.sigma);
     }
 

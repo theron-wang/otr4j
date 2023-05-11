@@ -39,8 +39,8 @@ public final class IdentityMessages {
         try {
             verifyECDHPublicKey(message.y);
             verifyDHPublicKey(message.b);
-            verifyECDHPublicKey(message.ourFirstECDHPublicKey);
-            verifyDHPublicKey(message.ourFirstDHPublicKey);
+            verifyECDHPublicKey(message.firstECDHPublicKey);
+            verifyDHPublicKey(message.firstDHPublicKey);
         } catch (final net.java.otr4j.crypto.ed448.ValidationException | OtrCryptoException e) {
             throw new ValidationException("Illegal ephemeral public key.", e);
         }

@@ -194,7 +194,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         final byte[] t = encode(AUTH_I, message.clientProfile, this.ourProfilePayload, message.x,
                 this.ecdhKeyPair.getPublicKey(), message.a, this.dhKeyPair.getPublicKey(),
                 this.ourFirstECDHKeyPair.getPublicKey(), this.ourFirstDHKeyPair.getPublicKey(),
-                message.ourFirstECDHPublicKey, message.ourFirstDHPublicKey, senderTag, receiverTag,
+                message.firstECDHPublicKey, message.firstDHPublicKey, senderTag, receiverTag,
                 sessionID.getAccountID(), sessionID.getUserID());
         final OtrCryptoEngine4.Sigma sigma = ringSign(secureRandom, ourLongTermKeyPair,
                 ourLongTermKeyPair.getPublicKey(), theirClientProfile.getForgingKey(), message.x, t);
@@ -209,7 +209,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         }
         // Initialize Double Ratchet.
         final MixedSharedSecret firstRatchetSecret = new MixedSharedSecret(secureRandom, ourFirstDHKeyPair,
-                ourFirstECDHKeyPair, message.ourFirstDHPublicKey, message.ourFirstECDHPublicKey);
+                ourFirstECDHKeyPair, message.firstDHPublicKey, message.firstECDHPublicKey);
         final DoubleRatchet ratchet = new DoubleRatchet(firstRatchetSecret, kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY,
                 k), BOB);
         // NOTE: the spec says to rotate sender keys here. If we do rotate sender keys here, it is not followed up with

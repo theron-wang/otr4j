@@ -24,7 +24,7 @@ import static net.java.otr4j.util.Objects.requireNotEquals;
 
 /**
  * OTRv4 Interactive DAKE Identity Message.
- *
+ * <p>
  * The identity message is used to send initial identity information upon establishing a new session.
  */
 public final class IdentityMessage extends AbstractEncodedMessage {
@@ -56,13 +56,13 @@ public final class IdentityMessage extends AbstractEncodedMessage {
      * The first ECDH public key to be used after DAKE completes.
      */
     @Nonnull
-    public final Point ourFirstECDHPublicKey;
+    public final Point firstECDHPublicKey;
 
     /**
      * The first DH public key to be used after DAKE completes.
      */
     @Nonnull
-    public final BigInteger ourFirstDHPublicKey;
+    public final BigInteger firstDHPublicKey;
 
     /**
      * Identity message type of OTRv4.
@@ -73,20 +73,20 @@ public final class IdentityMessage extends AbstractEncodedMessage {
      * @param clientProfile         the client profile (as payload)
      * @param y                     the ECDH public key 'Y'
      * @param b                     the DH public key 'B'
-     * @param ourFirstECDHPublicKey the first ECDH public key to be used after DAKE completes
-     * @param ourFirstDHPublicKey   the first DH public key to be used after DAKE completes
+     * @param firstECDHPublicKey the first ECDH public key to be used after DAKE completes
+     * @param firstDHPublicKey   the first DH public key to be used after DAKE completes
      */
     public IdentityMessage(final int protocolVersion, final InstanceTag senderInstance,
             final InstanceTag receiverInstance, final ClientProfilePayload clientProfile, final Point y,
-            final BigInteger b, final Point ourFirstECDHPublicKey, final BigInteger ourFirstDHPublicKey) {
+            final BigInteger b, final Point firstECDHPublicKey, final BigInteger firstDHPublicKey) {
         super(requireInRange(Version.FOUR, Version.FOUR, protocolVersion), senderInstance, receiverInstance);
         this.clientProfile = requireNonNull(clientProfile);
         this.y = requireNonNull(y);
         this.b = requireNonNull(b);
-        this.ourFirstECDHPublicKey = requireNonNull(ourFirstECDHPublicKey);
-        this.ourFirstDHPublicKey = requireNonNull(ourFirstDHPublicKey);
-        requireNotEquals(this.y, this.ourFirstECDHPublicKey, "Y cannot be the same as first ECDH public key.");
-        requireNotEquals(this.b, this.ourFirstDHPublicKey, "B cannot be the same as first DH public key.");
+        this.firstECDHPublicKey = requireNonNull(firstECDHPublicKey);
+        this.firstDHPublicKey = requireNonNull(firstDHPublicKey);
+        requireNotEquals(this.y, this.firstECDHPublicKey, "Y cannot be the same as first ECDH public key.");
+        requireNotEquals(this.b, this.firstDHPublicKey, "B cannot be the same as first DH public key.");
     }
 
     @Override
@@ -100,8 +100,8 @@ public final class IdentityMessage extends AbstractEncodedMessage {
         writer.write(clientProfile);
         writer.writePoint(this.y);
         writer.writeBigInt(this.b);
-        writer.writePoint(this.ourFirstECDHPublicKey);
-        writer.writeBigInt(this.ourFirstDHPublicKey);
+        writer.writePoint(this.firstECDHPublicKey);
+        writer.writeBigInt(this.firstDHPublicKey);
     }
 
     @Override
@@ -117,12 +117,12 @@ public final class IdentityMessage extends AbstractEncodedMessage {
         }
         final IdentityMessage that = (IdentityMessage) o;
         return clientProfile.equals(that.clientProfile) && y.constantTimeEquals(that.y) && b.equals(that.b)
-                && ourFirstECDHPublicKey.constantTimeEquals(that.ourFirstECDHPublicKey)
-                && ourFirstDHPublicKey.equals(that.ourFirstDHPublicKey);
+                && firstECDHPublicKey.constantTimeEquals(that.firstECDHPublicKey)
+                && firstDHPublicKey.equals(that.firstDHPublicKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), clientProfile, y, b, ourFirstECDHPublicKey, ourFirstDHPublicKey);
+        return Objects.hash(super.hashCode(), clientProfile, y, b, firstECDHPublicKey, firstDHPublicKey);
     }
 }
