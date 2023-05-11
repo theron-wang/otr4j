@@ -191,34 +191,38 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         final SessionID sessionID = context.getSessionID();
         final SecureRandom secureRandom = context.secureRandom();
         // Note: we query the context for a new client profile, because we're responding to a new Identity message.
-        final ClientProfilePayload profilePayload = context.getClientProfilePayload();
-        final EdDSAKeyPair longTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
+        // The spec is not explicit in that we need to generate new keypairs. We do this, because the alternative would
+        // be logically incorrect as the secret key material was already cleared. This effectively starts a new key
+        // exchange as we do not reuse any key material from the on-going key exchange.
         final byte[] newK;
         final byte[] newSSID;
-        // FIXME we cannot reuse ourDHKeyPair and ourECDHKeyPair as they will have been closed already. (As of yet unresolved issue in Double Ratchet init redesign.)
-        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.ourDHKeyPair,
-                this.ourECDHKeyPair, message.b, message.y)) {
+        // REMARK not yet corrected in OTRv4 specification: generating new key material, not-clearing public key because needed in validation with ring-signatures.
+        final ECDHKeyPair newX = ECDHKeyPair.generate(secureRandom);
+        final DHKeyPair newA = DHKeyPair.generate(secureRandom);
+        final ECDHKeyPair newFirstECDHKeyPair = ECDHKeyPair.generate(secureRandom);
+        final DHKeyPair newFirstDHKeyPair = DHKeyPair.generate(secureRandom);
+        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, newA, newX, message.b, message.y)) {
             newK = sharedSecret.getK();
             newSSID = sharedSecret.generateSSID();
         }
-        this.ourECDHKeyPair.close();
-        this.ourDHKeyPair.close();
+        newA.close();
+        newX.close();
         // Generate t value and calculate sigma based on known facts and generated t value.
-        final byte[] t = encode(AUTH_R, profilePayload, message.clientProfile, this.ourECDHKeyPair.getPublicKey(),
-                message.y, this.ourDHKeyPair.getPublicKey(), message.b, this.ourFirstECDHKeyPair.getPublicKey(),
-                this.ourFirstDHKeyPair.getPublicKey(), message.ourFirstECDHPublicKey, message.ourFirstDHPublicKey,
-                context.getSenderInstanceTag(), context.getReceiverInstanceTag(), sessionID.getUserID(),
-                sessionID.getAccountID());
+        final ClientProfilePayload profilePayload = context.getClientProfilePayload();
+        final EdDSAKeyPair longTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
+        final byte[] t = encode(AUTH_R, profilePayload, message.clientProfile, newX.getPublicKey(), message.y,
+                newA.getPublicKey(), message.b, newFirstECDHKeyPair.getPublicKey(), newFirstDHKeyPair.getPublicKey(),
+                message.ourFirstECDHPublicKey, message.ourFirstDHPublicKey, context.getSenderInstanceTag(),
+                context.getReceiverInstanceTag(), sessionID.getUserID(), sessionID.getAccountID());
         final OtrCryptoEngine4.Sigma sigma = ringSign(context.secureRandom(), longTermKeyPair,
                 theirNewClientProfile.getForgingKey(), longTermKeyPair.getPublicKey(), message.y, t);
         // Generate response message and transition into next state.
-        context.injectMessage(new AuthRMessage(FOUR, context.getSenderInstanceTag(),
-                context.getReceiverInstanceTag(), profilePayload, this.ourECDHKeyPair.getPublicKey(),
-                this.ourDHKeyPair.getPublicKey(), sigma, this.ourFirstECDHKeyPair.getPublicKey(),
-                this.ourFirstDHKeyPair.getPublicKey()));
-        context.transition(this, new StateAwaitingAuthI(getAuthState(), newK, newSSID, this.ourECDHKeyPair,
-                this.ourDHKeyPair, this.ourFirstECDHKeyPair, this.ourFirstDHKeyPair, message.ourFirstECDHPublicKey,
-                message.ourFirstDHPublicKey, message.y, message.b, ourProfile, message.clientProfile));
+        context.injectMessage(new AuthRMessage(FOUR, context.getSenderInstanceTag(), context.getReceiverInstanceTag(),
+                profilePayload, newX.getPublicKey(), newA.getPublicKey(), sigma, newFirstECDHKeyPair.getPublicKey(),
+                newFirstDHKeyPair.getPublicKey()));
+        context.transition(this, new StateAwaitingAuthI(getAuthState(), newK, newSSID, newX, newA, newFirstECDHKeyPair,
+                newFirstDHKeyPair, message.ourFirstECDHPublicKey, message.ourFirstDHPublicKey, message.y, message.b,
+                ourProfile, message.clientProfile));
     }
 
     private void handleAuthIMessage(final Context context, final AuthIMessage message) throws ValidationException {

@@ -94,14 +94,11 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
     void handleIdentityMessage(final Context context, final IdentityMessage message) throws OtrException {
         final ClientProfile theirClientProfile = message.clientProfile.validate();
         validate(message, theirClientProfile);
-        final ClientProfilePayload profile = context.getClientProfilePayload();
         final SecureRandom secureRandom = context.secureRandom();
         final ECDHKeyPair x = ECDHKeyPair.generate(secureRandom);
         final DHKeyPair a = DHKeyPair.generate(secureRandom);
         final ECDHKeyPair ourFirstECDHKeyPair = ECDHKeyPair.generate(secureRandom);
         final DHKeyPair ourFirstDHKeyPair = DHKeyPair.generate(secureRandom);
-        final SessionID sessionID = context.getSessionID();
-        final EdDSAKeyPair longTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
         final byte[] k;
         final byte[] ssid;
         try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, a, x, message.b, message.y)) {
@@ -110,6 +107,9 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         }
         // TODO should we verify that long-term key pair matches with long-term public key from user profile? (This would be an internal sanity check.)
         // Generate t value and calculate sigma based on known facts and generated t value.
+        final ClientProfilePayload profile = context.getClientProfilePayload();
+        final SessionID sessionID = context.getSessionID();
+        final EdDSAKeyPair longTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
         final byte[] t = encode(AUTH_R, profile, message.clientProfile, x.getPublicKey(), message.y, a.getPublicKey(),
                 message.b, ourFirstECDHKeyPair.getPublicKey(), ourFirstDHKeyPair.getPublicKey(),
                 message.ourFirstECDHPublicKey, message.ourFirstDHPublicKey, context.getSenderInstanceTag(),
