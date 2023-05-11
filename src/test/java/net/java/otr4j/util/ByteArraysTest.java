@@ -23,6 +23,7 @@ import static net.java.otr4j.util.ByteArrays.constantTimeEqualsOrSame;
 import static net.java.otr4j.util.ByteArrays.fromHexString;
 import static net.java.otr4j.util.ByteArrays.requireLengthAtLeast;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
+import static net.java.otr4j.util.ByteArrays.requireNonZeroBytes;
 import static net.java.otr4j.util.ByteArrays.toHexString;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertArrayEquals;
@@ -244,5 +245,29 @@ public class ByteArraysTest {
                 concatenate(new byte[]{'H', 'e', 'l', 'l', 'o', ' '}, new byte[]{'w', 'o', 'r', 'l', 'd', '!'}));
         assertArrayEquals("Hello!".getBytes(US_ASCII),
                 concatenate(new byte[]{'H', 'e', 'l'}, new byte[]{'l', 'o', '!'}));
+    }
+
+    @Test
+    public void testRequireNonZeroBytes() {
+        requireNonZeroBytes(new byte[]{1, 2, 3, 4, 5});
+        requireNonZeroBytes(new byte[]{1});
+        requireNonZeroBytes(new byte[]{0, 0, 0, 0, 5});
+        requireNonZeroBytes(new byte[]{0, 1, 0, 0, 0});
+        requireNonZeroBytes(new byte[]{1, 0, 0, 0, 0});
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testRequireNonZeroBytesDetectsZeroBytes1() {
+        requireNonZeroBytes(new byte[]{});
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testRequireNonZeroBytesDetectsZeroBytes2() {
+        requireNonZeroBytes(new byte[]{0});
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testRequireNonZeroBytesDetectsZeroBytes3() {
+        requireNonZeroBytes(new byte[]{0, 0, 0, 0, 0});
     }
 }

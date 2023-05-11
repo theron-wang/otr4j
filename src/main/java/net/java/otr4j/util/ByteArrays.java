@@ -71,6 +71,12 @@ public final class ByteArrays {
         return bytes;
     }
 
+    /**
+     * requireNonZeroBytes verifies that the provided byte-array contains at least some non-zero bytes.
+     *
+     * @param bytes the byte-array
+     * @return Returns the same byte-array iff it checks out, i.e. contains non-zero bytes.
+     */
     @CanIgnoreReturnValue
     @Nonnull
     public static byte[] requireNonZeroBytes(final byte[] bytes) {
@@ -121,6 +127,8 @@ public final class ByteArrays {
      */
     @CheckReturnValue
     public static boolean constantTimeEquals(final byte[] data1, final byte[] data2) {
+        requireNonNull(data1);
+        requireNonNull(data2);
         if (data1 == data2) {
             throw new IllegalArgumentException("BUG: Same instance is compared.");
         }
