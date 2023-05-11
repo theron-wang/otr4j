@@ -65,6 +65,28 @@ public final class EdDSAKeyPair implements AutoCloseable {
     }
 
     /**
+     * Restore restores an EdDSA keypair from the symmetric key bytes.
+     *
+     * @param symmetricKey symmetric key
+     * @return Returns an EdDSA keypair.
+     */
+    @Nonnull
+    public static EdDSAKeyPair restore(final byte[] symmetricKey) {
+        return new EdDSAKeyPair(requireNonZeroBytes(symmetricKey).clone());
+    }
+
+    /**
+     * Export exports the key material of an EdDSA keypair for storage. (See also {@link #restore(byte[])}.)
+     *
+     * @param keypair the EdDSA keypair
+     * @return returns the key material.
+     */
+    @Nonnull
+    public static byte[] export(final EdDSAKeyPair keypair) {
+        return keypair.symmetricKey.clone();
+    }
+
+    /**
      * Verify a signature for a message, given the public key.
      *
      * @param publicKey The public key of the key pair that generated the signature.

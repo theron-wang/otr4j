@@ -23,5 +23,6 @@ package net.java.otr4j.crypto.ed448;
 // * point-comparison (greater-than-or-equal, at the very least)
 // * OPTIONAL: access to base point, modulus, prime-order?
 // TODO verify that new ed448 crypto implementations do not litter memory space with temporary data. Check cloned arrays, appropriate memory cleaning, etc.
+// TODO verify proper use of `.clone()` for byte-arrays where necessary to prevent internal data from being manipulated from outside.
 
 import javax.annotation.ParametersAreNonnullByDefault;

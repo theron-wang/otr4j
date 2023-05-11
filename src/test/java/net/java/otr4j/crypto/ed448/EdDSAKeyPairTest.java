@@ -18,6 +18,7 @@ import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
 import static net.java.otr4j.crypto.ed448.EdDSAKeyPair.generate;
 import static net.java.otr4j.crypto.ed448.EdDSAKeyPair.verify;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -135,5 +136,16 @@ public final class EdDSAKeyPairTest {
         final EdDSAKeyPair keypair = generate(RANDOM);
         keypair.close();
         keypair.sign("SomeRandomMessage".getBytes(UTF_8));
+    }
+
+    @SuppressWarnings("resource")
+    @Test
+    public void testExportRestoreKeypairs() throws ValidationException {
+        final EdDSAKeyPair original = generate(RANDOM);
+        final EdDSAKeyPair reproduced = EdDSAKeyPair.restore(EdDSAKeyPair.export(EdDSAKeyPair.restore(
+                EdDSAKeyPair.export(EdDSAKeyPair.restore(EdDSAKeyPair.export(original))))));
+        final byte[] message = randomBytes(RANDOM, new byte[256]);
+        EdDSAKeyPair.verify(reproduced.getPublicKey(), message, original.sign(message));
+        EdDSAKeyPair.verify(original.getPublicKey(), message, reproduced.sign(message));
     }
 }

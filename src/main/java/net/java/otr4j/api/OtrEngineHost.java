@@ -21,7 +21,6 @@ import javax.annotation.Nonnull;
  *
  * @author George Politis
  */
-// FIXME check how we should restore the EdDSAKeyPair from the OtrEngineHost perspective. It needs to store and restore the EdDSAKeyPair on every execution session.
 public interface OtrEngineHost extends SmpEngineHost {
 
     /**
