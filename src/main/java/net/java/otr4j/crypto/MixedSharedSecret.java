@@ -198,38 +198,36 @@ public final class MixedSharedSecret implements AutoCloseable {
     /**
      * Rotate their public keys in the shared secret.
      *
-     * @param performDHRatchet   Indicates whether we need to perform a DH ratchet.
-     * @param theirECDHPublicKey Their ECDH public key.
-     * @param theirDHPublicKey   Their DH public key. (Optional)
+     * @param theirNextECDH Their ECDH public key.
+     * @param theirNextDH Their DH public key. (Optional)
      * @throws OtrCryptoException In case of failure to rotate the public keys.
      */
-    public void rotateTheirKeys(final boolean performDHRatchet, final Point theirECDHPublicKey,
-            @Nullable final BigInteger theirDHPublicKey) throws OtrCryptoException {
+    public void rotateTheirKeys(final Point theirNextECDH, @Nullable final BigInteger theirNextDH)
+            throws OtrCryptoException {
         expectNotClosed();
-        if (!containsPoint(requireNonNull(theirECDHPublicKey))) {
+        if (!containsPoint(theirNextECDH)) {
             throw new OtrCryptoException("ECDH public key failed verification.");
         }
-        if (this.ecdhKeyPair.publicKey().constantTimeEquals(theirECDHPublicKey)
-                || this.theirECDHPublicKey.constantTimeEquals(theirECDHPublicKey)) {
+        if (this.ecdhKeyPair.publicKey().constantTimeEquals(theirNextECDH)
+                || this.theirECDHPublicKey.constantTimeEquals(theirNextECDH)) {
             throw new OtrCryptoException("A new, different ECDH public key is expected for initializing the new ratchet.");
         }
-        if (this.dhKeyPair.publicKey().equals(theirDHPublicKey) || this.theirDHPublicKey.equals(theirDHPublicKey)) {
+        this.theirECDHPublicKey = theirNextECDH;
+        if (theirNextDH == null) {
+            // do not perform DH ratchet; only rotate ECDH keys
+            regenerateK(false);
+            this.ecdhKeyPair.close();
+            return;
+        }
+        // every third brace key, perform DH ratchet; also rotate DH keys
+        if (!checkPublicKey(theirNextDH) || this.dhKeyPair.publicKey().equals(theirNextDH)
+                || this.theirDHPublicKey.equals(theirNextDH)) {
             throw new OtrCryptoException("A new, different DH public key is expected for initializing the new ratchet.");
         }
-        this.theirECDHPublicKey = theirECDHPublicKey;
-        if (performDHRatchet) {
-            final BigInteger existingDhPublicKey = requireNonNull(theirDHPublicKey);
-            if (!checkPublicKey(existingDhPublicKey)) {
-                throw new OtrCryptoException("DH public key failed verification.");
-            }
-            this.theirDHPublicKey = existingDhPublicKey;
-        }
-        regenerateK(performDHRatchet);
+        this.theirDHPublicKey = theirNextDH;
+        regenerateK(true);
+        this.dhKeyPair.close();
         this.ecdhKeyPair.close();
-        if (performDHRatchet) {
-            // Only clear the DH keypair after a DH ratchet has been performed thus a new brace key is available.
-            this.dhKeyPair.close();
-        }
     }
 
     @SuppressWarnings("PMD.LocalVariableNamingConventions")

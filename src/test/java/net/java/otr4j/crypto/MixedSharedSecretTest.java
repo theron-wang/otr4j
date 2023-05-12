@@ -31,7 +31,7 @@ import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
  * The MixedSharedSecret tests currently do not perform a test that binary-exactly verifies that the right values are
  * produced. For now we verify immutability of values and that values change after rotation.
  */
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({"ConstantConditions", "resource"})
 public class MixedSharedSecretTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -140,7 +140,7 @@ public class MixedSharedSecretTest {
         final MixedSharedSecret ss = new MixedSharedSecret(RANDOM, ourDHKeyPair, ourECDHKeyPair, theirDHPublicKey, theirECDHPublicKey);
         final byte[] firstK = ss.getK();
         // Rotate our key pairs.
-        ss.rotateTheirKeys(false, theirNextECDHPublicKey, theirNextDHPublicKey);
+        ss.rotateTheirKeys(theirNextECDHPublicKey, null);
         // Ensure that k and ssid actually change after rotation.
         assertFalse(Arrays.equals(firstK, ss.getK()));
     }
@@ -150,7 +150,7 @@ public class MixedSharedSecretTest {
         final DHKeyPair ourDHKeyPair = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair ourECDHKeyPair = ECDHKeyPair.generate(RANDOM);
         final MixedSharedSecret ss = new MixedSharedSecret(RANDOM, ourDHKeyPair, ourECDHKeyPair, theirDHPublicKey, theirECDHPublicKey);
-        ss.rotateTheirKeys(true, null, theirNextDHPublicKey);
+        ss.rotateTheirKeys(null, theirNextDHPublicKey);
     }
 
     @Test
@@ -161,18 +161,10 @@ public class MixedSharedSecretTest {
         final byte[] firstK = ss.getK();
         final byte[] firstSSID = ss.generateSSID();
         // Rotate their public keys.
-        ss.rotateTheirKeys(false, theirNextECDHPublicKey, null);
+        ss.rotateTheirKeys(theirNextECDHPublicKey, null);
         // Ensure that k and ssid actually change after rotation.
         assertFalse(Arrays.equals(firstK, ss.getK()));
         assertFalse(Arrays.equals(firstSSID, ss.generateSSID()));
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testRotateTheirKeysNullDHThirdIteration() throws OtrCryptoException {
-        final DHKeyPair ourDHKeyPair = DHKeyPair.generate(RANDOM);
-        final ECDHKeyPair ourECDHKeyPair = ECDHKeyPair.generate(RANDOM);
-        final MixedSharedSecret ss = new MixedSharedSecret(RANDOM, ourDHKeyPair, ourECDHKeyPair, theirDHPublicKey, theirECDHPublicKey);
-        ss.rotateTheirKeys(true, theirNextECDHPublicKey, null);
     }
 
     @Test
@@ -180,7 +172,7 @@ public class MixedSharedSecretTest {
         final DHKeyPair ourDHKeyPair = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair ourECDHKeyPair = ECDHKeyPair.generate(RANDOM);
         final MixedSharedSecret ss = new MixedSharedSecret(RANDOM, ourDHKeyPair, ourECDHKeyPair, theirDHPublicKey, theirECDHPublicKey);
-        ss.rotateTheirKeys(true, theirNextECDHPublicKey, theirNextDHPublicKey);
+        ss.rotateTheirKeys(theirNextECDHPublicKey, theirNextDHPublicKey);
         final byte[] firstK = ss.getK();
         fill(firstK, (byte) 0xff);
         final byte[] secondK = ss.getK();
@@ -194,7 +186,7 @@ public class MixedSharedSecretTest {
         final MixedSharedSecret ss = new MixedSharedSecret(RANDOM, ourDHKeyPair, ourECDHKeyPair, theirDHPublicKey, theirECDHPublicKey);
         ss.rotateOurKeys(true);
         final byte[] firstK = ss.getK();
-        ss.rotateTheirKeys(true, theirECDHPublicKey, theirDHPublicKey);
+        ss.rotateTheirKeys(theirECDHPublicKey, theirDHPublicKey);
         assertArrayEquals(firstK, ss.getK());
     }
 
@@ -205,7 +197,7 @@ public class MixedSharedSecretTest {
         final MixedSharedSecret ss = new MixedSharedSecret(RANDOM, ourDHKeyPair, ourECDHKeyPair, theirDHPublicKey, theirECDHPublicKey);
         ss.rotateOurKeys(true);
         final byte[] firstK = ss.getK();
-        ss.rotateTheirKeys(true, theirNextECDHPublicKey, theirNextDHPublicKey);
+        ss.rotateTheirKeys(theirNextECDHPublicKey, theirNextDHPublicKey);
         assertFalse(Arrays.equals(firstK, ss.getK()));
     }
 
@@ -215,7 +207,7 @@ public class MixedSharedSecretTest {
         final ECDHKeyPair ourECDHKeyPair = ECDHKeyPair.generate(RANDOM);
         final MixedSharedSecret ss = new MixedSharedSecret(RANDOM, ourDHKeyPair, ourECDHKeyPair, theirDHPublicKey, theirECDHPublicKey);
         final byte[] firstK = ss.getK();
-        ss.rotateTheirKeys(false, theirECDHPublicKey, null);
+        ss.rotateTheirKeys(theirECDHPublicKey, null);
         assertFalse(Arrays.equals(firstK, ss.getK()));
     }
 
@@ -236,7 +228,7 @@ public class MixedSharedSecretTest {
         final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret shared = new MixedSharedSecret(RANDOM, DHKeyPair.generate(RANDOM), ECDHKeyPair.generate(RANDOM),
                 theirDHPublicKey, theirECDHPublicKey);
-        shared.rotateTheirKeys(true, null, DHKeyPair.generate(RANDOM).publicKey());
+        shared.rotateTheirKeys(null, DHKeyPair.generate(RANDOM).publicKey());
     }
 
     @Test(expected = NullPointerException.class)
@@ -245,7 +237,7 @@ public class MixedSharedSecretTest {
         final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret shared = new MixedSharedSecret(RANDOM, DHKeyPair.generate(RANDOM), ECDHKeyPair.generate(RANDOM),
                 theirDHPublicKey, theirECDHPublicKey);
-        shared.rotateTheirKeys(true, null, DHKeyPair.generate(RANDOM).publicKey());
+        shared.rotateTheirKeys(null, DHKeyPair.generate(RANDOM).publicKey());
     }
 
     @Test(expected = OtrCryptoException.class)
@@ -254,8 +246,7 @@ public class MixedSharedSecretTest {
         final ECDHKeyPair ourECDHKeyPair = ECDHKeyPair.generate(RANDOM);
         final MixedSharedSecret shared = new MixedSharedSecret(RANDOM, ourDHKeyPair, ourECDHKeyPair,
                 DHKeyPair.generate(RANDOM).publicKey(), ECDHKeyPair.generate(RANDOM).publicKey());
-        shared.rotateTheirKeys(true, ourECDHKeyPair.publicKey(),
-                DHKeyPair.generate(RANDOM).publicKey());
+        shared.rotateTheirKeys(ourECDHKeyPair.publicKey(), DHKeyPair.generate(RANDOM).publicKey());
     }
 
     @Test(expected = OtrCryptoException.class)
@@ -264,17 +255,16 @@ public class MixedSharedSecretTest {
         final ECDHKeyPair ourECDHKeyPair = ECDHKeyPair.generate(RANDOM);
         final MixedSharedSecret shared = new MixedSharedSecret(RANDOM, ourDHKeyPair, ourECDHKeyPair,
                 DHKeyPair.generate(RANDOM).publicKey(), ECDHKeyPair.generate(RANDOM).publicKey());
-        shared.rotateTheirKeys(true, ECDHKeyPair.generate(RANDOM).publicKey(),
-                ourDHKeyPair.publicKey());
+        shared.rotateTheirKeys(ECDHKeyPair.generate(RANDOM).publicKey(), ourDHKeyPair.publicKey());
     }
 
     @Test(expected = OtrCryptoException.class)
     public void testRotateTheirKeysWithTheirCurrentECDHPublicKey() throws OtrCryptoException {
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
-        final MixedSharedSecret shared = new MixedSharedSecret(RANDOM, DHKeyPair.generate(RANDOM), ECDHKeyPair.generate(RANDOM),
-                theirDHPublicKey, theirECDHPublicKey);
-        shared.rotateTheirKeys(true, theirECDHPublicKey, DHKeyPair.generate(RANDOM).publicKey());
+        final MixedSharedSecret shared = new MixedSharedSecret(RANDOM, DHKeyPair.generate(RANDOM),
+                ECDHKeyPair.generate(RANDOM), theirDHPublicKey, theirECDHPublicKey);
+        shared.rotateTheirKeys(theirECDHPublicKey, DHKeyPair.generate(RANDOM).publicKey());
     }
 
     @Test(expected = OtrCryptoException.class)
@@ -283,7 +273,7 @@ public class MixedSharedSecretTest {
         final Point theirECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final MixedSharedSecret shared = new MixedSharedSecret(RANDOM, DHKeyPair.generate(RANDOM), ECDHKeyPair.generate(RANDOM),
                 theirDHPublicKey, theirECDHPublicKey);
-        shared.rotateTheirKeys(true, ECDHKeyPair.generate(RANDOM).publicKey(), theirDHPublicKey);
+        shared.rotateTheirKeys(ECDHKeyPair.generate(RANDOM).publicKey(), theirDHPublicKey);
     }
 
     @Test
@@ -300,7 +290,7 @@ public class MixedSharedSecretTest {
         final MixedSharedSecret shared = new MixedSharedSecret(RANDOM, DHKeyPair.generate(RANDOM), ECDHKeyPair.generate(RANDOM),
                 theirDHPublicKey, theirECDHPublicKey);
         shared.close();
-        shared.rotateTheirKeys(true, ECDHKeyPair.generate(RANDOM).publicKey(), theirDHPublicKey);
+        shared.rotateTheirKeys(ECDHKeyPair.generate(RANDOM).publicKey(), theirDHPublicKey);
     }
 
     @Test(expected = IllegalStateException.class)

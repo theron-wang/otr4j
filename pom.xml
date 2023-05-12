@@ -116,10 +116,8 @@
                     <artifactId>maven-pmd-plugin</artifactId>
                     <version>3.20.0</version>
                     <configuration>
-                        <!--linkXRef seems to require org.apache.maven.plugins:maven-jxr-plugin, which is not currently available. -->
                         <linkXRef>false</linkXRef>
                         <analysisCache>false</analysisCache>
-                        <!--<analysisCacheLocation>${project.build.directory}/pmd/pmd.cache</analysisCacheLocation> &lt;!&ndash; Optional: points to this location by default &ndash;&gt;-->
                     </configuration>
                 </plugin>
                 <plugin>
@@ -299,10 +297,6 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
             </plugin>
-            <!--<plugin>-->
-            <!--<groupId>org.apache.maven.plugins</groupId>-->
-            <!--<artifactId>maven-project-info-reports-plugin</artifactId>-->
-            <!--</plugin>-->
         </plugins>
     </reporting>
     <profiles>

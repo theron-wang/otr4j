@@ -394,31 +394,21 @@ final class DoubleRatchet implements AutoCloseable {
      * @param nextDH   The other party's DH public key.
      */
     // TODO preserve message keys in previous ratchet before rotating away.
-    // FIXME need to verify that public keys (ECDH and DH) were not encountered previously.
     void rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH) throws OtrCryptoException, ProtocolException {
         requireNotClosed();
         LOGGER.log(FINE, "Rotating root key and receiving chain key for ratchet {0} (nextDH = {1})",
                 new Object[]{this.i, nextDH != null});
-        if (nextECDH.constantTimeEquals(this.sharedSecret.getTheirECDHPublicKey())) {
+        final boolean performDHRatchet = this.i % 3 == 0;
+        if (nextECDH.constantTimeEquals(this.sharedSecret.getTheirECDHPublicKey())
+                || (performDHRatchet && this.sharedSecret.getTheirDHPublicKey().equals(nextDH))) {
             LOGGER.log(FINE, "Skipping rotating receiver keys as ECDH public key is already known.");
             return;
         }
-        // FIXME check in spec: is this conditional expressed exactly as described in the spec? Seems counter-intuitive.
-//        if (nextDH != null && nextDH.equals(this.sharedSecret.getTheirDHPublicKey())) {
-//            LOGGER.log(FINE, "Skipping rotating receiver keys as DH public key is already known.");
-//            return;
-//        }
-        final boolean performDHRatchet = this.i % 3 == 0;
-        if (performDHRatchet && nextDH == null) {
-            LOGGER.log(WARNING, "Performing receiver keys rotation for message in new ratchet. DH-ratchet is expected, but DH public key is missing.");
-            throw new ProtocolException("DH public key missing for rotation with DH ratchet. (Buggy implementation of OTR of the other party?)");
+        if (performDHRatchet == (nextDH == null)) {
+            LOGGER.log(WARNING, "Performing receiver keys rotation for message in new ratchet. Next DH public key violates expectations.");
+            throw new ProtocolException("DH public key violates expectation for rotation with DH ratchet. (Buggy implementation of OTR of the other party?)");
         }
-        if (!performDHRatchet && nextDH != null) {
-            LOGGER.log(WARNING, "Performing receiver keys rotation for message in new ratchet. DH public key is provided but not expected.");
-            throw new ProtocolException("DH public key provided for rotation while not expected. (Buggy implementation of OTR of the other party?)");
-        }
-        final BigInteger maybeNextDH = performDHRatchet ? nextDH : null;
-        this.sharedSecret.rotateTheirKeys(performDHRatchet, nextECDH, maybeNextDH);
+        this.sharedSecret.rotateTheirKeys(nextECDH, nextDH);
         this.pn = this.senderRatchet.messageID;
         generateRatchetKeys(Purpose.RECEIVING);
         this.senderRatchet.needsRotation = true;
