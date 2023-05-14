@@ -280,10 +280,9 @@ public class DoubleRatchetTest {
         assertArrayEquals(message, bobRatchet.decrypt(0, 2, message, authenticator2, ciphertext2));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testDoubleRatchetRetrievePreviousMessageKeys() throws RotationLimitationException, OtrCryptoException,
             VerificationException, ProtocolException {
-        final byte[] message = "Hello Alice!".getBytes(UTF_8);
         // Prepare ratchets for Alice and Bob
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
         final DHKeyPair aliceFirstDH = DHKeyPair.generate(RANDOM);
@@ -299,15 +298,20 @@ public class DoubleRatchetTest {
 
         // Start encrypting and authenticating using Bob's double ratchet.
         aliceRatchet.rotateSenderKeys();
-        final byte[] authenticator = aliceRatchet.authenticate(message);
+        final byte[] message = "Hello Alice!".getBytes(UTF_8);
         final byte[] ciphertext = aliceRatchet.encrypt(message);
+        final byte[] authenticator = aliceRatchet.authenticate(ciphertext);
         aliceRatchet.rotateSendingChainKey();
+        final byte[] message2 = "Hello again.".getBytes(UTF_8);
+        final byte[] ciphertext2 = aliceRatchet.encrypt(message2);
+        final byte[] authn2 = aliceRatchet.authenticate(ciphertext2);
         aliceRatchet.rotateSendingChainKey();
         // Start decrypting and verifying using Alice's double ratchet.
         bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), aliceRatchet.getDHPublicKey());
-        bobRatchet.rotateReceivingChainKey();
-        bobRatchet.rotateReceivingChainKey();
-        assertArrayEquals(message, bobRatchet.decrypt(0, 0, message, authenticator, ciphertext));
+        bobRatchet.decrypt(0, 1, ciphertext2, authn2, ciphertext2);
+        bobRatchet.rotateReceivingChainKey(0, 1);
+        assertArrayEquals(message, bobRatchet.decrypt(0, 0, ciphertext, authenticator, ciphertext));
+        bobRatchet.rotateReceivingChainKey(0, 0);
     }
 
     @Test(expected = RotationLimitationException.class)
@@ -373,19 +377,19 @@ public class DoubleRatchetTest {
         assertEquals(0, bobRatchet.getPn());
         assertArrayEquals(message, bobRatchet.decrypt(0, 0, message, authenticator, ciphertext));
         assertArrayEquals(extraSymmKey1, bobRatchet.extraSymmetricKeyReceiver(0, 0));
-        bobRatchet.rotateReceivingChainKey();
+        bobRatchet.rotateReceivingChainKey(0, 0);
         assertEquals(1, bobRatchet.getI());
         assertEquals(0, bobRatchet.getJ());
         assertEquals(1, bobRatchet.getK());
         assertArrayEquals(message, bobRatchet.decrypt(0, 1, message, authenticator2, ciphertext2));
         assertArrayEquals(extraSymmKey2, bobRatchet.extraSymmetricKeyReceiver(0, 1));
-        bobRatchet.rotateReceivingChainKey();
+        bobRatchet.rotateReceivingChainKey(0, 1);
         assertEquals(1, bobRatchet.getI());
         assertEquals(0, bobRatchet.getJ());
         assertEquals(2, bobRatchet.getK());
         assertArrayEquals(message, bobRatchet.decrypt(0, 2, message, authenticator3, ciphertext3));
         assertArrayEquals(extraSymmKey3, bobRatchet.extraSymmetricKeyReceiver(0, 2));
-        bobRatchet.rotateReceivingChainKey();
+        bobRatchet.rotateReceivingChainKey(0, 2);
         assertEquals(1, bobRatchet.getI());
         assertEquals(0, bobRatchet.getJ());
         assertEquals(3, bobRatchet.getK());
@@ -427,19 +431,19 @@ public class DoubleRatchetTest {
         assertEquals(0, aliceRatchet.getK());
         assertArrayEquals(message, aliceRatchet.decrypt(1, 0, message, authenticator4, ciphertext4));
         assertArrayEquals(extraSymmKey4, aliceRatchet.extraSymmetricKeyReceiver(1, 0));
-        aliceRatchet.rotateReceivingChainKey();
+        aliceRatchet.rotateReceivingChainKey(1, 0);
         assertEquals(2, aliceRatchet.getI());
         assertEquals(3, aliceRatchet.getJ());
         assertEquals(1, aliceRatchet.getK());
         assertArrayEquals(message, aliceRatchet.decrypt(1, 1, message, authenticator5, ciphertext5));
         assertArrayEquals(extraSymmKey5, aliceRatchet.extraSymmetricKeyReceiver(1, 1));
-        aliceRatchet.rotateReceivingChainKey();
+        aliceRatchet.rotateReceivingChainKey(1, 1);
         assertEquals(2, aliceRatchet.getI());
         assertEquals(3, aliceRatchet.getJ());
         assertEquals(2, aliceRatchet.getK());
         assertArrayEquals(message, aliceRatchet.decrypt(1, 2, message, authenticator6, ciphertext6));
         assertArrayEquals(extraSymmKey6, aliceRatchet.extraSymmetricKeyReceiver(1, 2));
-        aliceRatchet.rotateReceivingChainKey();
+        aliceRatchet.rotateReceivingChainKey(1, 2);
         assertEquals(2, aliceRatchet.getI());
         assertEquals(3, aliceRatchet.getJ());
         assertEquals(3, aliceRatchet.getK());

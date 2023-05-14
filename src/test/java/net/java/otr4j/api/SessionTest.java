@@ -22,7 +22,6 @@ import net.java.otr4j.util.BlockingSubmitter;
 import net.java.otr4j.util.ConditionalBlockingQueue;
 import net.java.otr4j.util.ConditionalBlockingQueue.Predicate;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
@@ -34,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
@@ -767,8 +767,6 @@ public class SessionTest {
         assertEquals(FINISHED, c.clientBob.session.getSessionStatus());
     }
 
-    // TODO make this test work once Double Ratchet algorithm is redesigned.
-    @Ignore("As of yet unsupported use case. Depends on redesign of Double Ratchet algorithm.")
     @Test
     public void testEstablishOTR4SessionEarlyMessagingOutOfOrder() throws OtrException {
         final Conversation c = new Conversation(3);
@@ -993,7 +991,6 @@ public class SessionTest {
         assertMessage("Message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage().content);
     }
 
-    @Ignore("Test demonstrates support for out-of-order messages and specifically messages that arrive later than expected. This is not yet supported in the library. We need to store message keys for later look-back to make this test work.")
     @Test
     public void testOTR4ExtensiveMessagingManyConsecutiveMessagesShuffled() throws OtrException {
         final Conversation c = new Conversation(25);
@@ -1001,14 +998,14 @@ public class SessionTest {
         assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
         c.clientAlice.session.startSession();
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage());
+        assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting AUTH_I message from Bob.
-        assertNull(c.clientAlice.receiveMessage());
+        assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
         final String[] messages = new String[25];
@@ -1019,10 +1016,14 @@ public class SessionTest {
         for (final String message : messages) {
             c.clientBob.sendMessage(message);
         }
-        shuffle(c.clientAlice.receiptChannel, RANDOM);
+        final long seed = RANDOM.nextLong();
+        System.err.println("Random seed: " + seed);
+        shuffle(c.clientAlice.receiptChannel, new Random(seed));
         final HashSet<String> receivedMessages = new HashSet<>();
         for (int i = 0; i < messages.length; i++) {
-            final String received = c.clientAlice.receiveMessage().content;
+            System.err.println("Message " + i);
+            final Session.Result result = c.clientAlice.receiveMessage();
+            final String received = result.content;
             if (!contains(received, messages)) {
                 fail("Expected message to be present in the list of sent messages: " + received);
             }

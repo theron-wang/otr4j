@@ -183,6 +183,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 context.getReceiverInstanceTag(), flags, this.ratchet.getPn(), ratchetId, messageId,
                 this.ratchet.getECDHPublicKey(), dhPublicKey, ciphertext, new byte[64], collectedMACs);
         final byte[] authenticator = this.ratchet.authenticate(encodeDataMessageSections(unauthenticated));
+        // TODO we rotate away, so we need to acquire the extra symmetric key for this message ID now, or never.
         this.ratchet.rotateSendingChainKey();
         final DataMessage4 message = new DataMessage4(unauthenticated, authenticator);
         this.lastMessageSentTimestamp = System.nanoTime();
@@ -213,6 +214,8 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Override
     @SuppressWarnings("PMD.CognitiveComplexity")
     String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException, ProtocolException {
+        // FIXME consider that i, j, k control key management, but are only authenticated after authenticator is determined, meaning you have to rotate away. This is an issue if done so in irreversible way.
+        // FIXME check with spec and rationale: nextECDH and nextDH must be validated, so must be part of authenticator before they're to be trusted.
         if (message.i < this.ratchet.getI() - 1) {
             // Ratchet ID < our current ratchet ID. This is technically impossible, so should not be supported.
             throw new ProtocolException("The double ratchet does not allow for first messages of previous ratchet ID to arrive at a later time. This is an illegal message.");
@@ -224,6 +227,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             // TODO generate and store skipped message for previous chain key.
             // The Double Ratchet prescribes alternate rotations, so after a single rotation for each we expect to
             // reveal MAC codes.
+            // FIXME check message.revealedMacs length multiple of MAC length. (64 bytes)
             if (message.i > 0 && message.revealedMacs.length == 0) {
                 assert false : "CHECK: Shouldn't there always be at least one MAC code to reveal?";
                 logger.warning("Expected other party to reveal recently used MAC codes, but no MAC codes are revealed! (This may be a bug in the other party's OTR implementation.)");
@@ -232,16 +236,17 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         }
         // If the encrypted message corresponds to an stored message key corresponding to an skipped message, the
         // message is verified and decrypted with that key which is deleted from the storage.
-        // TODO try to decrypt using skipped message keys.
         // If a new message from the current receiving ratchet is received, any message keys corresponding to skipped
         // messages from the same ratchet are stored, and a symmetric-key ratchet is performed to derive the current
         // message key and the next receiving chain key. The message is then verified and decrypted.
         final byte[] decrypted;
+        // FIXME extraSymmetricKey not guaranteed to be used, must be cleared regardless.
+        final byte[] extraSymmetricKey;
         try {
             decrypted = this.ratchet.decrypt(message.i, message.j, encodeDataMessageSections(message),
                     message.authenticator, message.ciphertext);
+            extraSymmetricKey = this.ratchet.extraSymmetricKeyReceiver(message.i, message.j);
         } catch (final RotationLimitationException e) {
-            // TODO test SessionTest#testOTR4ExtensiveMessagingManyConsecutiveMessagesShuffled might shuffle message that are part of next ratchet first, causing this case to be triggered. Investigate if this case should be supported in the first place.
             this.logger.log(INFO, "Message received that is part of next ratchet. As we do not have the public keys for that ratchet yet, the message cannot be decrypted. This message is now lost.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
@@ -250,13 +255,14 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         }
-        this.ratchet.rotateReceivingChainKey();
+        this.ratchet.rotateReceivingChainKey(message.i, message.j);
         // Process decrypted message contents. Extract and process TLVs.
         final Content content = extractContents(decrypted);
         for (final TLV tlv : content.tlvs) {
             logger.log(FINE, "Received TLV type {0}", tlv.type);
             if (smpPayload(tlv)) {
                 if ((message.flags & FLAG_IGNORE_UNREADABLE) != FLAG_IGNORE_UNREADABLE) {
+                    // Detect improvements for protocol implementation of remote party.
                     logger.log(WARNING, "Other party is using a faulty OTR client: all SMP messages are expected to have the IGNORE_UNREADABLE flag set.");
                 }
                 try {
@@ -265,8 +271,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                         context.injectMessage(transformSending(context, "", singletonList(response), FLAG_IGNORE_UNREADABLE));
                     }
                 } catch (final ProtocolException | OtrCryptoException e) {
-                    this.logger.log(WARNING, "Illegal, bad or corrupt SMP TLV encountered. Stopped processing. This may indicate a bad implementation of OTR at the other party.",
-                            e);
+                    this.logger.log(WARNING, "Illegal, bad or corrupt SMP TLV encountered. Stopped processing. This may indicate a bad implementation of OTR at the other party.", e);
                 }
                 continue;
             }
@@ -289,12 +294,8 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 if (tlv.value.length < EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES) {
                     throw new OtrException("TLV value should contain at least 4 bytes of context identifier.");
                 }
-                try {
-                    extraSymmetricKeyDiscovered(context.getHost(), context.getSessionID(), content.message,
-                            this.ratchet.extraSymmetricKeyReceiver(message.i, message.j), tlv.value);
-                } catch (final RotationLimitationException e) {
-                    throw new IllegalStateException("BUG: Failed to acquire extra symmetric key for receiver even though message could be decrypted successfully.", e);
-                }
+                extraSymmetricKeyDiscovered(context.getHost(), context.getSessionID(), content.message,
+                        extraSymmetricKey, tlv.value);
                 break;
             default:
                 logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);

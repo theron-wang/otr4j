@@ -214,12 +214,12 @@ public final class MixedSharedSecret implements AutoCloseable {
         }
         this.theirECDHPublicKey = theirNextECDH;
         if (theirNextDH == null) {
-            // do not perform DH ratchet; only rotate ECDH keys
             regenerateK(false);
             this.ecdhKeyPair.close();
             return;
         }
-        // every third brace key, perform DH ratchet; also rotate DH keys
+        // every third brace key, perform DH ratchet; also rotate DH keys. The iteration is decided by DoubleRatchet,
+        // while we need simply act on the presence or absence of theirNextDH.
         if (!checkPublicKey(theirNextDH) || this.dhKeyPair.publicKey().equals(theirNextDH)
                 || this.theirDHPublicKey.equals(theirNextDH)) {
             throw new OtrCryptoException("A new, different DH public key is expected for initializing the new ratchet.");
