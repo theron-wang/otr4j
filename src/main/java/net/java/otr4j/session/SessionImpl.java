@@ -353,7 +353,7 @@ final class SessionImpl implements Session, Context {
         }
         this.profile = profile;
         this.profilePayload = payload;
-        // Verify consistent use of keypairs…
+        // Verify consistent use of long-term (identity) keypairs…
         requireEquals(this.profile.getLongTermPublicKey(), this.host.getLongTermKeyPair(this.sessionID).getPublicKey(),
                 "Long-term keypair provided by OtrEngineHost must be same as in the client profile.");
         final DSAPublicKey profileDSAPublicKey = this.profile.getDsaPublicKey();

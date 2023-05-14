@@ -52,6 +52,7 @@ import static net.java.otr4j.io.EncryptedMessage.extractContents;
 import static net.java.otr4j.io.ErrorMessage.ERROR_1_MESSAGE_UNREADABLE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_UNREADABLE_MESSAGE;
 import static net.java.otr4j.messages.DataMessage4s.encodeDataMessageSections;
+import static net.java.otr4j.messages.DataMessage4s.validate;
 import static net.java.otr4j.session.smpv4.SMP.smpPayload;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static org.bouncycastle.util.Arrays.concatenate;
@@ -207,31 +208,37 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Nullable
     @Override
     String handleDataMessage(final Context context, final DataMessage message) {
-        throw new IllegalStateException("BUG: OTRv4 encrypted message state does not handle OTRv2/OTRv3 data messages.");
+        throw new IllegalStateException("BUG: OTRv4 encrypted message state does not allow OTRv2/OTRv3 data messages.");
     }
 
     @Nullable
     @Override
     @SuppressWarnings("PMD.CognitiveComplexity")
     String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException, ProtocolException {
-        // FIXME consider that i, j, k control key management, but are only authenticated after authenticator is determined, meaning you have to rotate away. This is an issue if done so in irreversible way.
-        // FIXME check with spec and rationale: nextECDH and nextDH must be validated, so must be part of authenticator before they're to be trusted.
+        validate(message);
         if (message.i < this.ratchet.getI() - 1) {
+            // FIXME this can be assumed to work: simply pass through to Double Ratchet, look in stored keys map and return something if available.
             // Ratchet ID < our current ratchet ID. This is technically impossible, so should not be supported.
             throw new ProtocolException("The double ratchet does not allow for first messages of previous ratchet ID to arrive at a later time. This is an illegal message.");
         }
-        if (message.i > this.ratchet.getI() - 1) {
+        if (message.i > this.ratchet.getI()) {
+            logger.log(WARNING, "Received message is for a future ratchet ID. Either the message is malicious, or we have incurred significant loss of messages such that we lag by more than a ratchet rotation. (Current ratchet: {0}, message ratchet: {1})",
+                    new Object[]{this.ratchet.getI(), message.i});
+            throw new ProtocolException("Received message is for a future ratchet.");
+        }
+        if (message.i == this.ratchet.getI()) {
+            // TODO are we sure we only need to reveal on first message of ratchet? Are we sure NextECDH and nextDH are included on every message in ratchet?
+            if (message.i > 0 && message.revealedMacs.length == 0) {
+                // FIXME inspect spec to find out when we can expect revealed MACs to be included.
+                throw new ProtocolException("Expected MACs to be revealed after initial ratchet.");
+            }
             // If any message in a new ratchet is received, a new ratchet key has been received, any message keys
             // corresponding to skipped messages from the previous receiving ratchet are stored. A new DH ratchet is
             // performed.
             // TODO generate and store skipped message for previous chain key.
             // The Double Ratchet prescribes alternate rotations, so after a single rotation for each we expect to
-            // reveal MAC codes.
-            // FIXME check message.revealedMacs length multiple of MAC length. (64 bytes)
-            if (message.i > 0 && message.revealedMacs.length == 0) {
-                assert false : "CHECK: Shouldn't there always be at least one MAC code to reveal?";
-                logger.warning("Expected other party to reveal recently used MAC codes, but no MAC codes are revealed! (This may be a bug in the other party's OTR implementation.)");
-            }
+            // start revealing MAC codes.
+            // FIXME consider that i, j, nextECDH, nextDH must be authenticated before trusted. However, we must rotate before authentication. We must isolated rotation until we can confirm that the message is trustworthy..
             this.ratchet.rotateReceiverKeys(message.ecdhPublicKey, message.dhPublicKey);
         }
         // If the encrypted message corresponds to an stored message key corresponding to an skipped message, the

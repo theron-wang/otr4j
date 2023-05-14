@@ -57,6 +57,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
     public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         if (message.version != FOUR) {
             // TODO is it going to be an issue if we always delegate on message != OTRv4, even if (*OTRv4*) DAKE in progress/finished?
+            // FIXME this also allows DataMessages for OTRv3 to be processed? (Need to be careful in allowing any of this to happen.)
             return super.handleEncodedMessage(context, message);
         }
         final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
