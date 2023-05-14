@@ -36,12 +36,12 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
+import static java.util.logging.Level.INFO;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V2;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V3;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V4;
@@ -75,8 +75,11 @@ import static org.mockito.Mockito.when;
 
 // TODO handle case where we store skipped message keys such that we can decrypt message that is received out-of-order, i.e. later than it was supposed to arrive.
 // TODO add test to prove that we can start new (D)AKE in encrypted/finished Message state.
+// TODO implement a test that produces arbitrary, specially crafted message in between real ones to throw off the Double Ratchet: only authentic messages must ever contribute to the ratcheting process in any way.
 @SuppressWarnings({"resource", "DataFlowIssue"})
 public class SessionTest {
+
+    private static final Logger LOGGER = Logger.getLogger(SessionTest.class.getName());
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -143,7 +146,7 @@ public class SessionTest {
 
     @Before
     public void setUp() {
-        Logger.getLogger("").setLevel(Level.INFO);
+        Logger.getLogger("").setLevel(INFO);
     }
 
     @Test
@@ -207,6 +210,7 @@ public class SessionTest {
 
     @Test
     public void testEstablishedMixedVersionSessionsAliceClientInitiatedFragmented() throws OtrException, ProtocolException {
+        final Random random = createDeterministicRandom(RANDOM.nextLong());
         final Conversation c = new Conversation(MAX_VALUE, 150);
 
         // Prepare conversation with multiple clients.
@@ -220,29 +224,29 @@ public class SessionTest {
         // Start setting up an encrypted session.
         c.clientAlice.session.startSession();
         // Expecting Query message from Alice.
-        rearrangeFragments(c.clientBob.receiptChannel, RANDOM);
+        rearrangeFragments(c.clientBob.receiptChannel, random);
         assertArrayEquals(new String[0], c.clientBob.receiveAllMessages(true));
-        rearrangeFragments(bob2.receiptChannel, RANDOM);
+        rearrangeFragments(bob2.receiptChannel, random);
         assertArrayEquals(new String[0], bob2.receiveAllMessages(true));
         // Expecting Identity message from Bob, DH-Commit message from Bob 2.
-        rearrangeFragments(c.clientAlice.receiptChannel, RANDOM);
+        rearrangeFragments(c.clientAlice.receiptChannel, random);
         assertArrayEquals(new String[0], c.clientAlice.receiveAllMessages(true));
         // Expecting Auth-R message, DH-Key message from Alice.
-        rearrangeFragments(c.clientBob.receiptChannel, RANDOM);
+        rearrangeFragments(c.clientBob.receiptChannel, random);
         assertArrayEquals(new String[0], c.clientBob.receiveAllMessages(true));
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         assertEquals(FOUR, c.clientBob.session.getOutgoingSession().getProtocolVersion());
-        rearrangeFragments(bob2.receiptChannel, RANDOM);
+        rearrangeFragments(bob2.receiptChannel, random);
         assertArrayEquals(new String[0], bob2.receiveAllMessages(true));
         // Expecting Auth-I message from Bob, Signature message from Bob 2.
-        rearrangeFragments(c.clientAlice.receiptChannel, RANDOM);
+        rearrangeFragments(c.clientAlice.receiptChannel, random);
         assertArrayEquals(new String[0], c.clientAlice.receiveAllMessages(true));
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus(c.clientBob.session.getSenderInstanceTag()));
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus(bob2.session.getSenderInstanceTag()));
         // Expecting DAKE data message, Reveal Signature message from Alice.
-        rearrangeFragments(c.clientBob.receiptChannel, RANDOM);
+        rearrangeFragments(c.clientBob.receiptChannel, random);
         assertArrayEquals(new String[0], c.clientBob.receiveAllMessages(true));
-        rearrangeFragments(bob2.receiptChannel, RANDOM);
+        rearrangeFragments(bob2.receiptChannel, random);
         assertArrayEquals(new String[0], bob2.receiveAllMessages(true));
         assertEquals(ENCRYPTED, bob2.session.getSessionStatus());
         assertEquals(Session.Version.THREE, bob2.session.getOutgoingSession().getProtocolVersion());
@@ -257,9 +261,9 @@ public class SessionTest {
         assertTrue(otrFragmented(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg1, bob2.receiptChannel.peek());
         assertTrue(otrFragmented(bob2.receiptChannel.peek()));
-        rearrangeFragments(c.clientBob.receiptChannel, RANDOM);
+        rearrangeFragments(c.clientBob.receiptChannel, random);
         assertArrayEquals(new String[] {msg1}, c.clientBob.receiveAllMessages(true));
-        rearrangeFragments(bob2.receiptChannel, RANDOM);
+        rearrangeFragments(bob2.receiptChannel, random);
         assertArrayEquals(new String[0], bob2.receiveAllMessages(true));
         c.clientAlice.session.setOutgoingSession(bob2.session.getSenderInstanceTag());
         c.clientAlice.sendMessage(msg1);
@@ -267,9 +271,9 @@ public class SessionTest {
         assertTrue(otrFragmented(c.clientBob.receiptChannel.peek()));
         assertNotEquals(msg1, bob2.receiptChannel.peek());
         assertTrue(otrFragmented(bob2.receiptChannel.peek()));
-        rearrangeFragments(bob2.receiptChannel, RANDOM);
+        rearrangeFragments(bob2.receiptChannel, random);
         assertArrayEquals(new String[] {msg1}, bob2.receiveAllMessages(true));
-        rearrangeFragments(c.clientBob.receiptChannel, RANDOM);
+        rearrangeFragments(c.clientBob.receiptChannel, random);
         assertArrayEquals(new String[0], c.clientBob.receiveAllMessages(true));
 
         assertEquals(0, c.clientAlice.receiptChannel.size());
@@ -859,6 +863,7 @@ public class SessionTest {
 
     @Test
     public void testEstablishOTR4SessionFragmentedMessageFragmentDropped() throws OtrException {
+        final Random random = createDeterministicRandom(RANDOM.nextLong());
         final Conversation c = new Conversation(21, 150);
         c.clientBob.sendMessage("Hi Alice");
         assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
@@ -880,7 +885,7 @@ public class SessionTest {
         assertTrue(otrFragmented(c.clientBob.receiptChannel.peek()));
         assertArrayEquals(new String[] {"Hello Bob!"}, c.clientBob.receiveAllMessages(true));
         c.clientAlice.sendMessage("Hello Bob - this messages gets partially dropped ............................");
-        drop(new int[] {RANDOM.nextInt(4)}, c.clientBob.receiptChannel);
+        drop(new int[] {random.nextInt(4)}, c.clientBob.receiptChannel);
         c.clientAlice.sendMessage("You should be able to receive this message.");
         assertArrayEquals(new String[] {"You should be able to receive this message."}, c.clientBob.receiveAllMessages(true));
     }
@@ -902,13 +907,14 @@ public class SessionTest {
         assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
+        final Random random = createDeterministicRandom(RANDOM.nextLong());
         for (int i = 0; i < 25; i++) {
             // Bob sending a message (alternating, to enable ratchet)
-            final String messageBob = randomMessage(300);
+            final String messageBob = randomMessage(random, 300);
             c.clientBob.sendMessage(messageBob);
             assertMessage("Iteration: " + i + ", message Bob: " + messageBob, messageBob, c.clientAlice.receiveMessage().content);
             // Alice sending a message (alternating, to enable ratchet)
-            final String messageAlice = randomMessage(300);
+            final String messageAlice = randomMessage(random, 300);
             c.clientAlice.sendMessage(messageAlice);
             assertMessage("Iteration: " + i + ", message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage().content);
         }
@@ -931,9 +937,10 @@ public class SessionTest {
         assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
+        final Random random = createDeterministicRandom(RANDOM.nextLong());
         final String[] messages = new String[25];
         for (int i = 0; i < messages.length; i++) {
-            messages[i] = randomMessage(300);
+            messages[i] = randomMessage(random, 300);
         }
         // Bob sending many messages
         for (final String message : messages) {
@@ -965,9 +972,10 @@ public class SessionTest {
         assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
+        final Random random = createDeterministicRandom(RANDOM.nextLong());
         final String[] messages = new String[25];
         for (int i = 0; i < messages.length; i++) {
-            messages[i] = randomMessage(300);
+            messages[i] = randomMessage(random, 300);
         }
         // Bob sending many messages
         for (final String message : messages) {
@@ -975,9 +983,9 @@ public class SessionTest {
         }
         // Determine three messages to drop. Avoid dropping first message as this is a known limitation that cannot be
         // mitigated.
-        final int drop1 = RANDOM.nextInt(messages.length - 1) + 1;
-        final int drop2 = RANDOM.nextInt(messages.length - 1) + 1;
-        final int drop3 = RANDOM.nextInt(messages.length - 1) + 1;
+        final int drop1 = random.nextInt(messages.length - 1) + 1;
+        final int drop2 = random.nextInt(messages.length - 1) + 1;
+        final int drop3 = random.nextInt(messages.length - 1) + 1;
         drop(new int[] {drop1, drop2, drop3}, c.clientAlice.receiptChannel);
         for (int i = 0; i < messages.length; i++) {
             if (i == drop1 || i == drop2 || i == drop3) {
@@ -1008,17 +1016,16 @@ public class SessionTest {
         assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
+        final Random random = createDeterministicRandom(RANDOM.nextLong());
         final String[] messages = new String[25];
         for (int i = 0; i < messages.length; i++) {
-            messages[i] = randomMessage(300);
+            messages[i] = randomMessage(random, 300);
         }
         // Bob sending many messages
         for (final String message : messages) {
             c.clientBob.sendMessage(message);
         }
-        final long seed = RANDOM.nextLong();
-        System.err.println("Random seed: " + seed);
-        shuffle(c.clientAlice.receiptChannel, new Random(seed));
+        shuffle(c.clientAlice.receiptChannel, random);
         final HashSet<String> receivedMessages = new HashSet<>();
         for (int i = 0; i < messages.length; i++) {
             System.err.println("Message " + i);
@@ -1177,14 +1184,15 @@ public class SessionTest {
         assertArrayEquals(new String[0], c.clientAlice.receiveAllMessages(true));
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
+        final Random random = createDeterministicRandom(RANDOM.nextLong());
         for (int i = 0; i < 25; i++) {
             // Bob sending a message (alternating, to enable ratchet)
-            final String messageBob = randomMessage(1, 500);
+            final String messageBob = randomMessage(random, 1, 500);
             c.clientBob.sendMessage(messageBob);
             assertArrayEquals("Iteration: " + i + ", message Bob: " + messageBob,
                     new String[] {messageBob}, c.clientAlice.receiveAllMessages(true));
             // Alice sending a message (alternating, to enable ratchet)
-            final String messageAlice = randomMessage(1, 500);
+            final String messageAlice = randomMessage(random, 1, 500);
             c.clientAlice.sendMessage(messageAlice);
             assertArrayEquals("Iteration: " + i + ", message Alice: " + messageAlice,
                     new String[] {messageAlice}, c.clientBob.receiveAllMessages(true));
@@ -1193,6 +1201,7 @@ public class SessionTest {
 
     @Test
     public void testOTR4ExtensiveMessagingFragmentationShuffled() throws OtrException {
+        final Random random = createDeterministicRandom(RANDOM.nextLong());
         final Conversation c = new Conversation(21, 150);
         c.clientBob.sendMessage("Hi Alice");
         assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
@@ -1200,31 +1209,31 @@ public class SessionTest {
         c.clientAlice.session.startSession();
         assertNull(c.clientBob.receiveMessage().content);
         // Expecting Identity message from Bob.
-        shuffle(c.clientAlice.receiptChannel, RANDOM);
+        shuffle(c.clientAlice.receiptChannel, random);
         assertArrayEquals(new String[0], c.clientAlice.receiveAllMessages(true));
         // Expecting AUTH_R message from Alice.
-        shuffle(c.clientBob.receiptChannel, RANDOM);
+        shuffle(c.clientBob.receiptChannel, random);
         assertArrayEquals(new String[0], c.clientBob.receiveAllMessages(true));
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
         // Expecting AUTH_I message from Bob.
-        shuffle(c.clientAlice.receiptChannel, RANDOM);
+        shuffle(c.clientAlice.receiptChannel, random);
         assertArrayEquals(new String[0], c.clientAlice.receiveAllMessages(true));
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         // Expecting heartbeat message from Alice to enable Bob to complete the Double Ratchet initialization.
-        shuffle(c.clientBob.receiptChannel, RANDOM);
+        shuffle(c.clientBob.receiptChannel, random);
         assertEquals(0, c.clientBob.receiveAllMessages(true).length);
 
         for (int i = 0; i < 25; i++) {
             // Bob sending a message (alternating, to enable ratchet)
-            final String messageBob = randomMessage(1, 500);
+            final String messageBob = randomMessage(random, 1, 500);
             c.clientBob.sendMessage(messageBob);
-            shuffle(c.clientAlice.receiptChannel, RANDOM);
+            shuffle(c.clientAlice.receiptChannel, random);
             assertArrayEquals("Iteration: " + i + ", message Bob: " + messageBob,
                     new String[] {messageBob}, c.clientAlice.receiveAllMessages(true));
             // Alice sending a message (alternating, to enable ratchet)
-            final String messageAlice = randomMessage(1, 500);
+            final String messageAlice = randomMessage(random, 1, 500);
             c.clientAlice.sendMessage(messageAlice);
-            shuffle(c.clientBob.receiptChannel, RANDOM);
+            shuffle(c.clientBob.receiptChannel, random);
             assertArrayEquals("Iteration: " + i + ", message Alice: " + messageAlice,
                     new String[] {messageAlice}, c.clientBob.receiveAllMessages(true));
         }
@@ -1247,13 +1256,14 @@ public class SessionTest {
         assertNull(c.clientAlice.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
 
+        final Random random = createDeterministicRandom(RANDOM.nextLong());
         for (int i = 0; i < 5; i++) {
             // Bob sending a message (alternating, to enable ratchet)
-            final String messageBob = randomMessage(1000000);
+            final String messageBob = randomMessage(random, 1000000);
             c.clientBob.sendMessage(messageBob);
             assertMessage("Iteration: " + i + ", message Bob: " + messageBob, messageBob, c.clientAlice.receiveMessage().content);
             // Alice sending a message (alternating, to enable ratchet)
-            final String messageAlice = randomMessage(1000000);
+            final String messageAlice = randomMessage(random, 1000000);
             c.clientAlice.sendMessage(messageAlice);
             assertMessage("Iteration: " + i + ", message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage().content);
         }
@@ -1390,14 +1400,19 @@ public class SessionTest {
         }
     }
 
-    private static String randomMessage(final int maxLength) {
-        return randomMessage(0, maxLength);
+    private static String randomMessage(final Random random, final int maxLength) {
+        return randomMessage(random, 0, maxLength);
     }
 
-    private static String randomMessage(final int minLength, final int maxLength) {
-        final byte[] arbitraryContent = new byte[minLength + RANDOM.nextInt(maxLength - minLength)];
-        RANDOM.nextBytes(arbitraryContent);
+    private static String randomMessage(final Random random, final int minLength, final int maxLength) {
+        final byte[] arbitraryContent = new byte[minLength + random.nextInt(maxLength - minLength)];
+        random.nextBytes(arbitraryContent);
         return toBase64String(arbitraryContent);
+    }
+
+    private static Random createDeterministicRandom(final long seed) {
+        LOGGER.info("Random seed: " + seed);
+        return new Random(seed);
     }
 
     /**

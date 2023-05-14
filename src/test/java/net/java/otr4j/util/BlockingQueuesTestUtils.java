@@ -15,7 +15,6 @@ import net.java.otr4j.io.Message;
 import net.java.otr4j.io.MessageProcessor;
 
 import java.net.ProtocolException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Random;
@@ -26,7 +25,7 @@ import static net.java.otr4j.util.Arrays.contains;
 
 public final class BlockingQueuesTestUtils {
 
-    public static void rearrangeFragments(final BlockingQueue<String> queue, final SecureRandom random)
+    public static void rearrangeFragments(final BlockingQueue<String> queue, final Random random)
             throws ProtocolException {
         shuffle(queue, random);
         reorderOTRv3Fragments(queue);
