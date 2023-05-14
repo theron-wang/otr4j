@@ -222,9 +222,9 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             throw new ProtocolException("The double ratchet does not allow for first messages of previous ratchet ID to arrive at a later time. This is an illegal message.");
         }
         if (message.i > this.ratchet.getI()) {
-            logger.log(WARNING, "Received message is for a future ratchet ID. Either the message is malicious, or we have incurred significant loss of messages such that we lag by more than a ratchet rotation. (Current ratchet: {0}, message ratchet: {1})",
+            logger.log(WARNING, "Received message is for a future ratchet ID: message must be malicious. (Current ratchet: {0}, message ratchet: {1})",
                     new Object[]{this.ratchet.getI(), message.i});
-            throw new ProtocolException("Received message is for a future ratchet.");
+            throw new ProtocolException("Received message is for a future ratchet; must be malicious.");
         }
         if (message.i == this.ratchet.getI()) {
             // TODO are we sure we only need to reveal on first message of ratchet? Are we sure NextECDH and nextDH are included on every message in ratchet?
