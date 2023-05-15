@@ -11,6 +11,7 @@ package net.java.otr4j.session.state;
 
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.MustBeClosed;
+import net.java.otr4j.crypto.MessageKeys;
 import net.java.otr4j.crypto.MixedSharedSecret;
 import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.OtrCryptoException;
@@ -28,22 +29,12 @@ import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINER;
 import static java.util.logging.Level.FINEST;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.EXTRA_SYMMETRIC_KEY_LENGTH_BYTES;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.AUTHENTICATOR;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.CHAIN_KEY;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.EXTRA_SYMMETRIC_KEY;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.MAC_KEY;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.MESSAGE_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.NEXT_CHAIN_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.ROOT_KEY;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_ENC_LENGTH_BYTES;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.hcmac;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
-import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static net.java.otr4j.util.Objects.requireEquals;
 import static org.bouncycastle.util.Arrays.clear;
@@ -245,7 +236,7 @@ final class DoubleRatchet implements AutoCloseable {
     byte[] encrypt(final byte[] data) {
         LOGGER.log(FINER, "Generating message keys for encryption of ratchet {0}, message {1}.",
                 new Object[]{Math.max(0, this.i - 1), this.senderRatchet.messageID});
-        try (MessageKeys keys = this.generateSendingKeys()) {
+        try (MessageKeys keys = this.generateSendingMessageKeys()) {
             return keys.encrypt(data);
         }
     }
@@ -260,38 +251,35 @@ final class DoubleRatchet implements AutoCloseable {
     byte[] authenticate(final byte[] dataMessageSectionsContent) {
         LOGGER.log(FINER, "Generating message keys for authentication of ratchet {0}, message {1}.",
                 new Object[]{Math.max(0, this.i - 1), this.senderRatchet.messageID});
-        try (MessageKeys keys = this.generateSendingKeys()) {
+        try (MessageKeys keys = this.generateSendingMessageKeys()) {
             return keys.authenticate(dataMessageSectionsContent);
         }
     }
 
     @MustBeClosed
     @Nonnull
-    private MessageKeys generateSendingKeys() {
-        final byte[] chainKey = this.senderRatchet.getChainKey();
-        try {
-            return generateMessageKeys(chainKey);
-        } finally {
-            clear(chainKey);
-        }
+    private MessageKeys generateSendingMessageKeys() {
+        final byte[] chainkey = this.senderRatchet.getChainKey();
+        final MessageKeys keys = MessageKeys.fromChainkey(chainkey);
+        clear(chainkey);
+        return keys;
     }
 
     /**
      * Verify then decrypt a received OTRv4 data message.
      *
-     * @param ratchetId                  ID for the receiving ratchet.
-     * @param messageId                  ID for the receiving ratchet message ID.
+     * @param ratchetId ID for the receiving ratchet.
+     * @param messageId ID for the receiving ratchet message ID.
      * @param encodedDataMessageSections Data message sections that need to be authenticated, encoded as byte-array.
-     * @param ciphertext                 The encrypted message ciphertext.
+     * @param ciphertext The encrypted message ciphertext.
      * @return Returns the decrypted ciphertext.
-     * @throws VerificationException       If data message fails verification, i.e. the authenticators do not match.
+     * @throws OtrCryptoException If data message fails verification, i.e. the authenticators do not match.
      * @throws RotationLimitationException In case of failure to acquire the corresponding message keys. This exception
-     *                                     occurs when the first message of a new message is missing and therefore we
-     *                                     cannot generate the necessary keys.
+     * occurs when the first message of a new message is missing and therefore we
+     * cannot generate the necessary keys.
      */
     byte[] decrypt(final int ratchetId, final int messageId, final byte[] encodedDataMessageSections,
-            final byte[] authenticator, final byte[] ciphertext) throws VerificationException,
-            RotationLimitationException {
+            final byte[] authenticator, final byte[] ciphertext) throws RotationLimitationException, OtrCryptoException {
         LOGGER.log(FINER, "Generating message keys for verification and decryption of ratchet {0}, message {1}.",
                 new Object[]{this.i - 1, this.receiverRatchet.messageID});
         try (MessageKeys keys = generateReceivingMessageKeys(ratchetId, messageId)) {
@@ -314,7 +302,7 @@ final class DoubleRatchet implements AutoCloseable {
         requireNotClosed();
         LOGGER.log(FINEST, "Generating extra symmetric keys for encryption of ratchet {0}, message {1}.",
                 new Object[] {Math.max(this.i, 0), this.senderRatchet.messageID});
-        try (MessageKeys keys = generateSendingKeys()) {
+        try (MessageKeys keys = generateSendingMessageKeys()) {
             // This is the "raw" extra symmetric key. The OTRv4 spec shortly touches on taking derivative keys from this
             // key, therefore we return the raw bytes.
             return keys.getExtraSymmetricKey();
@@ -374,11 +362,11 @@ final class DoubleRatchet implements AutoCloseable {
             // This means that the current receiving message ID (`K`) is always a key not used successfully before.
             // (A failed attempt at decrypting a corrupt/fake message is still possible.)
             this.storedKeys.put((long) currentRatchet << 32 | this.receiverRatchet.messageID,
-                    generateMessageKeys(this.receiverRatchet.getChainKey()));
+                    MessageKeys.fromChainkey(this.receiverRatchet.getChainKey()));
             this.receiverRatchet.rotateChainKey();
         }
         final byte[] chainkey = this.receiverRatchet.getChainKey();
-        final MessageKeys keys = generateMessageKeys(chainkey);
+        final MessageKeys keys = MessageKeys.fromChainkey(chainkey);
         clear(chainkey);
         return keys;
     }
@@ -482,15 +470,6 @@ final class DoubleRatchet implements AutoCloseable {
         this.macsToReveal.reset();
     }
 
-    @MustBeClosed
-    private MessageKeys generateMessageKeys(final byte[] chainkey) {
-        assert !allZeroBytes(chainkey) : "Expected chainkey of random data instead of all zero-bytes.";
-        final byte[] encrypt = kdf(MK_ENC_LENGTH_BYTES, MESSAGE_KEY, chainkey);
-        final byte[] extraSymmetricKey = kdf(EXTRA_SYMMETRIC_KEY_LENGTH_BYTES, EXTRA_SYMMETRIC_KEY,
-                new byte[] {(byte) 0xff}, chainkey);
-        return new MessageKeys(encrypt, extraSymmetricKey);
-    }
-
     private void requireNotClosed() {
         if (this.i < 0) {
             throw new IllegalStateException("Instance was previously closed and cannot be used anymore.");
@@ -577,141 +556,6 @@ final class DoubleRatchet implements AutoCloseable {
     }
 
     /**
-     * Encrypt/decrypt and authenticate/verify using the secret key material in the MessageKeys.
-     * <p>
-     * NOTE: Please ensure that message keys are appropriately cleared by calling {@link #close()} after use.
-     */
-    private static final class MessageKeys implements AutoCloseable {
-
-        /**
-         * Flag to indicate when MessageKeys instanced has been cleaned up.
-         */
-        private boolean closed = false;
-
-        /**
-         * Encryption/Decryption key. (MUST be cleared after use.)
-         */
-        private final byte[] encrypt;
-
-        /**
-         * Extra Symmetric Key. (MUST be cleared after use.)
-         */
-        private final byte[] extraSymmetricKey;
-
-        /**
-         * Construct Keys instance.
-         *
-         * @param encrypt           message key for encryption
-         * @param extraSymmetricKey extra symmetric key
-         */
-        @MustBeClosed
-        private MessageKeys(final byte[] encrypt, final byte[] extraSymmetricKey) {
-            assert !allZeroBytes(encrypt) : "Expected encryption key of \"random\" data, instead of all zero-bytes.";
-            this.encrypt = requireLengthExactly(MK_ENC_LENGTH_BYTES, encrypt);
-            assert !allZeroBytes(extraSymmetricKey) : "Expected extra symmetric key of \"random\" data, instead of all zero-bytes.";
-            this.extraSymmetricKey = requireLengthExactly(EXTRA_SYMMETRIC_KEY_LENGTH_BYTES, extraSymmetricKey);
-        }
-
-        @MustBeClosed
-        public MessageKeys copy() {
-            requireNotClosed();
-            return new MessageKeys(this.encrypt.clone(), this.extraSymmetricKey.clone());
-        }
-
-        /**
-         * Clear sensitive material.
-         */
-        @Override
-        public void close() {
-            clear(this.encrypt);
-            clear(this.extraSymmetricKey);
-            this.closed = true;
-        }
-
-        /**
-         * Encrypt a message using a random nonce.
-         *
-         * @param message The plaintext message.
-         * @return Returns a result containing the ciphertext and nonce used.
-         */
-        @Nonnull
-        byte[] encrypt(final byte[] message) {
-            requireNotClosed();
-            return OtrCryptoEngine4.encrypt(this.encrypt, message);
-        }
-
-        /**
-         * Decrypt a ciphertext.
-         *
-         * @param ciphertext The ciphertext.
-         * @return Returns the plaintext message.
-         */
-        @Nonnull
-        byte[] decrypt(final byte[] ciphertext) {
-            requireNotClosed();
-            return OtrCryptoEngine4.decrypt(this.encrypt, ciphertext);
-        }
-
-        /**
-         * Get the authenticator (MAC).
-         * <p>
-         * This method only performs the final hash calculation that includes the MAC key. The internal hash calculation
-         * defined by OTRv4 is expected to be performed prior to calling this method:
-         * <pre>
-         *       Authenticator = KDF_1(usageAuthenticator || MKmac || data_message_sections, 64)
-         * </pre>
-         *
-         * @param dataMessageSections The data message sections (excluding Authenticator and Revealed MACs).
-         * @return Returns the MAC. (Must be cleared separately.)
-         */
-        @Nonnull
-        byte[] authenticate(final byte[] dataMessageSections) {
-            requireNotClosed();
-            final byte[] mac = kdf(MK_MAC_LENGTH_BYTES, MAC_KEY, this.encrypt);
-            final byte[] authenticator = hcmac(AUTHENTICATOR, AUTHENTICATOR_LENGTH_BYTES, mac, dataMessageSections);
-            clear(mac);
-            assert !allZeroBytes(authenticator) : "Expected non-zero bytes in authenticator";
-            return authenticator;
-        }
-
-        /**
-         * Verify a given authenticator against the expected authentication hash.
-         *
-         * @param dataMessageSection The data message section content to be authenticated.
-         * @param authenticator      The authenticator value.
-         * @throws VerificationException In case of failure to verify the authenticator against the data message section
-         *                               content.
-         */
-        void verify(final byte[] dataMessageSection, final byte[] authenticator) throws VerificationException {
-            assert !allZeroBytes(authenticator) : "Expected non-zero bytes in authenticator";
-            requireNotClosed();
-            final byte[] expectedAuthenticator = authenticate(dataMessageSection);
-            final boolean failure = !constantTimeEquals(expectedAuthenticator, authenticator);
-            clear(expectedAuthenticator);
-            if (failure) {
-                throw new VerificationException("The authenticator is invalid.");
-            }
-        }
-
-        /**
-         * Get the Extra Symmetric Key.
-         *
-         * @return Returns the Extra Symmetric Key. (Instance must be cleared by user.)
-         */
-        @Nonnull
-        byte[] getExtraSymmetricKey() {
-            requireNotClosed();
-            return extraSymmetricKey.clone();
-        }
-
-        private void requireNotClosed() {
-            if (this.closed) {
-                throw new IllegalStateException("BUG: Use of closed MessageKeys instance.");
-            }
-        }
-    }
-
-    /**
      * This is used to indicate that a boundary is reached that the DoubleRatchet cannot handle.
      */
     static final class RotationLimitationException extends Exception {
@@ -719,18 +563,6 @@ final class DoubleRatchet implements AutoCloseable {
         private static final long serialVersionUID = -2200918867384812098L;
 
         private RotationLimitationException(final String message) {
-            super(message);
-        }
-    }
-
-    /**
-     * The VerificationException indicates a failure to verify the authenticator.
-     */
-    static final class VerificationException extends Exception {
-
-        private static final long serialVersionUID = 2169901253478095348L;
-
-        private VerificationException(final String message) {
             super(message);
         }
     }

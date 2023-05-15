@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
-import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
@@ -124,7 +124,7 @@ public final class DataMessage4 extends AbstractEncodedMessage {
         this.ecdhPublicKey = requireNonNull(ecdhPublicKey);
         this.dhPublicKey = dhPublicKey;
         this.ciphertext = requireNonNull(ciphertext);
-        this.authenticator = requireLengthExactly(MK_MAC_LENGTH_BYTES, authenticator);
+        this.authenticator = requireLengthExactly(AUTHENTICATOR_LENGTH_BYTES, authenticator);
         this.revealedMacs = requireNonNull(revealedMacs);
     }
 
