@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
@@ -337,6 +338,7 @@ final class DoubleRatchet implements AutoCloseable {
     @SuppressWarnings("MustBeClosedChecker")
     @MustBeClosed
     private MessageKeys generateReceivingMessageKeys(final int ratchetId, final int messageId) throws RotationLimitationException {
+        // TODO WARNING: the generated message keys should not modify state in any way. We cannot affect state until the data message is authenticated. (This must be implemented in a fool-proof way.)
         requireNotClosed();
         final int currentRatchet = Math.max(0, this.i - 1);
         if (ratchetId > currentRatchet) {
@@ -349,23 +351,11 @@ final class DoubleRatchet implements AutoCloseable {
             if (keys == null) {
                 throw new RotationLimitationException("No message keys stored.");
             }
-            // FIXME is copying still necessary if we immediately retrieve decryption, authentication keys and extra symmetric key?
             // Copy message keys to ensure they are available (and uncleared) if a second request comes in, e.g. the
             // extra symmetric key.
             return keys.copy();
         }
-        // TODO verify that number of messages needing to fast-forward is acceptable. (max_skip in OTRv4 spec)
-        while (messageId > this.receiverRatchet.messageID) {
-            LOGGER.log(FINEST, "Fast-forward rotating receiving chain key to catch up with message ID: {0}",
-                    new Object[]{messageId});
-            // After every successful decrypting of a received message, the receiving chain key is also rotated away.
-            // This means that the current receiving message ID (`K`) is always a key not used successfully before.
-            // (A failed attempt at decrypting a corrupt/fake message is still possible.)
-            this.storedKeys.put((long) currentRatchet << 32 | this.receiverRatchet.messageID,
-                    MessageKeys.fromChainkey(this.receiverRatchet.getChainKey()));
-            this.receiverRatchet.rotateChainKey();
-        }
-        final byte[] chainkey = this.receiverRatchet.getChainKey();
+        final byte[] chainkey = this.receiverRatchet.simulate().rotateChainKey(messageId);
         final MessageKeys keys = MessageKeys.fromChainkey(chainkey);
         clear(chainkey);
         return keys;
@@ -383,18 +373,35 @@ final class DoubleRatchet implements AutoCloseable {
      */
     // FIXME keep a latest confirmed messageId on every call to rotateReceivingChainKey, because that is called after successfully authentication and decrypting the data message.
     void rotateReceivingChainKey(final int ratchetId, final int messageId) {
-        if (Math.max(0, this.i - 1) == ratchetId && this.receiverRatchet.messageID == messageId) {
+        final int currentRatchet = Math.max(0, this.i - 1);
+        if (ratchetId > currentRatchet) {
+            throw new IllegalArgumentException("BUG: Ratcheting is required.");
+        }
+        if (ratchetId < currentRatchet || messageId < this.receiverRatchet.messageID) {
+            // If we previously retrieved the keys from the store, clear the keys from the store.
+            LOGGER.log(FINER, "Rotate receiver chainkey: clear stored chainkey {0}, {1}",
+                    new Object[]{ratchetId, messageId});
+            final MessageKeys oldkeys = this.storedKeys.remove((long) ratchetId << 32 | messageId);
+            requireNonNull(oldkeys, "BUG: we rotate away from keys that were just used. These should exist in the store.");
+            oldkeys.close();
+            return;
+        }
+        // TODO verify that number of messages needing to fast-forward is acceptable. (max_skip in OTRv4 spec)
+        while (messageId > this.receiverRatchet.messageID) {
+            LOGGER.log(FINEST, "Fast-forward rotating receiving chain key to catch up with message ID: {0}",
+                    new Object[]{messageId});
+            // After every successful decrypting of a received message, the receiving chain key is also rotated away.
+            // This means that the current receiving message ID (`K`) is always a key not used successfully before.
+            // (A failed attempt at decrypting a corrupt/fake message is still possible.)
+            this.storedKeys.put((long) currentRatchet << 32 | this.receiverRatchet.messageID,
+                    MessageKeys.fromChainkey(this.receiverRatchet.getChainKey()));
+            this.receiverRatchet.rotateChainKey();
+        }
+        if (messageId == this.receiverRatchet.messageID) {
             LOGGER.log(FINER, "Rotate receiver chainkey: rotating to next chainkey {0}, {1}",
                     new Object[]{ratchetId, messageId});
             this.receiverRatchet.rotateChainKey();
-            return;
         }
-        // If we previously retrieved the keys from the store, clear the keys from the store.
-        LOGGER.log(FINER, "Rotate receiver chainkey: clear stored chainkey {0}, {1}",
-                new Object[]{ratchetId, messageId});
-        final MessageKeys oldkeys = this.storedKeys.remove((long) ratchetId << 32 | messageId);
-        requireNonNull(oldkeys, "BUG: we rotate away from keys that were just used. These should exist in the store.");
-        oldkeys.close();
     }
 
     /**
@@ -418,7 +425,7 @@ final class DoubleRatchet implements AutoCloseable {
             LOGGER.log(FINE, "Skipping rotating receiver keys as ECDH public key is already known.");
             return;
         }
-        // TODO preserve message keys before rotating past ratchetId, messageId combination. (use 'pn', needs authentication)
+        // TODO preserve message keys before ratcheting. (use 'pn', needs authentication)
         this.sharedSecret.rotateTheirKeys(nextECDH, nextDH);
         this.pn = this.senderRatchet.messageID;
         generateRatchetKeys(Purpose.RECEIVING);
@@ -507,6 +514,11 @@ final class DoubleRatchet implements AutoCloseable {
             clear(this.chainKey);
         }
 
+        @Nonnull
+        RatchetSimula simulate() {
+            return new RatchetSimula(this.chainKey.clone(), this.messageID);
+        }
+
         /**
          * Acquire ratchet's chain key.
          * <p>
@@ -552,6 +564,43 @@ final class DoubleRatchet implements AutoCloseable {
             if (this.messageID < 0) {
                 throw new IllegalStateException("Ratchet instance is already closed.");
             }
+        }
+    }
+    
+    private static final class RatchetSimula {
+
+        private static final int CHAIN_KEY_LENGTH_BYTES = 64;
+
+        /**
+         * The chain key.
+         * <p>
+         * The key relies on a first key rotation to become initialized.
+         */
+        // TODO needs to be cleared after use
+        private final byte[] chainKey = new byte[CHAIN_KEY_LENGTH_BYTES];
+
+        /**
+         * Message ID.
+         */
+        private final int messageID;
+
+        private RatchetSimula(final byte[] chainKey, final int id) {
+            System.arraycopy(chainKey, 0, this.chainKey, 0, this.chainKey.length);
+            this.messageID = id;
+        }
+
+        /**
+         * Rotate the chain key.
+         * <p>
+         * Generate a new chain key based on the old chain key and increment the message ID.
+         */
+        @Nonnull
+        byte[] rotateChainKey(final int target) {
+            final byte[] localChainKey = Arrays.copyOf(this.chainKey, this.chainKey.length);
+            for (int i = this.messageID; i < target; i++) {
+                kdf(localChainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, localChainKey);
+            }
+            return localChainKey;
         }
     }
 
