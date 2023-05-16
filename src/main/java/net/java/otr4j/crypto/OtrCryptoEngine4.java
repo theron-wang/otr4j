@@ -103,7 +103,7 @@ public final class OtrCryptoEngine4 {
     /**
      * Length of the MessageKeys MAC code in bytes.
      */
-    static final int MK_MAC_LENGTH_BYTES = 64;
+    public static final int MK_MAC_LENGTH_BYTES = 64;
 
     /**
      * Length of the Authenticator code in bytes.

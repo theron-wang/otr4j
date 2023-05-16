@@ -285,6 +285,7 @@ final class DoubleRatchet implements AutoCloseable {
                 new Object[]{this.i - 1, this.receiverRatchet.messageID});
         try (MessageKeys keys = generateReceivingMessageKeys(ratchetId, messageId)) {
             keys.verify(encodedDataMessageSections, authenticator);
+            // FIXME ERROR: we should expose the MAC key instead of the authenticator value (which is already public knowledge)
             this.macsToReveal.write(authenticator, 0, authenticator.length);
             return keys.decrypt(ciphertext);
         }

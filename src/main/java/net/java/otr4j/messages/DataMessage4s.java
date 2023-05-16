@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 
 import static java.util.logging.Level.INFO;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
 
 /**
  * Utility class for DataMessage4.
@@ -42,11 +43,11 @@ public final class DataMessage4s {
             throw new ProtocolException("Ratchet DH public key presence is not following specification.");
         }
         if (message.authenticator.length != AUTHENTICATOR_LENGTH_BYTES) {
-            throw new ProtocolException("Message authenticator is illegal: bad size");
+            throw new ProtocolException("Message authenticator is illegal: bad size.");
         }
-        if (message.revealedMacs.length % AUTHENTICATOR_LENGTH_BYTES != 0) {
-            assert false : "CHECK: Shouldn't there always be at least one MAC authenticator code to reveal?";
-            LOGGER.warning("Expected other party to reveal recently used MAC codes, but no MAC codes are revealed! (This may be a bug in the other party's OTR implementation.)");
+        if (message.revealedMacs.length % MK_MAC_LENGTH_BYTES != 0) {
+            LOGGER.warning("Revealed MAC keys do not have the expected length.");
+            // FIXME should we error out on this? Probably yes, be strict about the protocol so that there is no room to take advantage.
         }
         // TODO consider further validation actions for DataMessage4.
     }
