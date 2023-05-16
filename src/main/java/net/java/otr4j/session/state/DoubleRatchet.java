@@ -60,6 +60,7 @@ final class DoubleRatchet implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(DoubleRatchet.class.getName());
 
+    // TODO fine-tuning revealing of MAC keys: (OTRv4) "A MAC key is added to `mac_keys_to_reveal` list after a participant has verified the message associated with that MAC key. They are also added if the session is expired or when the storage of message keys gets deleted, and the MAC keys for messages that have not arrived are derived."
     private final ByteArrayOutputStream macsToReveal = new ByteArrayOutputStream();
 
     /**
@@ -284,6 +285,7 @@ final class DoubleRatchet implements AutoCloseable {
                 new Object[]{this.i - 1, this.receiverRatchet.messageID});
         try (MessageKeys keys = generateReceivingMessageKeys(ratchetId, messageId)) {
             keys.verify(encodedDataMessageSections, authenticator);
+            // FIXME ERROR: should write MK_MAC to `macsToReveal`, now writing `authenticator` which is already public knowledge.
             this.macsToReveal.write(authenticator, 0, authenticator.length);
             return keys.decrypt(ciphertext);
         }
