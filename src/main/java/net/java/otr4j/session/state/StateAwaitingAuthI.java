@@ -54,7 +54,6 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 import static net.java.otr4j.messages.AuthIMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
 import static net.java.otr4j.messages.MysteriousT4.encode;
-import static net.java.otr4j.session.state.DoubleRatchet.Role.ALICE;
 import static org.bouncycastle.util.Arrays.clear;
 
 /**
@@ -204,7 +203,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         final DHKeyPair newA = DHKeyPair.generate(secureRandom);
         final ECDHKeyPair newFirstECDHKeyPair = ECDHKeyPair.generate(secureRandom);
         final DHKeyPair newFirstDHKeyPair = DHKeyPair.generate(secureRandom);
-        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, newA, newX, message.b, message.y)) {
+        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, newX, newA, message.y, message.b)) {
             newK = sharedSecret.getK();
             newSSID = sharedSecret.generateSSID();
         }
@@ -238,10 +237,10 @@ final class StateAwaitingAuthI extends AbstractCommonState {
                 context.getSessionID().getUserID(), context.getSessionID().getAccountID());
         final SecureRandom secureRandom = context.secureRandom();
         // Initialize Double Ratchet.
-        final MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.firstDHKeyPair,
-                this.firstECDHKeyPair, this.theirFirstDHPublicKey, this.theirFirstECDHPublicKey);
-        final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY,
-                this.k), ALICE);
+        final MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.firstECDHKeyPair,
+                this.firstDHKeyPair, this.theirFirstECDHPublicKey, this.theirFirstDHPublicKey);
+        final DoubleRatchet ratchet = DoubleRatchet.initialize(sharedSecret,
+                kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY, this.k), DoubleRatchet.Purpose.SENDING);
         secure(context, this.ssid, ratchet, ourProfileValidated.getLongTermPublicKey(),
                 ourProfileValidated.getForgingKey(), profileBobValidated);
     }

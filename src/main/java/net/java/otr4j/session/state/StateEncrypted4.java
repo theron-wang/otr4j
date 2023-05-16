@@ -75,7 +75,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @SuppressWarnings("PMD.LoggerIsNotStaticFinal")
     private final Logger logger;
 
-    private final DoubleRatchet ratchet;
+    private DoubleRatchet ratchet;
 
     private final SMP smp;
 
@@ -157,10 +157,11 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // Perform ratchet if necessary, possibly collecting MAC codes to reveal.
         final byte[] collectedMACs;
         if (this.ratchet.isNeedSenderKeyRotation()) {
-            final byte[] revealedMacs = this.ratchet.rotateSenderKeys();
-            this.logger.log(FINEST, "Sender keys rotated. revealed MACs size: {0}.",
-                    new Object[]{revealedMacs.length});
-            collectedMACs = concatenate(providedMACsToReveal, revealedMacs);
+            this.ratchet = this.ratchet.rotateSenderKeys();
+            //final byte[] revealedMacs = 
+            //this.logger.log(FINEST, "Sender keys rotated. revealed MACs size: {0}.",
+            //        new Object[]{revealedMacs.length});
+            //collectedMACs = concatenate(providedMACsToReveal, revealedMacs);
         } else {
             this.logger.log(FINEST, "Sender keys rotation is not needed.");
             collectedMACs = providedMACsToReveal;
@@ -225,6 +226,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                     new Object[]{this.ratchet.getI(), message.i});
             throw new ProtocolException("Received message is for a future ratchet; must be malicious.");
         }
+        final DoubleRatchet provisional;
         if (message.i == this.ratchet.getI()) {
             // TODO are we sure we only need to reveal on first message of ratchet? Are we sure NextECDH and nextDH are included on every message in ratchet?
             if (message.i > 0 && message.revealedMacs.length == 0) {
@@ -238,7 +240,9 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             // The Double Ratchet prescribes alternate rotations, so after a single rotation for each we expect to
             // start revealing MAC codes.
             // FIXME consider that i, j, nextECDH, nextDH must be authenticated before trusted. However, we must rotate before authentication. We must isolated rotation until we can confirm that the message is trustworthy..
-            this.ratchet.rotateReceiverKeys(message.ecdhPublicKey, message.dhPublicKey);
+            provisional = this.ratchet.rotateReceiverKeys(message.ecdhPublicKey, message.dhPublicKey, message.pn);
+        } else {
+            provisional = this.ratchet;
         }
         // If the encrypted message corresponds to an stored message key corresponding to an skipped message, the
         // message is verified and decrypted with that key which is deleted from the storage.
@@ -249,9 +253,9 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // FIXME extraSymmetricKey not guaranteed to be used, must be cleared regardless.
         final byte[] extraSymmetricKey;
         try {
-            decrypted = this.ratchet.decrypt(message.i, message.j, encodeDataMessageSections(message),
+            decrypted = provisional.decrypt(message.i, message.j, encodeDataMessageSections(message),
                     message.authenticator, message.ciphertext);
-            extraSymmetricKey = this.ratchet.extraSymmetricKeyReceiver(message.i, message.j);
+            extraSymmetricKey = provisional.extraSymmetricKeyReceiver(message.i, message.j);
         } catch (final RotationLimitationException e) {
             this.logger.log(INFO, "Message received that is part of next ratchet. As we do not have the public keys for that ratchet yet, the message cannot be decrypted. This message is now lost.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
@@ -260,6 +264,9 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             this.logger.log(FINE, "Received message fails verification. Rejecting the message.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
+        }
+        if (provisional != this.ratchet) {
+            this.ratchet = provisional;
         }
         this.ratchet.rotateReceivingChainKey(message.i, message.j);
         // Process decrypted message contents. Extract and process TLVs.

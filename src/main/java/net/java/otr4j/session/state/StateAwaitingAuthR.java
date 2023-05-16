@@ -53,7 +53,6 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 import static net.java.otr4j.messages.AuthRMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_I;
 import static net.java.otr4j.messages.MysteriousT4.encode;
-import static net.java.otr4j.session.state.DoubleRatchet.Role.BOB;
 
 /**
  * OTRv4 AKE state AWAITING_AUTH_R.
@@ -198,15 +197,15 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         // Calculate mixed shared secret and SSID.
         final byte[] k;
         final byte[] ssid;
-        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.b, this.y, message.a, message.x)) {
+        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.y, this.b, message.x, message.a)) {
             k = sharedSecret.getK();
             ssid = sharedSecret.generateSSID();
         }
         // Initialize Double Ratchet.
-        final MixedSharedSecret firstRatchetSecret = new MixedSharedSecret(secureRandom, this.firstDHKeyPair,
-                this.firstECDHKeyPair, message.firstDHPublicKey, message.firstECDHPublicKey);
-        final DoubleRatchet ratchet = new DoubleRatchet(firstRatchetSecret, kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY,
-                k), BOB);
+        final MixedSharedSecret firstRatchetSecret = new MixedSharedSecret(secureRandom, this.firstECDHKeyPair,
+                this.firstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey);
+        final DoubleRatchet ratchet = DoubleRatchet.initialize(firstRatchetSecret,
+                kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY, k), DoubleRatchet.Purpose.RECEIVING);
         // NOTE: the spec says to rotate sender keys here. If we do rotate sender keys here, it is not followed up with
         // logic that includes the new DH public key in the data message. OTOH, existing logic already takes into
         // account the case for rotation, so it should follow naturally in the process and prior to sending the first

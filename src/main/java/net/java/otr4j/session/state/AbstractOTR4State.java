@@ -102,7 +102,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         final DHKeyPair ourFirstDHKeyPair = DHKeyPair.generate(secureRandom);
         final byte[] k;
         final byte[] ssid;
-        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, a, x, message.b, message.y)) {
+        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, x, a, message.y, message.b)) {
             k = sharedSecret.getK();
             ssid = sharedSecret.generateSSID();
         }

@@ -23,8 +23,6 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static net.java.otr4j.session.state.DoubleRatchet.Role.ALICE;
-import static net.java.otr4j.session.state.DoubleRatchet.Role.BOB;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.bouncycastle.util.Arrays.concatenate;
@@ -154,12 +152,10 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
-        final DoubleRatchet bobRatchet = new DoubleRatchet(
-                new MixedSharedSecret(RANDOM, bobFirstDH, bobFirstECDH, aliceFirstDH.publicKey(),
-                        aliceFirstECDH.publicKey()), initialRootKey.clone(), ALICE);
-        final DoubleRatchet aliceRatchet = new DoubleRatchet(
-                new MixedSharedSecret(RANDOM, aliceFirstDH, aliceFirstECDH, bobFirstDH.publicKey(),
-                        bobFirstECDH.publicKey()), initialRootKey.clone(), BOB);
+        final DoubleRatchet bobRatchet = new DoubleRatchet(0, new MixedSharedSecret(RANDOM, bobFirstECDH, bobFirstDH,
+                aliceFirstECDH.publicKey(), aliceFirstDH.publicKey()), initialRootKey.clone(), ALICE);
+        final DoubleRatchet aliceRatchet = new DoubleRatchet(0, new MixedSharedSecret(RANDOM, aliceFirstECDH,
+                aliceFirstDH, bobFirstECDH.publicKey(), bobFirstDH.publicKey()), initialRootKey.clone(), BOB);
 
         // Start encrypting and authenticating using Bob's double ratchet.
         aliceRatchet.rotateSenderKeys();

@@ -61,31 +61,10 @@ final class DoubleRatchet implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(DoubleRatchet.class.getName());
 
-    private final ByteArrayOutputStream macsToReveal = new ByteArrayOutputStream();
-
     /**
-     * Sender ratchet (a.k.a. `j`) represents the ratchet process on the part of the message sender.
-     * <p>
-     * The sender ratchet contains message ID 'j'.
+     * Monotonic timestamp of the last rotation activity. ({@link System#nanoTime()})
      */
-    private final Ratchet senderRatchet = new Ratchet();
-
-    /**
-     * Receiver ratchet (a.k.a. `k`) represents the ratchet process on part of the message receiver.
-     * <p>
-     * The receiver ratchet contains message ID 'k'.
-     */
-    private final Ratchet receiverRatchet = new Ratchet();
-
-    private final MixedSharedSecret sharedSecret;
-    
-    // TODO need to eventually perform clean up of `storedKeys` to avoid growing indefinitely, even if only a problem for long run-times.
-    private final HashMap<Long, MessageKeys> storedKeys = new HashMap<>();
-
-    /**
-     * The 'root key' in the Double Ratchet. The root key is shared between sender and receiver ratchets.
-     */
-    private final byte[] rootKey;
+    private final long lastRotation = System.nanoTime();
 
     /**
      * The next ratchet ID.
@@ -93,45 +72,121 @@ final class DoubleRatchet implements AutoCloseable {
      * NOTE: 'i' is incremented as soon as a rotation has finished. For typical use outside of this class, one would use
      * need value 'i - 1', instead of 'i'.
      */
-    private int i = 0;
+    private final int i;
 
     /**
      * The number of messages in the previous ratchet, i.e. sender ratchet message number.
      */
-    private int pn = 0;
+    private final int pn;
+
+    private final MixedSharedSecret sharedSecret;
 
     /**
-     * Monotonic timestamp of the last rotation activity. ({@link System#nanoTime()})
+     * The 'root key' in the Double Ratchet. The root key is shared between sender and receiver ratchets.
      */
-    private long lastRotation = System.nanoTime();
+    @Nonnull
+    private final byte[] rootKey;
 
-    DoubleRatchet(final MixedSharedSecret sharedSecret, final byte[] initialRootKey, final Role role) {
-        this.sharedSecret = requireNonNull(sharedSecret);
-        this.rootKey = requireLengthExactly(ROOT_KEY_LENGTH_BYTES, initialRootKey);
-        assert !allZeroBytes(this.rootKey) : "Expected random data, instead of all zero-bytes. There might be something severely wrong.";
-        switch (role) {
-        case BOB:
-            generateRatchetKeys(Purpose.RECEIVING);
-            this.senderRatchet.needsRotation = true;
-            // As we set the `needsRotation` flag on the sender ratchet, next time a message is sent new ratchet keys
-            // will be generated. According to the Double Ratchet initialization in OTRv4 spec, we should do this
-            // immediately. However, the steps are exactly the same and generating them here means we need to find a way
-            // to put the public keys into the next data message. This makes things a lot more complicated and in the
-            // end achieves the exact same effect.
+    /**
+     * Sender ratchet (a.k.a. `j`) represents the ratchet process on the part of the message sender.
+     * <p>
+     * The sender ratchet contains message ID 'j'.
+     */
+    @Nonnull
+    private final Ratchet senderRatchet;
+
+    /**
+     * Receiver ratchet (a.k.a. `k`) represents the ratchet process on part of the message receiver.
+     * <p>
+     * The receiver ratchet contains message ID 'k'.
+     */
+    @Nonnull
+    private final Ratchet receiverRatchet;
+
+    /**
+     * nextRotation indicates which of the ratchets needs to be rotated next.
+     */
+    @Nonnull
+    private final Purpose nextRotation;
+
+    // TODO fine-tuning revealing of MAC keys: (OTRv4) "A MAC key is added to `mac_keys_to_reveal` list after a participant has verified the message associated with that MAC key. They are also added if the session is expired or when the storage of message keys gets deleted, and the MAC keys for messages that have not arrived are derived."
+    private final ByteArrayOutputStream macsToReveal = new ByteArrayOutputStream();
+
+    // TODO need to eventually perform clean up of `storedKeys` to avoid growing indefinitely, even if only a problem for long run-times.
+    private final HashMap<Long, MessageKeys> storedKeys = new HashMap<>();
+
+    static DoubleRatchet initialize(final MixedSharedSecret sharedSecret, final byte[] firstRootKey,
+            final Purpose purpose) {
+        requireLengthExactly(ROOT_KEY_LENGTH_BYTES, firstRootKey);
+        assert !allZeroBytes(firstRootKey) : "Expecting random data instead of all zero-bytes. There might be something severely wrong.";
+        final byte[] newK = sharedSecret.getK();
+        final byte[] concatPreviousRootKeyNewK = concatenate(firstRootKey, newK);
+        final byte[] newRootKey = kdf(ROOT_KEY_LENGTH_BYTES, ROOT_KEY, concatPreviousRootKeyNewK);
+        final Ratchet sender, receiver;
+        final Purpose next;
+        switch (purpose) {
+        case SENDING:
+            sender = Ratchet.create(concatPreviousRootKeyNewK);
+            receiver = Ratchet.dummy();
+            next = Purpose.RECEIVING;
             break;
-        case ALICE:
-            generateRatchetKeys(Purpose.SENDING);
+        case RECEIVING:
+            sender = Ratchet.dummy();
+            receiver = Ratchet.create(concatPreviousRootKeyNewK);
+            next = Purpose.SENDING;
             break;
         default:
-            throw new UnsupportedOperationException("Unsupported purpose.");
+            throw new UnsupportedOperationException("BUG: unsupported purpose encountered.");
         }
+        clear(newK);
+        clear(firstRootKey);
+        clear(concatPreviousRootKeyNewK);
+        return new DoubleRatchet(0, 0, sharedSecret, newRootKey, sender, receiver, next);
+    }
+
+    static DoubleRatchet rotate(final int nextI, final int pn, final MixedSharedSecret newSharedSecret,
+            final byte[] prevRootKey, final Ratchet sender, final Ratchet receiver, final Purpose rotate) {
+        requireLengthExactly(ROOT_KEY_LENGTH_BYTES, prevRootKey);
+        assert !allZeroBytes(prevRootKey) : "Expecting random data instead of all zero-bytes. There might be something severely wrong.";
+        final byte[] newK = newSharedSecret.getK();
+        final byte[] concatPreviousRootKeyNewK = concatenate(prevRootKey, newK);
+        final byte[] newRootKey = kdf(ROOT_KEY_LENGTH_BYTES, ROOT_KEY, concatPreviousRootKeyNewK);
+        final Ratchet nextSender, nextReceiver;
+        final Purpose nextRotate;
+        switch (rotate) {
+        case SENDING:
+            nextSender = Ratchet.create(concatPreviousRootKeyNewK);
+            nextReceiver = receiver;
+            nextRotate = Purpose.RECEIVING;
+            break;
+        case RECEIVING:
+            nextSender = sender;
+            nextReceiver = Ratchet.create(concatPreviousRootKeyNewK);
+            nextRotate = Purpose.SENDING;
+            break;
+        default:
+            throw new UnsupportedOperationException("BUG: unsupported purpose encountered.");
+        }
+        clear(newK);
+        clear(prevRootKey);
+        clear(concatPreviousRootKeyNewK);
+        return new DoubleRatchet(nextI, pn, newSharedSecret, newRootKey, nextSender, nextReceiver, nextRotate);
+    }
+    
+    private DoubleRatchet(final int i, final int pn, final MixedSharedSecret sharedSecret, final byte[] newRootKey,
+            final Ratchet sender, final Ratchet receiver, final Purpose next) {
+        this.i = i;
+        this.pn = pn;
+        this.rootKey = requireLengthExactly(ROOT_KEY_LENGTH_BYTES, newRootKey);
+        this.sharedSecret = requireNonNull(sharedSecret);
+        this.senderRatchet = requireNonNull(sender);
+        this.receiverRatchet = requireNonNull(receiver);
+        this.nextRotation = requireNonNull(next);
     }
 
     @Override
     public void close() {
         clear(this.rootKey);
-        this.i = MIN_VALUE;
-        this.pn = 0;
         this.sharedSecret.close();
         if (this.macsToReveal.size() > 0) {
             throw new IllegalStateException("BUG: Remaining MACs have not been revealed.");
@@ -148,7 +203,7 @@ final class DoubleRatchet implements AutoCloseable {
      */
     @CheckReturnValue
     boolean isNeedSenderKeyRotation() {
-        return this.senderRatchet.needsRotation;
+        return this.nextRotation == Purpose.SENDING;
     }
 
     /**
@@ -166,7 +221,7 @@ final class DoubleRatchet implements AutoCloseable {
      * @return Returns message ID.
      */
     int getJ() {
-        return this.senderRatchet.messageID;
+        return this.senderRatchet.getMessageID();
     }
 
     /**
@@ -175,7 +230,7 @@ final class DoubleRatchet implements AutoCloseable {
      * @return Returns message ID.
      */
     int getK() {
-        return this.receiverRatchet.messageID;
+        return this.receiverRatchet.getMessageID();
     }
 
     /**
@@ -200,30 +255,29 @@ final class DoubleRatchet implements AutoCloseable {
     Point getECDHPublicKey() {
         return this.sharedSecret.getECDHPublicKey();
     }
-    
+
     @Nonnull
     BigInteger getDHPublicKey() {
         return this.sharedSecret.getDHPublicKey();
     }
-    
+
     @CheckReturnValue
     @Nonnull
-    byte[] rotateSenderKeys() {
+    DoubleRatchet rotateSenderKeys() {
         requireNotClosed();
-        if (!this.senderRatchet.needsRotation) {
+        if (this.nextRotation != Purpose.SENDING) {
             throw new IllegalStateException("Rotation is only allowed after new public key material was received from the other party.");
         }
         // Perform sender key rotation.
         LOGGER.log(FINE, "Rotating root key and sending chain key for ratchet " + this.i);
-        this.sharedSecret.rotateOurKeys(this.i % 3 == 0);
-        generateRatchetKeys(Purpose.SENDING);
-        this.i += 1;
-        // Update last-rotation time such that we can keep track of when the last rotation took place.
-        this.lastRotation = System.nanoTime();
+        final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateOurKeys(this.i % 3 == 0);
+        // FIXME what to do with macsToReveal?
         // Extract MACs to reveal.
-        final byte[] revealedMacs = this.macsToReveal.toByteArray();
-        this.macsToReveal.reset();
-        return revealedMacs;
+        //final byte[] revealedMacs = this.macsToReveal.toByteArray();
+        //this.macsToReveal.reset();
+        //return revealedMacs;
+        return rotate(this.i + 1, this.senderRatchet.getMessageID(), newSharedSecret, this.rootKey,
+                this.senderRatchet, this.receiverRatchet, Purpose.SENDING);
     }
 
     /**
@@ -236,7 +290,7 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     byte[] encrypt(final byte[] data) {
         LOGGER.log(FINER, "Generating message keys for encryption of ratchet {0}, message {1}.",
-                new Object[]{Math.max(0, this.i - 1), this.senderRatchet.messageID});
+                new Object[]{Math.max(0, this.i - 1), this.senderRatchet.getMessageID()});
         try (MessageKeys keys = this.generateSendingMessageKeys()) {
             return keys.encrypt(data);
         }
@@ -251,7 +305,7 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     byte[] authenticate(final byte[] dataMessageSectionsContent) {
         LOGGER.log(FINER, "Generating message keys for authentication of ratchet {0}, message {1}.",
-                new Object[]{Math.max(0, this.i - 1), this.senderRatchet.messageID});
+                new Object[]{Math.max(0, this.i - 1), this.senderRatchet.getMessageID()});
         try (MessageKeys keys = this.generateSendingMessageKeys()) {
             return keys.authenticate(dataMessageSectionsContent);
         }
@@ -282,7 +336,7 @@ final class DoubleRatchet implements AutoCloseable {
     byte[] decrypt(final int ratchetId, final int messageId, final byte[] encodedDataMessageSections,
             final byte[] authenticator, final byte[] ciphertext) throws RotationLimitationException, OtrCryptoException {
         LOGGER.log(FINER, "Generating message keys for verification and decryption of ratchet {0}, message {1}.",
-                new Object[]{this.i - 1, this.receiverRatchet.messageID});
+                new Object[]{this.i - 1, this.receiverRatchet.getMessageID()});
         try (MessageKeys keys = generateReceivingMessageKeys(ratchetId, messageId)) {
             keys.verify(encodedDataMessageSections, authenticator);
             // FIXME ERROR: we should expose the MAC key instead of the authenticator value (which is already public knowledge)
@@ -303,7 +357,7 @@ final class DoubleRatchet implements AutoCloseable {
     byte[] extraSymmetricKeySender() {
         requireNotClosed();
         LOGGER.log(FINEST, "Generating extra symmetric keys for encryption of ratchet {0}, message {1}.",
-                new Object[] {Math.max(this.i, 0), this.senderRatchet.messageID});
+                new Object[] {Math.max(this.i, 0), this.senderRatchet.getMessageID()});
         try (MessageKeys keys = generateSendingMessageKeys()) {
             // This is the "raw" extra symmetric key. The OTRv4 spec shortly touches on taking derivative keys from this
             // key, therefore we return the raw bytes.
@@ -346,7 +400,7 @@ final class DoubleRatchet implements AutoCloseable {
             // If all necessary keys are available, we should rotate receiving ratchet receiving (public) keys. 
             throw new RotationLimitationException("BUG: cannot fast-forward receiving message keys into a new ratchet.");
         }
-        if (ratchetId < currentRatchet || messageId < this.receiverRatchet.messageID) {
+        if (ratchetId < currentRatchet || messageId < this.receiverRatchet.getMessageID()) {
             // Message keys are in ratchet history, so check the store for possible stored keys.
             final MessageKeys keys = this.storedKeys.get((long) ratchetId << 32 | messageId);
             if (keys == null) {
@@ -378,7 +432,7 @@ final class DoubleRatchet implements AutoCloseable {
         if (ratchetId > currentRatchet) {
             throw new IllegalArgumentException("BUG: Ratcheting is required.");
         }
-        if (ratchetId < currentRatchet || messageId < this.receiverRatchet.messageID) {
+        if (ratchetId < currentRatchet || messageId < this.receiverRatchet.getMessageID()) {
             // If we previously retrieved the keys from the store, clear the keys from the store.
             LOGGER.log(FINER, "Rotate receiver chainkey: clear stored chainkey {0}, {1}",
                     new Object[]{ratchetId, messageId});
@@ -388,17 +442,17 @@ final class DoubleRatchet implements AutoCloseable {
             return;
         }
         // TODO verify that number of messages needing to fast-forward is acceptable. (max_skip in OTRv4 spec)
-        while (messageId > this.receiverRatchet.messageID) {
+        while (messageId > this.receiverRatchet.getMessageID()) {
             LOGGER.log(FINEST, "Fast-forward rotating receiving chain key to catch up with message ID: {0}",
                     new Object[]{messageId});
             // After every successful decrypting of a received message, the receiving chain key is also rotated away.
             // This means that the current receiving message ID (`K`) is always a key not used successfully before.
             // (A failed attempt at decrypting a corrupt/fake message is still possible.)
-            this.storedKeys.put((long) currentRatchet << 32 | this.receiverRatchet.messageID,
+            this.storedKeys.put((long) currentRatchet << 32 | this.receiverRatchet.getMessageID(),
                     MessageKeys.fromChainkey(this.receiverRatchet.getChainKey()));
             this.receiverRatchet.rotateChainKey();
         }
-        if (messageId == this.receiverRatchet.messageID) {
+        if (messageId == this.receiverRatchet.getMessageID()) {
             LOGGER.log(FINER, "Rotate receiver chainkey: rotating to next chainkey {0}, {1}",
                     new Object[]{ratchetId, messageId});
             this.receiverRatchet.rotateChainKey();
@@ -412,46 +466,27 @@ final class DoubleRatchet implements AutoCloseable {
      * be performed, or it will be skipped.
      *
      * @param nextECDH The other party's ECDH public key.
-     * @param nextDH   The other party's DH public key.
+     * @param nextDH The other party's DH public key.
+     * @param pn Number of messages in the previous receiver ratchet (as advertised in a message).
      * @throws OtrCryptoException thrown if provided public keys are illegal.
      */
-    void rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH) throws OtrCryptoException {
+    DoubleRatchet rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH, final int pn) throws OtrCryptoException {
         requireNotClosed();
-        requireEquals(this.i % 3 == 0, nextDH != null,
-                "BUG: nextDH must be provided for 'third brace key' rotations");
+        final boolean dhratchet = this.i % 3 == 0;
+        requireEquals(dhratchet, nextDH != null, "BUG: nextDH must be provided for 'third brace key' rotations");
         LOGGER.log(FINE, "Rotating root key and receiving chain key for ratchet {0} (nextDH = {1})",
                 new Object[]{this.i, nextDH != null});
         if (nextECDH.constantTimeEquals(this.sharedSecret.getTheirECDHPublicKey())
-                || (this.i % 3 == 0 && this.sharedSecret.getTheirDHPublicKey().equals(nextDH))) {
+                || (dhratchet && this.sharedSecret.getTheirDHPublicKey().equals(nextDH))) {
             LOGGER.log(FINE, "Skipping rotating receiver keys as ECDH public key is already known.");
-            return;
+            return this;
         }
         // TODO preserve message keys before ratcheting. (use 'pn', needs authentication)
-        this.sharedSecret.rotateTheirKeys(nextECDH, nextDH);
-        this.pn = this.senderRatchet.messageID;
-        generateRatchetKeys(Purpose.RECEIVING);
-        this.senderRatchet.needsRotation = true;
-        this.i += 1;
-    }
-
-    private void generateRatchetKeys(final Purpose purpose) {
-        final byte[] previousRootKey = this.rootKey.clone();
-        final byte[] newK = this.sharedSecret.getK();
-        final byte[] concatPreviousRootKeyNewK = concatenate(previousRootKey, newK);
-        kdf(this.rootKey, 0, ROOT_KEY_LENGTH_BYTES, ROOT_KEY, concatPreviousRootKeyNewK);
-        switch (purpose) {
-        case SENDING:
-            this.senderRatchet.rotateKeys(concatPreviousRootKeyNewK);
-            break;
-        case RECEIVING:
-            this.receiverRatchet.rotateKeys(concatPreviousRootKeyNewK);
-            break;
-        default:
-            throw new UnsupportedOperationException("Unsupported parameter: " + purpose);
-        }
-        clear(newK);
-        clear(previousRootKey);
-        clear(concatPreviousRootKeyNewK);
+        final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateTheirKeys(dhratchet, nextECDH, nextDH);
+        // FIXME what to do with message.pn for storing keys from previous ratchet.
+        // FIXME what 'pn' value to provide when rotating receiver ratchet?
+        return rotate(this.i + 1, this.pn, newSharedSecret, this.rootKey, this.senderRatchet, this.receiverRatchet,
+                Purpose.RECEIVING);
     }
 
     /**
@@ -484,125 +519,8 @@ final class DoubleRatchet implements AutoCloseable {
         }
     }
 
-    /**
-     * Ratchet, the individual ratchet used for either sending or receiving.
-     */
-    private final static class Ratchet implements AutoCloseable {
-
-        private static final int CHAIN_KEY_LENGTH_BYTES = 64;
-
-        /**
-         * The chain key.
-         * <p>
-         * The key relies on a first key rotation to become initialized.
-         */
-        private final byte[] chainKey = new byte[CHAIN_KEY_LENGTH_BYTES];
-
-        /**
-         * Message ID.
-         */
-        private int messageID = 0;
-
-        /**
-         * The boolean indicates that we need key rotation before we have sensible data to work with. (Initially, the
-         * chain key is all-zero.)
-         */
-        private boolean needsRotation = false;
-
-        @Override
-        public void close() {
-            this.messageID = MIN_VALUE;
-            clear(this.chainKey);
-        }
-
-        @Nonnull
-        RatchetSimula simulate() {
-            return new RatchetSimula(this.chainKey.clone(), this.messageID);
-        }
-
-        /**
-         * Acquire ratchet's chain key.
-         * <p>
-         * NOTE: caller needs to clear the return key after use.
-         *
-         * @return Returns chain key.
-         */
-        byte[] getChainKey() {
-            requireNotClosed();
-            requireRotationNotNeeded();
-            return this.chainKey.clone();
-        }
-
-        /**
-         * Rotate the chain key.
-         * <p>
-         * Generate a new chain key based on the old chain key and increment the message ID.
-         */
-        void rotateChainKey() {
-            requireNotClosed();
-            requireRotationNotNeeded();
-            this.messageID += 1;
-            kdf(this.chainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, this.chainKey);
-        }
-
-        /**
-         * Rotate the ratchet key.
-         */
-        void rotateKeys(final byte[] concatPreviousRootKeyNewK) {
-            requireNotClosed();
-            this.messageID = 0;
-            kdf(this.chainKey, 0, CHAIN_KEY_LENGTH_BYTES, CHAIN_KEY, concatPreviousRootKeyNewK);
-            this.needsRotation = false;
-        }
-
-        private void requireRotationNotNeeded() {
-            if (this.needsRotation) {
-                throw new IllegalStateException("Key rotation needs to be performed before new keys can be generated.");
-            }
-        }
-
-        private void requireNotClosed() {
-            if (this.messageID < 0) {
-                throw new IllegalStateException("Ratchet instance is already closed.");
-            }
-        }
-    }
-    
-    private static final class RatchetSimula {
-
-        private static final int CHAIN_KEY_LENGTH_BYTES = 64;
-
-        /**
-         * The chain key.
-         * <p>
-         * The key relies on a first key rotation to become initialized.
-         */
-        // TODO needs to be cleared after use
-        private final byte[] chainKey = new byte[CHAIN_KEY_LENGTH_BYTES];
-
-        /**
-         * Message ID.
-         */
-        private final int messageID;
-
-        private RatchetSimula(final byte[] chainKey, final int id) {
-            System.arraycopy(chainKey, 0, this.chainKey, 0, this.chainKey.length);
-            this.messageID = id;
-        }
-
-        /**
-         * Rotate the chain key.
-         * <p>
-         * Generate a new chain key based on the old chain key and increment the message ID.
-         */
-        @Nonnull
-        byte[] rotateChainKey(final int target) {
-            final byte[] localChainKey = Arrays.copyOf(this.chainKey, this.chainKey.length);
-            for (int i = this.messageID; i < target; i++) {
-                kdf(localChainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, localChainKey);
-            }
-            return localChainKey;
-        }
+    enum Purpose {
+        SENDING, RECEIVING
     }
 
     /**
@@ -616,15 +534,130 @@ final class DoubleRatchet implements AutoCloseable {
             super(message);
         }
     }
+}
+
+/**
+ * Ratchet, the individual ratchet used for either sending or receiving.
+ */
+final class Ratchet implements AutoCloseable {
+
+    private static final int CHAIN_KEY_LENGTH_BYTES = 64;
 
     /**
-     * The role which is fulfilled according to the OTRv4 specification.
+     * The chain key.
+     * <p>
+     * The key relies on a first key rotation to become initialized.
      */
-    enum Role {
-        ALICE, BOB
+    private final byte[] chainKey = new byte[CHAIN_KEY_LENGTH_BYTES];
+
+    /**
+     * Message ID.
+     */
+    private int messageID = 0;
+
+    /**
+     * Create or rotate the ratchet key.
+     */
+    static Ratchet create(final byte[] concatPreviousRootKeyNewK) {
+        final byte[] chainKey = new byte[CHAIN_KEY_LENGTH_BYTES];
+        kdf(chainKey, 0, CHAIN_KEY_LENGTH_BYTES, CHAIN_KEY, concatPreviousRootKeyNewK);
+        return new Ratchet(chainKey);
+    }
+    
+    // FIXME will this dummy cause problems because of bad initialization?
+    static Ratchet dummy() {
+        final Ratchet r = new Ratchet(new byte[0]);
+        r.close();
+        return r;
     }
 
-    private enum Purpose {
-        SENDING, RECEIVING
+    private Ratchet(final byte[] chainKey) {
+        requireLengthExactly(CHAIN_KEY_LENGTH_BYTES, chainKey);
+        System.arraycopy(chainKey, 0, this.chainKey, 0, this.chainKey.length);
+    }
+
+    int getMessageID() {
+        return this.messageID;
+    }
+
+    @Override
+    public void close() {
+        this.messageID = MIN_VALUE;
+        clear(this.chainKey);
+    }
+
+    @Nonnull
+    RatchetSimula simulate() {
+        return new RatchetSimula(this.chainKey.clone(), this.messageID);
+    }
+
+    /**
+     * Acquire ratchet's chain key.
+     * <p>
+     * NOTE: caller needs to clear the return key after use.
+     *
+     * @return Returns chain key.
+     */
+    byte[] getChainKey() {
+        requireNotClosed();
+        // FIXME need to enforce externally that this ratchet does not need rotating, as is now stored in nextRotation in DoubleRatchet.
+        return this.chainKey.clone();
+    }
+
+    /**
+     * Rotate the chain key.
+     * <p>
+     * Generate a new chain key based on the old chain key and increment the message ID.
+     */
+    void rotateChainKey() {
+        requireNotClosed();
+        // FIXME need to enforce externally that this ratchet does not need rotating, as is now stored in nextRotation in DoubleRatchet.
+        this.messageID += 1;
+        kdf(this.chainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, this.chainKey);
+    }
+
+    private void requireNotClosed() {
+        if (this.messageID < 0) {
+            throw new IllegalStateException("Ratchet instance is already closed.");
+        }
+    }
+}
+
+final class RatchetSimula {
+
+    private static final int CHAIN_KEY_LENGTH_BYTES = 64;
+
+    /**
+     * The chain key.
+     * <p>
+     * The key relies on a first key rotation to become initialized.
+     */
+    // TODO needs to be cleared after use
+    private final byte[] chainKey = new byte[CHAIN_KEY_LENGTH_BYTES];
+
+    /**
+     * Message ID.
+     */
+    private final int messageID;
+
+    RatchetSimula(final byte[] chainKey, final int id) {
+        System.arraycopy(chainKey, 0, this.chainKey, 0, this.chainKey.length);
+        this.messageID = id;
+    }
+
+    /**
+     * Rotate the chain key.
+     * <p>
+     * Generate a new chain key based on the old chain key and increment the message ID.
+     * 
+     * @param targetMessageId fast-forward to the target message ID.
+     */
+    @Nonnull
+    byte[] rotateChainKey(final int targetMessageId) {
+        final byte[] localChainKey = Arrays.copyOf(this.chainKey, this.chainKey.length);
+        for (int i = this.messageID; i < targetMessageId; i++) {
+            kdf(localChainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, localChainKey);
+        }
+        return localChainKey;
     }
 }
