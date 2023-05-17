@@ -661,6 +661,7 @@ final class SessionImpl implements Session, Context {
         }
         try {
             final String content = this.sessionState.handleEncodedMessage(this, message);
+            // TODO is `this.sessionState.getStatus()` accurate, or will it have transitioned away while processing the encoded message?
             return new Result(this.sessionState.getStatus(), this.receiverTag, content);
         } catch (final ProtocolException e) {
             logger.log(FINE, "An illegal message was received. Processing was aborted.", e);

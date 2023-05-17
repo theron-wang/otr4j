@@ -37,7 +37,6 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static net.java.otr4j.util.Objects.requireEquals;
 import static org.bouncycastle.util.Arrays.clear;
 import static org.bouncycastle.util.Arrays.concatenate;
 
@@ -57,6 +56,7 @@ import static org.bouncycastle.util.Arrays.concatenate;
  * DoubleRatchet is NOT thread-safe.
  */
 // TODO DoubleRatchet currently does not keep history. Therefore it is not possible to decode out-of-order messages from previous ratchets. (Also needed to keep MessageKeys instances for messages failing verification.)
+// FIXME set-up clean up, revealed MAC keys, ...
 final class DoubleRatchet implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(DoubleRatchet.class.getName());
@@ -139,6 +139,7 @@ final class DoubleRatchet implements AutoCloseable {
             throw new UnsupportedOperationException("BUG: unsupported purpose encountered.");
         }
         clear(newK);
+        // FIXME firstRootKey is now cleared, but is passed in data. Should we clone?
         clear(firstRootKey);
         clear(concatPreviousRootKeyNewK);
         return new DoubleRatchet(0, 0, sharedSecret, newRootKey, sender, receiver, next);
@@ -201,6 +202,7 @@ final class DoubleRatchet implements AutoCloseable {
      *
      * @return Returns true iff sender key rotation is required.
      */
+    // TODO check logic to see if we also need a check for receiver-ratchet rotation. (Seems like we can also have malicious messages that would initiate that logic stream.)
     @CheckReturnValue
     boolean isNeedSenderKeyRotation() {
         return this.nextRotation == Purpose.SENDING;
@@ -315,9 +317,11 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     private MessageKeys generateSendingMessageKeys() {
         final byte[] chainkey = this.senderRatchet.getChainKey();
-        final MessageKeys keys = MessageKeys.fromChainkey(chainkey);
-        clear(chainkey);
-        return keys;
+        try {
+            return MessageKeys.fromChainkey(chainkey);
+        } finally {
+            clear(chainkey);
+        }
     }
 
     /**
@@ -427,6 +431,7 @@ final class DoubleRatchet implements AutoCloseable {
      * Rotate the receiving chain key.
      */
     // FIXME keep a latest confirmed messageId on every call to rotateReceivingChainKey, because that is called after successfully authentication and decrypting the data message.
+    @SuppressWarnings("MustBeClosedChecker")
     void rotateReceivingChainKey(final int ratchetId, final int messageId) {
         final int currentRatchet = Math.max(0, this.i - 1);
         if (ratchetId > currentRatchet) {
@@ -473,7 +478,9 @@ final class DoubleRatchet implements AutoCloseable {
     DoubleRatchet rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH, final int pn) throws OtrCryptoException {
         requireNotClosed();
         final boolean dhratchet = this.i % 3 == 0;
-        requireEquals(dhratchet, nextDH != null, "BUG: nextDH must be provided for 'third brace key' rotations");
+        if (dhratchet == (nextDH == null)) {
+            throw new IllegalArgumentException("BUG: nextDH must be provided for 'third brace key' rotations");
+        }
         LOGGER.log(FINE, "Rotating root key and receiving chain key for ratchet {0} (nextDH = {1})",
                 new Object[]{this.i, nextDH != null});
         if (nextECDH.constantTimeEquals(this.sharedSecret.getTheirECDHPublicKey())
@@ -482,7 +489,9 @@ final class DoubleRatchet implements AutoCloseable {
             return this;
         }
         // TODO preserve message keys before ratcheting. (use 'pn', needs authentication)
-        final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateTheirKeys(dhratchet, nextECDH, nextDH);
+        // FIXME evaluate whether it is better to provide null or current DH public key.
+        final BigInteger dhPublicKey = dhratchet ? nextDH : this.sharedSecret.getTheirDHPublicKey();
+        final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateTheirKeys(dhratchet, nextECDH, dhPublicKey);
         // FIXME what to do with message.pn for storing keys from previous ratchet.
         // FIXME what 'pn' value to provide when rotating receiver ratchet?
         return rotate(this.i + 1, this.pn, newSharedSecret, this.rootKey, this.senderRatchet, this.receiverRatchet,
@@ -566,9 +575,7 @@ final class Ratchet implements AutoCloseable {
     
     // FIXME will this dummy cause problems because of bad initialization?
     static Ratchet dummy() {
-        final Ratchet r = new Ratchet(new byte[0]);
-        r.close();
-        return r;
+        return new Ratchet(new byte[CHAIN_KEY_LENGTH_BYTES]);
     }
 
     private Ratchet(final byte[] chainKey) {

@@ -54,7 +54,6 @@ import static net.java.otr4j.messages.DataMessage4s.encodeDataMessageSections;
 import static net.java.otr4j.messages.DataMessage4s.validate;
 import static net.java.otr4j.session.smpv4.SMP.smpPayload;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
-import static org.bouncycastle.util.Arrays.concatenate;
 
 /**
  * The OTRv4 ENCRYPTED_MESSAGES state.
@@ -155,7 +154,8 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         assert providedMACsToReveal.length == 0 || !allZeroBytes(providedMACsToReveal)
                 : "BUG: expected providedMACsToReveal to contains some non-zero values.";
         // Perform ratchet if necessary, possibly collecting MAC codes to reveal.
-        final byte[] collectedMACs;
+        // FIXME properly collect MACs
+        final byte[] collectedMACs = new byte[0];
         if (this.ratchet.isNeedSenderKeyRotation()) {
             this.ratchet = this.ratchet.rotateSenderKeys();
             //final byte[] revealedMacs = 
@@ -164,7 +164,8 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             //collectedMACs = concatenate(providedMACsToReveal, revealedMacs);
         } else {
             this.logger.log(FINEST, "Sender keys rotation is not needed.");
-            collectedMACs = providedMACsToReveal;
+            // FIXME use providedMACs
+            //collectedMACs = providedMACsToReveal;
         }
         // Construct data message.
         final byte[] msgBytes = new OtrOutputStream().writeMessage(msgText).writeByte(0).writeTLV(tlvs).toByteArray();
@@ -229,10 +230,10 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         final DoubleRatchet provisional;
         if (message.i == this.ratchet.getI()) {
             // TODO are we sure we only need to reveal on first message of ratchet? Are we sure NextECDH and nextDH are included on every message in ratchet?
-            if (message.i > 0 && message.revealedMacs.length == 0) {
-                // FIXME inspect spec to find out when we can expect revealed MACs to be included.
-                throw new ProtocolException("Expected MACs to be revealed after initial ratchet.");
-            }
+            //if (message.i > 0 && message.revealedMacs.length == 0) {
+            //    // FIXME inspect spec to find out when we can expect revealed MACs to be included.
+            //    throw new ProtocolException("Expected MACs to be revealed after initial ratchet.");
+            //}
             // If any message in a new ratchet is received, a new ratchet key has been received, any message keys
             // corresponding to skipped messages from the previous receiving ratchet are stored. A new DH ratchet is
             // performed.
@@ -265,9 +266,11 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         }
-        if (provisional != this.ratchet) {
-            this.ratchet = provisional;
-        }
+        // Now that we successfully cleared authentication and decryption, we know that the message was authentic.
+        // Therefore, any new key material we might have received is authentic, and the message keys we used were used
+        // and subsequently discarded correctly. At this point, malicious messages should not be able to have a lasting
+        // impact, while authentic messages correctly progress the Double Ratchet.
+        this.ratchet = provisional;
         this.ratchet.rotateReceivingChainKey(message.i, message.j);
         // Process decrypted message contents. Extract and process TLVs.
         final Content content = extractContents(decrypted);

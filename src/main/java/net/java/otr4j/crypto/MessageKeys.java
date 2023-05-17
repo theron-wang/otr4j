@@ -50,6 +50,7 @@ public final class MessageKeys implements AutoCloseable {
     @MustBeClosed
     @Nonnull
     public static MessageKeys fromChainkey(final byte[] chainkey) {
+        // FIXME consider making this a run-time check, because we use a dummy with all-zeroes value. So that way we also detect programming errors. (See `testEncryptionAfterRotation`)
         assert !allZeroBytes(chainkey) : "Expected chainkey of random data instead of all zero-bytes.";
         final byte[] encrypt = kdf(MK_ENC_LENGTH_BYTES, MESSAGE_KEY, chainkey);
         final byte[] extraSymmetricKey = kdf(EXTRA_SYMMETRIC_KEY_LENGTH_BYTES, EXTRA_SYMMETRIC_KEY,
