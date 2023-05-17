@@ -32,6 +32,7 @@ import net.java.otr4j.messages.IdentityMessages;
 import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.api.SMPHandler;
+import net.java.otr4j.session.state.DoubleRatchet.Purpose;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -204,12 +205,9 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         // Initialize Double Ratchet.
         final MixedSharedSecret firstRatchetSecret = new MixedSharedSecret(secureRandom, this.firstECDHKeyPair,
                 this.firstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey);
-        final DoubleRatchet ratchet = DoubleRatchet.initialize(firstRatchetSecret,
-                kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY, k), DoubleRatchet.Purpose.RECEIVING);
-        // NOTE: the spec says to rotate sender keys here. If we do rotate sender keys here, it is not followed up with
-        // logic that includes the new DH public key in the data message. OTOH, existing logic already takes into
-        // account the case for rotation, so it should follow naturally in the process and prior to sending the first
-        // data-message.
+        DoubleRatchet ratchet = DoubleRatchet.initialize(Purpose.RECEIVING, firstRatchetSecret,
+                kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY, k));
+        ratchet = ratchet.rotateSenderKeys();
         secure(context, ssid, ratchet, ourClientProfile.getLongTermPublicKey(), ourClientProfile.getForgingKey(),
                 theirClientProfile);
     }

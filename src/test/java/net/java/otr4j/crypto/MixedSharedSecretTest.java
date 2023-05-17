@@ -141,13 +141,14 @@ public class MixedSharedSecretTest {
     public void testRotateTheirKeys() throws OtrCryptoException {
         final DHKeyPair ourDHKeyPair = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair ourECDHKeyPair = ECDHKeyPair.generate(RANDOM);
-        final MixedSharedSecret ss = new MixedSharedSecret(RANDOM, ourECDHKeyPair, ourDHKeyPair, theirECDHPublicKey, theirDHPublicKey);
+        final MixedSharedSecret ss = new MixedSharedSecret(RANDOM, ourECDHKeyPair, ourDHKeyPair, theirECDHPublicKey,
+                theirDHPublicKey);
         final byte[] firstK = ss.getK();
         // Rotate our key pairs.
-        final MixedSharedSecret rotated = ss.rotateTheirKeys(false, theirNextECDHPublicKey, theirDHPublicKey);
+        final MixedSharedSecret rotatedWithDH = ss.rotateTheirKeys(true, theirNextECDHPublicKey, theirNextDHPublicKey);
         // Ensure that k and ssid actually change after rotation.
         assertTrue(Arrays.equals(firstK, ss.getK()));
-        assertFalse(Arrays.equals(firstK, rotated.getK()));
+        assertFalse(Arrays.equals(firstK, rotatedWithDH.getK()));
     }
 
     @Test(expected = NullPointerException.class)
@@ -166,7 +167,7 @@ public class MixedSharedSecretTest {
         final byte[] firstK = ss.getK();
         final byte[] firstSSID = ss.generateSSID();
         // Rotate their public keys.
-        final MixedSharedSecret rotated = ss.rotateTheirKeys(false, theirNextECDHPublicKey, theirDHPublicKey);
+        final MixedSharedSecret rotated = ss.rotateTheirKeys(false, theirNextECDHPublicKey, null);
         // Ensure that k and ssid actually change after rotation.
         assertArrayEquals(firstK, ss.getK());
         assertArrayEquals(firstSSID, ss.generateSSID());

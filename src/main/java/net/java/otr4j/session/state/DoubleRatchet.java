@@ -115,8 +115,8 @@ final class DoubleRatchet implements AutoCloseable {
     // TODO need to eventually perform clean up of `storedKeys` to avoid growing indefinitely, even if only a problem for long run-times.
     private final HashMap<Long, MessageKeys> storedKeys = new HashMap<>();
 
-    static DoubleRatchet initialize(final MixedSharedSecret sharedSecret, final byte[] firstRootKey,
-            final Purpose purpose) {
+    static DoubleRatchet initialize(final Purpose purpose, final MixedSharedSecret sharedSecret,
+            final byte[] firstRootKey) {
         requireLengthExactly(ROOT_KEY_LENGTH_BYTES, firstRootKey);
         assert !allZeroBytes(firstRootKey) : "Expecting random data instead of all zero-bytes. There might be something severely wrong.";
         final byte[] newK = sharedSecret.getK();
@@ -145,8 +145,8 @@ final class DoubleRatchet implements AutoCloseable {
         return new DoubleRatchet(0, 0, sharedSecret, newRootKey, sender, receiver, next);
     }
 
-    static DoubleRatchet rotate(final int nextI, final int pn, final MixedSharedSecret newSharedSecret,
-            final byte[] prevRootKey, final Ratchet sender, final Ratchet receiver, final Purpose rotate) {
+    static DoubleRatchet rotate(final Purpose rotate, final int nextI, final int pn, final MixedSharedSecret newSharedSecret,
+            final byte[] prevRootKey, final Ratchet sender, final Ratchet receiver) {
         requireLengthExactly(ROOT_KEY_LENGTH_BYTES, prevRootKey);
         assert !allZeroBytes(prevRootKey) : "Expecting random data instead of all zero-bytes. There might be something severely wrong.";
         final byte[] newK = newSharedSecret.getK();
@@ -204,8 +204,8 @@ final class DoubleRatchet implements AutoCloseable {
      */
     // TODO check logic to see if we also need a check for receiver-ratchet rotation. (Seems like we can also have malicious messages that would initiate that logic stream.)
     @CheckReturnValue
-    boolean isNeedSenderKeyRotation() {
-        return this.nextRotation == Purpose.SENDING;
+    Purpose nextRotation() {
+        return this.nextRotation;
     }
 
     /**
@@ -278,8 +278,8 @@ final class DoubleRatchet implements AutoCloseable {
         //final byte[] revealedMacs = this.macsToReveal.toByteArray();
         //this.macsToReveal.reset();
         //return revealedMacs;
-        return rotate(this.i + 1, this.senderRatchet.getMessageID(), newSharedSecret, this.rootKey,
-                this.senderRatchet, this.receiverRatchet, Purpose.SENDING);
+        return rotate(Purpose.SENDING, this.i + 1, this.senderRatchet.getMessageID(), newSharedSecret, this.rootKey,
+                this.senderRatchet, this.receiverRatchet);
     }
 
     /**
@@ -448,6 +448,8 @@ final class DoubleRatchet implements AutoCloseable {
         }
         // TODO verify that number of messages needing to fast-forward is acceptable. (max_skip in OTRv4 spec)
         while (messageId > this.receiverRatchet.getMessageID()) {
+            // Catch up to current message ID, store these message keys for later use as these messages haven't arrived
+            // yet.
             LOGGER.log(FINEST, "Fast-forward rotating receiving chain key to catch up with message ID: {0}",
                     new Object[]{messageId});
             // After every successful decrypting of a received message, the receiving chain key is also rotated away.
@@ -458,6 +460,7 @@ final class DoubleRatchet implements AutoCloseable {
             this.receiverRatchet.rotateChainKey();
         }
         if (messageId == this.receiverRatchet.getMessageID()) {
+            // Rotate past this message ID, i.e. forget message keys.
             LOGGER.log(FINER, "Rotate receiver chainkey: rotating to next chainkey {0}, {1}",
                     new Object[]{ratchetId, messageId});
             this.receiverRatchet.rotateChainKey();
@@ -477,6 +480,9 @@ final class DoubleRatchet implements AutoCloseable {
      */
     DoubleRatchet rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH, final int pn) throws OtrCryptoException {
         requireNotClosed();
+        if (this.nextRotation != Purpose.RECEIVING) {
+            throw new IllegalStateException("Next rotation must be for receiver keys.");
+        }
         final boolean dhratchet = this.i % 3 == 0;
         if (dhratchet == (nextDH == null)) {
             throw new IllegalArgumentException("BUG: nextDH must be provided for 'third brace key' rotations");
@@ -490,12 +496,11 @@ final class DoubleRatchet implements AutoCloseable {
         }
         // TODO preserve message keys before ratcheting. (use 'pn', needs authentication)
         // FIXME evaluate whether it is better to provide null or current DH public key.
-        final BigInteger dhPublicKey = dhratchet ? nextDH : this.sharedSecret.getTheirDHPublicKey();
-        final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateTheirKeys(dhratchet, nextECDH, dhPublicKey);
+        final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateTheirKeys(dhratchet, nextECDH, nextDH);
         // FIXME what to do with message.pn for storing keys from previous ratchet.
         // FIXME what 'pn' value to provide when rotating receiver ratchet?
-        return rotate(this.i + 1, this.pn, newSharedSecret, this.rootKey, this.senderRatchet, this.receiverRatchet,
-                Purpose.RECEIVING);
+        return rotate(Purpose.RECEIVING, this.i + 1, this.pn, newSharedSecret, this.rootKey, this.senderRatchet,
+                this.receiverRatchet);
     }
 
     /**

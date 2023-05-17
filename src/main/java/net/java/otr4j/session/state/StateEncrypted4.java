@@ -156,7 +156,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // Perform ratchet if necessary, possibly collecting MAC codes to reveal.
         // FIXME properly collect MACs
         final byte[] collectedMACs = new byte[0];
-        if (this.ratchet.isNeedSenderKeyRotation()) {
+        if (this.ratchet.nextRotation() == DoubleRatchet.Purpose.SENDING) {
             this.ratchet = this.ratchet.rotateSenderKeys();
             //final byte[] revealedMacs = 
             //this.logger.log(FINEST, "Sender keys rotated. revealed MACs size: {0}.",

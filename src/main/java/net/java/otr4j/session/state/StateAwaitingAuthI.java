@@ -32,6 +32,7 @@ import net.java.otr4j.messages.IdentityMessages;
 import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.api.SMPHandler;
+import net.java.otr4j.session.state.DoubleRatchet.Purpose;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -239,8 +240,8 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         // Initialize Double Ratchet.
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.firstECDHKeyPair,
                 this.firstDHKeyPair, this.theirFirstECDHPublicKey, this.theirFirstDHPublicKey);
-        final DoubleRatchet ratchet = DoubleRatchet.initialize(sharedSecret,
-                kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY, this.k), DoubleRatchet.Purpose.SENDING);
+        final DoubleRatchet ratchet = DoubleRatchet.initialize(Purpose.SENDING, sharedSecret,
+                kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY, this.k));
         secure(context, this.ssid, ratchet, ourProfileValidated.getLongTermPublicKey(),
                 ourProfileValidated.getForgingKey(), profileBobValidated);
     }

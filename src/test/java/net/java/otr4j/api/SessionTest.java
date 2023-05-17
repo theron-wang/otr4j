@@ -36,14 +36,12 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINEST;
-import static java.util.logging.Level.INFO;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V2;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V3;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V4;
@@ -882,6 +880,7 @@ public class SessionTest {
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         assertTrue(c.clientAlice.receiptChannel.isEmpty());
         assertTrue(c.clientBob.receiptChannel.isEmpty());
+        // Start of confidential conversation.
         c.clientAlice.sendMessage("Hello Bob!");
         assertNotEquals("Hello Bob!", c.clientBob.receiptChannel.peek());
         assertTrue(otrFragmented(c.clientBob.receiptChannel.peek()));

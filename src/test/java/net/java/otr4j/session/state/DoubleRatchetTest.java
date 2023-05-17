@@ -45,30 +45,30 @@ public class DoubleRatchetTest {
     @Test(expected = NullPointerException.class)
     public void testConstructDoubleRatchetNullSharedSecret() {
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
-        DoubleRatchet.initialize(null, initialRootKey, SENDING);
+        DoubleRatchet.initialize(SENDING, null, initialRootKey);
     }
 
     @Test(expected = NullPointerException.class)
     public void testConstructDoubleRatchetNullInitialRootKey() {
-        DoubleRatchet.initialize(generateSharedSecret(), null, SENDING);
+        DoubleRatchet.initialize(SENDING, generateSharedSecret(), null);
     }
 
     @Test(expected = NullPointerException.class)
     public void testConstructDoubleRatchetNullPurpose() {
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
-        DoubleRatchet.initialize(generateSharedSecret(), initialRootKey, null);
+        DoubleRatchet.initialize(null, generateSharedSecret(), initialRootKey);
     }
 
     @Test
     public void testConstructDoubleRatchet() {
-        DoubleRatchet.initialize(generateSharedSecret(), randomBytes(RANDOM, new byte[64]), SENDING);
-        DoubleRatchet.initialize(generateSharedSecret(), randomBytes(RANDOM, new byte[64]), RECEIVING);
+        DoubleRatchet.initialize(SENDING, generateSharedSecret(), randomBytes(RANDOM, new byte[64]));
+        DoubleRatchet.initialize(RECEIVING, generateSharedSecret(), randomBytes(RANDOM, new byte[64]));
     }
 
     @Test(expected = IllegalStateException.class)
     public void testRotateBeforeReceptionNotPermitted() {
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
-        final DoubleRatchet ratchet = DoubleRatchet.initialize(generateSharedSecret(), initialRootKey, SENDING);
+        final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, generateSharedSecret(), initialRootKey);
         ratchet.rotateSenderKeys();
         ratchet.rotateSenderKeys();
     }
@@ -76,7 +76,7 @@ public class DoubleRatchetTest {
     @Test
     public void testEncryptionAfterRotation() {
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
-        DoubleRatchet ratchet = DoubleRatchet.initialize(generateSharedSecret(), initialRootKey, RECEIVING);
+        DoubleRatchet ratchet = DoubleRatchet.initialize(RECEIVING, generateSharedSecret(), initialRootKey);
         ratchet = ratchet.rotateSenderKeys();
         final byte[] ciphertext = ratchet.encrypt(MESSAGE);
         assertFalse(allZeroBytes(ciphertext));
@@ -86,7 +86,7 @@ public class DoubleRatchetTest {
     @Test
     public void testAuthenticationAfterRotation() {
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
-        DoubleRatchet ratchet = DoubleRatchet.initialize(generateSharedSecret(), initialRootKey, RECEIVING);
+        DoubleRatchet ratchet = DoubleRatchet.initialize(RECEIVING, generateSharedSecret(), initialRootKey);
         ratchet = ratchet.rotateSenderKeys();
         final byte[] auth1 = ratchet.authenticate(MESSAGE);
         final byte[] auth2 = ratchet.authenticate(MESSAGE);
@@ -96,7 +96,7 @@ public class DoubleRatchetTest {
     @Test
     public void testAuthenticatorsDifferentAfterRotation() {
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
-        DoubleRatchet ratchet = DoubleRatchet.initialize(generateSharedSecret(), initialRootKey, RECEIVING);
+        DoubleRatchet ratchet = DoubleRatchet.initialize(RECEIVING, generateSharedSecret(), initialRootKey);
         ratchet = ratchet.rotateSenderKeys();
         final int firstMessageId = ratchet.getJ();
         final byte[] auth1 = ratchet.authenticate(MESSAGE);
@@ -109,7 +109,7 @@ public class DoubleRatchetTest {
     @Test
     public void testRepeatedCloseIsAllowed() {
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
-        final DoubleRatchet ratchet = DoubleRatchet.initialize(generateSharedSecret(), initialRootKey, SENDING);
+        final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, generateSharedSecret(), initialRootKey);
         ratchet.close();
         ratchet.close();
         ratchet.close();
@@ -119,7 +119,7 @@ public class DoubleRatchetTest {
     public void testMessageKeysClosedFailsEncryption() {
         final byte[] message = "Hello World!".getBytes(UTF_8);
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
-        final DoubleRatchet ratchet = DoubleRatchet.initialize(generateSharedSecret(), initialRootKey, SENDING);
+        final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, generateSharedSecret(), initialRootKey);
         ratchet.close();
         ratchet.encrypt(message);
     }
@@ -128,7 +128,7 @@ public class DoubleRatchetTest {
     public void testMessageKeysClosedFailsVerify() throws RotationLimitationException, OtrCryptoException {
         final byte[] message = "Hello World!".getBytes(UTF_8);
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
-        final DoubleRatchet ratchet = DoubleRatchet.initialize(generateSharedSecret(), initialRootKey, SENDING);
+        final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, generateSharedSecret(), initialRootKey);
         ratchet.rotateSenderKeys();
         final byte[] authenticator = ratchet.authenticate(message);
         ratchet.close();
@@ -138,7 +138,7 @@ public class DoubleRatchetTest {
     @Test(expected = IllegalStateException.class)
     public void testMessageKeysClosedFailsGetExtraSymmetricKey() {
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
-        final DoubleRatchet ratchet = DoubleRatchet.initialize(generateSharedSecret(), initialRootKey, SENDING);
+        final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, generateSharedSecret(), initialRootKey);
         ratchet.close();
         ratchet.rotateSenderKeys();
     }
@@ -152,10 +152,10 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
-        DoubleRatchet bobRatchet = DoubleRatchet.initialize(new MixedSharedSecret(RANDOM, bobFirstECDH, bobFirstDH,
-                aliceFirstECDH.publicKey(), aliceFirstDH.publicKey()), initialRootKey.clone(), SENDING);
-        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(new MixedSharedSecret(RANDOM, aliceFirstECDH,
-                aliceFirstDH, bobFirstECDH.publicKey(), bobFirstDH.publicKey()), initialRootKey.clone(), RECEIVING);
+        DoubleRatchet bobRatchet = DoubleRatchet.initialize(SENDING, new MixedSharedSecret(RANDOM, bobFirstECDH,
+                bobFirstDH, aliceFirstECDH.publicKey(), aliceFirstDH.publicKey()), initialRootKey.clone());
+        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(RECEIVING, new MixedSharedSecret(RANDOM, aliceFirstECDH,
+                aliceFirstDH, bobFirstECDH.publicKey(), bobFirstDH.publicKey()), initialRootKey.clone());
 
         // Start encrypting and authenticating using Bob's double ratchet.
         aliceRatchet = aliceRatchet.rotateSenderKeys();
@@ -175,12 +175,12 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
-        DoubleRatchet bobRatchet = DoubleRatchet.initialize(
+        DoubleRatchet bobRatchet = DoubleRatchet.initialize(SENDING,
                 new MixedSharedSecret(RANDOM, bobFirstECDH, bobFirstDH, aliceFirstECDH.publicKey(),
-                        aliceFirstDH.publicKey()), initialRootKey.clone(), SENDING);
-        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(
+                        aliceFirstDH.publicKey()), initialRootKey.clone());
+        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(RECEIVING,
                 new MixedSharedSecret(RANDOM, aliceFirstECDH, aliceFirstDH, bobFirstECDH.publicKey(),
-                        bobFirstDH.publicKey()), initialRootKey.clone(), RECEIVING);
+                        bobFirstDH.publicKey()), initialRootKey.clone());
         aliceRatchet = aliceRatchet.rotateSenderKeys();
         bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), aliceRatchet.getDHPublicKey(), 4);
         bobRatchet.decrypt(0, 0, message, randomBytes(RANDOM, new byte[64]), randomBytes(RANDOM, new byte[100]));
@@ -195,12 +195,12 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
-        DoubleRatchet bobRatchet = DoubleRatchet.initialize(
+        DoubleRatchet bobRatchet = DoubleRatchet.initialize(SENDING,
                 new MixedSharedSecret(RANDOM, bobFirstECDH, bobFirstDH, aliceFirstECDH.publicKey(),
-                        aliceFirstDH.publicKey()), initialRootKey.clone(), SENDING);
-        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(
+                        aliceFirstDH.publicKey()), initialRootKey.clone());
+        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(RECEIVING,
                 new MixedSharedSecret(RANDOM, aliceFirstECDH, aliceFirstDH, bobFirstECDH.publicKey(),
-                        bobFirstDH.publicKey()), initialRootKey.clone(), RECEIVING);
+                        bobFirstDH.publicKey()), initialRootKey.clone());
 
         // Start encrypting and authenticating using Bob's double ratchet.
         aliceRatchet = aliceRatchet.rotateSenderKeys();
@@ -221,12 +221,12 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
-        DoubleRatchet bobRatchet = DoubleRatchet.initialize(
+        DoubleRatchet bobRatchet = DoubleRatchet.initialize(SENDING,
                 new MixedSharedSecret(RANDOM, bobFirstECDH, bobFirstDH, aliceFirstECDH.publicKey(),
-                        aliceFirstDH.publicKey()), initialRootKey.clone(), SENDING);
-        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(
+                        aliceFirstDH.publicKey()), initialRootKey.clone());
+        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(RECEIVING,
                 new MixedSharedSecret(RANDOM, aliceFirstECDH, aliceFirstDH, bobFirstECDH.publicKey(),
-                        bobFirstDH.publicKey()), initialRootKey.clone(), RECEIVING);
+                        bobFirstDH.publicKey()), initialRootKey.clone());
 
         // Start encrypting and authenticating using Bob's double ratchet.
         aliceRatchet = aliceRatchet.rotateSenderKeys();
@@ -255,12 +255,12 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
-        DoubleRatchet bobRatchet = DoubleRatchet.initialize(
+        DoubleRatchet bobRatchet = DoubleRatchet.initialize(SENDING,
                 new MixedSharedSecret(RANDOM, bobFirstECDH, bobFirstDH, aliceFirstECDH.publicKey(),
-                        aliceFirstDH.publicKey()), initialRootKey.clone(), SENDING);
-        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(
+                        aliceFirstDH.publicKey()), initialRootKey.clone());
+        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(RECEIVING,
                 new MixedSharedSecret(RANDOM, aliceFirstECDH, aliceFirstDH, bobFirstECDH.publicKey(),
-                        bobFirstDH.publicKey()), initialRootKey.clone(), RECEIVING);
+                        bobFirstDH.publicKey()), initialRootKey.clone());
 
         // Start encrypting and authenticating using Bob's double ratchet.
         aliceRatchet = aliceRatchet.rotateSenderKeys();
@@ -281,12 +281,12 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
-        DoubleRatchet bobRatchet = DoubleRatchet.initialize(
+        DoubleRatchet bobRatchet = DoubleRatchet.initialize(SENDING,
                 new MixedSharedSecret(RANDOM, bobFirstECDH, bobFirstDH, aliceFirstECDH.publicKey(),
-                        aliceFirstDH.publicKey()), initialRootKey.clone(), SENDING);
-        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(
+                        aliceFirstDH.publicKey()), initialRootKey.clone());
+        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(RECEIVING,
                 new MixedSharedSecret(RANDOM, aliceFirstECDH, aliceFirstDH, bobFirstECDH.publicKey(),
-                        bobFirstDH.publicKey()), initialRootKey.clone(), RECEIVING);
+                        bobFirstDH.publicKey()), initialRootKey.clone());
 
         // Start encrypting and authenticating using Bob's double ratchet.
         aliceRatchet = aliceRatchet.rotateSenderKeys();
@@ -314,9 +314,9 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobECDH = ECDHKeyPair.generate(RANDOM);
-        final DoubleRatchet aliceRatchet = DoubleRatchet.initialize(
+        final DoubleRatchet aliceRatchet = DoubleRatchet.initialize(RECEIVING,
                 new MixedSharedSecret(RANDOM, aliceECDH, aliceDH, bobECDH.publicKey(), bobDH.publicKey()),
-                initialRootKey.clone(), RECEIVING);
+                initialRootKey.clone());
 
         // Start encrypting and authenticating using Bob's double ratchet.
         aliceRatchet.rotateSenderKeys();
@@ -336,21 +336,21 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
-        DoubleRatchet bobRatchet = DoubleRatchet.initialize(
+        DoubleRatchet bobRatchet = DoubleRatchet.initialize(SENDING,
                 new MixedSharedSecret(RANDOM, bobFirstECDH, bobFirstDH, aliceFirstECDH.publicKey(),
-                        aliceFirstDH.publicKey()), initialRootKey.clone(), SENDING);
-        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(
+                        aliceFirstDH.publicKey()), initialRootKey.clone());
+        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(RECEIVING,
                 new MixedSharedSecret(RANDOM, aliceFirstECDH, aliceFirstDH, bobFirstECDH.publicKey(),
-                        bobFirstDH.publicKey()), initialRootKey.clone(), RECEIVING);
+                        bobFirstDH.publicKey()), initialRootKey.clone());
 
         // Start encrypting and authenticating using Bob's double ratchet.
-        assertTrue(aliceRatchet.isNeedSenderKeyRotation());
+        assertEquals(SENDING, aliceRatchet.nextRotation());
         // FIXME fix checking revealedMACs
         final byte[] revealedMacs = new byte[1];
         //final byte[] revealedMacs = aliceRatchet.rotateSenderKeys();
         aliceRatchet = aliceRatchet.rotateSenderKeys();
         // FIXME test closing behavior in here too?
-        assertFalse(aliceRatchet.isNeedSenderKeyRotation());
+        assertEquals(RECEIVING, aliceRatchet.nextRotation());
         //assertArrayEquals(new byte[0], revealedMacs);
         final byte[] ciphertext = aliceRatchet.encrypt(message);
         final byte[] authenticator = aliceRatchet.authenticate(message);
@@ -366,7 +366,7 @@ public class DoubleRatchetTest {
         aliceRatchet.rotateSendingChainKey();
         // Start decrypting and verifying using Alice's double ratchet.
         bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), aliceRatchet.getDHPublicKey(), aliceRatchet.getJ());
-        assertTrue(bobRatchet.isNeedSenderKeyRotation());
+        assertEquals(SENDING, bobRatchet.nextRotation());
         assertEquals(1, bobRatchet.getI());
         assertEquals(0, bobRatchet.getJ());
         assertEquals(0, bobRatchet.getK());
@@ -393,7 +393,7 @@ public class DoubleRatchetTest {
         // FIXME fix checking revealedMACs
         final byte[] revealedMacs2 = new byte[1];
         bobRatchet = bobRatchet.rotateSenderKeys();
-        assertFalse(bobRatchet.isNeedSenderKeyRotation());
+        assertEquals(RECEIVING, bobRatchet.nextRotation());
         //assertArrayEquals(concatenate(authenticator, authenticator2, authenticator3), revealedMacs2);
         assertEquals(2, bobRatchet.getI());
         assertEquals(0, bobRatchet.getJ());
@@ -420,9 +420,9 @@ public class DoubleRatchetTest {
         assertEquals(3, bobRatchet.getJ());
         assertEquals(3, bobRatchet.getK());
         // Alice starts decrypting and verifying the responses.
-        assertFalse(aliceRatchet.isNeedSenderKeyRotation());
+        assertEquals(RECEIVING, aliceRatchet.nextRotation());
         aliceRatchet = aliceRatchet.rotateReceiverKeys(bobRatchet.getECDHPublicKey(), null, bobRatchet.getJ());
-        assertTrue(aliceRatchet.isNeedSenderKeyRotation());
+        assertEquals(SENDING, aliceRatchet.nextRotation());
         assertEquals(0, aliceRatchet.getPn());
         assertEquals(2, aliceRatchet.getI());
         assertEquals(3, aliceRatchet.getJ());
@@ -449,7 +449,7 @@ public class DoubleRatchetTest {
         // FIXME fix checking revealedMACs
         final byte[] revealedMacs3 = new byte[1];
         aliceRatchet = aliceRatchet.rotateSenderKeys();
-        assertFalse(aliceRatchet.isNeedSenderKeyRotation());
+        assertEquals(RECEIVING, aliceRatchet.nextRotation());
         //assertArrayEquals(concatenate(authenticator4, authenticator5, authenticator6), revealedMacs3);
         assertEquals(3, aliceRatchet.getI());
         assertEquals(0, aliceRatchet.getJ());
@@ -463,9 +463,9 @@ public class DoubleRatchetTest {
         assertEquals(3, aliceRatchet.getK());
         assertArrayEquals(new byte[0], aliceRatchet.collectRemainingMACsToReveal());
         aliceRatchet.close();
-        assertFalse(bobRatchet.isNeedSenderKeyRotation());
+        assertEquals(RECEIVING, bobRatchet.nextRotation());
         bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), null, 1);
-        assertTrue(bobRatchet.isNeedSenderKeyRotation());
+        assertEquals(SENDING, bobRatchet.nextRotation());
         assertEquals(0, bobRatchet.getPn());
         assertEquals(3, bobRatchet.getI());
         assertEquals(3, bobRatchet.getJ());
@@ -484,18 +484,18 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
-        final DoubleRatchet bobRatchet = DoubleRatchet.initialize(
+        final DoubleRatchet bobRatchet = DoubleRatchet.initialize(SENDING,
                 new MixedSharedSecret(RANDOM, bobFirstECDH, bobFirstDH, aliceFirstECDH.publicKey(),
-                        aliceFirstDH.publicKey()), initialRootKey.clone(), SENDING);
-        final DoubleRatchet aliceRatchet = DoubleRatchet.initialize(
+                        aliceFirstDH.publicKey()), initialRootKey.clone());
+        final DoubleRatchet aliceRatchet = DoubleRatchet.initialize(RECEIVING,
                 new MixedSharedSecret(RANDOM, aliceFirstECDH, aliceFirstDH, bobFirstECDH.publicKey(),
-                        bobFirstDH.publicKey()), initialRootKey.clone(), RECEIVING);
+                        bobFirstDH.publicKey()), initialRootKey.clone());
 
         // Start encrypting and authenticating using Bob's double ratchet.
-        assertTrue(aliceRatchet.isNeedSenderKeyRotation());
+        assertEquals(SENDING, aliceRatchet.nextRotation());
         final DoubleRatchet rotated = aliceRatchet.rotateSenderKeys();
-        assertTrue(aliceRatchet.isNeedSenderKeyRotation());
-        assertFalse(rotated.isNeedSenderKeyRotation());
+        assertEquals(SENDING, aliceRatchet.nextRotation());
+        assertEquals(RECEIVING, rotated.nextRotation());
         // Start decrypting and verifying using Alice's double ratchet.
         bobRatchet.rotateReceiverKeys(rotated.getECDHPublicKey(), null, 0);
     }
@@ -508,17 +508,17 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
-        DoubleRatchet bobRatchet = DoubleRatchet.initialize(
+        DoubleRatchet bobRatchet = DoubleRatchet.initialize(SENDING,
                 new MixedSharedSecret(RANDOM, bobFirstECDH, bobFirstDH, aliceFirstECDH.publicKey(),
-                        aliceFirstDH.publicKey()), initialRootKey.clone(), SENDING);
-        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(
+                        aliceFirstDH.publicKey()), initialRootKey.clone());
+        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(RECEIVING,
                 new MixedSharedSecret(RANDOM, aliceFirstECDH, aliceFirstDH, bobFirstECDH.publicKey(),
-                        bobFirstDH.publicKey()), initialRootKey.clone(), RECEIVING);
+                        bobFirstDH.publicKey()), initialRootKey.clone());
 
         // Start encrypting and authenticating using Bob's double ratchet.
-        assertTrue(aliceRatchet.isNeedSenderKeyRotation());
+        assertEquals(SENDING, aliceRatchet.nextRotation());
         aliceRatchet = aliceRatchet.rotateSenderKeys();
-        assertFalse(aliceRatchet.isNeedSenderKeyRotation());
+        assertEquals(RECEIVING, aliceRatchet.nextRotation());
         // Start decrypting and verifying using Alice's double ratchet.
         bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), aliceRatchet.getDHPublicKey(), 0);
         bobRatchet = bobRatchet.rotateSenderKeys();
@@ -533,17 +533,17 @@ public class DoubleRatchetTest {
         final ECDHKeyPair aliceFirstECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair bobFirstDH = DHKeyPair.generate(RANDOM);
         final ECDHKeyPair bobFirstECDH = ECDHKeyPair.generate(RANDOM);
-        DoubleRatchet bobRatchet = DoubleRatchet.initialize(
+        DoubleRatchet bobRatchet = DoubleRatchet.initialize(SENDING,
                 new MixedSharedSecret(RANDOM, bobFirstECDH, bobFirstDH, aliceFirstECDH.publicKey(),
-                        aliceFirstDH.publicKey()), initialRootKey.clone(), SENDING);
-        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(
+                        aliceFirstDH.publicKey()), initialRootKey.clone());
+        DoubleRatchet aliceRatchet = DoubleRatchet.initialize(RECEIVING,
                 new MixedSharedSecret(RANDOM, aliceFirstECDH, aliceFirstDH, bobFirstECDH.publicKey(),
-                        bobFirstDH.publicKey()), initialRootKey.clone(), RECEIVING);
+                        bobFirstDH.publicKey()), initialRootKey.clone());
 
         // Start encrypting and authenticating using Bob's double ratchet.
-        assertTrue(aliceRatchet.isNeedSenderKeyRotation());
+        assertEquals(SENDING, aliceRatchet.nextRotation());
         aliceRatchet = aliceRatchet.rotateSenderKeys();
-        assertFalse(aliceRatchet.isNeedSenderKeyRotation());
+        assertEquals(RECEIVING, aliceRatchet.nextRotation());
         // Rotate receiving keys using Bob's first DH s.t. we use a known public key, which is illegal.
         bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), bobFirstDH.publicKey(), 0);
     }
@@ -552,12 +552,12 @@ public class DoubleRatchetTest {
     public void testGenerateExtraSymmetricKeys() throws RotationLimitationException, OtrCryptoException {
         // Prepare ratchets for Alice and Bob
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);
-        final DoubleRatchet ratchet = DoubleRatchet.initialize(generateSharedSecret(), initialRootKey.clone(), RECEIVING);
+        final DoubleRatchet ratchet = DoubleRatchet.initialize(RECEIVING, generateSharedSecret(), initialRootKey.clone());
         // Rotate sender keys and generate sender extra symmetric key
-        assertTrue(ratchet.isNeedSenderKeyRotation());
+        assertEquals(SENDING, ratchet.nextRotation());
         final DoubleRatchet rotated = ratchet.rotateSenderKeys();
-        assertTrue(ratchet.isNeedSenderKeyRotation());
-        assertFalse(rotated.isNeedSenderKeyRotation());
+        assertEquals(SENDING, ratchet.nextRotation());
+        assertEquals(RECEIVING, rotated.nextRotation());
         final byte[] extraSymmSendingKey = rotated.extraSymmetricKeySender();
         assertNotNull(extraSymmSendingKey);
         assertFalse(allZeroBytes(extraSymmSendingKey));

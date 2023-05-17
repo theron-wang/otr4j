@@ -15,6 +15,7 @@ import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.crypto.ed448.ValidationException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
@@ -29,7 +30,6 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.crypto.ed448.Ed448.containsPoint;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static net.java.otr4j.util.Objects.requireEquals;
 import static org.bouncycastle.util.Arrays.clear;
 import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
 
@@ -245,27 +245,36 @@ public final class MixedSharedSecret implements AutoCloseable {
      *
      * @param dhratchet Indicates whether we need to regenerate the DH key pair as well. (Every third brace key.)
      * @param theirNextECDH Their ECDH public key.
-     * @param theirNextDH Their DH public key. (Optional)
+     * @param theirNextDH Their DH public key. (Optional. Expected for every third brace key.)
      * @return Returns new instance with their public keys rotated.
      * @throws OtrCryptoException In case of failure to rotate the public keys.
      */
     @CheckReturnValue
     public MixedSharedSecret rotateTheirKeys(final boolean dhratchet, final Point theirNextECDH,
-            final BigInteger theirNextDH) throws OtrCryptoException {
+            @Nullable final BigInteger theirNextDH) throws OtrCryptoException {
         expectNotClosed();
+        if (dhratchet == (theirNextDH == null)) {
+            throw new IllegalArgumentException("Their next DH public key is unexpected.");
+        }
         if (!containsPoint(theirNextECDH) || this.theirECDHPublicKey.constantTimeEquals(theirNextECDH)
                 || this.ecdhKeyPair.publicKey().equals(theirNextECDH)) {
             throw new OtrCryptoException("ECDH public key failed verification.");
         }
-        if (!checkPublicKey(theirNextDH) || this.dhKeyPair.publicKey().equals(theirNextDH)
-                || (dhratchet && this.theirDHPublicKey.equals(theirNextDH))) {
-            throw new OtrCryptoException("DH public key failed verification.");
+        final MixedSharedSecret next;
+        if (dhratchet) {
+            // This is a DH ratchet. (every third brace key)
+            if (!checkPublicKey(theirNextDH) || this.dhKeyPair.publicKey().equals(theirNextDH)
+                    || this.theirDHPublicKey.equals(theirNextDH)) {
+                throw new OtrCryptoException("DH public key failed verification.");
+            }
+            next = new MixedSharedSecret(this.random, this.braceKey, true, this.ecdhKeyPair, this.dhKeyPair,
+                    theirNextECDH, theirNextDH);
+            this.dhKeyPair.close();
+        } else {
+            // This is NOT a DH ratchet.
+            next = new MixedSharedSecret(this.random, this.braceKey, false, this.ecdhKeyPair, this.dhKeyPair,
+                    theirNextECDH, this.theirDHPublicKey);
         }
-        final MixedSharedSecret next = new MixedSharedSecret(this.random, this.braceKey, dhratchet, this.ecdhKeyPair,
-                this.dhKeyPair, theirNextECDH, theirNextDH);
-        // FIXME we can close here, except that this logic is provisional and might need to be reverted. (Closing causes unintended side-effects.)
-        // FIXME should we still close here?
-        this.dhKeyPair.close();
         this.ecdhKeyPair.close();
         return next;
     }
