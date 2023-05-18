@@ -152,6 +152,7 @@ public final class MixedSharedSecret implements AutoCloseable {
     /**
      * Close MixedSharedSecret instance by securely clearing used memory that contains sensitive data.
      */
+    // FIXME investigate proper closing/clearing procedure given that these instances may be thrown away in case of malicious messages.
     @Override
     public void close() {
         this.closed = true;
@@ -249,6 +250,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      * @return Returns new instance with their public keys rotated.
      * @throws OtrCryptoException In case of failure to rotate the public keys.
      */
+    // FIXME we cannot yet close the keypairs, because we need to forget any changes if the incoming message turns out to be malicious.
     @CheckReturnValue
     public MixedSharedSecret rotateTheirKeys(final boolean dhratchet, final Point theirNextECDH,
             @Nullable final BigInteger theirNextDH) throws OtrCryptoException {

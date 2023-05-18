@@ -229,18 +229,14 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         }
         final DoubleRatchet provisional;
         if (message.i == this.ratchet.getI()) {
-            // TODO are we sure we only need to reveal on first message of ratchet? Are we sure NextECDH and nextDH are included on every message in ratchet?
-            //if (message.i > 0 && message.revealedMacs.length == 0) {
-            //    // FIXME inspect spec to find out when we can expect revealed MACs to be included.
-            //    throw new ProtocolException("Expected MACs to be revealed after initial ratchet.");
-            //}
             // If any message in a new ratchet is received, a new ratchet key has been received, any message keys
             // corresponding to skipped messages from the previous receiving ratchet are stored. A new DH ratchet is
             // performed.
-            // TODO generate and store skipped message for previous chain key.
-            // The Double Ratchet prescribes alternate rotations, so after a single rotation for each we expect to
-            // start revealing MAC codes.
-            // FIXME consider that i, j, nextECDH, nextDH must be authenticated before trusted. However, we must rotate before authentication. We must isolated rotation until we can confirm that the message is trustworthy..
+            // NOTE: with each message in a new ratchet, we receive new public keys. To acquire the authentication and
+            // decryption keys, we need to incorporate these public keys in the ratchet. However, this means we must
+            // work with unauthenticated data. Therefore, the ratchet constructs a new instance upon each rotation. We
+            // work with the new ratchet instance provisionally, until we have authenticated and decrypted the message.
+            // Only after successfully processing the message, do we transition to the new ratchet instance.
             provisional = this.ratchet.rotateReceiverKeys(message.ecdhPublicKey, message.dhPublicKey, message.pn);
         } else {
             provisional = this.ratchet;
@@ -270,9 +266,10 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // Therefore, any new key material we might have received is authentic, and the message keys we used were used
         // and subsequently discarded correctly. At this point, malicious messages should not be able to have a lasting
         // impact, while authentic messages correctly progress the Double Ratchet.
+        // FIXME there is a risk with provisional being a rotation that then needs to be undone however as part of rotating the keypairs have been closed/cleared.
         this.ratchet = provisional;
         this.ratchet.rotateReceivingChainKey(message.i, message.j);
-        // Process decrypted message contents. Extract and process TLVs.
+        // Process decrypted message contents. Extract and process TLVs. Possibly reply, e.g. SMP, disconnect.
         final Content content = extractContents(decrypted);
         for (final TLV tlv : content.tlvs) {
             logger.log(FINE, "Received TLV type {0}", tlv.type);

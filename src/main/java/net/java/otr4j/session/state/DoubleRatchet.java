@@ -57,6 +57,7 @@ import static org.bouncycastle.util.Arrays.concatenate;
  */
 // TODO DoubleRatchet currently does not keep history. Therefore it is not possible to decode out-of-order messages from previous ratchets. (Also needed to keep MessageKeys instances for messages failing verification.)
 // FIXME set-up clean up, revealed MAC keys, ...
+// FIXME carefully inspect that this way of working with "provisional" ratchet instance, does indeed not leave any traces/side-effects. (public key handling .. closing keypairs when rotating receiver keys?)
 final class DoubleRatchet implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(DoubleRatchet.class.getName());
@@ -495,10 +496,7 @@ final class DoubleRatchet implements AutoCloseable {
             return this;
         }
         // TODO preserve message keys before ratcheting. (use 'pn', needs authentication)
-        // FIXME evaluate whether it is better to provide null or current DH public key.
         final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateTheirKeys(dhratchet, nextECDH, nextDH);
-        // FIXME what to do with message.pn for storing keys from previous ratchet.
-        // FIXME what 'pn' value to provide when rotating receiver ratchet?
         return rotate(Purpose.RECEIVING, this.i + 1, this.pn, newSharedSecret, this.rootKey, this.senderRatchet,
                 this.receiverRatchet);
     }

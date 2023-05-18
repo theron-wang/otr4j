@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
@@ -34,7 +33,7 @@ public final class ClientProfile {
 
     private static final Collection<Integer> MANDATORY_VERSIONS = singleton(Version.FOUR);
 
-    private static final Collection<Integer> FORBIDDEN_VERSIONS = asList(Version.ONE, Version.TWO);
+    private static final Collection<Integer> FORBIDDEN_VERSIONS = List.of(Version.ONE, Version.TWO);
 
     /**
      * Owner's instance tag.
