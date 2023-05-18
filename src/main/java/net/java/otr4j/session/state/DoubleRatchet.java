@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import static java.lang.Integer.MIN_VALUE;
@@ -57,7 +58,7 @@ import static org.bouncycastle.util.Arrays.concatenate;
  */
 // TODO DoubleRatchet currently does not keep history. Therefore it is not possible to decode out-of-order messages from previous ratchets. (Also needed to keep MessageKeys instances for messages failing verification.)
 // FIXME set-up clean up, revealed MAC keys, ...
-// FIXME carefully inspect that this way of working with "provisional" ratchet instance, does indeed not leave any traces/side-effects. (public key handling .. closing keypairs when rotating receiver keys?)
+// FIXME carefully inspect that this way of working with "provisional" ratchet instance, does indeed not leave any changes/traces. (public key handling .. closing keypairs when rotating receiver keys?)
 final class DoubleRatchet implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(DoubleRatchet.class.getName());
@@ -113,7 +114,7 @@ final class DoubleRatchet implements AutoCloseable {
     // TODO fine-tuning revealing of MAC keys: (OTRv4) "A MAC key is added to `mac_keys_to_reveal` list after a participant has verified the message associated with that MAC key. They are also added if the session is expired or when the storage of message keys gets deleted, and the MAC keys for messages that have not arrived are derived."
     private final ByteArrayOutputStream macsToReveal;
 
-    // TODO need to eventually perform clean up of `storedKeys` to avoid growing indefinitely, even if only a problem for long run-times.
+    // TODO need to eventually perform clean up of `storedKeys` (inject MK_MACs into `macsToReveal`, see spec) to avoid growing indefinitely, even if only a problem for long run-times.
     private final HashMap<Long, MessageKeys> storedKeys;
 
     static DoubleRatchet initialize(final Purpose purpose, final MixedSharedSecret sharedSecret,
@@ -128,11 +129,11 @@ final class DoubleRatchet implements AutoCloseable {
         switch (purpose) {
         case SENDING:
             sender = Ratchet.create(concatPreviousRootKeyNewK);
-            receiver = Ratchet.dummy();
+            receiver = Ratchet.INITIAL;
             next = Purpose.RECEIVING;
             break;
         case RECEIVING:
-            sender = Ratchet.dummy();
+            sender = Ratchet.INITIAL;
             receiver = Ratchet.create(concatPreviousRootKeyNewK);
             next = Purpose.SENDING;
             break;
@@ -279,12 +280,9 @@ final class DoubleRatchet implements AutoCloseable {
         // Perform sender key rotation.
         LOGGER.log(FINE, "Rotating root key and sending chain key for ratchet " + this.i);
         final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateOurKeys(this.i % 3 == 0);
-        // FIXME what to do with macsToReveal?
-        // Extract MACs to reveal.
-        //final byte[] revealedMacs = this.macsToReveal.toByteArray();
-        //this.macsToReveal.reset();
-        //return revealedMacs;
-        // TODO now passing on storedKeys and macsToReveal without copying. The idea being that either the old instance or the new instance will survive therefore no concurrency.
+        // With the sender keys rotation, we pass on the instances for stored keys and macs-to-reveal, because either
+        // the original (non-rotated) Double Ratchet instance or the new instance will persist. Rotating sender keys
+        // does not impact either store.
         return rotate(Purpose.SENDING, this.i + 1, this.senderRatchet.getMessageID(), newSharedSecret,
                 this.rootKey, this.senderRatchet, this.receiverRatchet, this.storedKeys, this.macsToReveal);
     }
@@ -421,7 +419,7 @@ final class DoubleRatchet implements AutoCloseable {
             // extra symmetric key.
             return keys.copy();
         }
-        final byte[] chainkey = this.receiverRatchet.simulate().rotateChainKey(messageId);
+        final byte[] chainkey = this.receiverRatchet.simulate().rotateInto(messageId);
         final MessageKeys keys = MessageKeys.fromChainkey(chainkey);
         clear(chainkey);
         return keys;
@@ -435,14 +433,18 @@ final class DoubleRatchet implements AutoCloseable {
     }
 
     /**
-     * Rotate the receiving chain key.
+     * Confirm the receiving chain key by ensuring we have rotated past the specified message ID: we either rotate up to
+     * and over that point, or -- in case of past message IDs -- remove the stored message keys and remain at the
+     * current position.
+     * <p>
+     * NOTE: the rotation is used to confirm the last received message ID by rotating past this point, and establishing
+     * this as current progress marker.
      */
-    // FIXME keep a latest confirmed messageId on every call to rotateReceivingChainKey, because that is called after successfully authentication and decrypting the data message.
     @SuppressWarnings("MustBeClosedChecker")
-    void rotateReceivingChainKey(final int ratchetId, final int messageId) {
+    void confirmReceivingChainKey(final int ratchetId, final int messageId) {
         final int currentRatchet = Math.max(0, this.i - 1);
         if (ratchetId > currentRatchet) {
-            throw new IllegalArgumentException("BUG: Ratcheting is required.");
+            throw new IllegalArgumentException("BUG: Ratcheting is necessary.");
         }
         if (ratchetId < currentRatchet || messageId < this.receiverRatchet.getMessageID()) {
             // If we previously retrieved the keys from the store, clear the keys from the store.
@@ -459,9 +461,9 @@ final class DoubleRatchet implements AutoCloseable {
             // yet.
             LOGGER.log(FINEST, "Fast-forward rotating receiving chain key to catch up with message ID: {0}",
                     new Object[]{messageId});
-            // After every successful decrypting of a received message, the receiving chain key is also rotated away.
+            // After every successful decryption of a received message, the receiving chain key is also rotated away.
             // This means that the current receiving message ID (`K`) is always a key not used successfully before.
-            // (A failed attempt at decrypting a corrupt/fake message is still possible.)
+            // (A failed attempt at decrypting a corrupt/malicious message is still possible.)
             this.storedKeys.put((long) currentRatchet << 32 | this.receiverRatchet.getMessageID(),
                     MessageKeys.fromChainkey(this.receiverRatchet.getChainKey()));
             this.receiverRatchet.rotateChainKey();
@@ -504,7 +506,9 @@ final class DoubleRatchet implements AutoCloseable {
         // Shallow-copy the `storedKeys` map such that we can add possible new message keys as we fast-foward to the
         // last message sent in this ratchet.
         final HashMap<Long, MessageKeys> newStoredKeys = new HashMap<>(this.storedKeys);
-        // TODO preserve message keys in `newStoredKeys` before ratcheting. (use 'pn', is provisional until authentication)
+        if (this.receiverRatchet != Ratchet.INITIAL) {
+            this.receiverRatchet.simulate().drainInto(newStoredKeys, Math.max(0, this.i - 1), pn);
+        }
         final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateTheirKeys(dhratchet, nextECDH, nextDH);
         return rotate(Purpose.RECEIVING, this.i + 1, this.pn, newSharedSecret, this.rootKey, this.senderRatchet,
                 this.receiverRatchet, newStoredKeys, this.macsToReveal);
@@ -564,12 +568,14 @@ final class Ratchet implements AutoCloseable {
 
     private static final int CHAIN_KEY_LENGTH_BYTES = 64;
 
+    public static final Ratchet INITIAL = new Ratchet(new byte[CHAIN_KEY_LENGTH_BYTES]);
+
     /**
      * The chain key.
      * <p>
      * The key relies on a first key rotation to become initialized.
      */
-    private final byte[] chainKey = new byte[CHAIN_KEY_LENGTH_BYTES];
+    private final byte[] chainKey;
 
     /**
      * Message ID.
@@ -580,19 +586,11 @@ final class Ratchet implements AutoCloseable {
      * Create or rotate the ratchet key.
      */
     static Ratchet create(final byte[] concatPreviousRootKeyNewK) {
-        final byte[] chainKey = new byte[CHAIN_KEY_LENGTH_BYTES];
-        kdf(chainKey, 0, CHAIN_KEY_LENGTH_BYTES, CHAIN_KEY, concatPreviousRootKeyNewK);
-        return new Ratchet(chainKey);
-    }
-    
-    // FIXME will this dummy cause problems because of bad initialization?
-    static Ratchet dummy() {
-        return new Ratchet(new byte[CHAIN_KEY_LENGTH_BYTES]);
+        return new Ratchet(kdf(CHAIN_KEY_LENGTH_BYTES, CHAIN_KEY, concatPreviousRootKeyNewK));
     }
 
     private Ratchet(final byte[] chainKey) {
-        requireLengthExactly(CHAIN_KEY_LENGTH_BYTES, chainKey);
-        System.arraycopy(chainKey, 0, this.chainKey, 0, this.chainKey.length);
+        this.chainKey = requireLengthExactly(CHAIN_KEY_LENGTH_BYTES, chainKey);
     }
 
     int getMessageID() {
@@ -602,12 +600,14 @@ final class Ratchet implements AutoCloseable {
     @Override
     public void close() {
         this.messageID = MIN_VALUE;
+        assert this != INITIAL || allZeroBytes(this.chainKey) : "BUG: dummy value got corrupted.";
         clear(this.chainKey);
     }
 
     @Nonnull
-    RatchetSimula simulate() {
-        return new RatchetSimula(this.chainKey.clone(), this.messageID);
+    Simula simulate() {
+        assert this != INITIAL : "BUG: working with initial dummy for ratchet.";
+        return new Simula();
     }
 
     /**
@@ -619,7 +619,7 @@ final class Ratchet implements AutoCloseable {
      */
     byte[] getChainKey() {
         requireNotClosed();
-        // FIXME need to enforce externally that this ratchet does not need rotating, as is now stored in nextRotation in DoubleRatchet.
+        assert this != INITIAL : "BUG: working with initial dummy for ratchet.";
         return this.chainKey.clone();
     }
 
@@ -630,7 +630,7 @@ final class Ratchet implements AutoCloseable {
      */
     void rotateChainKey() {
         requireNotClosed();
-        // FIXME need to enforce externally that this ratchet does not need rotating, as is now stored in nextRotation in DoubleRatchet.
+        assert this != INITIAL : "BUG: working with initial dummy for ratchet.";
         this.messageID += 1;
         kdf(this.chainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, this.chainKey);
     }
@@ -640,43 +640,40 @@ final class Ratchet implements AutoCloseable {
             throw new IllegalStateException("Ratchet instance is already closed.");
         }
     }
-}
 
-final class RatchetSimula {
+    final class Simula {
 
-    private static final int CHAIN_KEY_LENGTH_BYTES = 64;
-
-    /**
-     * The chain key.
-     * <p>
-     * The key relies on a first key rotation to become initialized.
-     */
-    // TODO needs to be cleared after use
-    private final byte[] chainKey = new byte[CHAIN_KEY_LENGTH_BYTES];
-
-    /**
-     * Message ID.
-     */
-    private final int messageID;
-
-    RatchetSimula(final byte[] chainKey, final int id) {
-        System.arraycopy(chainKey, 0, this.chainKey, 0, this.chainKey.length);
-        this.messageID = id;
-    }
-
-    /**
-     * Rotate the chain key.
-     * <p>
-     * Generate a new chain key based on the old chain key and increment the message ID.
-     * 
-     * @param targetMessageId fast-forward to the target message ID.
-     */
-    @Nonnull
-    byte[] rotateChainKey(final int targetMessageId) {
-        final byte[] localChainKey = Arrays.copyOf(this.chainKey, this.chainKey.length);
-        for (int i = this.messageID; i < targetMessageId; i++) {
-            kdf(localChainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, localChainKey);
+        /**
+         * Rotate the chain key into the chain key for specified message ID.
+         * <p>
+         * Generate a new chain key based on the old chain key incremented to the message ID.
+         *
+         * @param targetMessageId fast-forward to the target message ID.
+         */
+        @Nonnull
+        byte[] rotateInto(final int targetMessageId) {
+            final byte[] localChainKey = Arrays.copyOf(Ratchet.this.chainKey, CHAIN_KEY_LENGTH_BYTES);
+            for (int i = Ratchet.this.messageID; i < targetMessageId; i++) {
+                kdf(localChainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, localChainKey);
+            }
+            return localChainKey;
         }
-        return localChainKey;
+
+        /**
+         * Generate and insert message keys into provided store from
+         *
+         * @param store the skipped message keys store
+         * @param ratchetID the current ratchet's ID (`i`)
+         * @param messageID the receiver message ID (`k`)
+         */
+        @SuppressWarnings("MustBeClosedChecker")
+        void drainInto(final Map<Long, MessageKeys> store, final int ratchetID, final int messageID) {
+            final byte[] localChainKey = Arrays.copyOf(Ratchet.this.chainKey, CHAIN_KEY_LENGTH_BYTES);
+            for (int k = Ratchet.this.messageID; k < messageID; k++) {
+                // FIXME should we first insert current one? (it should be pointing at first unused chainkey)
+                store.put((long) ratchetID << 32 | k, MessageKeys.fromChainkey(localChainKey));
+                kdf(localChainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, localChainKey);
+            }
+        }
     }
 }

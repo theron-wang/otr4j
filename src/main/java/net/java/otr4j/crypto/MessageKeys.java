@@ -33,6 +33,7 @@ import static org.bouncycastle.util.Arrays.clear;
  * <p>
  * NOTE: Please ensure that message keys are appropriately cleared by calling {@link #close()} after use.
  */
+// TODO make immutable, closed == allZeroBytes(this.encrypt)?
 public final class MessageKeys implements AutoCloseable {
 
     /**

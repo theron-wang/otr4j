@@ -268,7 +268,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // impact, while authentic messages correctly progress the Double Ratchet.
         // FIXME there is a risk with provisional being a rotation that then needs to be undone however as part of rotating the keypairs have been closed/cleared.
         this.ratchet = provisional;
-        this.ratchet.rotateReceivingChainKey(message.i, message.j);
+        this.ratchet.confirmReceivingChainKey(message.i, message.j);
         // Process decrypted message contents. Extract and process TLVs. Possibly reply, e.g. SMP, disconnect.
         final Content content = extractContents(decrypted);
         for (final TLV tlv : content.tlvs) {

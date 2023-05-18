@@ -135,7 +135,6 @@ public final class MixedSharedSecret implements AutoCloseable {
             throw new IllegalStateException("BUG: ECDH public keys should have been verified. No unexpected failures should happen at this point.", e);
         }
         if (dhratchet) {
-            // FIXME do we need to specify length of byte-array for k_dh?
             final byte[] k_dh = asUnsignedByteArray(this.dhKeyPair.generateSharedSecret(this.theirDHPublicKey));
             kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, THIRD_BRACE_KEY, k_dh);
             clear(k_dh);
@@ -250,7 +249,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      * @return Returns new instance with their public keys rotated.
      * @throws OtrCryptoException In case of failure to rotate the public keys.
      */
-    // FIXME we cannot yet close the keypairs, because we need to forget any changes if the incoming message turns out to be malicious.
+    // FIXME we cannot yet close the keypairs, because we need to forget this instance if the incoming message turns out to be malicious.
     @CheckReturnValue
     public MixedSharedSecret rotateTheirKeys(final boolean dhratchet, final Point theirNextECDH,
             @Nullable final BigInteger theirNextDH) throws OtrCryptoException {
