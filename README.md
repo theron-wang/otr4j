@@ -25,7 +25,6 @@ __Development stages__:
 _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see bottom of README.md_
 
 - ✔ Minimal working encryption (Interactive DAKE, message encryption/decryption, self-serving)  
-  _a.k.a. "at least the bugs are symmetric in nature :-)"_
 - ✔ Socialist Millionaire's Protocol for OTRv4.
 - ✔ Migrate OTRv4 DAKE state machine into OTRv4 Message state machine.
 - ✔ Redesigned Double Ratchet algorithm.
@@ -34,9 +33,9 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
   - ✔ EdDSA (the long-term keypair)
   - ❓ ECDH operations
   - ❓ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
-- Handle ratchet ID, message ID, next ECDH public key, next DH public key provisionally, until message is successfully authenticated (and decrypted).  
-  ⚠️ _OTRv4 requires handling a part of the data message in preparation for authentication._ ⚠️
-- ⏳ Support for skipped messages and keep track of skipped message keys.
+- ⏳ Handle ratchet ID, message ID, next ECDH public key, next DH public key, message-keys provisionally, until message is successfully authenticated (and decrypted).  
+  ⚠️ _OTRv4 requires handling part of an incoming data message before authentication is possible._ ⚠️
+- ⏳ Support for skipped messages and store skipped message keys.
 - ⏳ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer</s>, refreshing client profile)  
     - TODO consider actual requirements: long-running application that needs to refresh as periodic action in its execution seems far-fetched with 2-week valid profiles. 
 - ⏳ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive".
