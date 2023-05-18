@@ -185,7 +185,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
             return false;
         }
         final Scalar scalar = (Scalar) o;
-        return Arrays.equals(encoded, scalar.encoded);
+        return Arrays.equals(this.encoded, scalar.encoded);
     }
 
     @Override
@@ -232,6 +232,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
 
     @Override
     public String toString() {
-        return "Scalar{encoded=" + Arrays.toString(encoded) + '}';
+        return "Scalar{encoded=" + Arrays.toString(this.encoded) + '}';
     }
 }

@@ -97,7 +97,7 @@ public final class IdentityMessage extends AbstractEncodedMessage {
     @Override
     public void writeTo(final OtrOutputStream writer) {
         super.writeTo(writer);
-        writer.write(clientProfile);
+        writer.write(this.clientProfile);
         writer.writePoint(this.y);
         writer.writeBigInt(this.b);
         writer.writePoint(this.firstECDHPublicKey);
@@ -116,13 +116,14 @@ public final class IdentityMessage extends AbstractEncodedMessage {
             return false;
         }
         final IdentityMessage that = (IdentityMessage) o;
-        return clientProfile.equals(that.clientProfile) && y.constantTimeEquals(that.y) && b.equals(that.b)
-                && firstECDHPublicKey.constantTimeEquals(that.firstECDHPublicKey)
-                && firstDHPublicKey.equals(that.firstDHPublicKey);
+        return this.clientProfile.equals(that.clientProfile) && this.y.constantTimeEquals(that.y)
+                && this.b.equals(that.b) && this.firstECDHPublicKey.constantTimeEquals(that.firstECDHPublicKey)
+                && this.firstDHPublicKey.equals(that.firstDHPublicKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), clientProfile, y, b, firstECDHPublicKey, firstDHPublicKey);
+        return Objects.hash(super.hashCode(), this.clientProfile, this.y, this.b, this.firstECDHPublicKey,
+                this.firstDHPublicKey);
     }
 }

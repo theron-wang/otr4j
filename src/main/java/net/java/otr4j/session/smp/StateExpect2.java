@@ -19,7 +19,7 @@ import java.security.SecureRandom;
 /**
  * SMP state in expectation of SMP message 2: Bob's message completing the DH
  * exchange.
- *
+ * <p>
  * In this state we accept message 2 (TLV type 3).
  */
 final class StateExpect2 extends AbstractSMPState {
@@ -73,8 +73,8 @@ final class StateExpect2 extends AbstractSMPState {
         checkKnowLog(msg2[4], msg2[5], msg2[3], 4);
 
         /* Combine the two halves from Bob and Alice and determine g2 and g3 */
-        final BigInteger g2 = msg2[0].modPow(x2, DHKeyPairOTR3.MODULUS);
-        final BigInteger g3 = msg2[3].modPow(x3, DHKeyPairOTR3.MODULUS);
+        final BigInteger g2 = msg2[0].modPow(this.x2, DHKeyPairOTR3.MODULUS);
+        final BigInteger g3 = msg2[3].modPow(this.x3, DHKeyPairOTR3.MODULUS);
 
         /* Verify Bob's coordinate equality proof */
         checkEqualCoords(msg2[8], msg2[9], msg2[10], msg2[6], msg2[7], g2, g3, 5);
@@ -85,11 +85,11 @@ final class StateExpect2 extends AbstractSMPState {
         final BigInteger p = g3.modPow(r, DHKeyPairOTR3.MODULUS);
         msg3[0] = p;
         final BigInteger qa1 = G1.modPow(r, DHKeyPairOTR3.MODULUS);
-        final BigInteger qa2 = g2.modPow(secret, DHKeyPairOTR3.MODULUS);
+        final BigInteger qa2 = g2.modPow(this.secret, DHKeyPairOTR3.MODULUS);
         final BigInteger q = qa1.multiply(qa2).mod(DHKeyPairOTR3.MODULUS);
         msg3[1] = q;
 
-        BigInteger[] res = proofEqualCoords(g2, g3, secret, r, 6);
+        BigInteger[] res = proofEqualCoords(g2, g3, this.secret, r, 6);
         msg3[2] = res[0];
         msg3[3] = res[1];
         msg3[4] = res[2];
@@ -100,8 +100,8 @@ final class StateExpect2 extends AbstractSMPState {
         final BigInteger pab = p.multiply(inv).mod(DHKeyPairOTR3.MODULUS);
         inv = msg2[7].modInverse(DHKeyPairOTR3.MODULUS);
         final BigInteger qab = q.multiply(inv).mod(DHKeyPairOTR3.MODULUS);
-        msg3[5] = qab.modPow(x3, DHKeyPairOTR3.MODULUS);
-        res = proofEqualLogs(qab, x3, 7);
+        msg3[5] = qab.modPow(this.x3, DHKeyPairOTR3.MODULUS);
+        res = proofEqualLogs(qab, this.x3, 7);
         msg3[6] = res[0];
         msg3[7] = res[1];
 

@@ -121,13 +121,15 @@ public final class AuthRMessage extends AbstractEncodedMessage {
             return false;
         }
         final AuthRMessage that = (AuthRMessage) o;
-        return clientProfile.equals(that.clientProfile) && x.constantTimeEquals(that.x) && a.equals(that.a)
-                && sigma.equals(that.sigma) && firstECDHPublicKey.constantTimeEquals(that.firstECDHPublicKey)
-                && firstDHPublicKey.equals(that.firstDHPublicKey);
+        return this.clientProfile.equals(that.clientProfile) && this.x.constantTimeEquals(that.x)
+                && this.a.equals(that.a) && this.sigma.equals(that.sigma)
+                && this.firstECDHPublicKey.constantTimeEquals(that.firstECDHPublicKey)
+                && this.firstDHPublicKey.equals(that.firstDHPublicKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), clientProfile, x, a, sigma, firstECDHPublicKey, firstDHPublicKey);
+        return Objects.hash(super.hashCode(), this.clientProfile, this.x, this.a, this.sigma, this.firstECDHPublicKey,
+                this.firstDHPublicKey);
     }
 }

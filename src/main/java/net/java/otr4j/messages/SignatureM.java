@@ -56,10 +56,10 @@ public final class SignatureM implements OtrEncodable {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + keyPairID;
-        result = prime * result + localLongTermPubKey.hashCode();
-        result = prime * result + localPubKey.hashCode();
-        result = prime * result + remotePubKey.hashCode();
+        result = prime * result + this.keyPairID;
+        result = prime * result + this.localLongTermPubKey.hashCode();
+        result = prime * result + this.localPubKey.hashCode();
+        result = prime * result + this.remotePubKey.hashCode();
         return result;
     }
 
@@ -72,16 +72,16 @@ public final class SignatureM implements OtrEncodable {
             return false;
         }
         final SignatureM other = (SignatureM) obj;
-        if (keyPairID != other.keyPairID) {
+        if (this.keyPairID != other.keyPairID) {
             return false;
         }
-        if (!localLongTermPubKey.equals(other.localLongTermPubKey)) {
+        if (!this.localLongTermPubKey.equals(other.localLongTermPubKey)) {
             return false;
         }
-        if (!localPubKey.equals(other.localPubKey)) {
+        if (!this.localPubKey.equals(other.localPubKey)) {
             return false;
         }
-        return remotePubKey.equals(other.remotePubKey);
+        return this.remotePubKey.equals(other.remotePubKey);
     }
 
     @Override

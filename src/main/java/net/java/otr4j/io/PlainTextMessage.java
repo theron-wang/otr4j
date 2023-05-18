@@ -43,14 +43,14 @@ public final class PlainTextMessage extends QueryMessage {
      */
     @Nonnull
     public String getCleanText() {
-        return cleanText;
+        return this.cleanText;
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result + cleanText.hashCode();
+        result = prime * result + this.cleanText.hashCode();
         return result;
     }
 
@@ -66,6 +66,6 @@ public final class PlainTextMessage extends QueryMessage {
             return false;
         }
         final PlainTextMessage other = (PlainTextMessage) obj;
-        return cleanText.equals(other.cleanText);
+        return this.cleanText.equals(other.cleanText);
     }
 }

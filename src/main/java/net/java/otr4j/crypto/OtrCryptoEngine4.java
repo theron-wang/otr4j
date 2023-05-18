@@ -683,13 +683,14 @@ public final class OtrCryptoEngine4 {
                 return false;
             }
             final Sigma sigma = (Sigma) o;
-            return c1.constantTimeEquals(sigma.c1) & r1.constantTimeEquals(sigma.r1) & c2.constantTimeEquals(sigma.c2)
-                    & r2.constantTimeEquals(sigma.r2) & c3.constantTimeEquals(sigma.c3) & r3.constantTimeEquals(sigma.r3);
+            return this.c1.constantTimeEquals(sigma.c1) & this.r1.constantTimeEquals(sigma.r1)
+                    & this.c2.constantTimeEquals(sigma.c2) & this.r2.constantTimeEquals(sigma.r2)
+                    & this.c3.constantTimeEquals(sigma.c3) & this.r3.constantTimeEquals(sigma.r3);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(c1, r1, c2, r2, c3, r3);
+            return Objects.hash(this.c1, this.r1, this.c2, this.r2, this.c3, this.r3);
         }
     }
 }

@@ -119,7 +119,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
         final byte[] responderFingerprint = fingerprint(this.remotePublicKey);
         final byte[] secret = generateSecret(answer, initiatorFingerprint, responderFingerprint);
         try {
-            final byte[] smpmsg = sm.step1(secret);
+            final byte[] smpmsg = this.sm.step1(secret);
             if (question.isEmpty()) {
                 return new TLV(SMP1, smpmsg);
             }
@@ -150,7 +150,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
         final byte[] responderFingerprint = this.host.getLocalFingerprintRaw(this.sessionID);
         final byte[] secret = generateSecret(answer, initiatorFingerprint, responderFingerprint);
         try {
-            return new TLV(SMP2, sm.step2b(secret));
+            return new TLV(SMP2, this.sm.step2b(secret));
         } catch (final SMAbortedException e) {
             // As prescribed by OTR, we must always be allowed to initiate a new SMP exchange. In case another SMP
             // exchange is in progress, an abort is signaled. We honor the abort exception and send the abort signal
@@ -184,7 +184,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
     @Override
     public TLV abort() {
         if (this.sm.abort()) {
-            smpAborted(host, this.sessionID);
+            smpAborted(this.host, this.sessionID);
         }
         return new TLV(SMP_ABORT, TLV.EMPTY_BODY);
     }
@@ -253,51 +253,51 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
         }
         final byte[] input = new byte[question.length - qlen];
         System.arraycopy(question, qlen, input, 0, question.length - qlen);
-        sm.step2a(input);
+        this.sm.step2a(input);
         if (qlen != 0) {
             qlen--;
         }
         final byte[] plainq = new byte[qlen];
         System.arraycopy(question, 0, plainq, 0, qlen);
-        askForSecret(host, this.sessionID, this.receiverTag, new String(plainq, UTF_8));
+        askForSecret(this.host, this.sessionID, this.receiverTag, new String(plainq, UTF_8));
         return null;
     }
 
     @Nullable
     private TLV processTlvSMP1(final TLV tlv) throws SMException {
         // We can only do the verification half now. We must wait for the secret to be entered to continue.
-        sm.step2a(tlv.value);
-        askForSecret(host, this.sessionID, this.receiverTag, null);
+        this.sm.step2a(tlv.value);
+        askForSecret(this.host, this.sessionID, this.receiverTag, null);
         return null;
     }
 
     @Nonnull
     private TLV processTlvSMP2(final TLV tlv) throws SMException {
-        final byte[] nextmsg = sm.step3(tlv.value);
+        final byte[] nextmsg = this.sm.step3(tlv.value);
         return new TLV(SMP3, nextmsg);
     }
 
     @Nonnull
     private TLV processTlvSMP3(final TLV tlv) throws SMException {
-        final byte[] nextmsg = sm.step4(tlv.value);
+        final byte[] nextmsg = this.sm.step4(tlv.value);
         // Set trust level based on result.
         final String fingerprint = toHexString(fingerprint(this.remotePublicKey));
         if (this.sm.status() == SUCCEEDED) {
-            verify(host, this.sessionID, fingerprint);
+            verify(this.host, this.sessionID, fingerprint);
         } else {
-            unverify(host, this.sessionID, fingerprint);
+            unverify(this.host, this.sessionID, fingerprint);
         }
         return new TLV(SMP4, nextmsg);
     }
 
     @Nullable
     private TLV processTlvSMP4(final TLV tlv) throws SMException {
-        sm.step5(tlv.value);
+        this.sm.step5(tlv.value);
         final String fingerprint = toHexString(fingerprint(this.remotePublicKey));
         if (this.sm.status() == SUCCEEDED) {
-            verify(host, this.sessionID, fingerprint);
+            verify(this.host, this.sessionID, fingerprint);
         } else {
-            unverify(host, this.sessionID, fingerprint);
+            unverify(this.host, this.sessionID, fingerprint);
         }
         return null;
     }

@@ -149,15 +149,15 @@ public final class ClientProfile {
             return false;
         }
         final ClientProfile that = (ClientProfile) o;
-        return Objects.equals(instanceTag, that.instanceTag)
-                && Objects.equals(longTermPublicKey, that.longTermPublicKey)
-                && Objects.equals(forgingKey, that.forgingKey)
-                && Objects.equals(versions, that.versions)
-                && Objects.equals(dsaPublicKey, that.dsaPublicKey);
+        return Objects.equals(this.instanceTag, that.instanceTag)
+                && Objects.equals(this.longTermPublicKey, that.longTermPublicKey)
+                && Objects.equals(this.forgingKey, that.forgingKey)
+                && Objects.equals(this.versions, that.versions)
+                && Objects.equals(this.dsaPublicKey, that.dsaPublicKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(instanceTag, longTermPublicKey, forgingKey, versions, dsaPublicKey);
+        return Objects.hash(this.instanceTag, this.longTermPublicKey, this.forgingKey, this.versions, this.dsaPublicKey);
     }
 }

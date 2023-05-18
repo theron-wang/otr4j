@@ -17,6 +17,14 @@
     </module>
 
     <module name="TreeWalker">
+        <!-- Require fields to be prefixed with `this.` for all cases. This prevents accidental mistakes when
+             refactoring code where parameter and field carry the same name. -->
+        <module name="RequireThis">
+            <property name="checkFields" value="true"/>
+            <property name="checkMethods" value="false"/>
+            <property name="validateOnlyOverlapping" value="false"/>
+        </module>
+
         <!-- Checks for imports -->
         <module name="AvoidStarImport"/>
         <module name="IllegalImport"/> <!-- defaults to sun.* packages -->
@@ -29,11 +37,6 @@
             <property name="file" value="codecheck/import-control.xml"/>
             <property name="path" value="^.*[\\/]src[\\/]main[\\/].*$"/>
         </module>
-
-        <!-- Checks for Size Violations -->
-        <!--<module name="LineLength">-->
-        <!--<property name="max" value="120"/>-->
-        <!--</module>-->
 
         <!-- Checks for whitespace -->
         <module name="EmptyForInitializerPad"/>

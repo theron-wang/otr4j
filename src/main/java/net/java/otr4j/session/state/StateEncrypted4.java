@@ -198,11 +198,11 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             try {
                 handleIdentityMessage(context, (IdentityMessage) message);
             } catch (final ValidationException e) {
-                logger.log(INFO, "Failed to process Identity message.", e);
+                this.logger.log(INFO, "Failed to process Identity message.", e);
             }
             return;
         }
-        logger.log(INFO, "We only expect to receive an Identity message. Ignoring message with messagetype: {0}",
+        this.logger.log(INFO, "We only expect to receive an Identity message. Ignoring message with messagetype: {0}",
                 message.getType());
     }
 
@@ -223,7 +223,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             throw new ProtocolException("The double ratchet does not allow for first messages of previous ratchet ID to arrive at a later time. This is an illegal message.");
         }
         if (message.i > this.ratchet.getI()) {
-            logger.log(WARNING, "Received message is for a future ratchet ID: message must be malicious. (Current ratchet: {0}, message ratchet: {1})",
+            this.logger.log(WARNING, "Received message is for a future ratchet ID: message must be malicious. (Current ratchet: {0}, message ratchet: {1})",
                     new Object[]{this.ratchet.getI(), message.i});
             throw new ProtocolException("Received message is for a future ratchet; must be malicious.");
         }
@@ -272,11 +272,11 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // Process decrypted message contents. Extract and process TLVs. Possibly reply, e.g. SMP, disconnect.
         final Content content = extractContents(decrypted);
         for (final TLV tlv : content.tlvs) {
-            logger.log(FINE, "Received TLV type {0}", tlv.type);
+            this.logger.log(FINE, "Received TLV type {0}", tlv.type);
             if (smpPayload(tlv)) {
                 if ((message.flags & FLAG_IGNORE_UNREADABLE) != FLAG_IGNORE_UNREADABLE) {
                     // Detect improvements for protocol implementation of remote party.
-                    logger.log(WARNING, "Other party is using a faulty OTR client: all SMP messages are expected to have the IGNORE_UNREADABLE flag set.");
+                    this.logger.log(WARNING, "Other party is using a faulty OTR client: all SMP messages are expected to have the IGNORE_UNREADABLE flag set.");
                 }
                 try {
                     final TLV response = this.smp.process(tlv);
@@ -294,10 +294,10 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 break;
             case DISCONNECTED:
                 if ((message.flags & FLAG_IGNORE_UNREADABLE) != FLAG_IGNORE_UNREADABLE) {
-                    logger.log(WARNING, "Other party is using a faulty OTR client: DISCONNECT messages are expected to have the IGNORE_UNREADABLE flag set.");
+                    this.logger.log(WARNING, "Other party is using a faulty OTR client: DISCONNECT messages are expected to have the IGNORE_UNREADABLE flag set.");
                 }
                 if (!content.message.isEmpty()) {
-                    logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
+                    this.logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
                 }
                 // TODO this was documented, but what was the rationale to sometimes forget MACs that we should reveal?
                 this.ratchet.forgetRemainingMACsToReveal();
@@ -311,7 +311,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                         extraSymmetricKey, tlv.value);
                 break;
             default:
-                logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);
+                this.logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);
                 break;
             }
         }

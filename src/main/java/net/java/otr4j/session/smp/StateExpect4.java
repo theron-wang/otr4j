@@ -57,12 +57,12 @@ final class StateExpect4 extends AbstractSMPState {
         checkExpon(msg4[2]);
 
         /* Verify Bob's log equality proof */
-        checkEqualLogs(msg4[1], msg4[2], msg4[0], g3o, qab, 8);
+        checkEqualLogs(msg4[1], msg4[2], msg4[0], this.g3o, this.qab, 8);
 
         /* Calculate Rab and verify that secrets match */
 
-        final BigInteger rab = msg4[0].modPow(x3, DHKeyPairOTR3.MODULUS);
-        final int comp = rab.compareTo(pab);
+        final BigInteger rab = msg4[0].modPow(this.x3, DHKeyPairOTR3.MODULUS);
+        final int comp = rab.compareTo(this.pab);
 
         final SMPStatus status = (comp == 0) ? SMPStatus.SUCCEEDED : SMPStatus.FAILED;
         astate.setState(new StateExpect1(this.secureRandom(), status));

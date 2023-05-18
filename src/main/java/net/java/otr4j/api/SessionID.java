@@ -53,7 +53,7 @@ public final class SessionID {
      */
     @Nonnull
     public String getAccountID() {
-        return localAccountID;
+        return this.localAccountID;
     }
 
     /**
@@ -63,7 +63,7 @@ public final class SessionID {
      */
     @Nonnull
     public String getUserID() {
-        return remoteUserID;
+        return this.remoteUserID;
     }
 
     /**
@@ -73,21 +73,21 @@ public final class SessionID {
      */
     @Nonnull
     public String getProtocolName() {
-        return protocolName;
+        return this.protocolName;
     }
 
     @Override
     public String toString() {
-        return localAccountID + '_' + protocolName + '_' + remoteUserID;
+        return this.localAccountID + '_' + this.protocolName + '_' + this.remoteUserID;
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + localAccountID.hashCode();
-        result = prime * result + protocolName.hashCode();
-        result = prime * result + remoteUserID.hashCode();
+        result = prime * result + this.localAccountID.hashCode();
+        result = prime * result + this.protocolName.hashCode();
+        result = prime * result + this.remoteUserID.hashCode();
         return result;
     }
 
@@ -100,12 +100,12 @@ public final class SessionID {
             return false;
         }
         final SessionID other = (SessionID) obj;
-        if (!localAccountID.equals(other.localAccountID)) {
+        if (!this.localAccountID.equals(other.localAccountID)) {
             return false;
         }
-        if (!protocolName.equals(other.protocolName)) {
+        if (!this.protocolName.equals(other.protocolName)) {
             return false;
         }
-        return remoteUserID.equals(other.remoteUserID);
+        return this.remoteUserID.equals(other.remoteUserID);
     }
 }

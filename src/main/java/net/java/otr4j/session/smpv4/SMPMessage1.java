@@ -45,7 +45,7 @@ final class SMPMessage1 implements SMPMessage {
 
     @Override
     public void writeTo(final OtrOutputStream out) {
-        out.writeData(question.getBytes(UTF_8)).writePoint(this.g2a).writeScalar(this.c2).writeScalar(this.d2)
+        out.writeData(this.question.getBytes(UTF_8)).writePoint(this.g2a).writeScalar(this.c2).writeScalar(this.d2)
                 .writePoint(this.g3a).writeScalar(this.c3).writeScalar(this.d3);
     }
 }

@@ -75,21 +75,21 @@ final class SessionKey implements AutoCloseable {
     }
 
     int getLocalKeyID() {
-        return localKeyID;
+        return this.localKeyID;
     }
 
     int getRemoteKeyID() {
-        return remoteKeyID;
+        return this.remoteKeyID;
     }
 
     @Nonnull
     public DHKeyPairOTR3 getLocalKeyPair() {
-        return localKeyPair;
+        return this.localKeyPair;
     }
 
     @Nonnull
     public DHPublicKey getRemotePublicKey() {
-        return remotePublicKey;
+        return this.remotePublicKey;
     }
 
     /**
@@ -98,7 +98,7 @@ final class SessionKey implements AutoCloseable {
      * @return Returns true if session key is used, or false otherwise.
      */
     boolean isUsed() {
-        return used;
+        return this.used;
     }
 
     @Override
@@ -155,7 +155,7 @@ final class SessionKey implements AutoCloseable {
      */
     @Nonnull
     byte[] sendingAESKey() {
-        final byte sendByte = high ? HIGH_SEND_BYTE : LOW_SEND_BYTE;
+        final byte sendByte = this.high ? HIGH_SEND_BYTE : LOW_SEND_BYTE;
         final byte[] h1 = this.s.h1(sendByte);
         final byte[] key = new byte[OtrCryptoEngine.AES_KEY_LENGTH_BYTES];
         ByteBuffer.wrap(h1).get(key);
@@ -181,7 +181,7 @@ final class SessionKey implements AutoCloseable {
      */
     @Nonnull
     byte[] receivingAESKey() {
-        final byte receiveByte = high ? HIGH_RECEIVE_BYTE : LOW_RECEIVE_BYTE;
+        final byte receiveByte = this.high ? HIGH_RECEIVE_BYTE : LOW_RECEIVE_BYTE;
         final byte[] h1 = this.s.h1(receiveByte);
         final byte[] key = new byte[OtrCryptoEngine.AES_KEY_LENGTH_BYTES];
         ByteBuffer.wrap(h1).get(key);
@@ -201,9 +201,9 @@ final class SessionKey implements AutoCloseable {
     @Nonnull
     byte[] acquireSendingCtr() {
         LOGGER.log(Level.FINEST, "Incrementing counter for (localkeyID, remoteKeyID) = ({0}, {1})",
-                new Object[] {this.localKeyID, remoteKeyID});
+                new Object[] {this.localKeyID, this.remoteKeyID});
         for (int i = this.sendingCtr.length - 1; i >= 0; i--) {
-            sendingCtr[i]++;
+            this.sendingCtr[i]++;
             if (this.sendingCtr[i] != 0) {
                 break;
             }

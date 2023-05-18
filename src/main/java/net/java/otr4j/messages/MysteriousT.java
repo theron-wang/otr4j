@@ -105,16 +105,16 @@ public final class MysteriousT implements OtrEncodable {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + Arrays.hashCode(ctr);
-        result = prime * result + Arrays.hashCode(encryptedMessage);
-        result = prime * result + flags;
-        result = prime * result + messageType;
-        result = prime * result + nextDH.hashCode();
-        result = prime * result + protocolVersion;
-        result = prime * result + recipientKeyID;
-        result = prime * result + senderKeyID;
-        result = prime * result + senderInstanceTag.hashCode();
-        result = prime * result + receiverInstanceTag.hashCode();
+        result = prime * result + Arrays.hashCode(this.ctr);
+        result = prime * result + Arrays.hashCode(this.encryptedMessage);
+        result = prime * result + this.flags;
+        result = prime * result + this.messageType;
+        result = prime * result + this.nextDH.hashCode();
+        result = prime * result + this.protocolVersion;
+        result = prime * result + this.recipientKeyID;
+        result = prime * result + this.senderKeyID;
+        result = prime * result + this.senderInstanceTag.hashCode();
+        result = prime * result + this.receiverInstanceTag.hashCode();
         return result;
     }
 
@@ -127,34 +127,34 @@ public final class MysteriousT implements OtrEncodable {
             return false;
         }
         final MysteriousT other = (MysteriousT) obj;
-        if (!constantTimeEquals(ctr, other.ctr)) {
+        if (!constantTimeEquals(this.ctr, other.ctr)) {
             return false;
         }
-        if (!constantTimeEquals(encryptedMessage, other.encryptedMessage)) {
+        if (!constantTimeEquals(this.encryptedMessage, other.encryptedMessage)) {
             return false;
         }
-        if (flags != other.flags) {
+        if (this.flags != other.flags) {
             return false;
         }
-        if (messageType != other.messageType) {
+        if (this.messageType != other.messageType) {
             return false;
         }
-        if (!nextDH.equals(other.nextDH)) {
+        if (!this.nextDH.equals(other.nextDH)) {
             return false;
         }
-        if (protocolVersion != other.protocolVersion) {
+        if (this.protocolVersion != other.protocolVersion) {
             return false;
         }
-        if (recipientKeyID != other.recipientKeyID) {
+        if (this.recipientKeyID != other.recipientKeyID) {
             return false;
         }
-        if (senderKeyID != other.senderKeyID) {
+        if (this.senderKeyID != other.senderKeyID) {
             return false;
         }
-        if (!senderInstanceTag.equals(other.senderInstanceTag)) {
+        if (!this.senderInstanceTag.equals(other.senderInstanceTag)) {
             return false;
         }
-        return receiverInstanceTag.equals(other.receiverInstanceTag);
+        return this.receiverInstanceTag.equals(other.receiverInstanceTag);
     }
 
     @Override

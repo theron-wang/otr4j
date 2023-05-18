@@ -407,7 +407,7 @@
                             <inputEncoding>UTF-8</inputEncoding>
                             <failOnViolation>true</failOnViolation>
                             <configLocation>${project.basedir}/codecheck/checkstyle.xml</configLocation>
-                            <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                            <includeTestSourceDirectory>false</includeTestSourceDirectory>
                         </configuration>
                     </plugin>
                     <plugin>

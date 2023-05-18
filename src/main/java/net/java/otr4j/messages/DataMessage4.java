@@ -146,20 +146,21 @@ public final class DataMessage4 extends AbstractEncodedMessage {
             return false;
         }
         final DataMessage4 that = (DataMessage4) o;
-        return flags == that.flags && pn == that.pn && i == that.i && j == that.j
-                && Objects.equals(ecdhPublicKey, that.ecdhPublicKey) && Objects.equals(dhPublicKey, that.dhPublicKey)
-                && constantTimeEquals(ciphertext, that.ciphertext)
-                && constantTimeEquals(authenticator, that.authenticator)
+        return this.flags == that.flags && this.pn == that.pn && this.i == that.i && this.j == that.j
+                && Objects.equals(this.ecdhPublicKey, that.ecdhPublicKey)
+                && Objects.equals(this.dhPublicKey, that.dhPublicKey)
+                && constantTimeEquals(this.ciphertext, that.ciphertext)
+                && constantTimeEquals(this.authenticator, that.authenticator)
                 // Note: revealed MACs are not sensitive, so there is no sense in comparing constant-time
-                && Arrays.equals(revealedMacs, that.revealedMacs);
+                && Arrays.equals(this.revealedMacs, that.revealedMacs);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(super.hashCode(), flags, pn, i, j, ecdhPublicKey, dhPublicKey);
-        result = 31 * result + Arrays.hashCode(ciphertext);
-        result = 31 * result + Arrays.hashCode(authenticator);
-        result = 31 * result + Arrays.hashCode(revealedMacs);
+        int result = Objects.hash(super.hashCode(), this.flags, this.pn, this.i, this.j, this.ecdhPublicKey, this.dhPublicKey);
+        result = 31 * result + Arrays.hashCode(this.ciphertext);
+        result = 31 * result + Arrays.hashCode(this.authenticator);
+        result = 31 * result + Arrays.hashCode(this.revealedMacs);
         return result;
     }
 

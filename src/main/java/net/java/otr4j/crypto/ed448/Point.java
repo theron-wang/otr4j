@@ -74,7 +74,7 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
             return false;
         }
         final Point point = (Point) o;
-        return Arrays.equals(encoded, point.encoded);
+        return Arrays.equals(this.encoded, point.encoded);
     }
 
     @Override
@@ -167,6 +167,6 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
 
     @Override
     public String toString() {
-        return "Point{encoded=" + Arrays.toString(encoded) + '}';
+        return "Point{encoded=" + Arrays.toString(this.encoded) + '}';
     }
 }

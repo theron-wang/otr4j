@@ -189,7 +189,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      */
     @Nonnull
     public Point getTheirECDHPublicKey() {
-        return theirECDHPublicKey;
+        return this.theirECDHPublicKey;
     }
 
     /**
@@ -199,7 +199,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      */
     @Nonnull
     public BigInteger getTheirDHPublicKey() {
-        return theirDHPublicKey;
+        return this.theirDHPublicKey;
     }
 
     /**

@@ -155,7 +155,7 @@ final class SessionKeyManager implements AutoCloseable {
         sess2.close();
 
         // Generate new key for NEXT slots
-        final DHKeyPairOTR3 newKeyPair = generateDHKeyPair(secureRandom);
+        final DHKeyPairOTR3 newKeyPair = generateDHKeyPair(this.secureRandom);
         this.keys.get(Index.NEXT).put(Index.NEXT, new SessionKey(sess3.getLocalKeyID() + 1, newKeyPair,
                 sess3.getRemoteKeyID(), sess3.getRemotePublicKey()));
         this.keys.get(Index.NEXT).put(Index.CURRENT, new SessionKey(sess4.getLocalKeyID() + 1, newKeyPair,

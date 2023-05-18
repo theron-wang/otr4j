@@ -162,12 +162,12 @@ public final class DSAKeyPair {
             return false;
         }
         final DSAKeyPair that = (DSAKeyPair) o;
-        return privateKey.equals(that.privateKey) && publicKey.equals(that.publicKey);
+        return this.privateKey.equals(that.privateKey) && this.publicKey.equals(that.publicKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(privateKey, publicKey);
+        return Objects.hash(this.privateKey, this.publicKey);
     }
 
     /**
@@ -349,12 +349,12 @@ public final class DSAKeyPair {
                 return false;
             }
             final DSASignature that = (DSASignature) o;
-            return Objects.equals(r, that.r) && Objects.equals(s, that.s);
+            return Objects.equals(this.r, that.r) && Objects.equals(this.s, that.s);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(r, s);
+            return Objects.hash(this.r, this.s);
         }
     }
 }

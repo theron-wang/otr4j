@@ -64,8 +64,8 @@ public final class DHCommitMessage extends AbstractEncodedMessage {
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result + Arrays.hashCode(dhPublicKeyEncrypted);
-        result = prime * result + Arrays.hashCode(dhPublicKeyHash);
+        result = prime * result + Arrays.hashCode(this.dhPublicKeyEncrypted);
+        result = prime * result + Arrays.hashCode(this.dhPublicKeyHash);
         return result;
     }
 
@@ -82,8 +82,8 @@ public final class DHCommitMessage extends AbstractEncodedMessage {
             return false;
         }
         final DHCommitMessage other = (DHCommitMessage) obj;
-        return constantTimeEquals(dhPublicKeyEncrypted, other.dhPublicKeyEncrypted)
-                & constantTimeEquals(dhPublicKeyHash, other.dhPublicKeyHash);
+        return constantTimeEquals(this.dhPublicKeyEncrypted, other.dhPublicKeyEncrypted)
+                & constantTimeEquals(this.dhPublicKeyHash, other.dhPublicKeyHash);
     }
 
     @Override

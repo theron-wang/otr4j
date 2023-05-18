@@ -71,11 +71,11 @@ public final class AuthIMessage extends AbstractEncodedMessage {
             return false;
         }
         final AuthIMessage that = (AuthIMessage) o;
-        return sigma.equals(that.sigma);
+        return this.sigma.equals(that.sigma);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), sigma);
+        return Objects.hash(super.hashCode(), this.sigma);
     }
 }

@@ -225,7 +225,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
                 newFirstDHKeyPair.publicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), newK, newSSID, newX, newA, newFirstECDHKeyPair,
                 newFirstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey, message.y, message.b,
-                ourProfile, message.clientProfile));
+                this.ourProfile, message.clientProfile));
     }
 
     private void handleAuthIMessage(final Context context, final AuthIMessage message) throws ValidationException {

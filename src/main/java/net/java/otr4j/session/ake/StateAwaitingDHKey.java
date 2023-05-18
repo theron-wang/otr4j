@@ -91,7 +91,7 @@ final class StateAwaitingDHKey extends AbstractAuthState {
         // to your correspondent, but that he either didn't receive it, or just didn't receive it yet, and has sent you one as well.
         // The symmetry will be broken by comparing the hashed gx you sent in your D-H Commit Message with the one you received,
         // considered as 32-byte unsigned big-endian values."
-        final byte[] publicKeyBytes = new OtrOutputStream().writeBigInt(keypair.getPublic().getY()).toByteArray();
+        final byte[] publicKeyBytes = new OtrOutputStream().writeBigInt(this.keypair.getPublic().getY()).toByteArray();
         final byte[] publicKeyHash = OtrCryptoEngine.sha256Hash(publicKeyBytes);
         final BigInteger localKeyHashBigInt = new BigInteger(1, publicKeyHash);
         final BigInteger remoteKeyHashBigInt = new BigInteger(1, message.dhPublicKeyHash);

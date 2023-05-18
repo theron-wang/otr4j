@@ -118,23 +118,22 @@ public final class DataMessage extends AbstractEncodedMessage {
      * @return Returns 'T'.
      */
     public MysteriousT getT() {
-        return new MysteriousT(protocolVersion, senderTag,
-                receiverTag, flags, senderKeyID,
-                recipientKeyID, nextDH, ctr, encryptedMessage);
+        return new MysteriousT(this.protocolVersion, this.senderTag, this.receiverTag, this.flags, this.senderKeyID,
+                this.recipientKeyID, this.nextDH, this.ctr, this.encryptedMessage);
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result + Arrays.hashCode(ctr);
-        result = prime * result + Arrays.hashCode(encryptedMessage);
-        result = prime * result + flags;
-        result = prime * result + Arrays.hashCode(mac);
-        result = prime * result + nextDH.hashCode();
-        result = prime * result + Arrays.hashCode(oldMACKeys);
-        result = prime * result + recipientKeyID;
-        result = prime * result + senderKeyID;
+        result = prime * result + Arrays.hashCode(this.ctr);
+        result = prime * result + Arrays.hashCode(this.encryptedMessage);
+        result = prime * result + this.flags;
+        result = prime * result + Arrays.hashCode(this.mac);
+        result = prime * result + this.nextDH.hashCode();
+        result = prime * result + Arrays.hashCode(this.oldMACKeys);
+        result = prime * result + this.recipientKeyID;
+        result = prime * result + this.senderKeyID;
         return result;
     }
 
@@ -150,28 +149,28 @@ public final class DataMessage extends AbstractEncodedMessage {
             return false;
         }
         final DataMessage other = (DataMessage) obj;
-        if (!constantTimeEquals(ctr, other.ctr)) {
+        if (!constantTimeEquals(this.ctr, other.ctr)) {
             return false;
         }
-        if (!constantTimeEquals(encryptedMessage, other.encryptedMessage)) {
+        if (!constantTimeEquals(this.encryptedMessage, other.encryptedMessage)) {
             return false;
         }
-        if (flags != other.flags) {
+        if (this.flags != other.flags) {
             return false;
         }
-        if (!constantTimeEquals(mac, other.mac)) {
+        if (!constantTimeEquals(this.mac, other.mac)) {
             return false;
         }
-        if (!nextDH.equals(other.nextDH)) {
+        if (!this.nextDH.equals(other.nextDH)) {
             return false;
         }
-        if (!constantTimeEquals(oldMACKeys, other.oldMACKeys)) {
+        if (!constantTimeEquals(this.oldMACKeys, other.oldMACKeys)) {
             return false;
         }
-        if (recipientKeyID != other.recipientKeyID) {
+        if (this.recipientKeyID != other.recipientKeyID) {
             return false;
         }
-        return senderKeyID == other.senderKeyID;
+        return this.senderKeyID == other.senderKeyID;
     }
 
     @Override

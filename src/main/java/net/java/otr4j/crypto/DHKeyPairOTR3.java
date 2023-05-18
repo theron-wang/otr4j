@@ -182,7 +182,7 @@ public final class DHKeyPairOTR3 {
      */
     @Nonnull
     public DHPublicKey getPublic() {
-        return publicKey;
+        return this.publicKey;
     }
 
     /**

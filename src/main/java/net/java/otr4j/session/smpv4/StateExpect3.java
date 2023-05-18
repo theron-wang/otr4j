@@ -94,10 +94,10 @@ final class StateExpect3 implements SMPState {
             throw new SMPAbortException("Message failed verification.");
         }
         if (!smp3.cp.constantTimeEquals(hashToScalar(SMP_VALUE_0X06, this.g3.multiply(smp3.d5).add(smp3.pa.multiply(smp3.cp)).encode(),
-                multiplyByBase(smp3.d5).add(g2.multiply(smp3.d6)).add(smp3.qa.multiply(smp3.cp)).encode()))) {
+                multiplyByBase(smp3.d5).add(this.g2.multiply(smp3.d6)).add(smp3.qa.multiply(smp3.cp)).encode()))) {
             throw new SMPAbortException("Message failed verification.");
         }
-        if (!smp3.cr.constantTimeEquals(hashToScalar(SMP_VALUE_0X07, multiplyByBase(smp3.d7).add(g3a.multiply(smp3.cr)).encode(),
+        if (!smp3.cr.constantTimeEquals(hashToScalar(SMP_VALUE_0X07, multiplyByBase(smp3.d7).add(this.g3a.multiply(smp3.cr)).encode(),
                 smp3.qa.add(this.qb.negate()).multiply(smp3.d7).add(smp3.ra.multiply(smp3.cr)).encode()))) {
             throw new SMPAbortException("Message failed verification.");
         }

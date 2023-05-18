@@ -158,7 +158,7 @@ public final class Fragment implements Message {
      * @return Returns the version.
      */
     public int getVersion() {
-        return version;
+        return this.version;
     }
 
     /**
@@ -169,7 +169,7 @@ public final class Fragment implements Message {
      * @return Returns the identifier.
      */
     public int getIdentifier() {
-        return identifier;
+        return this.identifier;
     }
 
     /**
@@ -179,7 +179,7 @@ public final class Fragment implements Message {
      */
     @Nonnull
     public InstanceTag getSenderTag() {
-        return senderTag;
+        return this.senderTag;
     }
 
     /**
@@ -189,7 +189,7 @@ public final class Fragment implements Message {
      */
     @Nonnull
     public InstanceTag getReceiverTag() {
-        return receiverTag;
+        return this.receiverTag;
     }
 
     /**
@@ -198,7 +198,7 @@ public final class Fragment implements Message {
      * @return Returns the index value.
      */
     public int getIndex() {
-        return index;
+        return this.index;
     }
 
     /**
@@ -207,7 +207,7 @@ public final class Fragment implements Message {
      * @return Returns the total.
      */
     public int getTotal() {
-        return total;
+        return this.total;
     }
 
     /**
@@ -217,6 +217,6 @@ public final class Fragment implements Message {
      */
     @Nonnull
     public String getContent() {
-        return content;
+        return this.content;
     }
 }

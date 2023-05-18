@@ -61,8 +61,8 @@ public final class SignatureMessage extends AbstractEncodedMessage {
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result + Arrays.hashCode(xEncrypted);
-        result = prime * result + Arrays.hashCode(xEncryptedMAC);
+        result = prime * result + Arrays.hashCode(this.xEncrypted);
+        result = prime * result + Arrays.hashCode(this.xEncryptedMAC);
         return result;
     }
 
@@ -79,7 +79,7 @@ public final class SignatureMessage extends AbstractEncodedMessage {
             return false;
         }
         final SignatureMessage other = (SignatureMessage) obj;
-        return constantTimeEquals(xEncrypted, other.xEncrypted) & constantTimeEquals(xEncryptedMAC, other.xEncryptedMAC);
+        return constantTimeEquals(this.xEncrypted, other.xEncrypted) & constantTimeEquals(this.xEncryptedMAC, other.xEncryptedMAC);
     }
 
     @Override

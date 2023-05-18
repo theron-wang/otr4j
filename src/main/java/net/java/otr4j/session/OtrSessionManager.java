@@ -138,17 +138,17 @@ public final class OtrSessionManager {
 
         @Override
         public void sessionStatusChanged(final SessionID sessionID, final InstanceTag receiverTag) {
-            OtrEngineListeners.sessionStatusChanged(duplicate(listeners), sessionID, receiverTag);
+            OtrEngineListeners.sessionStatusChanged(duplicate(OtrSessionManager.this.listeners), sessionID, receiverTag);
         }
 
         @Override
         public void multipleInstancesDetected(final SessionID sessionID) {
-            OtrEngineListeners.multipleInstancesDetected(duplicate(listeners), sessionID);
+            OtrEngineListeners.multipleInstancesDetected(duplicate(OtrSessionManager.this.listeners), sessionID);
         }
 
         @Override
         public void outgoingSessionChanged(final SessionID sessionID) {
-            OtrEngineListeners.outgoingSessionChanged(duplicate(listeners), sessionID);
+            OtrEngineListeners.outgoingSessionChanged(duplicate(OtrSessionManager.this.listeners), sessionID);
         }
     };
 
@@ -160,16 +160,16 @@ public final class OtrSessionManager {
      * @return Returns Session instance that corresponds to provided sessionID.
      */
     public Session getSession(final SessionID sessionID) {
-        synchronized (sessions) {
-            SessionImpl session = sessions.get(sessionID);
+        synchronized (this.sessions) {
+            SessionImpl session = this.sessions.get(sessionID);
             if (session == null) {
                 // Don't differentiate between existing but null and non-existing. If we do not get a valid instance,
                 // then we create a new instance.
                 session = new SessionImpl(sessionID, this.host);
-                session.addOtrEngineListener(sessionManagerListener);
+                session.addOtrEngineListener(this.sessionManagerListener);
                 SessionExpirationTimerTask.instance().register(session);
                 HeartBeatTimerTask.instance().register(session);
-                sessions.put(sessionID, session);
+                this.sessions.put(sessionID, session);
             }
             return session;
         }
@@ -182,9 +182,9 @@ public final class OtrSessionManager {
      */
     public void addOtrEngineListener(final OtrEngineListener l) {
         requireNonNull(l, "null is not a valid listener");
-        synchronized (listeners) {
-            if (!listeners.contains(l)) {
-                listeners.add(l);
+        synchronized (this.listeners) {
+            if (!this.listeners.contains(l)) {
+                this.listeners.add(l);
             }
         }
     }
@@ -196,8 +196,8 @@ public final class OtrSessionManager {
      */
     public void removeOtrEngineListener(final OtrEngineListener l) {
         requireNonNull(l, "null is not a valid listener");
-        synchronized (listeners) {
-            listeners.remove(l);
+        synchronized (this.listeners) {
+            this.listeners.remove(l);
         }
     }
 }
