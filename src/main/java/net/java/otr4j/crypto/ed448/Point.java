@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static org.bouncycastle.math.ec.rfc8032.Ed448.PUBLIC_KEY_SIZE;
 import static org.bouncycastle.util.Arrays.clear;
@@ -29,8 +30,6 @@ import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
 public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
 
     private final byte[] encoded;
-
-    private boolean cleared = false;
 
     Point(final byte[] encoded) {
         this.encoded = requireLengthExactly(PUBLIC_KEY_SIZE, encoded);
@@ -46,7 +45,6 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
     @Override
     public void close() {
         clear(this.encoded);
-        this.cleared = true;
     }
 
     /**
@@ -160,7 +158,7 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
     }
 
     private void requireNotCleared() {
-        if (this.cleared) {
+        if (allZeroBytes(this.encoded)) {
             throw new IllegalStateException("Point data was already cleared.");
         }
     }

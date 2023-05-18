@@ -19,6 +19,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 
 import static java.lang.Integer.signum;
+import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static nl.dannyvanheumen.joldilocks.Ed448.primeOrder;
 import static org.bouncycastle.util.Arrays.clear;
@@ -42,8 +43,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
     public static final int SCALAR_LENGTH_BYTES = 57;
 
     private final byte[] encoded;
-
-    private boolean cleared = false;
 
     Scalar(final byte[] encoded) {
         this.encoded = requireLengthExactly(SCALAR_LENGTH_BYTES, encoded);
@@ -221,11 +220,10 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
     @Override
     public void close() {
         clear(this.encoded);
-        this.cleared = true;
     }
 
     private void requireNotCleared() {
-        if (this.cleared) {
+        if (allZeroBytes(this.encoded)) {
             throw new IllegalStateException("Scalar is already cleared.");
         }
     }

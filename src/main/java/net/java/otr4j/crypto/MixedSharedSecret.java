@@ -36,6 +36,7 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
 /**
  * The OTRv4 Mixed Shared Secret-mechanism.
  */
+// REMARK we only compare new `their next` public keys against their previous and our keypair. (So not compared against other past keys.)
 public final class MixedSharedSecret implements AutoCloseable {
 
     private static final int SSID_LENGTH_BYTES = 8;
@@ -58,11 +59,6 @@ public final class MixedSharedSecret implements AutoCloseable {
      * 'KDF_1(0x04 || K_ecdh || brace_key, 64)'.
      */
     private final byte[] k = new byte[K_LENGTH_BYTES];
-
-    /**
-     * Flag used to manage internal state: in use / closed.
-     */
-    private boolean closed = false;
 
     /**
      * Our ECDH key pair.
@@ -154,7 +150,6 @@ public final class MixedSharedSecret implements AutoCloseable {
     // FIXME investigate proper closing/clearing procedure given that these instances may be thrown away in case of malicious messages.
     @Override
     public void close() {
-        this.closed = true;
         clear(this.braceKey);
         clear(this.k);
         this.ecdhKeyPair.close();
@@ -281,7 +276,7 @@ public final class MixedSharedSecret implements AutoCloseable {
     }
 
     private void expectNotClosed() {
-        if (this.closed) {
+        if (allZeroBytes(this.braceKey) || allZeroBytes(this.k)) {
             throw new IllegalStateException("Shared secret is already closed/disposed of.");
         }
     }

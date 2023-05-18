@@ -37,11 +37,6 @@ import static org.bouncycastle.util.Arrays.clear;
 public final class MessageKeys implements AutoCloseable {
 
     /**
-     * Flag to indicate when MessageKeys instanced has been cleaned up.
-     */
-    private boolean closed = false;
-
-    /**
      * Encryption/Decryption key. (MUST be cleared after use.)
      */
     private final byte[] encrypt;
@@ -60,8 +55,9 @@ public final class MessageKeys implements AutoCloseable {
     @MustBeClosed
     @Nonnull
     public static MessageKeys fromChainkey(final byte[] chainkey) {
-        // FIXME consider making this a run-time check, because we use a dummy with all-zeroes value. So that way we also detect programming errors. (See `testEncryptionAfterRotation`)
-        assert !allZeroBytes(chainkey) : "Expected chainkey of random data instead of all zero-bytes.";
+        if (allZeroBytes(chainkey)) {
+            throw new IllegalArgumentException("All-zero bytes chain key.");
+        }
         final byte[] encrypt = kdf(MK_ENC_LENGTH_BYTES, MESSAGE_KEY, chainkey);
         final byte[] extraSymmetricKey = kdf(EXTRA_SYMMETRIC_KEY_LENGTH_BYTES, EXTRA_SYMMETRIC_KEY,
                 new byte[]{(byte) 0xff}, chainkey);
@@ -101,7 +97,6 @@ public final class MessageKeys implements AutoCloseable {
     public void close() {
         clear(this.encrypt);
         clear(this.extraSymmetricKey);
-        this.closed = true;
     }
 
     /**
@@ -181,7 +176,7 @@ public final class MessageKeys implements AutoCloseable {
     }
 
     private void requireNotClosed() {
-        if (this.closed) {
+        if (allZeroBytes(this.encrypt) || allZeroBytes(this.extraSymmetricKey)) {
             throw new IllegalStateException("BUG: Use of closed MessageKeys instance.");
         }
     }
