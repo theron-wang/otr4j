@@ -44,7 +44,6 @@ import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthAtLeast;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static net.java.otr4j.util.Integers.requireAtLeast;
-import static net.java.otr4j.util.Integers.requireEquals;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.bouncycastle.util.Arrays.clear;
 
@@ -525,7 +524,7 @@ public final class OtrCryptoEngine4 {
         final int eq1 = longTermPublicKey.constantTimeEquals(A1) ? 1 : 0;
         final int eq2 = longTermPublicKey.constantTimeEquals(A2) ? 1 : 0;
         final int eq3 = longTermPublicKey.constantTimeEquals(A3) ? 1 : 0;
-        requireEquals(1, eq1 + eq2 + eq3, "Expected long-term keypair to match exactly one of 3 public keys.");
+        assert eq1 + eq2 + eq3 == 1 :  "Expected long-term keypair to match exactly one of 3 public keys.";
         // "Pick random values t, c2, c3, r2, r3 in q."
         try (Scalar t = generateRandomValueInZq(random)) {
             Scalar ci = generateRandomValueInZq(random);
