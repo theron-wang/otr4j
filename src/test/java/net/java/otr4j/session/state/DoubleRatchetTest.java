@@ -23,6 +23,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
 import static net.java.otr4j.session.state.DoubleRatchet.Purpose.RECEIVING;
 import static net.java.otr4j.session.state.DoubleRatchet.Purpose.SENDING;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
@@ -345,13 +346,9 @@ public class DoubleRatchetTest {
 
         // Start encrypting and authenticating using Bob's double ratchet.
         assertEquals(SENDING, aliceRatchet.nextRotation());
-        // FIXME fix checking revealedMACs
-        final byte[] revealedMacs = new byte[1];
-        //final byte[] revealedMacs = aliceRatchet.rotateSenderKeys();
         aliceRatchet = aliceRatchet.rotateSenderKeys();
-        // FIXME test closing behavior in here too?
+        assertArrayEquals(new byte[0], aliceRatchet.collectRemainingMACsToReveal());
         assertEquals(RECEIVING, aliceRatchet.nextRotation());
-        //assertArrayEquals(new byte[0], revealedMacs);
         final byte[] ciphertext = aliceRatchet.encrypt(message);
         final byte[] authenticator = aliceRatchet.authenticate(message);
         final byte[] extraSymmKey1 = aliceRatchet.extraSymmetricKeySender();
@@ -390,11 +387,11 @@ public class DoubleRatchetTest {
         assertEquals(0, bobRatchet.getJ());
         assertEquals(3, bobRatchet.getK());
         // Bob starts sending response messages.
-        // FIXME fix checking revealedMACs
-        final byte[] revealedMacs2 = new byte[1];
         bobRatchet = bobRatchet.rotateSenderKeys();
+        final byte[] revealedMacs2 = bobRatchet.collectRemainingMACsToReveal();
+        assertEquals(0, revealedMacs2.length % MK_MAC_LENGTH_BYTES);
+        assertEquals(3 * MK_MAC_LENGTH_BYTES, revealedMacs2.length);
         assertEquals(RECEIVING, bobRatchet.nextRotation());
-        //assertArrayEquals(concatenate(authenticator, authenticator2, authenticator3), revealedMacs2);
         assertEquals(2, bobRatchet.getI());
         assertEquals(0, bobRatchet.getJ());
         assertEquals(3, bobRatchet.getK());
@@ -446,11 +443,9 @@ public class DoubleRatchetTest {
         assertEquals(3, aliceRatchet.getJ());
         assertEquals(3, aliceRatchet.getK());
         // Verify that Alice reveals the expected authenticators.
-        // FIXME fix checking revealedMACs
-        final byte[] revealedMacs3 = new byte[1];
         aliceRatchet = aliceRatchet.rotateSenderKeys();
         assertEquals(RECEIVING, aliceRatchet.nextRotation());
-        //assertArrayEquals(concatenate(authenticator4, authenticator5, authenticator6), revealedMacs3);
+        assertEquals(3 * MK_MAC_LENGTH_BYTES, aliceRatchet.collectRemainingMACsToReveal().length);
         assertEquals(3, aliceRatchet.getI());
         assertEquals(0, aliceRatchet.getJ());
         assertEquals(3, aliceRatchet.getK());
@@ -461,7 +456,7 @@ public class DoubleRatchetTest {
         assertEquals(3, aliceRatchet.getI());
         assertEquals(1, aliceRatchet.getJ());
         assertEquals(3, aliceRatchet.getK());
-        assertArrayEquals(new byte[0], aliceRatchet.collectRemainingMACsToReveal());
+        assertEquals(0, aliceRatchet.collectRemainingMACsToReveal().length);
         aliceRatchet.close();
         assertEquals(RECEIVING, bobRatchet.nextRotation());
         bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), null, 1);
@@ -471,7 +466,7 @@ public class DoubleRatchetTest {
         assertEquals(3, bobRatchet.getJ());
         assertEquals(0, bobRatchet.getK());
         assertArrayEquals(message, bobRatchet.decrypt(2, 0, message, authenticator7, ciphertext7));
-        assertArrayEquals(authenticator7, bobRatchet.collectRemainingMACsToReveal());
+        assertEquals(MK_MAC_LENGTH_BYTES, bobRatchet.collectRemainingMACsToReveal().length);
         assertArrayEquals(extraSymmKey7, bobRatchet.extraSymmetricKeyReceiver(2, 0));
         bobRatchet.close();
     }

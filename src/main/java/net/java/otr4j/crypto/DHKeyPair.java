@@ -69,7 +69,7 @@ public final class DHKeyPair implements AutoCloseable {
      * @param original the original
      */
     public DHKeyPair(final DHKeyPair original) {
-        this.secretKey = requireNonNull(original.secretKey);
+        this.secretKey = original.secretKey;
         this.publicKey = requireNonNull(original.publicKey);
     }
 

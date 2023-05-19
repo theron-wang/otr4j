@@ -55,7 +55,7 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 import static net.java.otr4j.messages.AuthIMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
 import static net.java.otr4j.messages.MysteriousT4.encode;
-import static org.bouncycastle.util.Arrays.clear;
+import static net.java.otr4j.util.ByteArrays.clear;
 
 /**
  * The state AWAITING_AUTH_I.

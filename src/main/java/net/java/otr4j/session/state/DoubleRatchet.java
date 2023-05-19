@@ -37,8 +37,8 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.ROOT_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static org.bouncycastle.util.Arrays.clear;
 import static org.bouncycastle.util.Arrays.concatenate;
 
 /**

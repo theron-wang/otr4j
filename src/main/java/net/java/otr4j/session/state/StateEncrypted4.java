@@ -54,6 +54,7 @@ import static net.java.otr4j.messages.DataMessage4s.encodeDataMessageSections;
 import static net.java.otr4j.messages.DataMessage4s.validate;
 import static net.java.otr4j.session.smpv4.SMP.smpPayload;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.concatenate;
 
 /**
  * The OTRv4 ENCRYPTED_MESSAGES state.
@@ -155,17 +156,17 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 : "BUG: expected providedMACsToReveal to contains some non-zero values.";
         // Perform ratchet if necessary, possibly collecting MAC codes to reveal.
         // FIXME properly collect MACs
-        final byte[] collectedMACs = new byte[0];
+        final byte[] collectedMACs;
         if (this.ratchet.nextRotation() == DoubleRatchet.Purpose.SENDING) {
             this.ratchet = this.ratchet.rotateSenderKeys();
-            //final byte[] revealedMacs = 
-            //this.logger.log(FINEST, "Sender keys rotated. revealed MACs size: {0}.",
-            //        new Object[]{revealedMacs.length});
-            //collectedMACs = concatenate(providedMACsToReveal, revealedMacs);
+            final byte[] revealedMacs = this.ratchet.collectRemainingMACsToReveal();
+            this.logger.log(FINEST, "Sender keys rotated. revealed MACs size: {0}.",
+                    new Object[]{revealedMacs.length});
+            collectedMACs = concatenate(providedMACsToReveal, revealedMacs);
         } else {
             this.logger.log(FINEST, "Sender keys rotation is not needed.");
             // FIXME use providedMACs
-            //collectedMACs = providedMACsToReveal;
+            collectedMACs = providedMACsToReveal;
         }
         // Construct data message.
         final byte[] msgBytes = new OtrOutputStream().writeMessage(msgText).writeByte(0).writeTLV(tlvs).toByteArray();

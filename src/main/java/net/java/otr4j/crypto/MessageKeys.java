@@ -24,9 +24,9 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.hcmac;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static org.bouncycastle.util.Arrays.clear;
 
 /**
  * Encrypt/decrypt and authenticate/verify using the secret key material in the MessageKeys.

@@ -48,8 +48,8 @@ import static net.java.otr4j.session.smpv4.SMPMessage.SMP4;
 import static net.java.otr4j.session.smpv4.SMPMessage.SMP_ABORT;
 import static net.java.otr4j.session.smpv4.SMPMessages.parse;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.toHexString;
-import static org.bouncycastle.util.Arrays.clear;
 
 /**
  * OTRv4 variant of the Socialist Millionaire's Protocol.

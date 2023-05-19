@@ -365,10 +365,11 @@ public class MixedSharedSecretTest {
                 DHKeyPair.generate(RANDOM), theirECDHPublicKey, theirDHPublicKey);
         assertFalse(allZeroBytes((byte[]) getInternalState(secret, "k")));
         assertFalse(allZeroBytes((byte[]) getInternalState(secret, "braceKey")));
-        assertFalse((Boolean) getInternalState(secret, "closed"));
         secret.close();
         assertTrue(allZeroBytes((byte[]) getInternalState(secret, "k")));
         assertTrue(allZeroBytes((byte[]) getInternalState(secret, "braceKey")));
-        assertTrue((Boolean) getInternalState(secret, "closed"));
+        secret.close();
+        assertTrue(allZeroBytes((byte[]) getInternalState(secret, "k")));
+        assertTrue(allZeroBytes((byte[]) getInternalState(secret, "braceKey")));
     }
 }

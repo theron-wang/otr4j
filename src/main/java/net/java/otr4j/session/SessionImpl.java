@@ -126,6 +126,7 @@ import static net.java.otr4j.util.Objects.requireNotEquals;
  */
 // TODO consider moving away from recursive use of Session, to delegating class with a number of instances of Session for each instance, with OTRv2 using zero-instance-tag. (Can delegating class be stateless? Would simplify managing thread-safety.)
 // TODO consider reducing complexity.
+// TODO how does that work when receiving an ?OTR ERROR message while in encrypted session? These messages are not authenticated, so can be injected. Is there a way of selective handling to avoid interference?
 @SuppressWarnings({"PMD.TooManyFields", "PMD.GodClass"})
 final class SessionImpl implements Session, Context {
 

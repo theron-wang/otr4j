@@ -29,8 +29,8 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.hwc;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.crypto.ed448.Ed448.containsPoint;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static org.bouncycastle.util.Arrays.clear;
 import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
 
 /**

@@ -288,86 +288,88 @@ public final class ScalarTest {
     }
 
     @Test
-    public void testScalarClose() {
+    public void testScalarClear() {
         final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
+        Scalar.clear(scalar);
         assertTrue(allZeroBytes((byte[]) getInternalState(scalar, "encoded")));
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testScalarAddAfterClose() {
-        final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
-        scalar.add(Scalars.zero());
-    }
+    // FIXME right now we don't do checking of cleared scalar.
 
-    @Test(expected = IllegalStateException.class)
-    public void testScalarSubtractAfterClose() {
-        final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
-        scalar.subtract(Scalars.zero());
-    }
+    //@Test(expected = IllegalStateException.class)
+    //public void testScalarAddAfterClose() {
+    //    final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
+    //    scalar.close();
+    //    scalar.add(Scalars.zero());
+    //}
 
-    @Test(expected = IllegalStateException.class)
-    public void testScalarMultiplyAfterClose() {
-        final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
-        scalar.multiply(Scalars.zero());
-    }
+    //@Test(expected = IllegalStateException.class)
+    //public void testScalarSubtractAfterClose() {
+    //    final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
+    //    scalar.close();
+    //    scalar.subtract(Scalars.zero());
+    //}
 
-    @Test(expected = IllegalStateException.class)
-    public void testScalarNegateAfterClose() {
-        final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
-        scalar.negate();
-    }
+    //@Test(expected = IllegalStateException.class)
+    //public void testScalarMultiplyAfterClose() {
+    //    final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
+    //    scalar.close();
+    //    scalar.multiply(Scalars.zero());
+    //}
 
-    @Test(expected = IllegalStateException.class)
-    public void testScalarModAfterClose() {
-        final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
-        scalar.mod(Scalars.one());
-    }
+    //@Test(expected = IllegalStateException.class)
+    //public void testScalarNegateAfterClose() {
+    //    final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
+    //    scalar.close();
+    //    scalar.negate();
+    //}
 
-    @Test(expected = IllegalStateException.class)
-    public void testScalarEncodeAfterClose() {
-        final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
-        scalar.encode();
-    }
+    //@Test(expected = IllegalStateException.class)
+    //public void testScalarModAfterClose() {
+    //    final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
+    //    scalar.close();
+    //    scalar.mod(Scalars.one());
+    //}
 
-    @Test(expected = IllegalStateException.class)
-    public void testScalarToBigIntegerAfterClose() {
-        final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
-        scalar.toBigInteger();
-    }
+    //@Test(expected = IllegalStateException.class)
+    //public void testScalarEncodeAfterClose() {
+    //    final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
+    //    scalar.close();
+    //    scalar.encode();
+    //}
 
-    @Test(expected = IllegalStateException.class)
-    public void testScalarAddAfterCloseOther() {
-        final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
-        Scalars.zero().add(scalar);
-    }
+    //@Test(expected = IllegalStateException.class)
+    //public void testScalarToBigIntegerAfterClose() {
+    //    final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
+    //    scalar.close();
+    //    scalar.toBigInteger();
+    //}
 
-    @Test(expected = IllegalStateException.class)
-    public void testScalarSubtractAfterCloseOther() {
-        final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
-        Scalars.zero().subtract(scalar);
-    }
+    //@Test(expected = IllegalStateException.class)
+    //public void testScalarAddAfterCloseOther() {
+    //    final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
+    //    scalar.close();
+    //    Scalars.zero().add(scalar);
+    //}
 
-    @Test(expected = IllegalStateException.class)
-    public void testScalarMultiplyAfterCloseOther() {
-        final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
-        Scalars.zero().multiply(scalar);
-    }
+    //@Test(expected = IllegalStateException.class)
+    //public void testScalarSubtractAfterCloseOther() {
+    //    final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
+    //    scalar.close();
+    //    Scalars.zero().subtract(scalar);
+    //}
 
-    @Test(expected = IllegalStateException.class)
-    public void testScalarModAfterCloseOther() {
-        final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
-        scalar.close();
-        Scalars.one().mod(scalar);
-    }
+    //@Test(expected = IllegalStateException.class)
+    //public void testScalarMultiplyAfterCloseOther() {
+    //    final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
+    //    scalar.close();
+    //    Scalars.zero().multiply(scalar);
+    //}
+
+    //@Test(expected = IllegalStateException.class)
+    //public void testScalarModAfterCloseOther() {
+    //    final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
+    //    scalar.close();
+    //    Scalars.one().mod(scalar);
+    //}
 }

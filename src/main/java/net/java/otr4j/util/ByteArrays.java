@@ -14,6 +14,7 @@ import com.google.errorprone.annotations.CheckReturnValue;
 
 import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.Locale;
 
 import static java.util.Objects.requireNonNull;
@@ -160,6 +161,42 @@ public final class ByteArrays {
     }
 
     /**
+     * Concatenate three byte arrays into a new destination array.
+     *
+     * @param first first byte-array
+     * @param second second byte-array
+     * @param third third byte-array
+     * @return Returns a new byte-array with contents of all three byte arrays concatenated.
+     */
+    @Nonnull
+    public static byte[] concatenate(final byte[] first, final byte[] second, final byte[] third) {
+        final byte[] dst = new byte[first.length + second.length + third.length];
+        System.arraycopy(first, 0, dst, 0, first.length);
+        System.arraycopy(second, 0, dst, first.length, second.length);
+        System.arraycopy(third, 0, dst, first.length + second.length, third.length);
+        return dst;
+    }
+
+    /**
+     * Concatenate three byte arrays into a new destination array.
+     *
+     * @param first first byte-array
+     * @param second second byte-array
+     * @param third third byte-array
+     * @param fourth fourth byte-array
+     * @return Returns a new byte-array with contents of all three byte arrays concatenated.
+     */
+    @Nonnull
+    public static byte[] concatenate(final byte[] first, final byte[] second, final byte[] third, final byte[] fourth) {
+        final byte[] dst = new byte[first.length + second.length + third.length + fourth.length];
+        System.arraycopy(first, 0, dst, 0, first.length);
+        System.arraycopy(second, 0, dst, first.length, second.length);
+        System.arraycopy(third, 0, dst, first.length + second.length, third.length);
+        System.arraycopy(fourth, 0, dst, first.length + second.length + third.length, fourth.length);
+        return dst;
+    }
+
+    /**
      * Convert byte-array value to hexadecimal string representation.
      *
      * @param in value as byte-array
@@ -192,5 +229,15 @@ public final class ByteArrays {
             out.write((high << 4) + low);
         }
         return out.toByteArray();
+    }
+
+    /**
+     * Clear clears a byte-array.
+     *
+     * @param data the byte-array
+     */
+    // FIXME write tests
+    public static void clear(final byte[] data) {
+        Arrays.fill(data, (byte) 0);
     }
 }

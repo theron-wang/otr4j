@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.crypto.OtrCryptoEngine.sha1Hash;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
-import static org.bouncycastle.util.Arrays.clear;
+import static net.java.otr4j.util.ByteArrays.clear;
 
 final class SessionKey implements AutoCloseable {
 
