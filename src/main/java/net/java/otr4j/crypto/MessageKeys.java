@@ -133,16 +133,25 @@ public final class MessageKeys implements AutoCloseable {
      * </pre>
      *
      * @param dataMessageSections The data message sections (excluding Authenticator and Revealed MACs).
-     * @return Returns the MAC. (Must be cleared separately.)
+     * @return Returns the pair `(authenticator, MK_MAC)`.
      */
     @Nonnull
-    public byte[] authenticate(final byte[] dataMessageSections) {
+    public Result authenticate(final byte[] dataMessageSections) {
         requireNotClosed();
         final byte[] mac = kdf(MK_MAC_LENGTH_BYTES, MAC_KEY, this.encrypt);
         final byte[] authenticator = hcmac(AUTHENTICATOR, AUTHENTICATOR_LENGTH_BYTES, mac, dataMessageSections);
-        clear(mac);
         assert !allZeroBytes(authenticator) : "Expected non-zero bytes in authenticator";
-        return authenticator;
+        return new Result(authenticator, mac);
+    }
+
+    public static final class Result {
+        public final byte[] authenticator;
+        public final byte[] mkMAC;
+
+        Result(final byte[] authenticator, final byte[] mkMAC) {
+            this.authenticator = requireLengthExactly(AUTHENTICATOR_LENGTH_BYTES, authenticator);
+            this.mkMAC = requireLengthExactly(MK_MAC_LENGTH_BYTES, mkMAC);
+        }
     }
 
     /**
@@ -150,18 +159,20 @@ public final class MessageKeys implements AutoCloseable {
      *
      * @param dataMessageSection The data message section content to be authenticated.
      * @param authenticator The authenticator value.
+     * @return Returns the message key used for MAC after successful verification. The MK_mac can then be queued to be
+     * revealed.
      * @throws OtrCryptoException In case of failure to verify the authenticator against the data message section
      * content.
      */
-    public void verify(final byte[] dataMessageSection, final byte[] authenticator) throws OtrCryptoException {
+    public byte[] verify(final byte[] dataMessageSection, final byte[] authenticator) throws OtrCryptoException {
         assert !allZeroBytes(authenticator) : "Expected non-zero bytes in authenticator";
         requireNotClosed();
-        final byte[] expectedAuthenticator = authenticate(dataMessageSection);
-        final boolean failure = !constantTimeEquals(expectedAuthenticator, authenticator);
-        clear(expectedAuthenticator);
+        final Result result = authenticate(dataMessageSection);
+        final boolean failure = !constantTimeEquals(result.authenticator, authenticator);
         if (failure) {
             throw new OtrCryptoException("The authenticator is invalid.");
         }
+        return result.mkMAC;
     }
 
     /**

@@ -314,7 +314,7 @@ final class DoubleRatchet implements AutoCloseable {
         LOGGER.log(FINER, "Generating message keys for authentication of ratchet {0}, message {1}.",
                 new Object[]{Math.max(0, this.i - 1), this.senderRatchet.getMessageID()});
         try (MessageKeys keys = this.generateSendingMessageKeys()) {
-            return keys.authenticate(dataMessageSectionsContent);
+            return keys.authenticate(dataMessageSectionsContent).authenticator;
         }
     }
 
@@ -347,9 +347,8 @@ final class DoubleRatchet implements AutoCloseable {
         LOGGER.log(FINER, "Generating message keys for verification and decryption of ratchet {0}, message {1}.",
                 new Object[]{this.i - 1, this.receiverRatchet.getMessageID()});
         try (MessageKeys keys = generateReceivingMessageKeys(ratchetId, messageId)) {
-            keys.verify(encodedDataMessageSections, authenticator);
-            // FIXME ERROR: we should expose the MAC key instead of the authenticator value (which is already public knowledge)
-            this.macsToReveal.write(authenticator, 0, authenticator.length);
+            final byte[] mkMAC = keys.verify(encodedDataMessageSections, authenticator);
+            this.macsToReveal.write(mkMAC, 0, mkMAC.length);
             return keys.decrypt(ciphertext);
         }
     }
