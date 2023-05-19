@@ -144,11 +144,20 @@ public final class MessageKeys implements AutoCloseable {
         return new Result(authenticator, mac);
     }
 
+    /**
+     * Result struct containing authenticator and MK_MAC.
+     */
     public static final class Result {
+        /**
+         * The authenticator digest value.
+         */
         public final byte[] authenticator;
+        /**
+         * The MK_MAC key.
+         */
         public final byte[] mkMAC;
 
-        Result(final byte[] authenticator, final byte[] mkMAC) {
+        private Result(final byte[] authenticator, final byte[] mkMAC) {
             this.authenticator = requireLengthExactly(AUTHENTICATOR_LENGTH_BYTES, authenticator);
             this.mkMAC = requireLengthExactly(MK_MAC_LENGTH_BYTES, mkMAC);
         }

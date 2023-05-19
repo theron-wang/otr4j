@@ -603,6 +603,7 @@ final class Ratchet implements AutoCloseable {
         clear(this.chainKey);
     }
 
+    // REMARK use name `speculate()`? (maybe too sensitive :-P)
     @Nonnull
     Simula simulate() {
         assert this != INITIAL : "BUG: working with initial dummy for ratchet.";

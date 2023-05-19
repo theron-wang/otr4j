@@ -40,8 +40,13 @@ public final class ECDHKeyPair implements AutoCloseable {
 
     private final Point publicKey;
 
+    /**
+     * Copy-constructor.
+     *
+     * @param original the original ECDH key pair
+     */
     public ECDHKeyPair(final ECDHKeyPair original) {
-        this(original.secretKey);
+        this(requireNonNull(original.secretKey));
     }
 
     ECDHKeyPair(final Scalar secretKey) {
