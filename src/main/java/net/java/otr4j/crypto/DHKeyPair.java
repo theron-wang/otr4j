@@ -64,6 +64,16 @@ public final class DHKeyPair implements AutoCloseable {
     private final BigInteger publicKey;
 
     /**
+     * Copy-constructor for DHKeyPair. (Requires the keypair to not be closed.)
+     *
+     * @param original the original
+     */
+    public DHKeyPair(final DHKeyPair original) {
+        this.secretKey = requireNonNull(original.secretKey);
+        this.publicKey = requireNonNull(original.publicKey);
+    }
+
+    /**
      * Construct a DH key pair from byte array r, assumed as the secret key. The public key is generated from the
      * provided secret data.
      *

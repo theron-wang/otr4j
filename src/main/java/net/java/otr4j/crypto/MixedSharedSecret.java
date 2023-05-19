@@ -244,7 +244,6 @@ public final class MixedSharedSecret implements AutoCloseable {
      * @return Returns new instance with their public keys rotated.
      * @throws OtrCryptoException In case of failure to rotate the public keys.
      */
-    // FIXME we cannot yet close the keypairs, because we need to forget this instance if the incoming message turns out to be malicious.
     @CheckReturnValue
     public MixedSharedSecret rotateTheirKeys(final boolean dhratchet, final Point theirNextECDH,
             @Nullable final BigInteger theirNextDH) throws OtrCryptoException {
@@ -256,6 +255,8 @@ public final class MixedSharedSecret implements AutoCloseable {
                 || this.ecdhKeyPair.publicKey().equals(theirNextECDH)) {
             throw new OtrCryptoException("ECDH public key failed verification.");
         }
+        final ECDHKeyPair copyECDHKeyPair = new ECDHKeyPair(this.ecdhKeyPair);
+        final DHKeyPair copyDHKeyPair = new DHKeyPair(this.dhKeyPair);
         final MixedSharedSecret next;
         if (dhratchet) {
             // This is a DH ratchet. (every third brace key)
@@ -263,15 +264,15 @@ public final class MixedSharedSecret implements AutoCloseable {
                     || this.theirDHPublicKey.equals(theirNextDH)) {
                 throw new OtrCryptoException("DH public key failed verification.");
             }
-            next = new MixedSharedSecret(this.random, this.braceKey, true, this.ecdhKeyPair, this.dhKeyPair,
+            next = new MixedSharedSecret(this.random, this.braceKey, true, copyECDHKeyPair, copyDHKeyPair,
                     theirNextECDH, theirNextDH);
-            this.dhKeyPair.close();
+            copyDHKeyPair.close();
         } else {
             // This is NOT a DH ratchet.
-            next = new MixedSharedSecret(this.random, this.braceKey, false, this.ecdhKeyPair, this.dhKeyPair,
+            next = new MixedSharedSecret(this.random, this.braceKey, false, copyECDHKeyPair, copyDHKeyPair,
                     theirNextECDH, this.theirDHPublicKey);
         }
-        this.ecdhKeyPair.close();
+        copyECDHKeyPair.close();
         return next;
     }
 
