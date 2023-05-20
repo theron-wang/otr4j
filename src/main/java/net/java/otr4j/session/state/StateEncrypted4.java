@@ -155,7 +155,6 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         assert providedMACsToReveal.length == 0 || !allZeroBytes(providedMACsToReveal)
                 : "BUG: expected providedMACsToReveal to contains some non-zero values.";
         // Perform ratchet if necessary, possibly collecting MAC codes to reveal.
-        // FIXME properly collect MACs
         final byte[] collectedMACs;
         if (this.ratchet.nextRotation() == DoubleRatchet.Purpose.SENDING) {
             this.ratchet = this.ratchet.rotateSenderKeys();
@@ -165,7 +164,6 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             collectedMACs = concatenate(providedMACsToReveal, revealedMacs);
         } else {
             this.logger.log(FINEST, "Sender keys rotation is not needed.");
-            // FIXME use providedMACs
             collectedMACs = providedMACsToReveal;
         }
         // Construct data message.

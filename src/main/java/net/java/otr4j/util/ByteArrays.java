@@ -236,7 +236,6 @@ public final class ByteArrays {
      *
      * @param data the byte-array
      */
-    // FIXME write tests
     public static void clear(final byte[] data) {
         Arrays.fill(data, (byte) 0);
     }

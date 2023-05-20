@@ -17,6 +17,7 @@ import java.util.Arrays;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.concatenate;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.constantTimeEqualsOrSame;
@@ -269,5 +270,25 @@ public class ByteArraysTest {
     @Test(expected = IllegalArgumentException.class)
     public void testRequireNonZeroBytesDetectsZeroBytes3() {
         requireNonZeroBytes(new byte[]{0, 0, 0, 0, 0});
+    }
+    
+    @Test
+    public void testClearArrays() {
+        final byte[] data1 = new byte[]{};
+        clear(data1);
+        assertEquals(0, data1.length);
+        final byte[] data2 = new byte[]{1};
+        clear(data2);
+        assertArrayEquals(new byte[1], data2);
+        final byte[] data3 = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9};
+        clear(data3);
+        assertArrayEquals(new byte[9], data3);
+        final byte[] data4 = new byte[]{9, 9, 9, 9, 9};
+        clear(data4);
+        assertArrayEquals(new byte[5], data4);
+        final byte[] data5 = new byte[4096];
+        Arrays.fill(data5, (byte) 255);
+        clear(data5);
+        assertArrayEquals(new byte[4096], data5);
     }
 }
