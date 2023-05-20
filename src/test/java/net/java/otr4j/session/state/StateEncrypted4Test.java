@@ -24,7 +24,6 @@ import net.java.otr4j.io.Message;
 import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.session.ake.StateInitial;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.internal.util.reflection.Whitebox;
@@ -272,8 +271,6 @@ public final class StateEncrypted4Test {
         assertArrayEquals(new byte[0], ratchet.collectRemainingMACsToReveal());
     }
 
-    // FIXME fix MAC revealing in messages.
-    @Ignore("Need to solve FIXME that prevents macsToReveal from functioning correctly.")
     @Test
     public void testExpireStateEncrypted4ToFinished() throws OtrException {
         final Context context = mock(Context.class);
