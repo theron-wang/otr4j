@@ -125,8 +125,10 @@ public final class MixedSharedSecret implements AutoCloseable {
         requireLengthExactly(BRACE_KEY_LENGTH_BYTES, braceKey);
         // Calculate new `K` value based on provided ECDH and DH key material, and previous brace key.
         final byte[] k_ecdh;
-        try (Point sharedSecret = this.ecdhKeyPair.generateSharedSecret(this.theirECDHPublicKey)) {
+        try {
+            final Point sharedSecret = this.ecdhKeyPair.generateSharedSecret(this.theirECDHPublicKey);
             k_ecdh = sharedSecret.encode();
+            Point.clear(sharedSecret);
         } catch (final ValidationException e) {
             throw new IllegalStateException("BUG: ECDH public keys should have been verified. No unexpected failures should happen at this point.", e);
         }

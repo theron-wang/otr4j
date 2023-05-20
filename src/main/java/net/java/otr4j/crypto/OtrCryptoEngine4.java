@@ -51,7 +51,6 @@ import static net.java.otr4j.util.SecureRandoms.randomBytes;
 /**
  * Crypto engine for OTRv4.
  */
-// TODO consider reducing complexity.
 @SuppressWarnings("PMD.GodClass")
 public final class OtrCryptoEngine4 {
 
@@ -527,7 +526,7 @@ public final class OtrCryptoEngine4 {
         final int eq3 = longTermPublicKey.constantTimeEquals(A3) ? 1 : 0;
         requireEquals(1, eq1 + eq2 + eq3,  "BUG: expected long-term keypair to match exactly one of 3 public keys.");
         // "Pick random values t, c2, c3, r2, r3 in q."
-        Scalar t = generateRandomValueInZq(random);
+        final Scalar t = generateRandomValueInZq(random);
         Scalar ci = generateRandomValueInZq(random);
         Scalar ri = generateRandomValueInZq(random);
         Scalar cj = generateRandomValueInZq(random);
@@ -563,7 +562,7 @@ public final class OtrCryptoEngine4 {
         cj = c.subtract(ci).subtract(ck).mod(q).multiply(eq2).add(cj.multiply(1 - eq2));
         ck = c.subtract(ci).subtract(cj).mod(q).multiply(eq3).add(ck.multiply(1 - eq3));
         // Either "Compute r1 = t1 - c1 * a1 (mod q)." or use existing value for ri.
-        Scalar ai = longTermKeyPair.getSecretKey();
+        final Scalar ai = longTermKeyPair.getSecretKey();
         ri = t.subtract(ci.multiply(ai)).mod(q).multiply(eq1).add(ri.multiply(1 - eq1));
         rj = t.subtract(cj.multiply(ai)).mod(q).multiply(eq2).add(rj.multiply(1 - eq2));
         rk = t.subtract(ck.multiply(ai)).mod(q).multiply(eq3).add(rk.multiply(1 - eq3));

@@ -54,6 +54,7 @@ import static net.java.otr4j.messages.DataMessage4s.encodeDataMessageSections;
 import static net.java.otr4j.messages.DataMessage4s.validate;
 import static net.java.otr4j.session.smpv4.SMP.smpPayload;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.concatenate;
 
 /**
@@ -246,7 +247,6 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // messages from the same ratchet are stored, and a symmetric-key ratchet is performed to derive the current
         // message key and the next receiving chain key. The message is then verified and decrypted.
         final byte[] decrypted;
-        // FIXME extraSymmetricKey not guaranteed to be used, must be cleared regardless.
         final byte[] extraSymmetricKey;
         try {
             decrypted = provisional.decrypt(message.i, message.j, encodeDataMessageSections(message),
@@ -265,7 +265,6 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // Therefore, any new key material we might have received is authentic, and the message keys we used were used
         // and subsequently discarded correctly. At this point, malicious messages should not be able to have a lasting
         // impact, while authentic messages correctly progress the Double Ratchet.
-        // FIXME there is a risk with provisional being a rotation that then needs to be undone however as part of rotating the keypairs have been closed/cleared.
         this.ratchet = provisional;
         this.ratchet.confirmReceivingChainKey(message.i, message.j);
         // Process decrypted message contents. Extract and process TLVs. Possibly reply, e.g. SMP, disconnect.
@@ -307,13 +306,14 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                     throw new OtrException("TLV value should contain at least 4 bytes of context identifier.");
                 }
                 extraSymmetricKeyDiscovered(context.getHost(), context.getSessionID(), content.message,
-                        extraSymmetricKey, tlv.value);
+                        extraSymmetricKey.clone(), tlv.value);
                 break;
             default:
                 this.logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);
                 break;
             }
         }
+        clear(extraSymmetricKey);
         return content.message.length() > 0 ? content.message : null;
     }
 

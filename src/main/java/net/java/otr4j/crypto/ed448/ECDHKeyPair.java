@@ -46,7 +46,8 @@ public final class ECDHKeyPair implements AutoCloseable {
      * @param original the original ECDH key pair
      */
     public ECDHKeyPair(final ECDHKeyPair original) {
-        this(requireNonNull(original.secretKey));
+        this.secretKey = original.secretKey;
+        this.publicKey = original.publicKey;
     }
 
     ECDHKeyPair(final Scalar secretKey) {

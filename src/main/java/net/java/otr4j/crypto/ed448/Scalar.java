@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 
 import static java.lang.Integer.signum;
+import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static nl.dannyvanheumen.joldilocks.Ed448.primeOrder;
 import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
@@ -34,7 +35,6 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
  * implementation details.
  */
 // TODO implement arithmetic operations that operate directly on byte-arrays. (Needs to be compatible with constant-time selection use in OtrCryptoEngine4#ringSign.) ('toBigInteger' is workaround to make current implementation work.)
-// FIXME implement clearing of secret scalars after use. (Not all scalars are secrets, some scalars are expected to be 0, see ring signatures.)
 public final class Scalar implements Comparable<Scalar>, ConstantTimeEquality<Scalar> {
 
     /**
@@ -78,6 +78,17 @@ public final class Scalar implements Comparable<Scalar>, ConstantTimeEquality<Sc
      */
     public static void clear(final Scalar scalar) {
         ByteArrays.clear(scalar.encoded);
+    }
+
+    /**
+     * Copy instance of Scalar.
+     *
+     * @return Returns copy of this scalar.
+     */
+    @Nonnull
+    public Scalar copy() {
+        assert !allZeroBytes(this.encoded);
+        return new Scalar(this.encoded.clone());
     }
 
     /**

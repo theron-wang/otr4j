@@ -172,7 +172,7 @@ final class DoubleRatchet implements AutoCloseable {
             throw new UnsupportedOperationException("BUG: unsupported purpose encountered.");
         }
         clear(newK);
-        clear(prevRootKey);
+        // NOTE: not clearing previous rootKey because we create a new instance without affecting the original instance.
         clear(concatPreviousRootKeyNewK);
         return new DoubleRatchet(nextI, pn, newSharedSecret, newRootKey, nextSender, nextReceiver, nextRotate,
                 storedKeys, storedMacs);

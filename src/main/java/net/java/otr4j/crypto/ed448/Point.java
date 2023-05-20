@@ -10,6 +10,7 @@
 package net.java.otr4j.crypto.ed448;
 
 import com.google.errorprone.annotations.CheckReturnValue;
+import net.java.otr4j.util.ByteArrays;
 import net.java.otr4j.util.ConstantTimeEquality;
 import nl.dannyvanheumen.joldilocks.Points;
 
@@ -19,7 +20,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
-import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static org.bouncycastle.math.ec.rfc8032.Ed448.PUBLIC_KEY_SIZE;
 import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
@@ -27,7 +27,7 @@ import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
 /**
  * Point wrapper classed used to abstract away from the actual cryptographic implementation.
  */
-public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
+public final class Point implements ConstantTimeEquality<Point> {
 
     private final byte[] encoded;
 
@@ -35,16 +35,20 @@ public final class Point implements AutoCloseable, ConstantTimeEquality<Point> {
         this.encoded = requireLengthExactly(PUBLIC_KEY_SIZE, encoded);
     }
 
+    /**
+     * Clear clears the internal byte-array of the Point.
+     *
+     * @param point the point
+     */
+    public static void clear(final Point point) {
+        ByteArrays.clear(point.encoded);
+    }
+
     @SuppressWarnings("PMD.MethodReturnsInternalArray")
     @Nonnull
     byte[] getEncoded() {
         requireNotCleared();
         return this.encoded;
-    }
-
-    @Override
-    public void close() {
-        clear(this.encoded);
     }
 
     /**
