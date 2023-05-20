@@ -194,7 +194,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
                 sessionID.getAccountID(), sessionID.getUserID());
         final OtrCryptoEngine4.Sigma sigma = ringSign(secureRandom, ourLongTermKeyPair,
                 ourLongTermKeyPair.getPublicKey(), theirClientProfile.getForgingKey(), message.x, t);
-        context.injectMessage(new AuthIMessage(FOUR, senderTag, receiverTag, sigma));
+        context.injectMessage(new AuthIMessage(senderTag, receiverTag, sigma));
         // Calculate mixed shared secret and SSID.
         final byte[] k;
         final byte[] ssid;

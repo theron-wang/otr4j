@@ -204,7 +204,7 @@ public class EncodedMessageParserTest {
         final Point ecdhPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger dhPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final byte[] content = randomBytes(RANDOM, new byte[RANDOM.nextInt(10000)]);
-        final DataMessage4 input = new DataMessage4(Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
+        final DataMessage4 input = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
                 ecdhPublicKey, dhPublicKey, content, randomBytes(RANDOM, new byte[64]), new byte[0]);
         final byte[] fullPayload = new OtrOutputStream().write(input).toByteArray();
         final byte[] payload = copyOfRange(fullPayload, 11, fullPayload.length);
@@ -217,7 +217,7 @@ public class EncodedMessageParserTest {
     public void testParsingDataMessage4WithoutDHPublicKey() throws ProtocolException, OtrCryptoException, UnsupportedLengthException, ValidationException {
         final Point ecdhPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final byte[] content = randomBytes(RANDOM, new byte[RANDOM.nextInt(10000)]);
-        final DataMessage4 input = new DataMessage4(Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
+        final DataMessage4 input = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
                 ecdhPublicKey, null, content, randomBytes(RANDOM, new byte[64]), new byte[0]);
         final byte[] fullPayload = new OtrOutputStream().write(input).toByteArray();
         final byte[] payload = copyOfRange(fullPayload, 11, fullPayload.length);
@@ -241,8 +241,8 @@ public class EncodedMessageParserTest {
         final Point ourY = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger ourB = DHKeyPair.generate(RANDOM).publicKey();
         // Generate Identity message and parse result.
-        final IdentityMessage message = new IdentityMessage(Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, ourProfilePayload,
-                ourY, ourB, ourFirstECDHPublicKey, ourFirstDHPublicKey);
+        final IdentityMessage message = new IdentityMessage(SMALLEST_TAG, HIGHEST_TAG, ourProfilePayload, ourY, ourB,
+                ourFirstECDHPublicKey, ourFirstDHPublicKey);
         final String content = writeMessage(message);
         final EncodedMessage encoded = (EncodedMessage) MessageProcessor.parseMessage(content);
         final IdentityMessage parsed = (IdentityMessage) parseEncodedMessage(encoded);
@@ -282,8 +282,8 @@ public class EncodedMessageParserTest {
         final OtrCryptoEngine4.Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, theirLongTermKeyPair.getPublicKey(),
                 ourForgingKey, ourX, m);
         // Prepare Auth-R message and test parsing result.
-        final AuthRMessage message = new AuthRMessage(Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, ourProfilePayload, ourX,
-                ourA, sigma, ourFirstECDHPublicKey, ourFirstDHPublicKey);
+        final AuthRMessage message = new AuthRMessage(SMALLEST_TAG, HIGHEST_TAG, ourProfilePayload, ourX, ourA, sigma,
+                ourFirstECDHPublicKey, ourFirstDHPublicKey);
         final String content = writeMessage(message);
         final EncodedMessage encoded = (EncodedMessage) MessageProcessor.parseMessage(content);
         final AuthRMessage parsed = (AuthRMessage) parseEncodedMessage(encoded);
@@ -322,7 +322,7 @@ public class EncodedMessageParserTest {
                 theirFirstDHPublicKey, SMALLEST_TAG, HIGHEST_TAG, "alice@network", "bob@network");
         final OtrCryptoEngine4.Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, theirLongTermKeyPair.getPublicKey(),
                 ourForgingKey, ourX, m);
-        final AuthIMessage message = new AuthIMessage(Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, sigma);
+        final AuthIMessage message = new AuthIMessage(SMALLEST_TAG, HIGHEST_TAG, sigma);
         final String content = writeMessage(message);
         final EncodedMessage encoded = (EncodedMessage) MessageProcessor.parseMessage(content);
         final AuthIMessage parsed = (AuthIMessage) parseEncodedMessage(encoded);

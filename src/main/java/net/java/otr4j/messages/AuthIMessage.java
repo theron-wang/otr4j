@@ -15,11 +15,9 @@ import net.java.otr4j.crypto.OtrCryptoEngine4.Sigma;
 import net.java.otr4j.io.OtrOutputStream;
 
 import javax.annotation.Nonnull;
-
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
-import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
  * OTRv4 Interactive DAKE Auth-I Message.
@@ -37,14 +35,13 @@ public final class AuthIMessage extends AbstractEncodedMessage {
     /**
      * Constructor for Auth-I message.
      *
-     * @param protocolVersion   the protocol version
      * @param senderInstance    the sender instance tag
      * @param receiverInstance the receiver instance tag
      * @param sigma             the ring signature
      */
-    public AuthIMessage(final int protocolVersion, final InstanceTag senderInstance, final InstanceTag receiverInstance,
+    public AuthIMessage(final InstanceTag senderInstance, final InstanceTag receiverInstance,
             final Sigma sigma) {
-        super(requireInRange(Version.FOUR, Version.FOUR, protocolVersion), senderInstance, receiverInstance);
+        super(Version.FOUR, senderInstance, receiverInstance);
         this.sigma = requireNonNull(sigma);
     }
 

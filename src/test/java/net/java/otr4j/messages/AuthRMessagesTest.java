@@ -35,6 +35,7 @@ import static net.java.otr4j.messages.AuthRMessages.validate;
 import static net.java.otr4j.messages.ClientProfilePayload.signClientProfile;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
 
+@SuppressWarnings("resource")
 public final class AuthRMessagesTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -72,8 +73,8 @@ public final class AuthRMessagesTest {
                 "bob@network");
         final Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, ourForgingKey, theirLongTermKeyPair.getPublicKey(),
                 ourY.publicKey(), m);
-        final AuthRMessage message = new AuthRMessage(Session.Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, theirPayload,
-                theirX.publicKey(), theirA.publicKey(), sigma, theirFirstECDHPublicKey, theirFirstDHPublicKey);
+        final AuthRMessage message = new AuthRMessage(SMALLEST_TAG, HIGHEST_TAG, theirPayload, theirX.publicKey(),
+                theirA.publicKey(), sigma, theirFirstECDHPublicKey, theirFirstDHPublicKey);
         validate(message, ourPayload, ourProfile, theirProfile, "alice@network", "bob@network",
                 ourY.publicKey(), ourB.publicKey(), ourFirstECDHPublicKey, ourFirstDHPublicKey);
     }
@@ -110,8 +111,8 @@ public final class AuthRMessagesTest {
                 SMALLEST_TAG, HIGHEST_TAG, "alice@network", "bob@network");
         final Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, ourForgingKey, theirLongTermKeyPair.getPublicKey(),
                 ourY, m);
-        final AuthRMessage message = new AuthRMessage(Session.Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, theirPayload, theirX,
-                theirA, sigma, theirFirstECDHPublicKey, theirFirstDHPublicKey);
+        final AuthRMessage message = new AuthRMessage(SMALLEST_TAG, HIGHEST_TAG, theirPayload, theirX, theirA, sigma,
+                theirFirstECDHPublicKey, theirFirstDHPublicKey);
         validate(message, ourPayload, ourProfile, theirProfile, "alice@network", "bob@network",
                 ourY, ourB, ourFirstECDHPublicKey, ourFirstDHPublicKey);
     }
@@ -148,8 +149,8 @@ public final class AuthRMessagesTest {
                 SMALLEST_TAG, HIGHEST_TAG, "alice@network", "bob@network");
         final Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, ourForgingKey, theirLongTermKeyPair.getPublicKey(),
                 ourY, m);
-        final AuthRMessage message = new AuthRMessage(Session.Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, theirPayload, theirX,
-                theirA, sigma, theirFirstECDHPublicKey, theirFirstDHPublicKey);
+        final AuthRMessage message = new AuthRMessage(SMALLEST_TAG, HIGHEST_TAG, theirPayload, theirX, theirA, sigma,
+                theirFirstECDHPublicKey, theirFirstDHPublicKey);
         validate(message, ourPayload, ourProfile, theirProfile, "alice@network", "bob@network",
                 ourY, ourB, ourFirstECDHPublicKey, ourFirstDHPublicKey);
     }
@@ -186,8 +187,8 @@ public final class AuthRMessagesTest {
                 SMALLEST_TAG, HIGHEST_TAG, "alice@network", "bob@network");
         final Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, ourForgingKey, theirLongTermKeyPair.getPublicKey(),
                 ourY, m);
-        final AuthRMessage message = new AuthRMessage(Session.Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, theirPayload, theirX,
-                theirA, sigma, theirFirstECDHPublicKey, theirFirstDHPublicKey);
+        final AuthRMessage message = new AuthRMessage(SMALLEST_TAG, HIGHEST_TAG, theirPayload, theirX, theirA, sigma,
+                theirFirstECDHPublicKey, theirFirstDHPublicKey);
         validate(message, ourPayload, ourProfile, theirProfile, "alice@network", "bob@network",
                 ourY, ourB, ourFirstECDHPublicKey, ourFirstDHPublicKey);
     }
@@ -224,8 +225,8 @@ public final class AuthRMessagesTest {
                 SMALLEST_TAG, HIGHEST_TAG, "", "");
         final Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, ourForgingKey, theirLongTermKeyPair.getPublicKey(),
                 ourY, m);
-        final AuthRMessage message = new AuthRMessage(Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, theirPayload, theirX,
-                theirA, sigma, theirFirstECDHPublicKey, theirFirstDHPublicKey);
+        final AuthRMessage message = new AuthRMessage(SMALLEST_TAG, HIGHEST_TAG, theirPayload, theirX, theirA, sigma,
+                theirFirstECDHPublicKey, theirFirstDHPublicKey);
         validate(message, ourPayload, ourProfile, theirProfile, "alice@network", "bob@network",
                 ourY, ourB, ourFirstECDHPublicKey, ourFirstDHPublicKey);
     }

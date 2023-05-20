@@ -25,7 +25,6 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
  * The OTRv4 data message.
@@ -91,15 +90,14 @@ public final class DataMessage4 extends AbstractEncodedMessage {
      * @param authenticator the substitute authenticator
      */
     public DataMessage4(final DataMessage4 original, final byte[] authenticator) {
-        this(original.protocolVersion, original.senderTag, original.receiverTag, original.flags,
-                original.pn, original.i, original.j, original.ecdhPublicKey, original.dhPublicKey,
-                original.ciphertext, authenticator, original.revealedMacs);
+        this(original.senderTag, original.receiverTag, original.flags, original.pn, original.i, original.j,
+                original.ecdhPublicKey, original.dhPublicKey, original.ciphertext, authenticator,
+                original.revealedMacs);
     }
 
     /**
      * Constructor for the data message.
      *
-     * @param protocolVersion     the protocol version
      * @param senderInstanceTag   the sender instance tag
      * @param receiverInstanceTag the receiver instance tag
      * @param flags               the message flags
@@ -112,11 +110,10 @@ public final class DataMessage4 extends AbstractEncodedMessage {
      * @param authenticator       the authenticator code
      * @param revealedMacs        the revealed MAC keys
      */
-    public DataMessage4(final int protocolVersion, final InstanceTag senderInstanceTag,
-            final InstanceTag receiverInstanceTag, final byte flags, final int pn, final int i, final int j,
-            final Point ecdhPublicKey, @Nullable final BigInteger dhPublicKey, final byte[] ciphertext,
-            final byte[] authenticator, final byte[] revealedMacs) {
-        super(requireInRange(Version.FOUR, Version.FOUR, protocolVersion), senderInstanceTag, receiverInstanceTag);
+    public DataMessage4(final InstanceTag senderInstanceTag, final InstanceTag receiverInstanceTag, final byte flags,
+            final int pn, final int i, final int j, final Point ecdhPublicKey, @Nullable final BigInteger dhPublicKey,
+            final byte[] ciphertext, final byte[] authenticator, final byte[] revealedMacs) {
+        super(Version.FOUR, senderInstanceTag, receiverInstanceTag);
         this.flags = flags;
         this.pn = pn;
         this.i = i;

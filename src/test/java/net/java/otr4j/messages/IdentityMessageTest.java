@@ -21,7 +21,7 @@ import java.security.SecureRandom;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.crypto.ed448.Ed448.basePoint;
 
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({"ConstantConditions", "resource"})
 public final class IdentityMessageTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -34,7 +34,7 @@ public final class IdentityMessageTest {
         final BigInteger b = BigInteger.TEN;
         final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        new IdentityMessage(4, ZERO_TAG, ZERO_TAG, clientProfile, y, b, firstECDHPublicKey, firstDHPublicKey);
+        new IdentityMessage(ZERO_TAG, ZERO_TAG, clientProfile, y, b, firstECDHPublicKey, firstDHPublicKey);
     }
 
     @Test(expected = NullPointerException.class)
@@ -43,7 +43,7 @@ public final class IdentityMessageTest {
         final BigInteger b = BigInteger.TEN;
         final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        new IdentityMessage(4, ZERO_TAG, ZERO_TAG, null, y, b, firstECDHPublicKey, firstDHPublicKey);
+        new IdentityMessage(ZERO_TAG, ZERO_TAG, null, y, b, firstECDHPublicKey, firstDHPublicKey);
     }
 
     @Test(expected = NullPointerException.class)
@@ -52,7 +52,7 @@ public final class IdentityMessageTest {
         final BigInteger b = BigInteger.TEN;
         final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        new IdentityMessage(4, ZERO_TAG, ZERO_TAG, clientProfile, null, b, firstECDHPublicKey, firstDHPublicKey);
+        new IdentityMessage(ZERO_TAG, ZERO_TAG, clientProfile, null, b, firstECDHPublicKey, firstDHPublicKey);
     }
 
     @Test(expected = NullPointerException.class)
@@ -61,34 +61,24 @@ public final class IdentityMessageTest {
         final Point y = basePoint();
         final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        new IdentityMessage(4, ZERO_TAG, ZERO_TAG, clientProfile, y, null, firstECDHPublicKey, firstDHPublicKey);
+        new IdentityMessage(ZERO_TAG, ZERO_TAG, clientProfile, y, null, firstECDHPublicKey, firstDHPublicKey);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testConstructTooLowProtocolVersion() {
-        final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
-        final Point y = basePoint();
-        final BigInteger b = BigInteger.TEN;
-        final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
-        final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        new IdentityMessage(3, ZERO_TAG, ZERO_TAG, clientProfile, y, b, firstECDHPublicKey, firstDHPublicKey);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void testConstructNullFirstECDHPublicKey() {
         final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final Point y = basePoint();
         final BigInteger b = BigInteger.TEN;
         final BigInteger firstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        new IdentityMessage(3, ZERO_TAG, ZERO_TAG, clientProfile, y, b, null, firstDHPublicKey);
+        new IdentityMessage(ZERO_TAG, ZERO_TAG, clientProfile, y, b, null, firstDHPublicKey);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void testConstructNullFirstDHPublicKey() {
         final ClientProfilePayload clientProfile = profileTestUtils.createClientProfile();
         final Point y = basePoint();
         final BigInteger b = BigInteger.TEN;
         final Point firstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
-        new IdentityMessage(3, ZERO_TAG, ZERO_TAG, clientProfile, y, b, firstECDHPublicKey, null);
+        new IdentityMessage(ZERO_TAG, ZERO_TAG, clientProfile, y, b, firstECDHPublicKey, null);
     }
 }

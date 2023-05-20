@@ -44,7 +44,7 @@ public final class AuthIMessageTest {
 
     @Test
     public void testConstruction() {
-        final AuthIMessage m = new AuthIMessage(4, INSTANCE_TAG, INSTANCE_TAG, SIG);
+        final AuthIMessage m = new AuthIMessage(INSTANCE_TAG, INSTANCE_TAG, SIG);
         assertEquals(Version.FOUR, m.protocolVersion);
         assertEquals(INSTANCE_TAG, m.senderTag);
         assertEquals(INSTANCE_TAG, m.receiverTag);
@@ -52,21 +52,16 @@ public final class AuthIMessageTest {
         assertSame(SIG, m.sigma);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testConstructionIllegalVersion() {
-        new AuthIMessage(Version.THREE, INSTANCE_TAG, INSTANCE_TAG, SIG);
-    }
-
     @Test(expected = NullPointerException.class)
     public void testConstructionNullRingSignature() {
-        new AuthIMessage(Version.FOUR, INSTANCE_TAG, INSTANCE_TAG, null);
+        new AuthIMessage(INSTANCE_TAG, INSTANCE_TAG, null);
     }
 
     @Test
     public void testWriteTo() {
         final byte[] expected = new OtrOutputStream().writeShort(4).writeByte(MESSAGE_AUTH_I).writeInt(256)
                 .writeInt(256).write(SIG).toByteArray();
-        final AuthIMessage m = new AuthIMessage(4, SMALLEST_TAG, SMALLEST_TAG, SIG);
+        final AuthIMessage m = new AuthIMessage(SMALLEST_TAG, SMALLEST_TAG, SIG);
         OtrOutputStream out = new OtrOutputStream();
         m.writeTo(out);
         assertArrayEquals(expected, out.toByteArray());

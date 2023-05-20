@@ -119,8 +119,8 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         final Sigma sigma = ringSign(secureRandom, longTermKeyPair, theirClientProfile.getForgingKey(),
                 longTermKeyPair.getPublicKey(), message.y, t);
         // Generate response message and transition into next state.
-        context.injectMessage(new AuthRMessage(FOUR, context.getSenderInstanceTag(),
-                context.getReceiverInstanceTag(), profile, x.publicKey(), a.publicKey(), sigma,
+        context.injectMessage(new AuthRMessage(context.getSenderInstanceTag(), context.getReceiverInstanceTag(),
+                profile, x.publicKey(), a.publicKey(), sigma,
                 ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), k, ssid, x, a, ourFirstECDHKeyPair,
                 ourFirstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey, message.y, message.b,
@@ -141,8 +141,8 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         final ClientProfilePayload profilePayload = context.getClientProfilePayload();
         final ECDHKeyPair ourFirstECDHKeyPair = ECDHKeyPair.generate(secureRandom);
         final DHKeyPair ourFirstDHKeyPair = DHKeyPair.generate(secureRandom);
-        final IdentityMessage message = new IdentityMessage(FOUR, context.getSenderInstanceTag(),
-                receiverInstanceTag, profilePayload, y.publicKey(), b.publicKey(),
+        final IdentityMessage message = new IdentityMessage(context.getSenderInstanceTag(), receiverInstanceTag,
+                profilePayload, y.publicKey(), b.publicKey(),
                 ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey());
         context.injectMessage(message);
         context.transition(this, new StateAwaitingAuthR(getAuthState(), y, b, ourFirstECDHKeyPair, ourFirstDHKeyPair,

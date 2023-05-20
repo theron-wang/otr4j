@@ -12,11 +12,15 @@ package net.java.otr4j.api;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DSAKeyPair;
+import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
+import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.MessageProcessor;
 import net.java.otr4j.messages.ClientProfilePayload;
+import net.java.otr4j.messages.DataMessage4;
+import net.java.otr4j.messages.EncodedMessageParser;
 import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.util.BlockingSubmitter;
 import net.java.otr4j.util.ConditionalBlockingQueue;
@@ -55,12 +59,14 @@ import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
 import static net.java.otr4j.crypto.DSAKeyPair.generateDSAKeyPair;
 import static net.java.otr4j.io.MessageProcessor.otrEncoded;
 import static net.java.otr4j.io.MessageProcessor.otrFragmented;
+import static net.java.otr4j.io.MessageProcessor.writeMessage;
 import static net.java.otr4j.session.OtrSessionManager.createSession;
 import static net.java.otr4j.session.smp.DSAPublicKeys.fingerprint;
 import static net.java.otr4j.util.Arrays.contains;
 import static net.java.otr4j.util.BlockingQueuesTestUtils.drop;
 import static net.java.otr4j.util.BlockingQueuesTestUtils.rearrangeFragments;
 import static net.java.otr4j.util.BlockingQueuesTestUtils.shuffle;
+import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.bouncycastle.util.encoders.Base64.toBase64String;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -1335,7 +1341,7 @@ public class SessionTest {
         final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
         final Point firstECDH = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger firstDH = DHKeyPair.generate(RANDOM).publicKey();
-        final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(0xffffffff),
+        final String message = writeMessage(new IdentityMessage(new InstanceTag(0xffffffff),
                 clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
 
         // Using incorrect sender tag.
@@ -1360,7 +1366,7 @@ public class SessionTest {
         final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
         final Point firstECDH = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger firstDH = DHKeyPair.generate(RANDOM).publicKey();
-        final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(256),
+        final String message = writeMessage(new IdentityMessage(new InstanceTag(256),
                 clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
 
         // Using incorrect receiver tag.
@@ -1384,7 +1390,7 @@ public class SessionTest {
         final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
         final Point firstECDH = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger firstDH = DHKeyPair.generate(RANDOM).publicKey();
-        final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(256),
+        final String message = writeMessage(new IdentityMessage(new InstanceTag(256),
                 clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
 
         // Using OTRv3 protocol format, hence protocol version mismatches with OTRv4 Identity message.

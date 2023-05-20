@@ -22,7 +22,6 @@ import java.util.Collections;
 
 import static net.java.otr4j.api.InstanceTag.HIGHEST_TAG;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
-import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.messages.ClientProfilePayload.signClientProfile;
 import static net.java.otr4j.messages.IdentityMessages.validate;
 
@@ -51,7 +50,7 @@ public final class IdentityMessagesTest {
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        final IdentityMessage message = new IdentityMessage(4, SMALLEST_TAG, HIGHEST_TAG, profilePayload,
+        final IdentityMessage message = new IdentityMessage(SMALLEST_TAG, HIGHEST_TAG, profilePayload,
                 ecdhKeyPair.publicKey(), dhKeyPair.publicKey(), ourFirstECDHPublicKey, ourFirstDHPublicKey);
         validate(message, null);
     }
@@ -64,7 +63,7 @@ public final class IdentityMessagesTest {
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        final IdentityMessage message = new IdentityMessage(4, SMALLEST_TAG, HIGHEST_TAG, profilePayload,
+        final IdentityMessage message = new IdentityMessage(SMALLEST_TAG, HIGHEST_TAG, profilePayload,
                 ecdhKeyPair.publicKey(), dhKeyPair.publicKey(), ourFirstECDHPublicKey, ourFirstDHPublicKey);
         validate(message, profile);
     }
@@ -73,7 +72,7 @@ public final class IdentityMessagesTest {
     public void testValidateIdentityNullClientProfile() throws ValidationException {
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        final IdentityMessage message = new IdentityMessage(4, HIGHEST_TAG, SMALLEST_TAG, null,
+        final IdentityMessage message = new IdentityMessage(HIGHEST_TAG, SMALLEST_TAG, null,
                 ecdhKeyPair.publicKey(), dhKeyPair.publicKey(), ourFirstECDHPublicKey, ourFirstDHPublicKey);
         validate(message, null);
     }
@@ -86,7 +85,7 @@ public final class IdentityMessagesTest {
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        final IdentityMessage message = new IdentityMessage(4, HIGHEST_TAG, SMALLEST_TAG, profilePayload,
+        final IdentityMessage message = new IdentityMessage(HIGHEST_TAG, SMALLEST_TAG, profilePayload,
                 null, dhKeyPair.publicKey(), ourFirstECDHPublicKey, ourFirstDHPublicKey);
         validate(message, profile);
     }
@@ -99,7 +98,7 @@ public final class IdentityMessagesTest {
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        final IdentityMessage message = new IdentityMessage(FOUR, HIGHEST_TAG, SMALLEST_TAG, profilePayload,
+        final IdentityMessage message = new IdentityMessage(HIGHEST_TAG, SMALLEST_TAG, profilePayload,
                 ecdhKeyPair.publicKey(), null, ourFirstECDHPublicKey, ourFirstDHPublicKey);
         validate(message, profile);
     }
@@ -112,7 +111,7 @@ public final class IdentityMessagesTest {
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        final IdentityMessage message = new IdentityMessage(FOUR, HIGHEST_TAG, SMALLEST_TAG, profilePayload,
+        final IdentityMessage message = new IdentityMessage(HIGHEST_TAG, SMALLEST_TAG, profilePayload,
                 ecdhKeyPair.publicKey(), dhKeyPair.publicKey(), ourFirstECDHPublicKey, ourFirstDHPublicKey);
         validate(message, profile);
     }
@@ -124,7 +123,7 @@ public final class IdentityMessagesTest {
         final ClientProfilePayload profilePayload = signClientProfile(profile,
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
-        final IdentityMessage message = new IdentityMessage(FOUR, HIGHEST_TAG, SMALLEST_TAG, profilePayload,
+        final IdentityMessage message = new IdentityMessage(HIGHEST_TAG, SMALLEST_TAG, profilePayload,
                 ecdhKeyPair.publicKey(), dhKeyPair.publicKey(), null, ourFirstDHPublicKey);
         validate(message, profile);
     }
@@ -136,7 +135,7 @@ public final class IdentityMessagesTest {
         final ClientProfilePayload profilePayload = signClientProfile(profile,
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
-        final IdentityMessage message = new IdentityMessage(FOUR, HIGHEST_TAG, SMALLEST_TAG, profilePayload,
+        final IdentityMessage message = new IdentityMessage(HIGHEST_TAG, SMALLEST_TAG, profilePayload,
                 ecdhKeyPair.publicKey(), dhKeyPair.publicKey(), ourFirstECDHPublicKey, null);
         validate(message, profile);
     }

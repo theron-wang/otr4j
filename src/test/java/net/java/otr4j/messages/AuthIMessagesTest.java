@@ -32,6 +32,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.ringSign;
 import static net.java.otr4j.messages.AuthIMessages.validate;
 import static net.java.otr4j.messages.ClientProfilePayload.signClientProfile;
 
+@SuppressWarnings("resource")
 public final class AuthIMessagesTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -68,7 +69,7 @@ public final class AuthIMessagesTest {
                 theirFirstDHPublicKey, SMALLEST_TAG, HIGHEST_TAG, "alice@network", "bob@network");
         final Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, theirLongTermKeyPair.getPublicKey(),
                 ourForgingKey, ourX, m);
-        final AuthIMessage message = new AuthIMessage(Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, sigma);
+        final AuthIMessage message = new AuthIMessage(SMALLEST_TAG, HIGHEST_TAG, sigma);
         validate(message, ourProfilePayload, ourProfile, theirProfilePayload, theirProfile, ourX, theirY, ourA, theirB,
                 ourFirstECDHPublicKey, ourFirstDHPublicKey, theirFirstECDHPublicKey, theirFirstDHPublicKey,
                 "alice@network", "bob@network");
@@ -106,7 +107,7 @@ public final class AuthIMessagesTest {
                 ourFirstDHPublicKey, SMALLEST_TAG, HIGHEST_TAG, "alice@network", "bob@network");
         final Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, theirLongTermKeyPair.getPublicKey(),
                 ourForgingKey, ourX, m);
-        final AuthIMessage message = new AuthIMessage(Session.Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, sigma);
+        final AuthIMessage message = new AuthIMessage(SMALLEST_TAG, HIGHEST_TAG, sigma);
         validate(message, ourProfilePayload, ourProfile, theirProfilePayload, theirProfile, ourX, theirY, ourA, ZERO,
                 ourFirstECDHPublicKey, ourFirstDHPublicKey, theirFirstECDHPublicKey, theirFirstDHPublicKey,
                 "alice@network", "bob@network");
@@ -144,7 +145,7 @@ public final class AuthIMessagesTest {
                 theirFirstDHPublicKey, SMALLEST_TAG, HIGHEST_TAG, "alice@network", "bob@network");
         final Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, theirLongTermKeyPair.getPublicKey(),
                 ourForgingKey, ourX, m);
-        final AuthIMessage message = new AuthIMessage(Session.Version.FOUR, SMALLEST_TAG, HIGHEST_TAG, sigma);
+        final AuthIMessage message = new AuthIMessage(SMALLEST_TAG, HIGHEST_TAG, sigma);
         validate(message, ourProfilePayload, ourProfile, theirProfilePayload, theirProfile, ourX, theirY, ourA, theirB,
                 ourFirstECDHPublicKey, ourFirstDHPublicKey, theirFirstECDHPublicKey, theirFirstDHPublicKey,
                 "alice@network", "bob@network");

@@ -173,19 +173,17 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // "When sending a data message in the same DH Ratchet: Set `i - 1` as the Data message's ratchet id. (except
         // for when immediately sending data messages after receiving a Auth-I message. In that it case it should be Set
         // `i` as the Data message's ratchet id)."
-        // TODO evaluate if this has the desired effect in all cases? (managing an edge case in the spec)
         final int ratchetId = Math.max(0, this.ratchet.getI() - 1);
         final int messageId = this.ratchet.getJ();
         final BigInteger dhPublicKey = ratchetId % 3 == 0 ? this.ratchet.getDHPublicKey() : null;
         // We intentionally set the authenticator to `new byte[64]` (all zero-bytes), such that we can calculate the
         // corresponding authenticator value. Then we construct a new DataMessage4 and substitute the real authenticator
         // for the dummy.
-        // TODO now including DH public-key in all messages of ratchet `i % 3 == 0`. Check if consistent with spec.
-        final DataMessage4 unauthenticated = new DataMessage4(VERSION, context.getSenderInstanceTag(),
+        final DataMessage4 unauthenticated = new DataMessage4(context.getSenderInstanceTag(),
                 context.getReceiverInstanceTag(), flags, this.ratchet.getPn(), ratchetId, messageId,
                 this.ratchet.getECDHPublicKey(), dhPublicKey, ciphertext, new byte[64], collectedMACs);
         final byte[] authenticator = this.ratchet.authenticate(encodeDataMessageSections(unauthenticated));
-        // TODO we rotate away, so we need to acquire the extra symmetric key for this message ID now, or never.
+        // TODO we rotate away, so we need to acquire the extra symmetric key for this message ID now or never.
         this.ratchet.rotateSendingChainKey();
         final DataMessage4 message = new DataMessage4(unauthenticated, authenticator);
         this.lastMessageSentTimestamp = System.nanoTime();

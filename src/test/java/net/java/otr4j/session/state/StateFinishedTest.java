@@ -34,7 +34,6 @@ import java.util.Collections;
 
 import static net.java.otr4j.api.InstanceTag.HIGHEST_TAG;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
-import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.Session.Version.THREE;
 import static net.java.otr4j.api.SessionStatus.FINISHED;
 import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
@@ -241,7 +240,7 @@ public class StateFinishedTest {
         final StateFinished state = new StateFinished(StateInitial.instance());
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
-        final DataMessage4 message = new DataMessage4(FOUR, SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
+        final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
                 ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
         assertNull(state.handleDataMessage(context, message));
         verify(host).unreadableMessageReceived(eq(sessionID));
@@ -261,7 +260,7 @@ public class StateFinishedTest {
         final StateFinished state = new StateFinished(StateInitial.instance());
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
-        final DataMessage4 message = new DataMessage4(FOUR, SMALLEST_TAG, HIGHEST_TAG, FLAG_IGNORE_UNREADABLE, 0, 0, 0,
+        final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, FLAG_IGNORE_UNREADABLE, 0, 0, 0,
                 ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
         assertNull(state.handleDataMessage(context, message));
         verify(host, never()).unreadableMessageReceived(eq(sessionID));
@@ -287,7 +286,7 @@ public class StateFinishedTest {
         final StateFinished state = new StateFinished(StateInitial.instance());
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
-        final DataMessage4 message = new DataMessage4(FOUR, SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
+        final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
                 ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
         state.handleDataMessage(null, message);
     }
@@ -326,7 +325,7 @@ public class StateFinishedTest {
         final DHKeyPair dh2 = DHKeyPair.generate(RANDOM);
 
 
-        state.handleAKEMessage(context, new IdentityMessage(FOUR, SMALLEST_TAG, HIGHEST_TAG, profile,
+        state.handleAKEMessage(context, new IdentityMessage(SMALLEST_TAG, HIGHEST_TAG, profile,
                 Ed448.identity(), dh1.publicKey(), ecdh1.publicKey(), dh2.publicKey()));
         verify(context, never()).injectMessage(isA(AuthRMessage.class));
         verify(context, never()).transition(eq(state), isA(StateAwaitingAuthI.class));
