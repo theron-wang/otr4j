@@ -17,6 +17,7 @@ import net.java.otr4j.crypto.ed448.ValidationException;
 import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
+import net.java.otr4j.util.ByteArrays;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 import org.bouncycastle.crypto.engines.ChaCha7539Engine;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -51,7 +52,6 @@ import static net.java.otr4j.util.SecureRandoms.randomBytes;
 /**
  * Crypto engine for OTRv4.
  */
-@SuppressWarnings("PMD.GodClass")
 public final class OtrCryptoEngine4 {
 
     /**
@@ -297,6 +297,8 @@ public final class OtrCryptoEngine4 {
      */
     public static void kdf(final byte[] dst, final int offset, final int outputSize, final KDFUsage usageID,
             final byte[]... input) {
+        assert Arrays.stream(input).noneMatch(ByteArrays::allZeroBytes)
+                : "Sanity-checking for all-zero byte-arrays as these are often an indication of a bug.";
         shake256(dst, offset, outputSize, usageID, input);
     }
 

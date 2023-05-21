@@ -124,26 +124,26 @@ public final class MixedSharedSecret implements AutoCloseable {
         this.theirDHPublicKey = requireNonNull(theirNextDH);
         requireLengthExactly(BRACE_KEY_LENGTH_BYTES, braceKey);
         // Calculate new `K` value based on provided ECDH and DH key material, and previous brace key.
-        final byte[] k_ecdh;
+        final byte[] secretECDH;
         try {
             final Point sharedSecret = this.ecdhKeyPair.generateSharedSecret(this.theirECDHPublicKey);
-            k_ecdh = sharedSecret.encode();
+            secretECDH = sharedSecret.encode();
             Point.clear(sharedSecret);
         } catch (final ValidationException e) {
             throw new IllegalStateException("BUG: ECDH public keys should have been verified. No unexpected failures should happen at this point.", e);
         }
         if (dhratchet) {
-            final byte[] k_dh = asUnsignedByteArray(this.dhKeyPair.generateSharedSecret(this.theirDHPublicKey));
-            kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, THIRD_BRACE_KEY, k_dh);
-            clear(k_dh);
+            final byte[] secretDH = asUnsignedByteArray(this.dhKeyPair.generateSharedSecret(this.theirDHPublicKey));
+            kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, THIRD_BRACE_KEY, secretDH);
+            clear(secretDH);
         } else {
             assert !allZeroBytes(braceKey) : "BUG: not performing DH ratchet, but received brace key with all zero-bytes.";
             kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, BRACE_KEY, braceKey);
         }
         assert !allZeroBytes(this.braceKey) : "BUG: cannot have brace key consisting of all zero-bytes.";
-        kdf(this.k, 0, K_LENGTH_BYTES, SHARED_SECRET, k_ecdh, this.braceKey);
+        kdf(this.k, 0, K_LENGTH_BYTES, SHARED_SECRET, secretECDH, this.braceKey);
         assert !allZeroBytes(this.k) : "BUG: cannot have 'K' consisting of all zero-bytes.";
-        clear(k_ecdh);
+        clear(secretECDH);
     }
 
     /**

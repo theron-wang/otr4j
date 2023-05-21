@@ -123,7 +123,6 @@ final class DoubleRatchet implements AutoCloseable {
         assert !allZeroBytes(firstRootKey) : "Expecting random data instead of all zero-bytes. There might be something severely wrong.";
         final byte[] newK = sharedSecret.getK();
         final byte[] concatPreviousRootKeyNewK = concatenate(firstRootKey, newK);
-        final byte[] newRootKey = kdf(ROOT_KEY_LENGTH_BYTES, ROOT_KEY, concatPreviousRootKeyNewK);
         final Ratchet sender, receiver;
         final Purpose next;
         switch (purpose) {
@@ -142,6 +141,7 @@ final class DoubleRatchet implements AutoCloseable {
         }
         clear(newK);
         clear(firstRootKey);
+        final byte[] newRootKey = kdf(ROOT_KEY_LENGTH_BYTES, ROOT_KEY, concatPreviousRootKeyNewK);
         clear(concatPreviousRootKeyNewK);
         return new DoubleRatchet(0, 0, sharedSecret, newRootKey, sender, receiver, next,
                 new HashMap<>(), new ByteArrayOutputStream());
@@ -154,7 +154,6 @@ final class DoubleRatchet implements AutoCloseable {
         assert !allZeroBytes(prevRootKey) : "Expecting random data instead of all zero-bytes. There might be something severely wrong.";
         final byte[] newK = newSharedSecret.getK();
         final byte[] concatPreviousRootKeyNewK = concatenate(prevRootKey, newK);
-        final byte[] newRootKey = kdf(ROOT_KEY_LENGTH_BYTES, ROOT_KEY, concatPreviousRootKeyNewK);
         final Ratchet nextSender, nextReceiver;
         final Purpose nextRotate;
         switch (rotate) {
@@ -173,6 +172,7 @@ final class DoubleRatchet implements AutoCloseable {
         }
         clear(newK);
         // NOTE: not clearing previous rootKey because we create a new instance without affecting the original instance.
+        final byte[] newRootKey = kdf(ROOT_KEY_LENGTH_BYTES, ROOT_KEY, concatPreviousRootKeyNewK);
         clear(concatPreviousRootKeyNewK);
         return new DoubleRatchet(nextI, pn, newSharedSecret, newRootKey, nextSender, nextReceiver, nextRotate,
                 storedKeys, storedMacs);

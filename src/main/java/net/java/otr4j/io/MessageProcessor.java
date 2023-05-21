@@ -49,7 +49,7 @@ import static org.bouncycastle.util.encoders.Base64.decode;
  * and returns a message instance. The writer processes object representations to generate text representations.
  */
 // TODO consider reducing complexity.
-@SuppressWarnings({"PMD.GodClass", "PMD.CognitiveComplexity"})
+@SuppressWarnings({"PMD.CognitiveComplexity"})
 public final class MessageProcessor {
 
     private static final Logger LOGGER = Logger.getLogger(MessageProcessor.class.getName());
