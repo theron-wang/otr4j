@@ -255,7 +255,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         } catch (final OtrCryptoException e) {
-            this.logger.log(FINE, "Received message fails verification. Rejecting the message.");
+            this.logger.log(INFO, "Received message fails verification. Rejecting the message.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         }
