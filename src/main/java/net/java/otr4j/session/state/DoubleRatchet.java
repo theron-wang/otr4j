@@ -196,11 +196,13 @@ final class DoubleRatchet implements AutoCloseable {
     public void close() {
         clear(this.rootKey);
         this.sharedSecret.close();
+        // FIXME reveal MACs in first message of new ratchet.
         if (this.macsToReveal.size() > 0) {
             throw new IllegalStateException("BUG: Remaining MACs have not been revealed.");
         }
-        this.senderRatchet.close();
-        this.receiverRatchet.close();
+        // FIXME how to close ratchets properly without closing twice and causing issues.
+        //this.senderRatchet.close();
+        //this.receiverRatchet.close();
     }
 
     /**
