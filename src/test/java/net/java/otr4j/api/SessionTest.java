@@ -1420,48 +1420,61 @@ public class SessionTest {
         final ECDHKeyPair maliciousECDH = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair maliciousDH = DHKeyPair.generate(RANDOM);
         for (int i = 0; i < 5; i++) {
+            System.err.println("Test loop iteration: " + i);
             // Bob sending a message
-            final String messageBob = randomMessage(random, 100000);
+            final String messageBob = randomMessage(random, 50000);
             c.clientBob.sendMessage(messageBob);
             // Inject malicious messages to throw off the DoubleRatchet procedure.
             final String raw = c.clientAlice.receiptChannel.take();
             final DataMessage4 original = (DataMessage4) EncodedMessageParser.parseEncodedMessage(
                     (EncodedMessage) MessageProcessor.parseMessage(raw));
+            // Craft malicious message with same message ID in same ratchet. (and different public keys)
             final DataMessage4 malicious = new DataMessage4(original.senderTag, original.receiverTag,
-                    (byte) 0, 12, original.i, original.j, maliciousECDH.publicKey(),
+                    (byte) 0, random.nextInt(15), original.i, original.j, maliciousECDH.publicKey(),
                     original.i % 3 == 0 ? maliciousDH.publicKey() : null, randomBytes(RANDOM, new byte[250]),
                     randomBytes(RANDOM, new byte[OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES]), new byte[0]);
             c.clientAlice.receiptChannel.put(writeMessage(malicious));
             assertNull(c.clientAlice.receiveMessage().content);
-            c.clientAlice.receiptChannel.put(raw);
-            assertMessage("Iteration: " + i + ", message Bob: " + messageBob, messageBob, c.clientAlice.receiveMessage().content);
             // FIXME make this an assertion for an error message.
             System.err.println(c.clientBob.receiptChannel.take());
+            // Craft malicious message with arbitrary future message in same ratchet. (and different public keys)
+            final DataMessage4 malicious2 = new DataMessage4(original.senderTag, original.receiverTag,
+                    (byte) 0, random.nextInt(50), original.i, original.j + random.nextInt(100),
+                    maliciousECDH.publicKey(), original.i % 3 == 0 ? maliciousDH.publicKey() : null,
+                    randomBytes(RANDOM, new byte[250]), randomBytes(RANDOM, new byte[OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES]),
+                    new byte[0]);
+            c.clientAlice.receiptChannel.put(writeMessage(malicious2));
+            assertNull(c.clientAlice.receiveMessage().content);
+            // FIXME make this an assertion for an error message.
+            System.err.println(c.clientBob.receiptChannel.take());
+            c.clientAlice.receiptChannel.put(raw);
+            assertMessage("Iteration: " + i + ", message Bob.", messageBob, c.clientAlice.receiveMessage().content);
 
             // Bob sending another message
-            final String messageBob2 = randomMessage(random, 100000);
+            final String messageBob2 = randomMessage(random, 50000);
             c.clientBob.sendMessage(messageBob2);
             // Inject malicious messages to throw off the DoubleRatchet procedure.
             final String raw2 = c.clientAlice.receiptChannel.take();
             final DataMessage4 original2 = (DataMessage4) EncodedMessageParser.parseEncodedMessage(
                     (EncodedMessage) MessageProcessor.parseMessage(raw2));
             final int nextI = original2.i+1;
-            final DataMessage4 malicious2 = new DataMessage4(original2.senderTag, original2.receiverTag,
-                    (byte) 0, 12, nextI, 0, maliciousECDH.publicKey(),
+            // Craft malicious message as first message in next ratchet. (and different public keys)
+            final DataMessage4 malicious3 = new DataMessage4(original2.senderTag, original2.receiverTag,
+                    (byte) 0, random.nextInt(10), nextI, 0, maliciousECDH.publicKey(),
                     nextI % 3 == 0 ? maliciousDH.publicKey() : null, randomBytes(RANDOM, new byte[250]),
                     randomBytes(RANDOM, new byte[OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES]), new byte[0]);
-            c.clientAlice.receiptChannel.put(writeMessage(malicious2));
+            c.clientAlice.receiptChannel.put(writeMessage(malicious3));
             assertNull(c.clientAlice.receiveMessage().content);
             c.clientAlice.receiptChannel.put(raw2);
-            assertMessage("Iteration: " + i + ", message Bob: " + messageBob2, messageBob2, c.clientAlice.receiveMessage().content);
-            // FIXME make this an assertion for an error message.
-            System.err.println(c.clientBob.receiptChannel.take());
+            assertMessage("Iteration: " + i + ", message Bob.", messageBob2, c.clientAlice.receiveMessage().content);
 
             // Alice sending a message (alternating, to enable ratchet)
             final String messageAlice = randomMessage(random, 1000000);
             c.clientAlice.sendMessage(messageAlice);
-            assertMessage("Iteration: " + i + ", message Alice: " + messageAlice, messageAlice, c.clientBob.receiveMessage().content);
+            assertMessage("Iteration: " + i + ", message Alice.", messageAlice, c.clientBob.receiveMessage().content);
         }
+        c.clientAlice.session.endSession();
+        c.clientBob.session.endSession();
     }
 
     private static void assertMessage(final String message, final String expected, final String actual) {

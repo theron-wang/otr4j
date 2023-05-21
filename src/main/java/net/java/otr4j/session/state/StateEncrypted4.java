@@ -230,8 +230,8 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             // If any message in a new ratchet is received, a new ratchet key has been received, any message keys
             // corresponding to skipped messages from the previous receiving ratchet are stored. A new DH ratchet is
             // performed.
-            if ((this.ratchet.nextRotation() == DoubleRatchet.Purpose.RECEIVING) == (message.dhPublicKey != null)) {
-                throw new ProtocolException("Message does not contain expected content for DH public key. This violates the protocol.");
+            if (this.ratchet.nextRotation() != DoubleRatchet.Purpose.RECEIVING) {
+                throw new ProtocolException("Message in next ratchet received before sending keys were rotated. Message violates protocol; probably malicious.");
             }
             // NOTE: with each message in a new ratchet, we receive new public keys. To acquire the authentication and
             // decryption keys, we need to incorporate these public keys in the ratchet. However, this means we must
@@ -264,7 +264,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         }
-        // Now that we successfully cleared authentication and decryption, we know that the message was authentic.
+        // Now that we successfully passed authentication and decryption, we know that the message was authentic.
         // Therefore, any new key material we might have received is authentic, and the message keys we used were used
         // and subsequently discarded correctly. At this point, malicious messages should not be able to have a lasting
         // impact, while authentic messages correctly progress the Double Ratchet.

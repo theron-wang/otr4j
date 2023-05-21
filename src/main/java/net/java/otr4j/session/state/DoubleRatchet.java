@@ -486,7 +486,8 @@ final class DoubleRatchet implements AutoCloseable {
      * @param pn Number of messages in the previous receiver ratchet (as advertised in a message).
      * @throws OtrCryptoException thrown if provided public keys are illegal.
      */
-    DoubleRatchet rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH, final int pn) throws OtrCryptoException {
+    DoubleRatchet rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH, final int pn)
+            throws OtrCryptoException {
         requireNotClosed();
         if (this.nextRotation != Purpose.RECEIVING) {
             throw new IllegalStateException("Sender keys are expected to rotate next. Message violates protocol.");
@@ -517,7 +518,7 @@ final class DoubleRatchet implements AutoCloseable {
      * Get the remaining MAC-keys-to-be-revealed. (And remove them from the internal list to be revealed.)
      * <p>
      * NOTE: this method should only used to acquire the last remaining MAC keys prior to a session end. The general
-     * revelation case is facilitated through key rotation, i.e. {@link #rotateSenderKeys()}.
+     * revelation case is facilitated through key rotation, i.e. `rotateSenderKeys()`.
      *
      * @return Returns the remaining MAC keys to reveal.
      */
