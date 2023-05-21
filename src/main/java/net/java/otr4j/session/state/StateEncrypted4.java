@@ -230,6 +230,9 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             // If any message in a new ratchet is received, a new ratchet key has been received, any message keys
             // corresponding to skipped messages from the previous receiving ratchet are stored. A new DH ratchet is
             // performed.
+            if ((this.ratchet.nextRotation() == DoubleRatchet.Purpose.RECEIVING) == (message.dhPublicKey != null)) {
+                throw new ProtocolException("Message does not contain expected content for DH public key. This violates the protocol.");
+            }
             // NOTE: with each message in a new ratchet, we receive new public keys. To acquire the authentication and
             // decryption keys, we need to incorporate these public keys in the ratchet. However, this means we must
             // work with unauthenticated data. Therefore, the ratchet constructs a new instance upon each rotation. We
@@ -251,10 +254,12 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                     message.authenticator, message.ciphertext);
             extraSymmetricKey = provisional.extraSymmetricKeyReceiver(message.i, message.j);
         } catch (final RotationLimitationException e) {
+            // TODO does RotationLimitationException still have the same meanings as described in log message below?
             this.logger.log(INFO, "Message received that is part of next ratchet. As we do not have the public keys for that ratchet yet, the message cannot be decrypted. This message is now lost.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         } catch (final OtrCryptoException e) {
+            // TODO should we signal unreadable message if malicious? How to distinguish/decide?
             this.logger.log(INFO, "Received message fails verification. Rejecting the message.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;

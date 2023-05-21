@@ -489,7 +489,7 @@ final class DoubleRatchet implements AutoCloseable {
     DoubleRatchet rotateReceiverKeys(final Point nextECDH, @Nullable final BigInteger nextDH, final int pn) throws OtrCryptoException {
         requireNotClosed();
         if (this.nextRotation != Purpose.RECEIVING) {
-            throw new IllegalStateException("Next rotation must be for receiver keys.");
+            throw new IllegalStateException("Sender keys are expected to rotate next. Message violates protocol.");
         }
         final boolean dhratchet = this.i % 3 == 0;
         if (dhratchet == (nextDH == null)) {
