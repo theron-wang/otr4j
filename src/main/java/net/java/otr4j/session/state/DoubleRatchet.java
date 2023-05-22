@@ -41,6 +41,7 @@ import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static net.java.otr4j.util.Integers.requireEquals;
+import static net.java.otr4j.util.Objects.requireNotEquals;
 import static org.bouncycastle.util.Arrays.concatenate;
 
 /**
@@ -163,11 +164,11 @@ final class DoubleRatchet implements AutoCloseable {
         switch (rotate) {
         case SENDING:
             nextSender = Ratchet.create(concatPreviousRootKeyNewK);
-            nextReceiver = receiver;
+            nextReceiver = new Ratchet(receiver);
             nextRotate = Purpose.RECEIVING;
             break;
         case RECEIVING:
-            nextSender = sender;
+            nextSender = new Ratchet(sender);
             nextReceiver = Ratchet.create(concatPreviousRootKeyNewK);
             nextRotate = Purpose.SENDING;
             break;
@@ -199,12 +200,14 @@ final class DoubleRatchet implements AutoCloseable {
     public void close() {
         clear(this.rootKey);
         this.sharedSecret.close();
+        // TODO ensure that storedKeys are cleaned up.
+        // TODO we need to derive MK_MAC keys from storedKeys and reveal those.
         if (this.reveals.size() > 0) {
             throw new IllegalStateException("BUG: Remaining MACs have not been revealed.");
         }
         // FIXME how to close ratchets properly without closing twice and causing issues. (investigate proper closing procedure)
-        //this.senderRatchet.close();
-        //this.receiverRatchet.close();
+        this.senderRatchet.close();
+        this.receiverRatchet.close();
     }
 
     /**
@@ -424,7 +427,7 @@ final class DoubleRatchet implements AutoCloseable {
             // extra symmetric key.
             return keys.copy();
         }
-        final byte[] chainkey = this.receiverRatchet.simulate().rotateInto(messageId);
+        final byte[] chainkey = this.receiverRatchet.speculate().rotateInto(messageId);
         final MessageKeys keys = MessageKeys.fromChainkey(chainkey);
         clear(chainkey);
         return keys;
@@ -513,7 +516,7 @@ final class DoubleRatchet implements AutoCloseable {
         // last message sent in this ratchet.
         final HashMap<Long, MessageKeys> newStoredKeys = new HashMap<>(this.storedKeys);
         if (this.receiverRatchet != Ratchet.INITIAL) {
-            this.receiverRatchet.simulate().drainInto(newStoredKeys, Math.max(0, this.i - 1), pn);
+            this.receiverRatchet.speculate().drainInto(newStoredKeys, Math.max(0, this.i - 1), pn);
         }
         final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateTheirKeys(dhratchet, nextECDH, nextDH);
         return rotate(Purpose.RECEIVING, this.i + 1, this.pn, newSharedSecret, this.rootKey, this.senderRatchet,
@@ -528,6 +531,7 @@ final class DoubleRatchet implements AutoCloseable {
      *
      * @return Returns the remaining MAC keys to reveal.
      */
+    @CheckReturnValue
     byte[] collectReveals() {
         requireNotClosed();
         final byte[] revealed = this.reveals.toByteArray();
@@ -546,15 +550,6 @@ final class DoubleRatchet implements AutoCloseable {
         requireEquals(0, this.reveals.size() % MK_MAC_LENGTH_BYTES);
         final byte[] data = this.reveals.toByteArray();
         dst.reveals.write(data, 0, data.length);
-        this.reveals.reset();
-    }
-
-    /**
-     * Forget the remaining MAC-keys-to-be-revealed. (This is called whenever remaining MAC keys need not be revealed
-     * before actually closing.)
-     */
-    void forgetReveals() {
-        requireNotClosed();
         this.reveals.reset();
     }
 
@@ -588,7 +583,7 @@ final class Ratchet implements AutoCloseable {
 
     private static final int CHAIN_KEY_LENGTH_BYTES = 64;
 
-    public static final Ratchet INITIAL = new Ratchet(new byte[CHAIN_KEY_LENGTH_BYTES]);
+    static final Ratchet INITIAL = new Ratchet(new byte[CHAIN_KEY_LENGTH_BYTES]);
 
     /**
      * The chain key.
@@ -609,6 +604,11 @@ final class Ratchet implements AutoCloseable {
         return new Ratchet(kdf(CHAIN_KEY_LENGTH_BYTES, CHAIN_KEY, concatPreviousRootKeyNewK));
     }
 
+    Ratchet(final Ratchet original) {
+        this.chainKey = requireNonNull(original.chainKey.clone());
+        this.messageID = original.messageID;
+    }
+
     private Ratchet(final byte[] chainKey) {
         this.chainKey = requireLengthExactly(CHAIN_KEY_LENGTH_BYTES, chainKey);
     }
@@ -619,15 +619,22 @@ final class Ratchet implements AutoCloseable {
 
     @Override
     public void close() {
+        if (this == INITIAL) {
+            // TODO not happy with this construction. Ideally, INITIAL is its own immutable type, but I would like to avoid constructing a type-hierarchy.
+            assert allZeroBytes(this.chainKey) : "BUG: dummy value got corrupted.";
+            return;
+        }
         this.messageID = MIN_VALUE;
-        assert this != INITIAL || allZeroBytes(this.chainKey) : "BUG: dummy value got corrupted.";
         clear(this.chainKey);
     }
 
-    // REMARK use name `speculate()`? (maybe too sensitive :-P)
     @Nonnull
-    Simula simulate() {
-        assert this != INITIAL : "BUG: working with initial dummy for ratchet.";
+    Simula speculate() {
+        // NOTE: inviting trouble by calling this 'speculate'. Still seems to be the best suitable word to express a
+        // temporary projection into the future to acquire the message keys needed to authenticate and decrypt a
+        // message, such that we can confirm authenticity.
+        requireNotClosed();
+        requireNotEquals(INITIAL, this, "BUG: working with initial dummy for ratchet.");
         return new Simula();
     }
 
@@ -640,7 +647,7 @@ final class Ratchet implements AutoCloseable {
      */
     byte[] getChainKey() {
         requireNotClosed();
-        assert this != INITIAL : "BUG: working with initial dummy for ratchet.";
+        requireNotEquals(INITIAL, this, "BUG: working with initial dummy for ratchet.");
         return this.chainKey.clone();
     }
 
@@ -651,7 +658,7 @@ final class Ratchet implements AutoCloseable {
      */
     void rotateChainKey() {
         requireNotClosed();
-        assert this != INITIAL : "BUG: working with initial dummy for ratchet.";
+        requireNotEquals(INITIAL, this, "BUG: working with initial dummy for ratchet.");
         this.messageID += 1;
         kdf(this.chainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, this.chainKey);
     }
@@ -662,7 +669,15 @@ final class Ratchet implements AutoCloseable {
         }
     }
 
+    /**
+     * Simula simulates a number of chain key rotations. This makes it possible to acquire the right authentication and
+     * decryption keys, resp. MK_MAC and MK_ENC, without changing the state yet.
+     */
     final class Simula {
+
+        private Simula() {
+            // enforce private access to constructor
+        }
 
         /**
          * Rotate the chain key into the chain key for specified message ID.
@@ -691,7 +706,6 @@ final class Ratchet implements AutoCloseable {
         void drainInto(final Map<Long, MessageKeys> store, final int ratchetID, final int messageID) {
             final byte[] localChainKey = Arrays.copyOf(Ratchet.this.chainKey, CHAIN_KEY_LENGTH_BYTES);
             for (int k = Ratchet.this.messageID; k < messageID; k++) {
-                // FIXME should we first insert current one? (it should be pointing at first unused chainkey)
                 store.put((long) ratchetID << 32 | k, MessageKeys.fromChainkey(localChainKey));
                 kdf(localChainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, localChainKey);
             }

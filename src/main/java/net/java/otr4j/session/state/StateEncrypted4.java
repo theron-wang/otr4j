@@ -64,8 +64,6 @@ import static net.java.otr4j.util.ByteArrays.concatenate;
 // TODO decide whether or not we can drop the AuthState instance. Relies on fact that we need to know up to what point we should handle OTRv2/3 AKE messages.
 final class StateEncrypted4 extends AbstractCommonState implements StateEncrypted {
 
-    private static final int VERSION = FOUR;
-
     /**
      * Note that in OTRv4 the TLV type for the extra symmetric key is 0x7.
      */
@@ -107,7 +105,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
 
     @Override
     public int getVersion() {
-        return VERSION;
+        return FOUR;
     }
 
     @Nonnull
@@ -307,9 +305,8 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 if (!content.message.isEmpty()) {
                     this.logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
                 }
-                // TODO this was documented, but what was the rationale to sometimes forget MACs that we should reveal?
-                // FIXME another part of the spec says that we reveal MACs in Type 1 TLV too.
-                this.ratchet.forgetReveals();
+                // FIXME we need to reveal any remaining MK_MACs in the reveals list. (currently not used)
+                final byte[] unused = this.ratchet.collectReveals();
                 context.transition(this, new StateFinished(getAuthState()));
                 break;
             case EXTRA_SYMMETRIC_KEY:

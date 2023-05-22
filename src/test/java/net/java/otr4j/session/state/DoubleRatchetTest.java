@@ -236,7 +236,7 @@ public class DoubleRatchetTest {
         // Start decrypting and verifying using Alice's double ratchet.
         bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), aliceRatchet.getDHPublicKey(), 0);
         bobRatchet.decrypt(0, 0, message, authenticator, ciphertext);
-        bobRatchet.forgetReveals();
+        bobRatchet.collectReveals();
         assertFalse(allZeroBytes((byte[]) getInternalState(bobRatchet, "rootKey")));
         assertFalse(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "senderRatchet"), "chainKey")));
         assertFalse(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "receiverRatchet"), "chainKey")));
