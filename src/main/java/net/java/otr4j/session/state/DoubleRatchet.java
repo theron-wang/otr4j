@@ -34,11 +34,13 @@ import static java.util.logging.Level.FINEST;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.CHAIN_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.NEXT_CHAIN_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.ROOT_KEY;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
+import static net.java.otr4j.util.Integers.requireEquals;
 import static org.bouncycastle.util.Arrays.concatenate;
 
 /**
@@ -114,8 +116,11 @@ final class DoubleRatchet implements AutoCloseable {
     // TODO need to eventually perform clean up of `storedKeys` (inject MK_MACs into `macsToReveal`, see spec) to avoid growing indefinitely, even if only a problem for long run-times.
     private final HashMap<Long, MessageKeys> storedKeys;
 
+    /**
+     * MAC keys to be revealed. (in spec `mac_keys_to_reveal`)
+     */
     // TODO fine-tuning revealing of MAC keys: (OTRv4) "A MAC key is added to `mac_keys_to_reveal` list after a participant has verified the message associated with that MAC key. They are also added if the session is expired or when the storage of message keys gets deleted, and the MAC keys for messages that have not arrived are derived."
-    private final ByteArrayOutputStream macsToReveal = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream reveals = new ByteArrayOutputStream();
 
     static DoubleRatchet initialize(final Purpose purpose, final MixedSharedSecret sharedSecret,
             final byte[] firstRootKey) {
@@ -194,7 +199,7 @@ final class DoubleRatchet implements AutoCloseable {
     public void close() {
         clear(this.rootKey);
         this.sharedSecret.close();
-        if (this.macsToReveal.size() > 0) {
+        if (this.reveals.size() > 0) {
             throw new IllegalStateException("BUG: Remaining MACs have not been revealed.");
         }
         // FIXME how to close ratchets properly without closing twice and causing issues. (investigate proper closing procedure)
@@ -349,7 +354,7 @@ final class DoubleRatchet implements AutoCloseable {
         try (MessageKeys keys = generateReceivingMessageKeys(ratchetId, messageId)) {
             final byte[] mkMAC = keys.verify(encodedDataMessageSections, authenticator);
             decrypted = keys.decrypt(ciphertext);
-            this.macsToReveal.write(mkMAC, 0, mkMAC.length);
+            this.reveals.write(mkMAC, 0, mkMAC.length);
         }
         return decrypted;
     }
@@ -516,40 +521,41 @@ final class DoubleRatchet implements AutoCloseable {
     }
 
     /**
-     * Get the remaining MAC-keys-to-be-revealed. (And remove them from the internal list to be revealed.)
+     * Collect the MAC-keys-to-be-revealed. (And remove them from the internal list to be revealed.)
      * <p>
      * NOTE: this method should only used to acquire the last remaining MAC keys prior to a session end. The general
      * revelation case is facilitated through key rotation, i.e. `rotateSenderKeys()`.
      *
      * @return Returns the remaining MAC keys to reveal.
      */
-    byte[] collectRemainingMACsToReveal() {
+    byte[] collectReveals() {
         requireNotClosed();
-        final byte[] revealed = this.macsToReveal.toByteArray();
-        this.macsToReveal.reset();
+        final byte[] revealed = this.reveals.toByteArray();
+        this.reveals.reset();
         return revealed;
     }
 
     /**
-     * transferRemainingMACsToReveal transfers current data in macsToReveal to the provided (presumably next)
+     * transferReveals transfers current MAC-keys-to-be-revealed to the provided (presumably next)
      * DoubleRatchet instance, then clears its own `macsToReveal`.
      *
-     * @param next the next DoubleRatchet instance
+     * @param dst the destination instance
      */
-    void transferRemainingMACsToReveal(final DoubleRatchet next) {
+    void transferReveals(final DoubleRatchet dst) {
         requireNotClosed();
-        final byte[] data = this.macsToReveal.toByteArray();
-        next.macsToReveal.write(data, 0, data.length);
-        this.macsToReveal.reset();
+        requireEquals(0, this.reveals.size() % MK_MAC_LENGTH_BYTES);
+        final byte[] data = this.reveals.toByteArray();
+        dst.reveals.write(data, 0, data.length);
+        this.reveals.reset();
     }
 
     /**
      * Forget the remaining MAC-keys-to-be-revealed. (This is called whenever remaining MAC keys need not be revealed
      * before actually closing.)
      */
-    void forgetRemainingMACsToReveal() {
+    void forgetReveals() {
         requireNotClosed();
-        this.macsToReveal.reset();
+        this.reveals.reset();
     }
 
     private void requireNotClosed() {

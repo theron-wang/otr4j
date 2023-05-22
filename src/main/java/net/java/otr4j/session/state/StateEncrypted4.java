@@ -161,7 +161,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             final byte[] revealedMacs;
             try (DoubleRatchet previous = this.ratchet) {
                 this.ratchet = this.ratchet.rotateSenderKeys();
-                revealedMacs = previous.collectRemainingMACsToReveal();
+                revealedMacs = previous.collectReveals();
             }
             this.logger.log(FINEST, "Sender keys rotated. revealed MACs size: {0}.",
                     new Object[]{revealedMacs.length});
@@ -272,7 +272,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // and subsequently discarded correctly. At this point, malicious messages should not be able to have a lasting
         // impact, while authentic messages correctly progress the Double Ratchet.
         if (provisional != this.ratchet) {
-            this.ratchet.transferRemainingMACsToReveal(provisional);
+            this.ratchet.transferReveals(provisional);
             this.ratchet.close();
             this.ratchet = provisional;
         }
@@ -309,7 +309,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 }
                 // TODO this was documented, but what was the rationale to sometimes forget MACs that we should reveal?
                 // FIXME another part of the spec says that we reveal MACs in Type 1 TLV too.
-                this.ratchet.forgetRemainingMACsToReveal();
+                this.ratchet.forgetReveals();
                 context.transition(this, new StateFinished(getAuthState()));
                 break;
             case EXTRA_SYMMETRIC_KEY:
@@ -352,7 +352,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     public void expire(final Context context) throws OtrException {
         final TLV disconnectTlv = new TLV(DISCONNECTED, TLV.EMPTY_BODY);
         final DataMessage4 m = transformSending(context, "", singleton(disconnectTlv), FLAG_IGNORE_UNREADABLE,
-                this.ratchet.collectRemainingMACsToReveal());
+                this.ratchet.collectReveals());
         try {
             context.injectMessage(m);
         } finally {

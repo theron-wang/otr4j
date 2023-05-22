@@ -236,12 +236,12 @@ public class DoubleRatchetTest {
         // Start decrypting and verifying using Alice's double ratchet.
         bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), aliceRatchet.getDHPublicKey(), 0);
         bobRatchet.decrypt(0, 0, message, authenticator, ciphertext);
-        bobRatchet.forgetRemainingMACsToReveal();
+        bobRatchet.forgetReveals();
         assertFalse(allZeroBytes((byte[]) getInternalState(bobRatchet, "rootKey")));
         assertFalse(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "senderRatchet"), "chainKey")));
         assertFalse(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "receiverRatchet"), "chainKey")));
         bobRatchet.close();
-        assertEquals(0, ((ByteArrayOutputStream) getInternalState(bobRatchet, "macsToReveal")).size());
+        assertEquals(0, ((ByteArrayOutputStream) getInternalState(bobRatchet, "reveals")).size());
         assertTrue(allZeroBytes((byte[]) getInternalState(bobRatchet, "rootKey")));
         assertTrue(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "senderRatchet"), "chainKey")));
         assertTrue(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "receiverRatchet"), "chainKey")));
@@ -350,7 +350,7 @@ public class DoubleRatchetTest {
             aliceRatchet = aliceRatchet.rotateSenderKeys();
             ignored.getI(); // dummy to prevent compiler complaints
         }
-        assertArrayEquals(new byte[0], aliceRatchet.collectRemainingMACsToReveal());
+        assertArrayEquals(new byte[0], aliceRatchet.collectReveals());
         assertEquals(RECEIVING, aliceRatchet.nextRotation());
         final byte[] ciphertext = aliceRatchet.encrypt(message);
         final byte[] authenticator = aliceRatchet.authenticate(message);
@@ -397,7 +397,7 @@ public class DoubleRatchetTest {
         final byte[] revealedMacs2;
         try (DoubleRatchet previous = bobRatchet) {
             bobRatchet = bobRatchet.rotateSenderKeys();
-            revealedMacs2 = previous.collectRemainingMACsToReveal();
+            revealedMacs2 = previous.collectReveals();
         }
         assertEquals(0, revealedMacs2.length % MK_MAC_LENGTH_BYTES);
         assertEquals(3 * MK_MAC_LENGTH_BYTES, revealedMacs2.length);
@@ -458,7 +458,7 @@ public class DoubleRatchetTest {
         // Verify that Alice reveals the expected authenticators.
         try (DoubleRatchet previous = aliceRatchet) {
             aliceRatchet = aliceRatchet.rotateSenderKeys();
-            assertEquals(3 * MK_MAC_LENGTH_BYTES, previous.collectRemainingMACsToReveal().length);
+            assertEquals(3 * MK_MAC_LENGTH_BYTES, previous.collectReveals().length);
         }
         assertEquals(RECEIVING, aliceRatchet.nextRotation());
         assertEquals(3, aliceRatchet.getI());
@@ -471,12 +471,12 @@ public class DoubleRatchetTest {
         assertEquals(3, aliceRatchet.getI());
         assertEquals(1, aliceRatchet.getJ());
         assertEquals(3, aliceRatchet.getK());
-        assertEquals(0, aliceRatchet.collectRemainingMACsToReveal().length);
+        assertEquals(0, aliceRatchet.collectReveals().length);
         aliceRatchet.close();
         assertEquals(RECEIVING, bobRatchet.nextRotation());
         try (DoubleRatchet previous = bobRatchet) {
             bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), null, 1);
-            assertEquals(0, previous.collectRemainingMACsToReveal().length);
+            assertEquals(0, previous.collectReveals().length);
         }
         assertEquals(SENDING, bobRatchet.nextRotation());
         assertEquals(0, bobRatchet.getPn());
@@ -484,7 +484,7 @@ public class DoubleRatchetTest {
         assertEquals(3, bobRatchet.getJ());
         assertEquals(0, bobRatchet.getK());
         assertArrayEquals(message, bobRatchet.decrypt(2, 0, message, authenticator7, ciphertext7));
-        assertEquals(MK_MAC_LENGTH_BYTES, bobRatchet.collectRemainingMACsToReveal().length);
+        assertEquals(MK_MAC_LENGTH_BYTES, bobRatchet.collectReveals().length);
         assertArrayEquals(extraSymmKey7, bobRatchet.extraSymmetricKeyReceiver(2, 0));
         bobRatchet.close();
     }

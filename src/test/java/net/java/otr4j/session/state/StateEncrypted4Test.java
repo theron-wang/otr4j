@@ -255,7 +255,7 @@ public final class StateEncrypted4Test {
 
         // Test StateEncrypted4 expiring
         final byte[] artificialMACsToReveal = randomBytes(RANDOM, new byte[120]);
-        ((ByteArrayOutputStream) Whitebox.getInternalState(ratchet, "macsToReveal")).write(artificialMACsToReveal, 0,
+        ((ByteArrayOutputStream) Whitebox.getInternalState(ratchet, "reveals")).write(artificialMACsToReveal, 0,
                 artificialMACsToReveal.length);
         final StateEncrypted4 state = new StateEncrypted4(context, ssid, ratchet, myPublicKey, myForgingKey,
                 theirProfile, StateInitial.instance());
@@ -268,7 +268,7 @@ public final class StateEncrypted4Test {
         assertEquals(FLAG_IGNORE_UNREADABLE, disconnectMessage.flags & FLAG_IGNORE_UNREADABLE);
         assertTrue(disconnectMessage.ciphertext.length > 1);
         assertArrayEquals(artificialMACsToReveal, disconnectMessage.revealedMacs);
-        assertArrayEquals(new byte[0], ratchet.collectRemainingMACsToReveal());
+        assertArrayEquals(new byte[0], ratchet.collectReveals());
     }
 
     @Test
