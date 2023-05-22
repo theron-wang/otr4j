@@ -111,11 +111,11 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     private final Purpose nextRotation;
 
-    // TODO fine-tuning revealing of MAC keys: (OTRv4) "A MAC key is added to `mac_keys_to_reveal` list after a participant has verified the message associated with that MAC key. They are also added if the session is expired or when the storage of message keys gets deleted, and the MAC keys for messages that have not arrived are derived."
-    private final ByteArrayOutputStream macsToReveal;
-
     // TODO need to eventually perform clean up of `storedKeys` (inject MK_MACs into `macsToReveal`, see spec) to avoid growing indefinitely, even if only a problem for long run-times.
     private final HashMap<Long, MessageKeys> storedKeys;
+
+    // TODO fine-tuning revealing of MAC keys: (OTRv4) "A MAC key is added to `mac_keys_to_reveal` list after a participant has verified the message associated with that MAC key. They are also added if the session is expired or when the storage of message keys gets deleted, and the MAC keys for messages that have not arrived are derived."
+    private final ByteArrayOutputStream macsToReveal = new ByteArrayOutputStream();
 
     static DoubleRatchet initialize(final Purpose purpose, final MixedSharedSecret sharedSecret,
             final byte[] firstRootKey) {
@@ -143,13 +143,12 @@ final class DoubleRatchet implements AutoCloseable {
         clear(firstRootKey);
         final byte[] newRootKey = kdf(ROOT_KEY_LENGTH_BYTES, ROOT_KEY, concatPreviousRootKeyNewK);
         clear(concatPreviousRootKeyNewK);
-        return new DoubleRatchet(0, 0, sharedSecret, newRootKey, sender, receiver, next,
-                new HashMap<>(), new ByteArrayOutputStream());
+        return new DoubleRatchet(0, 0, sharedSecret, newRootKey, sender, receiver, next, new HashMap<>());
     }
 
-    static DoubleRatchet rotate(final Purpose rotate, final int nextI, final int pn, final MixedSharedSecret newSharedSecret,
+    private static DoubleRatchet rotate(final Purpose rotate, final int nextI, final int pn, final MixedSharedSecret newSharedSecret,
             final byte[] prevRootKey, final Ratchet sender, final Ratchet receiver,
-            final HashMap<Long, MessageKeys> storedKeys, final ByteArrayOutputStream storedMacs) {
+            final HashMap<Long, MessageKeys> storedKeys) {
         requireLengthExactly(ROOT_KEY_LENGTH_BYTES, prevRootKey);
         assert !allZeroBytes(prevRootKey) : "Expecting random data instead of all zero-bytes. There might be something severely wrong.";
         final byte[] newK = newSharedSecret.getK();
@@ -175,12 +174,12 @@ final class DoubleRatchet implements AutoCloseable {
         final byte[] newRootKey = kdf(ROOT_KEY_LENGTH_BYTES, ROOT_KEY, concatPreviousRootKeyNewK);
         clear(concatPreviousRootKeyNewK);
         return new DoubleRatchet(nextI, pn, newSharedSecret, newRootKey, nextSender, nextReceiver, nextRotate,
-                storedKeys, storedMacs);
+                storedKeys);
     }
 
     private DoubleRatchet(final int i, final int pn, final MixedSharedSecret sharedSecret, final byte[] newRootKey,
             final Ratchet sender, final Ratchet receiver, final Purpose next,
-            final HashMap<Long, MessageKeys> storedKeys, final ByteArrayOutputStream storedMacs) {
+            final HashMap<Long, MessageKeys> storedKeys) {
         this.i = i;
         this.pn = pn;
         this.rootKey = requireLengthExactly(ROOT_KEY_LENGTH_BYTES, newRootKey);
@@ -189,18 +188,16 @@ final class DoubleRatchet implements AutoCloseable {
         this.receiverRatchet = requireNonNull(receiver);
         this.nextRotation = requireNonNull(next);
         this.storedKeys = requireNonNull(storedKeys);
-        this.macsToReveal = requireNonNull(storedMacs);
     }
 
     @Override
     public void close() {
         clear(this.rootKey);
         this.sharedSecret.close();
-        // FIXME reveal MACs in first message of new ratchet.
         if (this.macsToReveal.size() > 0) {
             throw new IllegalStateException("BUG: Remaining MACs have not been revealed.");
         }
-        // FIXME how to close ratchets properly without closing twice and causing issues.
+        // FIXME how to close ratchets properly without closing twice and causing issues. (investigate proper closing procedure)
         //this.senderRatchet.close();
         //this.receiverRatchet.close();
     }
@@ -286,7 +283,7 @@ final class DoubleRatchet implements AutoCloseable {
         // the original (non-rotated) Double Ratchet instance or the new instance will persist. Rotating sender keys
         // does not impact either store.
         return rotate(Purpose.SENDING, this.i + 1, this.senderRatchet.getMessageID(), newSharedSecret,
-                this.rootKey, this.senderRatchet, this.receiverRatchet, this.storedKeys, this.macsToReveal);
+                this.rootKey, this.senderRatchet, this.receiverRatchet, this.storedKeys);
     }
 
     /**
@@ -348,11 +345,13 @@ final class DoubleRatchet implements AutoCloseable {
             final byte[] authenticator, final byte[] ciphertext) throws RotationLimitationException, OtrCryptoException {
         LOGGER.log(FINER, "Generating message keys for verification and decryption of ratchet {0}, message {1}.",
                 new Object[]{this.i - 1, this.receiverRatchet.getMessageID()});
+        final byte[] decrypted;
         try (MessageKeys keys = generateReceivingMessageKeys(ratchetId, messageId)) {
             final byte[] mkMAC = keys.verify(encodedDataMessageSections, authenticator);
+            decrypted = keys.decrypt(ciphertext);
             this.macsToReveal.write(mkMAC, 0, mkMAC.length);
-            return keys.decrypt(ciphertext);
         }
+        return decrypted;
     }
 
     /**
@@ -513,7 +512,7 @@ final class DoubleRatchet implements AutoCloseable {
         }
         final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateTheirKeys(dhratchet, nextECDH, nextDH);
         return rotate(Purpose.RECEIVING, this.i + 1, this.pn, newSharedSecret, this.rootKey, this.senderRatchet,
-                this.receiverRatchet, newStoredKeys, this.macsToReveal);
+                this.receiverRatchet, newStoredKeys);
     }
 
     /**
@@ -529,6 +528,19 @@ final class DoubleRatchet implements AutoCloseable {
         final byte[] revealed = this.macsToReveal.toByteArray();
         this.macsToReveal.reset();
         return revealed;
+    }
+
+    /**
+     * transferRemainingMACsToReveal transfers current data in macsToReveal to the provided (presumably next)
+     * DoubleRatchet instance, then clears its own `macsToReveal`.
+     *
+     * @param next the next DoubleRatchet instance
+     */
+    void transferRemainingMACsToReveal(final DoubleRatchet next) {
+        requireNotClosed();
+        final byte[] data = this.macsToReveal.toByteArray();
+        next.macsToReveal.write(data, 0, data.length);
+        this.macsToReveal.reset();
     }
 
     /**

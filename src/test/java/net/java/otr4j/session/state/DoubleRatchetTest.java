@@ -348,6 +348,7 @@ public class DoubleRatchetTest {
         assertEquals(SENDING, aliceRatchet.nextRotation());
         try (DoubleRatchet ignored = aliceRatchet) {
             aliceRatchet = aliceRatchet.rotateSenderKeys();
+            ignored.getI(); // dummy to prevent compiler complaints
         }
         assertArrayEquals(new byte[0], aliceRatchet.collectRemainingMACsToReveal());
         assertEquals(RECEIVING, aliceRatchet.nextRotation());
@@ -367,6 +368,7 @@ public class DoubleRatchetTest {
         try (DoubleRatchet ignored = bobRatchet) {
             bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), aliceRatchet.getDHPublicKey(),
                     aliceRatchet.getJ());
+            ignored.getI(); // dummy to prevent compiler complaints
         }
         assertEquals(SENDING, bobRatchet.nextRotation());
         assertEquals(1, bobRatchet.getI());
@@ -392,10 +394,11 @@ public class DoubleRatchetTest {
         assertEquals(0, bobRatchet.getJ());
         assertEquals(3, bobRatchet.getK());
         // Bob starts sending response messages.
-        try (DoubleRatchet ignored = bobRatchet) {
+        final byte[] revealedMacs2;
+        try (DoubleRatchet previous = bobRatchet) {
             bobRatchet = bobRatchet.rotateSenderKeys();
+            revealedMacs2 = previous.collectRemainingMACsToReveal();
         }
-        final byte[] revealedMacs2 = bobRatchet.collectRemainingMACsToReveal();
         assertEquals(0, revealedMacs2.length % MK_MAC_LENGTH_BYTES);
         assertEquals(3 * MK_MAC_LENGTH_BYTES, revealedMacs2.length);
         assertEquals(RECEIVING, bobRatchet.nextRotation());
@@ -427,6 +430,7 @@ public class DoubleRatchetTest {
         assertEquals(RECEIVING, aliceRatchet.nextRotation());
         try (DoubleRatchet ignored = aliceRatchet) {
             aliceRatchet = aliceRatchet.rotateReceiverKeys(bobRatchet.getECDHPublicKey(), null, bobRatchet.getJ());
+            ignored.getI(); // dummy to prevent compiler complaints
         }
         assertEquals(SENDING, aliceRatchet.nextRotation());
         assertEquals(0, aliceRatchet.getPn());
@@ -452,11 +456,11 @@ public class DoubleRatchetTest {
         assertEquals(3, aliceRatchet.getJ());
         assertEquals(3, aliceRatchet.getK());
         // Verify that Alice reveals the expected authenticators.
-        try (DoubleRatchet ignored = aliceRatchet) {
+        try (DoubleRatchet previous = aliceRatchet) {
             aliceRatchet = aliceRatchet.rotateSenderKeys();
+            assertEquals(3 * MK_MAC_LENGTH_BYTES, previous.collectRemainingMACsToReveal().length);
         }
         assertEquals(RECEIVING, aliceRatchet.nextRotation());
-        assertEquals(3 * MK_MAC_LENGTH_BYTES, aliceRatchet.collectRemainingMACsToReveal().length);
         assertEquals(3, aliceRatchet.getI());
         assertEquals(0, aliceRatchet.getJ());
         assertEquals(3, aliceRatchet.getK());
@@ -470,8 +474,9 @@ public class DoubleRatchetTest {
         assertEquals(0, aliceRatchet.collectRemainingMACsToReveal().length);
         aliceRatchet.close();
         assertEquals(RECEIVING, bobRatchet.nextRotation());
-        try (DoubleRatchet ignored = bobRatchet) {
+        try (DoubleRatchet previous = bobRatchet) {
             bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), null, 1);
+            assertEquals(0, previous.collectRemainingMACsToReveal().length);
         }
         assertEquals(SENDING, bobRatchet.nextRotation());
         assertEquals(0, bobRatchet.getPn());

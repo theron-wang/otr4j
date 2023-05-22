@@ -37,7 +37,6 @@ import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
  * @author George Politis
  * @author Danny van Heumen
  */
-// TODO consider reducing complexity.
 public final class OtrCryptoEngine {
 
     private static final String MD_SHA1 = "SHA-1";

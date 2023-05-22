@@ -149,7 +149,6 @@ public final class MixedSharedSecret implements AutoCloseable {
     /**
      * Close MixedSharedSecret instance by securely clearing used memory that contains sensitive data.
      */
-    // FIXME investigate proper closing/clearing procedure given that these instances may be thrown away in case of malicious messages.
     @Override
     public void close() {
         clear(this.braceKey);
@@ -233,7 +232,7 @@ public final class MixedSharedSecret implements AutoCloseable {
     public MixedSharedSecret rotateOurKeys(final boolean dhratchet) {
         expectNotClosed();
         return new MixedSharedSecret(this.random, this.braceKey, dhratchet, ECDHKeyPair.generate(this.random),
-                dhratchet ? DHKeyPair.generate(this.random) : this.dhKeyPair, this.theirECDHPublicKey,
+                dhratchet ? DHKeyPair.generate(this.random) : new DHKeyPair(this.dhKeyPair), this.theirECDHPublicKey,
                 this.theirDHPublicKey);
     }
 

@@ -158,8 +158,11 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // Perform ratchet if necessary, possibly collecting MAC codes to reveal.
         final byte[] collectedMACs;
         if (this.ratchet.nextRotation() == DoubleRatchet.Purpose.SENDING) {
-            this.ratchet = this.ratchet.rotateSenderKeys();
-            final byte[] revealedMacs = this.ratchet.collectRemainingMACsToReveal();
+            final byte[] revealedMacs;
+            try (DoubleRatchet previous = this.ratchet) {
+                this.ratchet = this.ratchet.rotateSenderKeys();
+                revealedMacs = previous.collectRemainingMACsToReveal();
+            }
             this.logger.log(FINEST, "Sender keys rotated. revealed MACs size: {0}.",
                     new Object[]{revealedMacs.length});
             collectedMACs = concatenate(providedMACsToReveal, revealedMacs);
@@ -268,7 +271,11 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // Therefore, any new key material we might have received is authentic, and the message keys we used were used
         // and subsequently discarded correctly. At this point, malicious messages should not be able to have a lasting
         // impact, while authentic messages correctly progress the Double Ratchet.
-        this.ratchet = provisional;
+        if (provisional != this.ratchet) {
+            this.ratchet.transferRemainingMACsToReveal(provisional);
+            this.ratchet.close();
+            this.ratchet = provisional;
+        }
         this.ratchet.confirmReceivingChainKey(message.i, message.j);
         // Process decrypted message contents. Extract and process TLVs. Possibly reply, e.g. SMP, disconnect.
         final Content content = extractContents(decrypted);
@@ -301,6 +308,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                     this.logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
                 }
                 // TODO this was documented, but what was the rationale to sometimes forget MACs that we should reveal?
+                // FIXME another part of the spec says that we reveal MACs in Type 1 TLV too.
                 this.ratchet.forgetRemainingMACsToReveal();
                 context.transition(this, new StateFinished(getAuthState()));
                 break;
