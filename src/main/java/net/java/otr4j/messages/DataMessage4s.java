@@ -23,6 +23,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
  * Utility class for DataMessage4.
  */
 public final class DataMessage4s {
+
     private static final Logger LOGGER = Logger.getLogger(DataMessage4s.class.getName());
 
     private DataMessage4s() {
@@ -30,13 +31,16 @@ public final class DataMessage4s {
     }
 
     /**
-     * Validate DataMessage4 instance.
+     * (Limited) verification of DataMessage4 instance.
+     * <p>
+     * The DataMessage4 largely depends on authenticity. This will only perform some sanity checking to enforce proper,
+     * strict adherence to the protocol and avoid pitfalls of misinterpreting data.
      *
      * @param message the data message
      * @throws ProtocolException thrown if data message does not conform to specification.
      */
     // TODO create tests that verify appropriate expectations for DataMessage4, especially given need to handle before all data can be authenticated.
-    public static void validate(final DataMessage4 message) throws ProtocolException {
+    public static void verify(final DataMessage4 message) throws ProtocolException {
         if ((message.i % 3 == 0) == (message.dhPublicKey == null)) {
             LOGGER.log(INFO, "Ratchet DH public key presence is not following specification: ratchet {0}, DH public key present: {1}",
                     new Object[]{message.i, message.dhPublicKey != null});

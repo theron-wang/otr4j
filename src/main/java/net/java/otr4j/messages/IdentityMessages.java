@@ -35,7 +35,8 @@ public final class IdentityMessages {
      */
     public static void validate(final IdentityMessage message, final ClientProfile theirProfile)
             throws ValidationException {
-        validateEquals(message.senderTag, theirProfile.getInstanceTag(), "Sender instance tag does not match with owner instance tag in client profile.");
+        validateEquals(message.senderTag, theirProfile.getInstanceTag(),
+                "Sender instance tag does not match with owner instance tag in client profile.");
         try {
             verifyECDHPublicKey(message.y);
             verifyDHPublicKey(message.b);

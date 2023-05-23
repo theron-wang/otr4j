@@ -51,7 +51,7 @@ import static net.java.otr4j.io.EncryptedMessage.extractContents;
 import static net.java.otr4j.io.ErrorMessage.ERROR_1_MESSAGE_UNREADABLE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_UNREADABLE_MESSAGE;
 import static net.java.otr4j.messages.DataMessage4s.encodeDataMessageSections;
-import static net.java.otr4j.messages.DataMessage4s.validate;
+import static net.java.otr4j.messages.DataMessage4s.verify;
 import static net.java.otr4j.session.smpv4.SMP.smpPayload;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.clear;
@@ -215,7 +215,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Override
     @SuppressWarnings("PMD.CognitiveComplexity")
     String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException, ProtocolException {
-        validate(message);
+        verify(message);
         if (message.i < this.ratchet.getI() - 1) {
             // FIXME this can be assumed to work: simply pass through to Double Ratchet, look in stored keys map and return something if available.
             // Ratchet ID < our current ratchet ID. This is technically impossible, so should not be supported.
