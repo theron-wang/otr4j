@@ -12,7 +12,6 @@ package net.java.otr4j.messages;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.OtrOutputStream;
-import net.java.otr4j.io.UnsupportedTypeException;
 import org.junit.Test;
 
 import java.net.ProtocolException;
@@ -27,7 +26,7 @@ public final class SignatureXsTest {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     @Test(expected = ProtocolException.class)
-    public void testReadMysteriousXOtrInputStreamReadBehavior() throws OtrCryptoException, UnsupportedTypeException, ProtocolException {
+    public void testReadMysteriousXOtrInputStreamReadBehavior() throws OtrCryptoException, ProtocolException {
         // This test uses nonsensicle data and as such it does not verify
         // correct parsing of the read public key material. However, it does
         // test the reading behavior of OtrInputStream expected for such a read
@@ -49,7 +48,7 @@ public final class SignatureXsTest {
     }
 
     @Test
-    public void testReadSignatureX() throws ProtocolException, OtrCryptoException, UnsupportedTypeException {
+    public void testReadSignatureX() throws ProtocolException, OtrCryptoException {
         final DSAKeyPair keypair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final byte[] signature = keypair.sign(randomBytes(RANDOM, new byte[10]));
         final SignatureX sigX = new SignatureX(keypair.getPublic(), 1, signature);

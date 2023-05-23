@@ -148,15 +148,15 @@ public class OtrInputStreamTest {
         assertEquals(BigInteger.valueOf(85L), ois.readBigInt());
     }
 
-    @Test(expected = UnsupportedTypeException.class)
-    public void testReadBadPublicKeyType() throws OtrCryptoException, UnsupportedTypeException, ProtocolException {
+    @Test(expected = ProtocolException.class)
+    public void testReadBadPublicKeyType() throws OtrCryptoException, ProtocolException {
         final byte[] data = new byte[] {0x0, 0x55};
         final OtrInputStream ois = new OtrInputStream(data);
         ois.readPublicKey();
     }
 
     @Test
-    public void testReadPUblicKeyType() throws OtrCryptoException, UnsupportedTypeException, ProtocolException {
+    public void testReadPUblicKeyType() throws OtrCryptoException, ProtocolException {
         final byte[] data = new byte[] {0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x1, 0x0, 0x0, 0x0, 0x1, 0x2, 0x0, 0x0, 0x0, 0x1, 0x3, 0x0, 0x0, 0x0, 0x1, 0x4};
         final OtrInputStream ois = new OtrInputStream(data);
         final PublicKey key = ois.readPublicKey();

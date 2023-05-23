@@ -15,7 +15,6 @@ import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.io.OtrOutputStream;
-import net.java.otr4j.io.UnsupportedTypeException;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.DHCommitMessage;
 import net.java.otr4j.messages.DHKeyMessage;
@@ -92,11 +91,7 @@ final class StateAwaitingSig extends AbstractAuthState {
             return handleDHKeyMessage((DHKeyMessage) message);
         }
         if (message instanceof SignatureMessage) {
-            try {
-                return handleSignatureMessage(context, (SignatureMessage) message);
-            } catch (final UnsupportedTypeException e) {
-                throw new OtrException("Unsupported type of signature encountered.", e);
-            }
+            return handleSignatureMessage(context, (SignatureMessage) message);
         }
         LOGGER.log(Level.FINEST, "Only expected message types are DHKeyMessage and SignatureMessage. Ignoring message with type: {0}", message.getType());
         return new Result(null, null);
@@ -138,7 +133,7 @@ final class StateAwaitingSig extends AbstractAuthState {
 
     @Nonnull
     private Result handleSignatureMessage(final AuthContext context, final SignatureMessage message)
-            throws OtrCryptoException, ProtocolException, UnsupportedTypeException {
+            throws OtrCryptoException, ProtocolException {
         // OTR: "Decrypt the encrypted signature, and verify the signature and the MACs."
         try {
             // OTR: "Uses m2' to verify MACm2'(AESc'(XA))"

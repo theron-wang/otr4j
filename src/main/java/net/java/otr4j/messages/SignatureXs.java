@@ -11,7 +11,6 @@ package net.java.otr4j.messages;
 
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.OtrInputStream;
-import net.java.otr4j.io.UnsupportedTypeException;
 
 import javax.annotation.Nonnull;
 import java.net.ProtocolException;
@@ -35,12 +34,10 @@ public final class SignatureXs {
      * @return Returns Signature X instance.
      * @throws ProtocolException        In case of failure in reading the message.
      * @throws OtrCryptoException       In case of failures while processing the message content.
-     * @throws UnsupportedTypeException In case of unsupported public key type.
      */
     @SuppressWarnings("PMD.PrematureDeclaration")
     @Nonnull
-    public static SignatureX readSignatureX(final byte[] bytes) throws ProtocolException, OtrCryptoException,
-            UnsupportedTypeException {
+    public static SignatureX readSignatureX(final byte[] bytes) throws ProtocolException, OtrCryptoException {
         final OtrInputStream in = new OtrInputStream(bytes);
         final DSAPublicKey pubKey = in.readPublicKey();
         final int dhKeyID = in.readInt();

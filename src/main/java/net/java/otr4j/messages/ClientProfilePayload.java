@@ -21,7 +21,6 @@ import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrInputStream.UnsupportedLengthException;
 import net.java.otr4j.io.OtrOutputStream;
-import net.java.otr4j.io.UnsupportedTypeException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -196,11 +195,7 @@ public final class ClientProfilePayload implements OtrEncodable {
                 fields.add(new TransitionalSignatureField(new DSASignature(r, s)));
                 break;
             case TRANSITIONAL_DSA_PUBLIC_KEY:
-                try {
-                    fields.add(new DSAPublicKeyField(in.readPublicKey()));
-                } catch (final UnsupportedTypeException e) {
-                    throw new ProtocolException("Unsupported type of OTRv3 Public Key encountered.");
-                }
+                fields.add(new DSAPublicKeyField(in.readPublicKey()));
                 break;
             default:
                 throw new ProtocolException("Unknown field type encountered: " + type);
