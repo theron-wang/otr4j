@@ -17,6 +17,7 @@ package net.java.otr4j.api;
  * (re)starting AKE.
  *
  * @author George Politis
+ * @author Danny van Heumen
  */
 // TODO no longer ALLOW_V2 by default?
 public final class OtrPolicy {

@@ -59,7 +59,7 @@ import static org.bouncycastle.util.Arrays.concatenate;
  * <p>
  * DoubleRatchet is NOT thread-safe.
  */
-// TODO DoubleRatchet currently does not keep history. Therefore it is not possible to decode out-of-order messages from previous ratchets. (Also needed to keep MessageKeys instances for messages failing verification.)
+// TODO current idempotent rotation procedure (to start DoubleRatchet changes provisional) require a lot of copying/cloning data. Can we do this in a more efficient way?
 // FIXME set-up clean up, revealed MAC keys, ...
 // FIXME carefully inspect that this way of working with "provisional" ratchet instance, does indeed not leave any changes/traces. (public key handling .. closing keypairs when rotating receiver keys?)
 final class DoubleRatchet implements AutoCloseable {
@@ -202,10 +202,12 @@ final class DoubleRatchet implements AutoCloseable {
         this.sharedSecret.close();
         // TODO ensure that storedKeys are cleaned up.
         // TODO we need to derive MK_MAC keys from storedKeys and reveal those.
+        //if (this.storedKeys.size() > 0) {
+        //    throw new IllegalStateException("BUG: Stored keys have not been cleaned up and revealed.");
+        //}
         if (this.reveals.size() > 0) {
             throw new IllegalStateException("BUG: Remaining MACs have not been revealed.");
         }
-        // FIXME how to close ratchets properly without closing twice and causing issues. (investigate proper closing procedure)
         this.senderRatchet.close();
         this.receiverRatchet.close();
     }

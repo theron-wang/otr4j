@@ -211,7 +211,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
         } catch (final SMPAbortException e) {
             setState(new StateExpect1(this.random, UNDECIDED));
             smpAborted(this.host, this.sessionID);
-            return new TLV(SMP_ABORT, new byte[0]);
+            return new TLV(SMP_ABORT, EMPTY_BODY);
         }
         final byte[] theirFingerprint = fingerprint(this.theirLongTermPublicKey, this.theirForgingKey);
         if (this.state.getStatus() == SUCCEEDED) {

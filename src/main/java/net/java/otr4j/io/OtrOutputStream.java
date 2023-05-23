@@ -127,13 +127,11 @@ public final class OtrOutputStream {
         return this;
     }
 
-    @Nonnull
-    private OtrOutputStream writeTlvData(final byte[] b) {
+    private void writeTlvData(final byte[] b) {
         writeNumber(b.length, TLV_LEN);
         if (b.length > 0) {
             this.out.write(b, 0, b.length);
         }
-        return this;
     }
 
     /**

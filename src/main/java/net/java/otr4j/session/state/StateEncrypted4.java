@@ -335,7 +335,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Override
     public void end(final Context context) throws OtrException {
         // Note: although we send a TLV 1 (DISCONNECT) here, we should not reveal remaining MACs.
-        final TLV disconnectTlv = new TLV(DISCONNECTED, new byte[0]);
+        final TLV disconnectTlv = new TLV(DISCONNECTED, TLV.EMPTY_BODY);
         final AbstractEncodedMessage m = transformSending(context, "", singletonList(disconnectTlv), FLAG_IGNORE_UNREADABLE);
         try {
             context.injectMessage(m);

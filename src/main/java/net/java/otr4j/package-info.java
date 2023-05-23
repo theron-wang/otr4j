@@ -7,7 +7,6 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  */
 // NOTE OTRv3 does not document that SMP TLVs should have IGNORE_UNREADABLE flag set. So for now, we're not setting the flag for SMP TLVs.
-// TODO out-of-order messaging: can we mitigate when first message of the ratchet does not arrive first? (it's the only one that contains the DH public key if any. Other keys too?)
 // TODO General questions on way-of-working for OTRv4:
 //
 //  * "Set their_ecdh as the 'Public ECDH key' from the message. Set their_dh as the 'Public DH Key' from the message, if it is not empty." are duplicate. Already included as part of Rotation instructions.
