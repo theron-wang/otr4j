@@ -13,7 +13,6 @@ import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.MustBeClosed;
 import net.java.otr4j.crypto.MessageKeys;
 import net.java.otr4j.crypto.MixedSharedSecret;
-import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
 
@@ -368,7 +367,8 @@ final class DoubleRatchet implements AutoCloseable {
      * Acquire the extra symmetric key that corresponds to the next message to be sent.
      * <p>
      * Note that this is the "raw" extra symmetric key. OTRv4 specifies how one can derive additional keys from this
-     * "raw" input data. These derivation steps are not performed. (See {@link OtrCryptoEngine4#deriveExtraSymmetricKey(int, byte[], byte[])})
+     * "raw" input data. These derivation steps are not performed. (See
+     * `OtrCryptoEngine4#deriveExtraSymmetricKey(int, byte[], byte[])`)
      *
      * @return The "raw" extra symmetric key. (User needs to clean up the byte-array after use.)
      */

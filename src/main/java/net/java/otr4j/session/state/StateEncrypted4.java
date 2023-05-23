@@ -199,7 +199,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         case Session.Version.ONE:
         case Session.Version.TWO:
         case Session.Version.THREE:
-            logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
+            this.logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
                     new Object[]{message.version});
             return null;
         case Session.Version.FOUR:

@@ -172,14 +172,14 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         switch (message.version) {
         case Session.Version.ONE:
-        case Session.Version.TWO:
-            logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
+            this.logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
                     new Object[]{message.version});
             return null;
+        case Session.Version.TWO:
         case Session.Version.THREE:
             return handleEncodedMessage3(context, message);
         case Session.Version.FOUR:
-            logger.log(INFO, "Encountered message for protocol version 4. Ignoring because OTRv3 AKE in-progress.",
+            this.logger.log(INFO, "Encountered message for protocol version 4. Ignoring because OTRv3 in-progress.",
                     new Object[]{message.version});
             return null;
         default:
