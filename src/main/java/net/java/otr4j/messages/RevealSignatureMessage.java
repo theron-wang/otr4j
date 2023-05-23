@@ -90,16 +90,17 @@ public final class RevealSignatureMessage extends AbstractEncodedMessage {
             return false;
         }
         final RevealSignatureMessage that = (RevealSignatureMessage) o;
-        return constantTimeEquals(revealedKey, that.revealedKey) & constantTimeEquals(xEncrypted, that.xEncrypted)
-                & constantTimeEquals(xEncryptedMAC, that.xEncryptedMAC);
+        return constantTimeEquals(this.revealedKey, that.revealedKey)
+                & constantTimeEquals(this.xEncrypted, that.xEncrypted)
+                & constantTimeEquals(this.xEncryptedMAC, that.xEncryptedMAC);
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + Arrays.hashCode(revealedKey);
-        result = 31 * result + Arrays.hashCode(xEncrypted);
-        result = 31 * result + Arrays.hashCode(xEncryptedMAC);
+        result = 31 * result + Arrays.hashCode(this.revealedKey);
+        result = 31 * result + Arrays.hashCode(this.xEncrypted);
+        result = 31 * result + Arrays.hashCode(this.xEncryptedMAC);
         return result;
     }
 }

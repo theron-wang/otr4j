@@ -1,3 +1,12 @@
+/*
+ * otr4j, the open source java otr library.
+ *
+ * Distributable under LGPL license.
+ * See terms of license at gnu.org.
+ *
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package net.java.otr4j.crypto;
 
 import com.google.errorprone.annotations.MustBeClosed;
@@ -15,21 +24,17 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.hcmac;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static org.bouncycastle.util.Arrays.clear;
 
 /**
  * Encrypt/decrypt and authenticate/verify using the secret key material in the MessageKeys.
  * <p>
  * NOTE: Please ensure that message keys are appropriately cleared by calling {@link #close()} after use.
  */
+// TODO make immutable, closed == allZeroBytes(this.encrypt)?
 public final class MessageKeys implements AutoCloseable {
-
-    /**
-     * Flag to indicate when MessageKeys instanced has been cleaned up.
-     */
-    private boolean closed = false;
 
     /**
      * Encryption/Decryption key. (MUST be cleared after use.)
@@ -50,7 +55,9 @@ public final class MessageKeys implements AutoCloseable {
     @MustBeClosed
     @Nonnull
     public static MessageKeys fromChainkey(final byte[] chainkey) {
-        assert !allZeroBytes(chainkey) : "Expected chainkey of random data instead of all zero-bytes.";
+        if (allZeroBytes(chainkey)) {
+            throw new IllegalArgumentException("All-zero bytes chain key.");
+        }
         final byte[] encrypt = kdf(MK_ENC_LENGTH_BYTES, MESSAGE_KEY, chainkey);
         final byte[] extraSymmetricKey = kdf(EXTRA_SYMMETRIC_KEY_LENGTH_BYTES, EXTRA_SYMMETRIC_KEY,
                 new byte[]{(byte) 0xff}, chainkey);
@@ -90,7 +97,6 @@ public final class MessageKeys implements AutoCloseable {
     public void close() {
         clear(this.encrypt);
         clear(this.extraSymmetricKey);
-        this.closed = true;
     }
 
     /**
@@ -127,16 +133,34 @@ public final class MessageKeys implements AutoCloseable {
      * </pre>
      *
      * @param dataMessageSections The data message sections (excluding Authenticator and Revealed MACs).
-     * @return Returns the MAC. (Must be cleared separately.)
+     * @return Returns the pair `(authenticator, MK_MAC)`.
      */
     @Nonnull
-    public byte[] authenticate(final byte[] dataMessageSections) {
+    public Result authenticate(final byte[] dataMessageSections) {
         requireNotClosed();
         final byte[] mac = kdf(MK_MAC_LENGTH_BYTES, MAC_KEY, this.encrypt);
         final byte[] authenticator = hcmac(AUTHENTICATOR, AUTHENTICATOR_LENGTH_BYTES, mac, dataMessageSections);
-        clear(mac);
         assert !allZeroBytes(authenticator) : "Expected non-zero bytes in authenticator";
-        return authenticator;
+        return new Result(authenticator, mac);
+    }
+
+    /**
+     * Result struct containing authenticator and MK_MAC.
+     */
+    public static final class Result {
+        /**
+         * The authenticator digest value.
+         */
+        public final byte[] authenticator;
+        /**
+         * The MK_MAC key.
+         */
+        public final byte[] mkMAC;
+
+        private Result(final byte[] authenticator, final byte[] mkMAC) {
+            this.authenticator = requireLengthExactly(AUTHENTICATOR_LENGTH_BYTES, authenticator);
+            this.mkMAC = requireLengthExactly(MK_MAC_LENGTH_BYTES, mkMAC);
+        }
     }
 
     /**
@@ -144,18 +168,20 @@ public final class MessageKeys implements AutoCloseable {
      *
      * @param dataMessageSection The data message section content to be authenticated.
      * @param authenticator The authenticator value.
+     * @return Returns the message key used for MAC after successful verification. The MK_mac can then be queued to be
+     * revealed.
      * @throws OtrCryptoException In case of failure to verify the authenticator against the data message section
      * content.
      */
-    public void verify(final byte[] dataMessageSection, final byte[] authenticator) throws OtrCryptoException {
+    public byte[] verify(final byte[] dataMessageSection, final byte[] authenticator) throws OtrCryptoException {
         assert !allZeroBytes(authenticator) : "Expected non-zero bytes in authenticator";
         requireNotClosed();
-        final byte[] expectedAuthenticator = authenticate(dataMessageSection);
-        final boolean failure = !constantTimeEquals(expectedAuthenticator, authenticator);
-        clear(expectedAuthenticator);
+        final Result result = authenticate(dataMessageSection);
+        final boolean failure = !constantTimeEquals(result.authenticator, authenticator);
         if (failure) {
             throw new OtrCryptoException("The authenticator is invalid.");
         }
+        return result.mkMAC;
     }
 
     /**
@@ -166,11 +192,11 @@ public final class MessageKeys implements AutoCloseable {
     @Nonnull
     public byte[] getExtraSymmetricKey() {
         requireNotClosed();
-        return extraSymmetricKey.clone();
+        return this.extraSymmetricKey.clone();
     }
 
     private void requireNotClosed() {
-        if (this.closed) {
+        if (allZeroBytes(this.encrypt) || allZeroBytes(this.extraSymmetricKey)) {
             throw new IllegalStateException("BUG: Use of closed MessageKeys instance.");
         }
     }

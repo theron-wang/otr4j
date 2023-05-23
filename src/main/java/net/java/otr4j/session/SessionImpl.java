@@ -126,7 +126,8 @@ import static net.java.otr4j.util.Objects.requireNotEquals;
  */
 // TODO consider moving away from recursive use of Session, to delegating class with a number of instances of Session for each instance, with OTRv2 using zero-instance-tag. (Can delegating class be stateless? Would simplify managing thread-safety.)
 // TODO consider reducing complexity.
-@SuppressWarnings({"PMD.TooManyFields", "PMD.GodClass"})
+// TODO how does that work when receiving an ?OTR ERROR message while in encrypted session? These messages are not authenticated, so can be injected. Is there a way of selective handling to avoid interference?
+@SuppressWarnings({"PMD.TooManyFields"})
 final class SessionImpl implements Session, Context {
 
     private static final String DEFAULT_FALLBACK_MESSAGE = "Your contact is requesting to start an encrypted chat. Please install an app that supports OTR: https://github.com/otr4j/otr4j/wiki/Apps";
@@ -260,7 +261,7 @@ final class SessionImpl implements Session, Context {
         @GuardedBy("SessionImpl.this.masterSession")
         @Override
         public void sessionStatusChanged(final SessionID sessionID, final InstanceTag receiver) {
-            OtrEngineListeners.sessionStatusChanged(duplicate(listeners), sessionID, receiver);
+            OtrEngineListeners.sessionStatusChanged(duplicate(SessionImpl.this.listeners), sessionID, receiver);
         }
 
         @GuardedBy("SessionImpl.this.masterSession")
@@ -329,7 +330,7 @@ final class SessionImpl implements Session, Context {
         } else {
             this.slaveSessions = emptyMap();
         }
-        outgoingSession = this;
+        this.outgoingSession = this;
         this.sessionState = new StatePlaintext(StateInitial.instance());
         // Initialize the Client Profile and payload.
         ClientProfilePayload payload;
@@ -337,9 +338,9 @@ final class SessionImpl implements Session, Context {
         try {
             payload = ClientProfilePayload.readFrom(new OtrInputStream(this.host.restoreClientProfilePayload()));
             profile = payload.validate();
-            logger.log(FINE, "Successfully restored client profile from OTR Engine Host.");
+            this.logger.log(FINE, "Successfully restored client profile from OTR Engine Host.");
         } catch (final OtrCryptoException | ProtocolException | ValidationException e) {
-            logger.log(FINE,
+            this.logger.log(FINE,
                     "Failed to load client profile from OTR Engine Host. Generating new client profile… (Problem: {0})",
                     e.getMessage());
             profile = this.host.getClientProfile(sessionID);
@@ -399,7 +400,7 @@ final class SessionImpl implements Session, Context {
             // REMARK evaluate what to do with situation where multiple instances establish private messaging session concurrently. One will be first, it will receive the queued messages. These might not go to the client instance that we want to.
             sendQueuedMessages((StateEncrypted) toState);
         }
-        logger.log(FINE, "Transitioning to message state: " + toState);
+        this.logger.log(FINE, "Transitioning to message state: " + toState);
         this.sessionState = requireNonNull(toState);
         if (fromState.getStatus() != ENCRYPTED && toState.getStatus() == ENCRYPTED
                 && this.masterSession.getOutgoingSession().getSessionStatus() == PLAINTEXT) {
@@ -408,11 +409,11 @@ final class SessionImpl implements Session, Context {
             // session was created. Now we ensure that once we have secured the session, we also switch to that
             // session such that subsequently sent messages are already encrypted, even if the client does not
             // explicitly switch.
-            logger.finest("Switching to the just-secured session, as the previous state was an insecure state.");
+            this.logger.finest("Switching to the just-secured session, as the previous state was an insecure state.");
             this.masterSession.setOutgoingSession(getReceiverInstanceTag());
         }
         fromState.destroy();
-        sessionStatusChanged(duplicate(listeners), this.sessionID, this.receiverTag);
+        sessionStatusChanged(duplicate(this.listeners), this.sessionID, this.receiverTag);
     }
 
     @GuardedBy("masterSession")
@@ -424,7 +425,7 @@ final class SessionImpl implements Session, Context {
                         Collections.emptyList(), (byte) 0);
                 injectMessage(encrypted);
             } catch (final OtrException e) {
-                logger.log(WARNING, "Failed to send queued message due to network failure.", e);
+                this.logger.log(WARNING, "Failed to send queued message due to network failure.", e);
             }
         }
     }
@@ -448,7 +449,7 @@ final class SessionImpl implements Session, Context {
     @Override
     @Nonnull
     public OtrEngineHost getHost() {
-        return host;
+        return this.host;
     }
 
     @Override
@@ -471,7 +472,7 @@ final class SessionImpl implements Session, Context {
     @SuppressWarnings("PMD.CognitiveComplexity")
     public Result transformReceiving(final String msgText) throws OtrException {
         synchronized (this.masterSession) {
-            logger.log(FINEST, "Entering {0} session.", masterSession == this ? "master" : "slave");
+            this.logger.log(FINEST, "Entering {0} session.", this.masterSession == this ? "master" : "slave");
 
             if (msgText.length() == 0) {
                 return new Result(PLAINTEXT, ZERO_TAG, msgText);
@@ -479,7 +480,7 @@ final class SessionImpl implements Session, Context {
 
             final OtrPolicy policy = getSessionPolicy();
             if (!policy.viable()) {
-                logger.info("Policy does not allow any version of OTR. OTR messages will not be processed at all.");
+                this.logger.info("Policy does not allow any version of OTR. OTR messages will not be processed at all.");
                 return new Result(PLAINTEXT, ZERO_TAG, msgText);
             }
 
@@ -491,20 +492,20 @@ final class SessionImpl implements Session, Context {
             }
 
             if (m instanceof PlainTextMessage) {
-                if (offerStatus == OfferStatus.SENT) {
-                    offerStatus = OfferStatus.REJECTED;
+                if (this.offerStatus == OfferStatus.SENT) {
+                    this.offerStatus = OfferStatus.REJECTED;
                 }
             } else {
-                offerStatus = OfferStatus.ACCEPTED;
+                this.offerStatus = OfferStatus.ACCEPTED;
             }
 
             // REMARK evaluate inter-play between master and slave sessions. How much of certainty do we have if we reset the state from within one of the AKE states, that we actually reset sufficiently? In most cases, context.setState will manipulate the slave session, not the master session, so the influence limited. (Consider redesigning now that the Rust implementation, otrr, uses a different approach.)
-            if (masterSession == this && m instanceof Fragment && (((Fragment) m).getVersion() == THREE
+            if (this.masterSession == this && m instanceof Fragment && (((Fragment) m).getVersion() == THREE
                     || ((Fragment) m).getVersion() == FOUR)) {
                 final Fragment fragment = (Fragment) m;
 
                 if (ZERO_TAG.equals(fragment.getSenderTag())) {
-                    logger.log(INFO, "Message fragment contains 0 sender tag. Ignoring message. (Message ID: {0}, index: {1}, total: {2})",
+                    this.logger.log(INFO, "Message fragment contains 0 sender tag. Ignoring message. (Message ID: {0}, index: {1}, total: {2})",
                             new Object[] {fragment.getIdentifier(), fragment.getIndex(), fragment.getTotal()});
                     return new Result(PLAINTEXT, ZERO_TAG, null);
                 }
@@ -512,13 +513,13 @@ final class SessionImpl implements Session, Context {
                 if (!ZERO_TAG.equals(fragment.getReceiverTag())
                         && fragment.getReceiverTag().getValue() != this.profile.getInstanceTag().getValue()) {
                     // The message is not intended for us. Discarding...
-                    logger.finest("Received a message fragment with receiver instance tag that is different from ours. Ignore this message.");
+                    this.logger.finest("Received a message fragment with receiver instance tag that is different from ours. Ignore this message.");
                     messageFromAnotherInstanceReceived(this.host, this.sessionID);
                     return new Result(PLAINTEXT, ZERO_TAG, null);
                 }
 
                 if (!this.slaveSessions.containsKey(fragment.getSenderTag())) {
-                    final SessionImpl newSlaveSession = new SessionImpl(this, sessionID, this.host,
+                    final SessionImpl newSlaveSession = new SessionImpl(this, this.sessionID, this.host,
                             fragment.getSenderTag(), this.secureRandom, this.messageQueue);
                     newSlaveSession.addOtrEngineListener(this.slaveSessionsListener);
                     this.slaveSessions.put(fragment.getSenderTag(), newSlaveSession);
@@ -527,39 +528,39 @@ final class SessionImpl implements Session, Context {
                 synchronized (slave.masterSession) {
                     return slave.handleFragment(fragment);
                 }
-            } else if (masterSession == this && m instanceof EncodedMessage && (((EncodedMessage) m).version == THREE
-                    || ((EncodedMessage) m).version == FOUR)) {
+            } else if (this.masterSession == this && m instanceof EncodedMessage
+                    && (((EncodedMessage) m).version == THREE || ((EncodedMessage) m).version == FOUR)) {
                 final EncodedMessage message = (EncodedMessage) m;
 
                 if (ZERO_TAG.equals(message.senderTag)) {
                     // An encoded message without a sender instance tag is always bad.
-                    logger.warning("Encoded message is missing sender instance tag. Ignoring message.");
+                    this.logger.warning("Encoded message is missing sender instance tag. Ignoring message.");
                     return new Result(PLAINTEXT, ZERO_TAG, null);
                 }
 
                 if (!ZERO_TAG.equals(message.receiverTag) && !message.receiverTag.equals(this.profile.getInstanceTag())) {
                     // The message is not intended for us. Discarding...
-                    logger.finest("Received an encoded message with receiver instance tag that is different from ours. Ignore this message.");
-                    messageFromAnotherInstanceReceived(this.host, sessionID);
+                    this.logger.finest("Received an encoded message with receiver instance tag that is different from ours. Ignore this message.");
+                    messageFromAnotherInstanceReceived(this.host, this.sessionID);
                     return new Result(PLAINTEXT, ZERO_TAG, null);
                 }
 
                 if (!this.slaveSessions.containsKey(message.senderTag)) {
-                    final SessionImpl newSlaveSession = new SessionImpl(this, sessionID, this.host,
+                    final SessionImpl newSlaveSession = new SessionImpl(this, this.sessionID, this.host,
                             message.senderTag, this.secureRandom, this.messageQueue);
                     newSlaveSession.addOtrEngineListener(this.slaveSessionsListener);
                     this.slaveSessions.put(message.senderTag, newSlaveSession);
                 }
 
                 final SessionImpl slave = this.slaveSessions.get(message.senderTag);
-                logger.log(FINEST, "Delegating to slave session for instance tag {0}",
+                this.logger.log(FINEST, "Delegating to slave session for instance tag {0}",
                         message.senderTag.getValue());
                 synchronized (slave.masterSession) {
                     return slave.handleEncodedMessage(message);
                 }
             }
 
-            logger.log(FINE, "Received message with type {0}", m.getClass());
+            this.logger.log(FINE, "Received message with type {0}", m.getClass());
             if (m instanceof Fragment) {
                 return handleFragment((Fragment) m);
             } else if (m instanceof EncodedMessage) {
@@ -595,13 +596,13 @@ final class SessionImpl implements Session, Context {
                 : "BUG: Expect to only handle OTRv2 message fragments on master session. All other fragments should be handled on dedicated slave session.";
         final String reassembledText;
         try {
-            reassembledText = assembler.accumulate(fragment);
+            reassembledText = this.assembler.accumulate(fragment);
             if (reassembledText == null) {
-                logger.log(FINEST, "Fragment received, but message is still incomplete.");
+                this.logger.log(FINEST, "Fragment received, but message is still incomplete.");
                 return new Result(PLAINTEXT, this.receiverTag, null);
             }
         } catch (final ProtocolException e) {
-            logger.log(FINE, "Rejected message fragment from sender instance "
+            this.logger.log(FINE, "Rejected message fragment from sender instance "
                     + fragment.getSenderTag().getValue(), e);
             return new Result(PLAINTEXT, this.receiverTag, null);
         }
@@ -609,13 +610,13 @@ final class SessionImpl implements Session, Context {
         try {
             final Message m = parseMessage(reassembledText);
             if (!(m instanceof EncodedMessage)) {
-                logger.fine("Expected fragments to combine into an encoded message, but was something else. "
+                this.logger.fine("Expected fragments to combine into an encoded message, but was something else. "
                         + m.getClass().getName());
                 return new Result(PLAINTEXT, this.receiverTag, null);
             }
             message = (EncodedMessage) m;
         } catch (final ProtocolException e) {
-            logger.log(WARNING, "Reassembled message violates the OTR protocol for encoded messages.", e);
+            this.logger.log(WARNING, "Reassembled message violates the OTR protocol for encoded messages.", e);
             return new Result(PLAINTEXT, this.receiverTag, null);
         }
         // There is no good reason why the reassembled message should have any other protocol version, sender
@@ -623,7 +624,7 @@ final class SessionImpl implements Session, Context {
         // inconsistencies to ensure that the inconsistencies cannot be exploited.
         if (message.version != fragment.getVersion() || !message.senderTag.equals(fragment.getSenderTag())
                 || !message.receiverTag.equals(fragment.getReceiverTag())) {
-            logger.log(INFO, "Inconsistent OTR-encoded message: message contains different protocol version, sender tag or receiver tag than last received fragment. Message is ignored.");
+            this.logger.log(INFO, "Inconsistent OTR-encoded message: message contains different protocol version, sender tag or receiver tag than last received fragment. Message is ignored.");
             return new Result(PLAINTEXT, this.receiverTag, null);
         }
         return handleEncodedMessage(message);
@@ -661,9 +662,10 @@ final class SessionImpl implements Session, Context {
         }
         try {
             final String content = this.sessionState.handleEncodedMessage(this, message);
+            // TODO is `this.sessionState.getStatus()` accurate, or will it have transitioned away while processing the encoded message?
             return new Result(this.sessionState.getStatus(), this.receiverTag, content);
         } catch (final ProtocolException e) {
-            logger.log(FINE, "An illegal message was received. Processing was aborted.", e);
+            this.logger.log(FINE, "An illegal message was received. Processing was aborted.", e);
             // TODO consider how we should signal unreadable message for illegal data messages and potentially show error to client. (Where we escape handling logic through ProtocolException.)
             return new Result(this.sessionState.getStatus(), this.receiverTag, null);
         }
@@ -672,21 +674,21 @@ final class SessionImpl implements Session, Context {
     @GuardedBy("masterSession")
     private void handleQueryMessage(final QueryMessage queryMessage) throws OtrException {
         assert this.masterSession == this : "BUG: handleQueryMessage should only ever be called from the master session, as no instance tags are known.";
-        logger.log(FINEST, "{0} received a query message from {1} through {2}.",
+        this.logger.log(FINEST, "{0} received a query message from {1} through {2}.",
                 new Object[] {this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
 
         final OtrPolicy policy = getSessionPolicy();
         if (queryMessage.getVersions().contains(FOUR) && policy.isAllowV4()) {
-            logger.finest("Query message with V4 support found. Sending Identity Message.");
+            this.logger.finest("Query message with V4 support found. Sending Identity Message.");
             respondAuth(FOUR, ZERO_TAG);
         } else if (queryMessage.getVersions().contains(THREE) && policy.isAllowV3()) {
-            logger.finest("Query message with V3 support found. Sending D-H Commit Message.");
+            this.logger.finest("Query message with V3 support found. Sending D-H Commit Message.");
             respondAuth(THREE, ZERO_TAG);
         } else if (queryMessage.getVersions().contains(TWO) && policy.isAllowV2()) {
-            logger.finest("Query message with V2 support found. Sending D-H Commit Message.");
+            this.logger.finest("Query message with V2 support found. Sending D-H Commit Message.");
             respondAuth(TWO, ZERO_TAG);
         } else {
-            logger.info("Query message received, but none of the versions are acceptable. They are either excluded by policy or through lack of support.");
+            this.logger.info("Query message received, but none of the versions are acceptable. They are either excluded by policy or through lack of support.");
         }
     }
 
@@ -694,7 +696,7 @@ final class SessionImpl implements Session, Context {
     private void handleErrorMessage(final ErrorMessage errorMessage)
             throws OtrException {
         assert this.masterSession == this : "BUG: handleErrorMessage should only ever be called from the master session, as no instance tags are known.";
-        logger.log(FINEST, "{0} received an error message from {1} through {2}.",
+        this.logger.log(FINEST, "{0} received an error message from {1} through {2}.",
                 new Object[] {this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
         this.sessionState.handleErrorMessage(this, errorMessage);
     }
@@ -708,7 +710,7 @@ final class SessionImpl implements Session, Context {
                 assert this.masterSession == this : "Expected query messages to only be sent from Master session!";
                 assert !(m instanceof PlainTextMessage)
                         : "PlainText messages (with possible whitespace tag) should not end up here. We should not append the fallback message to a whitespace-tagged plaintext message.";
-                final int spaceForFallbackMessage = host.getMaxFragmentSize(this.sessionID) - 1 - serialized.length();
+                final int spaceForFallbackMessage = this.host.getMaxFragmentSize(this.sessionID) - 1 - serialized.length();
                 fragments = new String[] {serialized + ' ' + getFallbackMessage(this.sessionID, spaceForFallbackMessage)};
             } else if (m instanceof AbstractEncodedMessage) {
                 final AbstractEncodedMessage encoded = (AbstractEncodedMessage) m;
@@ -742,13 +744,13 @@ final class SessionImpl implements Session, Context {
     @Nonnull
     private Result handlePlainTextMessage(final PlainTextMessage message) {
         assert this.masterSession == this : "BUG: handlePlainTextMessage should only ever be called from the master session, as no instance tags are known.";
-        logger.log(FINEST, "{0} received a plaintext message from {1} through {2}.",
+        this.logger.log(FINEST, "{0} received a plaintext message from {1} through {2}.",
                 new Object[] {this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
         final String messagetext = this.sessionState.handlePlainTextMessage(this, message);
         if (message.getVersions().isEmpty()) {
-            logger.finest("Received plaintext message without the whitespace tag.");
+            this.logger.finest("Received plaintext message without the whitespace tag.");
         } else {
-            logger.finest("Received plaintext message with the whitespace tag.");
+            this.logger.finest("Received plaintext message with the whitespace tag.");
             handleWhitespaceTag(message);
         }
         return new Result(PLAINTEXT, ZERO_TAG, messagetext);
@@ -761,30 +763,30 @@ final class SessionImpl implements Session, Context {
             // no policy w.r.t. starting AKE on whitespace tag
             return;
         }
-        logger.finest("WHITESPACE_START_AKE is set, processing whitespace-tagged message.");
+        this.logger.finest("WHITESPACE_START_AKE is set, processing whitespace-tagged message.");
         if (plainTextMessage.getVersions().contains(FOUR) && policy.isAllowV4()) {
-            logger.finest("V4 tag found. Sending Identity Message.");
+            this.logger.finest("V4 tag found. Sending Identity Message.");
             try {
                 respondAuth(FOUR, ZERO_TAG);
             } catch (final OtrException e) {
-                logger.log(WARNING, "An exception occurred while constructing and sending Identity message. (OTRv4)", e);
+                this.logger.log(WARNING, "An exception occurred while constructing and sending Identity message. (OTRv4)", e);
             }
         } else if (plainTextMessage.getVersions().contains(THREE) && policy.isAllowV3()) {
-            logger.finest("V3 tag found. Sending D-H Commit Message.");
+            this.logger.finest("V3 tag found. Sending D-H Commit Message.");
             try {
                 respondAuth(THREE, ZERO_TAG);
             } catch (final OtrException e) {
-                logger.log(WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv3)", e);
+                this.logger.log(WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv3)", e);
             }
         } else if (plainTextMessage.getVersions().contains(TWO) && policy.isAllowV2()) {
-            logger.finest("V2 tag found. Sending D-H Commit Message.");
+            this.logger.finest("V2 tag found. Sending D-H Commit Message.");
             try {
                 respondAuth(TWO, ZERO_TAG);
             } catch (final OtrException e) {
-                logger.log(WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv2)", e);
+                this.logger.log(WARNING, "An exception occurred while constructing and sending DH commit message. (OTRv2)", e);
             }
         } else {
-            logger.info("Message with whitespace tags received, but none of the tags are useful. They are either excluded by policy or by lack of support.");
+            this.logger.info("Message with whitespace tags received, but none of the tags are useful. They are either excluded by policy or by lack of support.");
         }
     }
 
@@ -819,8 +821,8 @@ final class SessionImpl implements Session, Context {
     public String[] transformSending(final String msgText, final Iterable<TLV> tlvs)
             throws OtrException {
         synchronized (this.masterSession) {
-            if (masterSession == this && outgoingSession != this) {
-                return outgoingSession.transformSending(msgText, tlvs);
+            if (this.masterSession == this && this.outgoingSession != this) {
+                return this.outgoingSession.transformSending(msgText, tlvs);
             }
             final Message m = this.sessionState.transformSending(this, msgText, tlvs, FLAG_NONE);
             if (m == null) {
@@ -849,10 +851,10 @@ final class SessionImpl implements Session, Context {
     public void startSession() throws OtrException {
         synchronized (this.masterSession) {
             if (this.getSessionStatus() == ENCRYPTED) {
-                logger.info("startSession was called, however an encrypted session is already established.");
+                this.logger.info("startSession was called, however an encrypted session is already established.");
                 return;
             }
-            logger.finest("Enquiring to start Authenticated Key Exchange, sending query message");
+            this.logger.finest("Enquiring to start Authenticated Key Exchange, sending query message");
             final OtrPolicy policy = this.getSessionPolicy();
             final Set<Integer> allowedVersions = allowedVersions(policy);
             if (allowedVersions.isEmpty()) {
@@ -872,8 +874,8 @@ final class SessionImpl implements Session, Context {
     @Override
     public void endSession() throws OtrException {
         synchronized (this.masterSession) {
-            if (this != outgoingSession) {
-                outgoingSession.endSession();
+            if (this != this.outgoingSession) {
+                this.outgoingSession.endSession();
                 return;
             }
             this.sessionState.end(this);
@@ -914,8 +916,8 @@ final class SessionImpl implements Session, Context {
     @Nonnull
     public RemoteInfo getRemoteInfo() throws IncorrectStateException {
         synchronized (this.masterSession) {
-            if (this != outgoingSession) {
-                return outgoingSession.getRemoteInfo();
+            if (this != this.outgoingSession) {
+                return this.outgoingSession.getRemoteInfo();
             }
             return this.sessionState.getRemoteInfo();
         }
@@ -924,8 +926,8 @@ final class SessionImpl implements Session, Context {
     @Override
     public void addOtrEngineListener(final OtrEngineListener l) {
         synchronized (this.masterSession) {
-            if (!listeners.contains(l)) {
-                listeners.add(l);
+            if (!this.listeners.contains(l)) {
+                this.listeners.add(l);
             }
         }
     }
@@ -933,7 +935,7 @@ final class SessionImpl implements Session, Context {
     @Override
     public void removeOtrEngineListener(final OtrEngineListener l) {
         synchronized (this.masterSession) {
-            listeners.remove(l);
+            this.listeners.remove(l);
         }
     }
 
@@ -954,7 +956,7 @@ final class SessionImpl implements Session, Context {
     @Override
     @Nonnull
     public InstanceTag getReceiverInstanceTag() {
-        return receiverTag;
+        return this.receiverTag;
     }
 
     /**
@@ -987,7 +989,7 @@ final class SessionImpl implements Session, Context {
             assert this == this.masterSession : "BUG: expected this method to be called from master session only.";
             final List<SessionImpl> result = new ArrayList<>();
             result.add(this);
-            result.addAll(slaveSessions.values());
+            result.addAll(this.slaveSessions.values());
             return result;
         }
     }
@@ -1001,21 +1003,21 @@ final class SessionImpl implements Session, Context {
     @Override
     public void setOutgoingSession(final InstanceTag tag) {
         synchronized (this.masterSession) {
-            if (masterSession != this) {
+            if (this.masterSession != this) {
                 // Only master session can set the outgoing session.
                 throw new UnsupportedOperationException("Only master session is allowed to set/change the outgoing session instance.");
             }
             if (tag.equals(this.receiverTag)) {
-                outgoingSession = this;
-                outgoingSessionChanged(duplicate(listeners), this.sessionID);
+                this.outgoingSession = this;
+                outgoingSessionChanged(duplicate(this.listeners), this.sessionID);
                 return;
             }
-            final SessionImpl newActiveSession = slaveSessions.get(tag);
+            final SessionImpl newActiveSession = this.slaveSessions.get(tag);
             if (newActiveSession == null) {
                 throw new IllegalArgumentException("No slave session exists with provided instance tag.");
             }
-            outgoingSession = newActiveSession;
-            outgoingSessionChanged(duplicate(listeners), this.sessionID);
+            this.outgoingSession = newActiveSession;
+            outgoingSessionChanged(duplicate(this.listeners), this.sessionID);
         }
     }
 
@@ -1033,7 +1035,7 @@ final class SessionImpl implements Session, Context {
             if (tag.equals(this.receiverTag)) {
                 return this.sessionState.getStatus();
             }
-            final SessionImpl slave = slaveSessions.get(tag);
+            final SessionImpl slave = this.slaveSessions.get(tag);
             if (slave == null) {
                 throw new IllegalArgumentException("Unknown instance tag specified: " + tag.getValue());
             }
@@ -1057,7 +1059,7 @@ final class SessionImpl implements Session, Context {
             if (tag.equals(this.receiverTag)) {
                 return this.sessionState.getRemoteInfo();
             }
-            final SessionImpl slave = slaveSessions.get(tag);
+            final SessionImpl slave = this.slaveSessions.get(tag);
             if (slave == null) {
                 throw new IllegalArgumentException("Unknown tag specified: " + tag.getValue());
             }
@@ -1097,7 +1099,7 @@ final class SessionImpl implements Session, Context {
         // state upon receiving a DHKey message. This is caused by the fact that we may get multiple D-H Key responses
         // to a D-H Commit message without receiver instance tag. (This is due to the subtle workings of the
         // implementation.)
-        logger.finest("Responding to Query Message, acknowledging version " + version);
+        this.logger.finest("Responding to Query Message, acknowledging version " + version);
         synchronized (this.masterSession.masterSession) {
             this.masterSession.sessionState.initiateAKE(this.masterSession, version, receiverTag);
         }
@@ -1113,13 +1115,13 @@ final class SessionImpl implements Session, Context {
     @Override
     public void initSmp(@Nullable final String question, final String answer) throws OtrException {
         synchronized (this.masterSession) {
-            if (this != outgoingSession) {
-                outgoingSession.initSmp(question, answer);
+            if (this != this.outgoingSession) {
+                this.outgoingSession.initSmp(question, answer);
                 return;
             }
             final State session = this.sessionState;
             if (!(session instanceof StateEncrypted)) {
-                logger.log(INFO, "Not initiating SMP negotiation as we are currently not in an Encrypted messaging state.");
+                this.logger.log(INFO, "Not initiating SMP negotiation as we are currently not in an Encrypted messaging state.");
                 return;
             }
             final StateEncrypted encrypted = (StateEncrypted) session;
@@ -1147,8 +1149,8 @@ final class SessionImpl implements Session, Context {
     @Override
     public void respondSmp(@Nullable final String question, final String secret) throws OtrException {
         synchronized (this.masterSession) {
-            if (this != outgoingSession) {
-                outgoingSession.respondSmp(question, secret);
+            if (this != this.outgoingSession) {
+                this.outgoingSession.respondSmp(question, secret);
                 return;
             }
             sendResponseSmp(question, secret);
@@ -1203,8 +1205,8 @@ final class SessionImpl implements Session, Context {
     @Override
     public void abortSmp() throws OtrException {
         synchronized (this.masterSession) {
-            if (this != outgoingSession) {
-                outgoingSession.abortSmp();
+            if (this != this.outgoingSession) {
+                this.outgoingSession.abortSmp();
                 return;
             }
             final State session = this.sessionState;
@@ -1225,8 +1227,8 @@ final class SessionImpl implements Session, Context {
     @Override
     public boolean isSmpInProgress() {
         synchronized (this.masterSession) {
-            if (this != outgoingSession) {
-                return outgoingSession.isSmpInProgress();
+            if (this != this.outgoingSession) {
+                return this.outgoingSession.isSmpInProgress();
             }
             try {
                 return this.sessionState.getSmpHandler().getStatus() == INPROGRESS;

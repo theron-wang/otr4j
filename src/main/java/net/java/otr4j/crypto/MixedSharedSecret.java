@@ -9,6 +9,7 @@
 
 package net.java.otr4j.crypto;
 
+import com.google.errorprone.annotations.CheckReturnValue;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.crypto.ed448.ValidationException;
@@ -27,12 +28,15 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.THIRD_BRACE_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.hwc;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.crypto.ed448.Ed448.containsPoint;
-import static org.bouncycastle.util.Arrays.clear;
+import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.clear;
+import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
 
 /**
  * The OTRv4 Mixed Shared Secret-mechanism.
  */
+// REMARK we only compare new `their next` public keys against their previous and our keypair. (So not compared against other past keys.)
 public final class MixedSharedSecret implements AutoCloseable {
 
     private static final int SSID_LENGTH_BYTES = 8;
@@ -57,51 +61,89 @@ public final class MixedSharedSecret implements AutoCloseable {
     private final byte[] k = new byte[K_LENGTH_BYTES];
 
     /**
-     * Flag used to manage internal state: in use / closed.
-     */
-    private boolean closed = false;
-
-    /**
      * Our ECDH key pair.
      */
     @Nonnull
-    private ECDHKeyPair ecdhKeyPair;
+    private final ECDHKeyPair ecdhKeyPair;
 
     /**
      * The 3072-bit DH shared secret computed from a DH key exchange, serialized as a big-endian unsigned integer.
      */
     @Nonnull
-    private DHKeyPair dhKeyPair;
+    private final DHKeyPair dhKeyPair;
 
     /**
      * Other party's ECDH public key.
      */
     @Nonnull
-    private Point theirECDHPublicKey;
+    private final Point theirECDHPublicKey;
 
     /**
      * Other party's DH public key.
      */
     @Nonnull
-    private BigInteger theirDHPublicKey;
+    private final BigInteger theirDHPublicKey;
 
     /**
      * Shared Secret 4.
      *
-     * @param random             the secure random instance
-     * @param ourDHKeyPair       our DH key pair
-     * @param ourECDHKeyPair     our ECDH key pair
-     * @param theirDHPublicKey   their DH public key
-     * @param theirECDHPublicKey their ECDH public key
+     * @param random the secure random instance
+     * @param ecdhKeyPair our ECDH key pair
+     * @param dhKeyPair our DH key pair
+     * @param theirNextDH their DH public key
+     * @param theirNextECDH their ECDH public key
      */
-    public MixedSharedSecret(final SecureRandom random, final DHKeyPair ourDHKeyPair, final ECDHKeyPair ourECDHKeyPair,
-            final BigInteger theirDHPublicKey, final Point theirECDHPublicKey) {
+    public MixedSharedSecret(final SecureRandom random, final ECDHKeyPair ecdhKeyPair, final DHKeyPair dhKeyPair,
+            final Point theirNextECDH, final BigInteger theirNextDH) {
+        this(random, new byte[BRACE_KEY_LENGTH_BYTES], true, ecdhKeyPair, dhKeyPair, theirNextECDH, theirNextDH);
+    }
+
+    /**
+     * Shared Secret 4.
+     *
+     * @param random the secure random instance
+     * @param ecdhKeyPair our ECDH key pair
+     * @param dhKeyPair our DH key pair
+     * @param theirNextDH their DH public key
+     * @param theirNextECDH their ECDH public key
+     */
+    // TODO at call sites, check if their public keys do not correspond to earlier public keys or our own public keys.
+    private MixedSharedSecret(final SecureRandom random, final byte[] braceKey, final boolean dhratchet,
+            final ECDHKeyPair ecdhKeyPair, final DHKeyPair dhKeyPair, final Point theirNextECDH,
+            final BigInteger theirNextDH) {
         this.random = requireNonNull(random);
-        this.ecdhKeyPair = requireNonNull(ourECDHKeyPair);
-        this.theirECDHPublicKey = requireNonNull(theirECDHPublicKey);
-        this.dhKeyPair = requireNonNull(ourDHKeyPair);
-        this.theirDHPublicKey = requireNonNull(theirDHPublicKey);
-        regenerateK(true);
+        this.ecdhKeyPair = requireNonNull(ecdhKeyPair);
+        this.dhKeyPair = requireNonNull(dhKeyPair);
+        if (!containsPoint(theirNextECDH) || this.ecdhKeyPair.publicKey().constantTimeEquals(theirNextECDH)) {
+            throw new IllegalArgumentException("A new, different ECDH public key is expected for initializing the new ratchet.");
+        }
+        this.theirECDHPublicKey = requireNonNull(theirNextECDH);
+        if (!checkPublicKey(theirNextDH) || theirNextDH.equals(this.dhKeyPair.publicKey())) {
+            throw new IllegalArgumentException("A new, different DH public key is expected for initializing the new ratchet.");
+        }
+        this.theirDHPublicKey = requireNonNull(theirNextDH);
+        requireLengthExactly(BRACE_KEY_LENGTH_BYTES, braceKey);
+        // Calculate new `K` value based on provided ECDH and DH key material, and previous brace key.
+        final byte[] secretECDH;
+        try {
+            final Point sharedSecret = this.ecdhKeyPair.generateSharedSecret(this.theirECDHPublicKey);
+            secretECDH = sharedSecret.encode();
+            Point.clear(sharedSecret);
+        } catch (final ValidationException e) {
+            throw new IllegalStateException("BUG: ECDH public keys should have been verified. No unexpected failures should happen at this point.", e);
+        }
+        if (dhratchet) {
+            final byte[] secretDH = asUnsignedByteArray(this.dhKeyPair.generateSharedSecret(this.theirDHPublicKey));
+            kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, THIRD_BRACE_KEY, secretDH);
+            clear(secretDH);
+        } else {
+            assert !allZeroBytes(braceKey) : "BUG: not performing DH ratchet, but received brace key with all zero-bytes.";
+            kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, BRACE_KEY, braceKey);
+        }
+        assert !allZeroBytes(this.braceKey) : "BUG: cannot have brace key consisting of all zero-bytes.";
+        kdf(this.k, 0, K_LENGTH_BYTES, SHARED_SECRET, secretECDH, this.braceKey);
+        assert !allZeroBytes(this.k) : "BUG: cannot have 'K' consisting of all zero-bytes.";
+        clear(secretECDH);
     }
 
     /**
@@ -109,7 +151,6 @@ public final class MixedSharedSecret implements AutoCloseable {
      */
     @Override
     public void close() {
-        this.closed = true;
         clear(this.braceKey);
         clear(this.k);
         this.ecdhKeyPair.close();
@@ -143,7 +184,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      */
     @Nonnull
     public Point getTheirECDHPublicKey() {
-        return theirECDHPublicKey;
+        return this.theirECDHPublicKey;
     }
 
     /**
@@ -153,7 +194,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      */
     @Nonnull
     public BigInteger getTheirDHPublicKey() {
-        return theirDHPublicKey;
+        return this.theirDHPublicKey;
     }
 
     /**
@@ -184,73 +225,60 @@ public final class MixedSharedSecret implements AutoCloseable {
     /**
      * Rotate our key pairs in the shared secret.
      *
-     * @param regenerateDHKeyPair Indicates whether we need to regenerate the DH key pair as well.
+     * @param dhratchet Indicates whether we need to regenerate the DH key pair as well. (Every third brace key.)
+     * @return Returns new instance with our keys rotated.
      */
-    public void rotateOurKeys(final boolean regenerateDHKeyPair) {
+    @CheckReturnValue
+    public MixedSharedSecret rotateOurKeys(final boolean dhratchet) {
         expectNotClosed();
-        this.ecdhKeyPair = ECDHKeyPair.generate(this.random);
-        if (regenerateDHKeyPair) {
-            this.dhKeyPair = DHKeyPair.generate(this.random);
-        }
-        regenerateK(regenerateDHKeyPair);
+        return new MixedSharedSecret(this.random, this.braceKey, dhratchet, ECDHKeyPair.generate(this.random),
+                dhratchet ? DHKeyPair.generate(this.random) : new DHKeyPair(this.dhKeyPair), this.theirECDHPublicKey,
+                this.theirDHPublicKey);
     }
 
     /**
      * Rotate their public keys in the shared secret.
      *
+     * @param dhratchet Indicates whether we need to regenerate the DH key pair as well. (Every third brace key.)
      * @param theirNextECDH Their ECDH public key.
-     * @param theirNextDH Their DH public key. (Optional)
+     * @param theirNextDH Their DH public key. (Optional. Expected for every third brace key.)
+     * @return Returns new instance with their public keys rotated.
      * @throws OtrCryptoException In case of failure to rotate the public keys.
      */
-    public void rotateTheirKeys(final Point theirNextECDH, @Nullable final BigInteger theirNextDH)
-            throws OtrCryptoException {
+    @CheckReturnValue
+    public MixedSharedSecret rotateTheirKeys(final boolean dhratchet, final Point theirNextECDH,
+            @Nullable final BigInteger theirNextDH) throws OtrCryptoException {
         expectNotClosed();
-        if (!containsPoint(theirNextECDH)) {
+        if (dhratchet == (theirNextDH == null)) {
+            throw new IllegalArgumentException("Their next DH public key is unexpected.");
+        }
+        if (!containsPoint(theirNextECDH) || this.theirECDHPublicKey.constantTimeEquals(theirNextECDH)
+                || this.ecdhKeyPair.publicKey().equals(theirNextECDH)) {
             throw new OtrCryptoException("ECDH public key failed verification.");
         }
-        if (this.ecdhKeyPair.publicKey().constantTimeEquals(theirNextECDH)
-                || this.theirECDHPublicKey.constantTimeEquals(theirNextECDH)) {
-            throw new OtrCryptoException("A new, different ECDH public key is expected for initializing the new ratchet.");
-        }
-        this.theirECDHPublicKey = theirNextECDH;
-        if (theirNextDH == null) {
-            regenerateK(false);
-            this.ecdhKeyPair.close();
-            return;
-        }
-        // every third brace key, perform DH ratchet; also rotate DH keys. The iteration is decided by DoubleRatchet,
-        // while we need simply act on the presence or absence of theirNextDH.
-        if (!checkPublicKey(theirNextDH) || this.dhKeyPair.publicKey().equals(theirNextDH)
-                || this.theirDHPublicKey.equals(theirNextDH)) {
-            throw new OtrCryptoException("A new, different DH public key is expected for initializing the new ratchet.");
-        }
-        this.theirDHPublicKey = theirNextDH;
-        regenerateK(true);
-        this.dhKeyPair.close();
-        this.ecdhKeyPair.close();
-    }
-
-    @SuppressWarnings("PMD.LocalVariableNamingConventions")
-    private void regenerateK(final boolean performDHRatchet) {
-        final byte[] k_ecdh;
-        try (Point sharedSecret = this.ecdhKeyPair.generateSharedSecret(this.theirECDHPublicKey)) {
-            k_ecdh = sharedSecret.encode();
-        } catch (final ValidationException e) {
-            throw new IllegalStateException("BUG: ECDH public keys should have been verified. No unexpected failures should happen at this point.", e);
-        }
-        if (performDHRatchet) {
-            final byte[] k_dh = asUnsignedByteArray(this.dhKeyPair.generateSharedSecret(this.theirDHPublicKey));
-            kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, THIRD_BRACE_KEY, k_dh);
-            clear(k_dh);
+        final ECDHKeyPair copyECDHKeyPair = new ECDHKeyPair(this.ecdhKeyPair);
+        final DHKeyPair copyDHKeyPair = new DHKeyPair(this.dhKeyPair);
+        final MixedSharedSecret next;
+        if (dhratchet) {
+            // This is a DH ratchet. (every third brace key)
+            if (!checkPublicKey(theirNextDH) || this.dhKeyPair.publicKey().equals(theirNextDH)
+                    || this.theirDHPublicKey.equals(theirNextDH)) {
+                throw new OtrCryptoException("DH public key failed verification.");
+            }
+            next = new MixedSharedSecret(this.random, this.braceKey, true, copyECDHKeyPair, copyDHKeyPair,
+                    theirNextECDH, theirNextDH);
+            copyDHKeyPair.close();
         } else {
-            kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, BRACE_KEY, this.braceKey);
+            // This is NOT a DH ratchet.
+            next = new MixedSharedSecret(this.random, this.braceKey, false, copyECDHKeyPair, copyDHKeyPair,
+                    theirNextECDH, this.theirDHPublicKey);
         }
-        kdf(this.k, 0, K_LENGTH_BYTES, SHARED_SECRET, k_ecdh, this.braceKey);
-        clear(k_ecdh);
+        copyECDHKeyPair.close();
+        return next;
     }
 
     private void expectNotClosed() {
-        if (this.closed) {
+        if (allZeroBytes(this.braceKey) || allZeroBytes(this.k)) {
             throw new IllegalStateException("Shared secret is already closed/disposed of.");
         }
     }

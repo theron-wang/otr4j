@@ -75,8 +75,8 @@ abstract class AbstractOTR3State implements State {
     }
 
     @Nullable
-    @Override
-    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws OtrException, ProtocolException {
+    String handleEncodedMessage3(final Context context, final EncodedMessage message) throws OtrException, ProtocolException {
+        // FIXME check if message.version == 2 or 3
         final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
         assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof DHCommitMessage
                 : "BUG: receiver instance should be set for anything other than the first AKE message.";

@@ -17,6 +17,7 @@ import net.java.otr4j.crypto.ed448.ValidationException;
 import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
+import net.java.otr4j.util.ByteArrays;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 import org.bouncycastle.crypto.engines.ChaCha7539Engine;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -41,18 +42,16 @@ import static net.java.otr4j.crypto.ed448.Scalar.SCALAR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
 import static net.java.otr4j.crypto.ed448.Scalars.clamp;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.requireLengthAtLeast;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static net.java.otr4j.util.Integers.requireAtLeast;
 import static net.java.otr4j.util.Integers.requireEquals;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
-import static org.bouncycastle.util.Arrays.clear;
 
 /**
  * Crypto engine for OTRv4.
  */
-// TODO consider reducing complexity.
-@SuppressWarnings("PMD.GodClass")
 public final class OtrCryptoEngine4 {
 
     /**
@@ -103,7 +102,7 @@ public final class OtrCryptoEngine4 {
     /**
      * Length of the MessageKeys MAC code in bytes.
      */
-    static final int MK_MAC_LENGTH_BYTES = 64;
+    public static final int MK_MAC_LENGTH_BYTES = 64;
 
     /**
      * Length of the Authenticator code in bytes.
@@ -298,6 +297,8 @@ public final class OtrCryptoEngine4 {
      */
     public static void kdf(final byte[] dst, final int offset, final int outputSize, final KDFUsage usageID,
             final byte[]... input) {
+        assert Arrays.stream(input).noneMatch(ByteArrays::allZeroBytes)
+                : "Sanity-checking for all-zero byte-arrays as these are often an indication of a bug.";
         shake256(dst, offset, outputSize, usageID, input);
     }
 
@@ -525,51 +526,50 @@ public final class OtrCryptoEngine4 {
         final int eq1 = longTermPublicKey.constantTimeEquals(A1) ? 1 : 0;
         final int eq2 = longTermPublicKey.constantTimeEquals(A2) ? 1 : 0;
         final int eq3 = longTermPublicKey.constantTimeEquals(A3) ? 1 : 0;
-        requireEquals(1, eq1 + eq2 + eq3, "Expected long-term keypair to match exactly one of 3 public keys.");
+        requireEquals(1, eq1 + eq2 + eq3,  "BUG: expected long-term keypair to match exactly one of 3 public keys.");
         // "Pick random values t, c2, c3, r2, r3 in q."
-        try (Scalar t = generateRandomValueInZq(random)) {
-            Scalar ci = generateRandomValueInZq(random);
-            Scalar ri = generateRandomValueInZq(random);
-            Scalar cj = generateRandomValueInZq(random);
-            Scalar rj = generateRandomValueInZq(random);
-            Scalar ck = generateRandomValueInZq(random);
-            Scalar rk = generateRandomValueInZq(random);
-            // Either `t*G` or `ri*G + ci*A1`, with `eq1==1` for first case, `eq1==0` for second case.
-            final Point T1 = multiplyByBase(t.multiply(eq1)).add(
-                    multiplyByBase(ri.multiply(1 - eq1)).add(A1.multiply(ci.multiply(1 - eq1))));
-            final Point T2 = multiplyByBase(t.multiply(eq2)).add(
-                    multiplyByBase(rj.multiply(1 - eq2)).add(A2.multiply(cj.multiply(1 - eq2))));
-            final Point T3 = multiplyByBase(t.multiply(eq3)).add(
-                    multiplyByBase(rk.multiply(1 - eq3)).add(A3.multiply(ck.multiply(1 - eq3))));
-            // "Compute c = HashToScalar(0x1D || G || q || A1 || A2 || A3 || T1 || T2 || T3 || m)."
-            final Scalar q = primeOrder();
-            final Scalar c;
-            try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
-                basePoint().encodeTo(buffer);
-                q.encodeTo(buffer);
-                A1.encodeTo(buffer);
-                A2.encodeTo(buffer);
-                A3.encodeTo(buffer);
-                T1.encodeTo(buffer);
-                T2.encodeTo(buffer);
-                T3.encodeTo(buffer);
-                buffer.write(m, 0, m.length);
-                c = hashToScalar(AUTH, buffer.toByteArray());
-            }
-            // Either "Compute c1 = c - c2 - c3 (mod q)." or use existing value for ci.
-            ci = c.subtract(cj).subtract(ck).mod(q).multiply(eq1).add(ci.multiply(1 - eq1));
-            cj = c.subtract(ci).subtract(ck).mod(q).multiply(eq2).add(cj.multiply(1 - eq2));
-            ck = c.subtract(ci).subtract(cj).mod(q).multiply(eq3).add(ck.multiply(1 - eq3));
-            // Either "Compute r1 = t1 - c1 * a1 (mod q)." or use existing value for ri.
-            try (Scalar ai = longTermKeyPair.getSecretKey()) {
-                ri = t.subtract(ci.multiply(ai)).mod(q).multiply(eq1).add(ri.multiply(1 - eq1));
-                rj = t.subtract(cj.multiply(ai)).mod(q).multiply(eq2).add(rj.multiply(1 - eq2));
-                rk = t.subtract(ck.multiply(ai)).mod(q).multiply(eq3).add(rk.multiply(1 - eq3));
-            }
-            return new Sigma(ci, ri, cj, rj, ck, rk);
+        final Scalar t = generateRandomValueInZq(random);
+        Scalar ci = generateRandomValueInZq(random);
+        Scalar ri = generateRandomValueInZq(random);
+        Scalar cj = generateRandomValueInZq(random);
+        Scalar rj = generateRandomValueInZq(random);
+        Scalar ck = generateRandomValueInZq(random);
+        Scalar rk = generateRandomValueInZq(random);
+        // Either `t*G` or `ri*G + ci*A1`, with `eq1==1` for first case, `eq1==0` for second case.
+        final Point T1 = multiplyByBase(t.multiply(eq1)).add(
+                multiplyByBase(ri.multiply(1 - eq1)).add(A1.multiply(ci.multiply(1 - eq1))));
+        final Point T2 = multiplyByBase(t.multiply(eq2)).add(
+                multiplyByBase(rj.multiply(1 - eq2)).add(A2.multiply(cj.multiply(1 - eq2))));
+        final Point T3 = multiplyByBase(t.multiply(eq3)).add(
+                multiplyByBase(rk.multiply(1 - eq3)).add(A3.multiply(ck.multiply(1 - eq3))));
+        // "Compute c = HashToScalar(0x1D || G || q || A1 || A2 || A3 || T1 || T2 || T3 || m)."
+        final Scalar q = primeOrder();
+        final Scalar c;
+        try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+            basePoint().encodeTo(buffer);
+            q.encodeTo(buffer);
+            A1.encodeTo(buffer);
+            A2.encodeTo(buffer);
+            A3.encodeTo(buffer);
+            T1.encodeTo(buffer);
+            T2.encodeTo(buffer);
+            T3.encodeTo(buffer);
+            buffer.write(m, 0, m.length);
+            c = hashToScalar(AUTH, buffer.toByteArray());
         } catch (final IOException e) {
             throw new IllegalStateException("Failed to write point to buffer.", e);
         }
+        // Either "Compute c1 = c - c2 - c3 (mod q)." or use existing value for ci.
+        ci = c.subtract(cj).subtract(ck).mod(q).multiply(eq1).add(ci.multiply(1 - eq1));
+        cj = c.subtract(ci).subtract(ck).mod(q).multiply(eq2).add(cj.multiply(1 - eq2));
+        ck = c.subtract(ci).subtract(cj).mod(q).multiply(eq3).add(ck.multiply(1 - eq3));
+        // Either "Compute r1 = t1 - c1 * a1 (mod q)." or use existing value for ri.
+        final Scalar ai = longTermKeyPair.getSecretKey();
+        ri = t.subtract(ci.multiply(ai)).mod(q).multiply(eq1).add(ri.multiply(1 - eq1));
+        rj = t.subtract(cj.multiply(ai)).mod(q).multiply(eq2).add(rj.multiply(1 - eq2));
+        rk = t.subtract(ck.multiply(ai)).mod(q).multiply(eq3).add(rk.multiply(1 - eq3));
+        Scalar.clear(ai);
+        return new Sigma(ci, ri, cj, rj, ck, rk);
     }
 
     /**
@@ -683,13 +683,14 @@ public final class OtrCryptoEngine4 {
                 return false;
             }
             final Sigma sigma = (Sigma) o;
-            return c1.constantTimeEquals(sigma.c1) & r1.constantTimeEquals(sigma.r1) & c2.constantTimeEquals(sigma.c2)
-                    & r2.constantTimeEquals(sigma.r2) & c3.constantTimeEquals(sigma.c3) & r3.constantTimeEquals(sigma.r3);
+            return this.c1.constantTimeEquals(sigma.c1) & this.r1.constantTimeEquals(sigma.r1)
+                    & this.c2.constantTimeEquals(sigma.c2) & this.r2.constantTimeEquals(sigma.r2)
+                    & this.c3.constantTimeEquals(sigma.c3) & this.r3.constantTimeEquals(sigma.r3);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(c1, r1, c2, r2, c3, r3);
+            return Objects.hash(this.c1, this.r1, this.c2, this.r2, this.c3, this.r3);
         }
     }
 }

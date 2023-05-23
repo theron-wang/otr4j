@@ -192,12 +192,12 @@ public final class OtrInputStream {
      * Read public key from OTR data stream.
      *
      * @return Returns public key components.
-     * @throws ProtocolException          In case of failing to read full public key from input data.
-     * @throws OtrCryptoException         Throws OtrCryptoException if failed to reconstruct corresponding public key.
-     * @throws UnsupportedTypeException   Thrown in case an unsupported public key type is encountered.
+     * @throws ProtocolException In case of failing to read full public key from input data.
+     * @throws OtrCryptoException Throws OtrCryptoException if failed to reconstruct corresponding public key.
+     * @throws ProtocolException Thrown in case an unsupported public key type is encountered.
      */
     @Nonnull
-    public DSAPublicKey readPublicKey() throws OtrCryptoException, UnsupportedTypeException, ProtocolException {
+    public DSAPublicKey readPublicKey() throws OtrCryptoException, ProtocolException {
         final int type = readShort();
         switch (type) {
         case PUBLIC_KEY_TYPE_DSA:
@@ -207,7 +207,7 @@ public final class OtrInputStream {
             final BigInteger y = readBigInt();
             return createDSAPublicKey(y, p, q, g);
         default:
-            throw new UnsupportedTypeException("Unsupported type for public key: " + type);
+            throw new ProtocolException("Unsupported type for public key: " + type);
         }
     }
 

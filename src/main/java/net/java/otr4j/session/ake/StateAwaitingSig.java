@@ -15,7 +15,6 @@ import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.io.OtrOutputStream;
-import net.java.otr4j.io.UnsupportedTypeException;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.DHCommitMessage;
 import net.java.otr4j.messages.DHKeyMessage;
@@ -92,11 +91,7 @@ final class StateAwaitingSig extends AbstractAuthState {
             return handleDHKeyMessage((DHKeyMessage) message);
         }
         if (message instanceof SignatureMessage) {
-            try {
-                return handleSignatureMessage(context, (SignatureMessage) message);
-            } catch (final UnsupportedTypeException e) {
-                throw new OtrException("Unsupported type of signature encountered.", e);
-            }
+            return handleSignatureMessage(context, (SignatureMessage) message);
         }
         LOGGER.log(Level.FINEST, "Only expected message types are DHKeyMessage and SignatureMessage. Ignoring message with type: {0}", message.getType());
         return new Result(null, null);
@@ -138,26 +133,26 @@ final class StateAwaitingSig extends AbstractAuthState {
 
     @Nonnull
     private Result handleSignatureMessage(final AuthContext context, final SignatureMessage message)
-            throws OtrCryptoException, ProtocolException, UnsupportedTypeException {
+            throws OtrCryptoException, ProtocolException {
         // OTR: "Decrypt the encrypted signature, and verify the signature and the MACs."
         try {
             // OTR: "Uses m2' to verify MACm2'(AESc'(XA))"
             final OtrOutputStream out = new OtrOutputStream().writeData(message.xEncrypted);
-            final byte[] xEncryptedMAC = sha256Hmac160(out.toByteArray(), s.m2p());
+            final byte[] xEncryptedMAC = sha256Hmac160(out.toByteArray(), this.s.m2p());
             checkEquals(xEncryptedMAC, message.xEncryptedMAC, "xEncryptedMAC failed verification.");
             // OTR: "Uses c' to decrypt AESc'(XA) to obtain XA = pubA, keyidA, sigA(MA)"
-            final byte[] remoteXBytes = aesDecrypt(s.cp(), new byte[CTR_LENGTH_BYTES], message.xEncrypted);
+            final byte[] remoteXBytes = aesDecrypt(this.s.cp(), new byte[CTR_LENGTH_BYTES], message.xEncrypted);
             final SignatureX remoteX = readSignatureX(remoteXBytes);
             // OTR: "Computes MA = MACm1'(gy, gx, pubA, keyidA)"
             final SignatureM remoteM = new SignatureM(this.remoteDHPublicKey, this.localDHKeyPair.getPublic(),
                     remoteX.getLongTermPublicKey(), remoteX.getDhKeyID());
-            final byte[] expectedSignature = sha256Hmac(encode(remoteM), s.m1p());
+            final byte[] expectedSignature = sha256Hmac(encode(remoteM), this.s.m1p());
             // OTR: "Uses pubA to verify sigA(MA)"
             remoteX.verify(expectedSignature);
             // Transition to ENCRYPTED session state.
             // OTR: "Transition msgstate to MSGSTATE_ENCRYPTED."
             final SecurityParameters params = new SecurityParameters(this.version, this.localDHKeyPair,
-                    remoteX.getLongTermPublicKey(), remoteDHPublicKey, this.s);
+                    remoteX.getLongTermPublicKey(), this.remoteDHPublicKey, this.s);
             return new Result(null, params);
         } finally {
             // Ensure transition to AUTHSTATE_NONE.

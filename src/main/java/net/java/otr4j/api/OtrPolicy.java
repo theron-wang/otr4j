@@ -17,6 +17,7 @@ package net.java.otr4j.api;
  * (re)starting AKE.
  *
  * @author George Politis
+ * @author Danny van Heumen
  */
 // TODO no longer ALLOW_V2 by default?
 public final class OtrPolicy {
@@ -125,7 +126,7 @@ public final class OtrPolicy {
      * @return Returns the raw policy value.
      */
     public int getPolicy() {
-        return policy;
+        return this.policy;
     }
 
     /**
@@ -134,7 +135,7 @@ public final class OtrPolicy {
      * @return Returns true if OTR version 2 is allowed.
      */
     public boolean isAllowV2() {
-        return (policy & OtrPolicy.ALLOW_V2) != 0;
+        return (this.policy & OtrPolicy.ALLOW_V2) != 0;
     }
 
     /**
@@ -143,7 +144,7 @@ public final class OtrPolicy {
      * @return Returns true if OTR version 3 is allowed.
      */
     public boolean isAllowV3() {
-        return (policy & OtrPolicy.ALLOW_V3) != 0;
+        return (this.policy & OtrPolicy.ALLOW_V3) != 0;
     }
 
     /**
@@ -152,7 +153,7 @@ public final class OtrPolicy {
      * @return Returns true if OTR version 4 is allowed.
      */
     public boolean isAllowV4() {
-        return (policy & OtrPolicy.ALLOW_V4) != 0;
+        return (this.policy & OtrPolicy.ALLOW_V4) != 0;
     }
 
     /**
@@ -166,7 +167,7 @@ public final class OtrPolicy {
      * policy is set to false, or if no OTR protocol version is allowed.
      */
     public boolean isErrorStartAKE() {
-        return (policy & OtrPolicy.ERROR_START_AKE) != 0;
+        return (this.policy & OtrPolicy.ERROR_START_AKE) != 0;
     }
 
     /**
@@ -177,7 +178,7 @@ public final class OtrPolicy {
      * case an OTR session is not established.
      */
     public boolean isRequireEncryption() {
-        return (policy & OtrPolicy.REQUIRE_ENCRYPTION) != 0;
+        return (this.policy & OtrPolicy.REQUIRE_ENCRYPTION) != 0;
     }
 
     /**
@@ -191,7 +192,7 @@ public final class OtrPolicy {
      * to false, or if no OTR protocol version is allowed.
      */
     public boolean isSendWhitespaceTag() {
-        return (policy & OtrPolicy.SEND_WHITESPACE_TAG) != 0;
+        return (this.policy & OtrPolicy.SEND_WHITESPACE_TAG) != 0;
     }
 
     /**
@@ -206,7 +207,7 @@ public final class OtrPolicy {
      * is set to false, or if no OTR protocol version is allowed.
      */
     public boolean isWhitespaceStartAKE() {
-        return (policy & OtrPolicy.WHITESPACE_START_AKE) != 0;
+        return (this.policy & OtrPolicy.WHITESPACE_START_AKE) != 0;
     }
 
     /**
@@ -216,9 +217,9 @@ public final class OtrPolicy {
      */
     public void setAllowV2(final boolean value) {
         if (value) {
-            policy |= ALLOW_V2;
+            this.policy |= ALLOW_V2;
         } else {
-            policy &= ~ALLOW_V2;
+            this.policy &= ~ALLOW_V2;
         }
     }
 
@@ -229,9 +230,9 @@ public final class OtrPolicy {
      */
     public void setAllowV3(final boolean value) {
         if (value) {
-            policy |= ALLOW_V3;
+            this.policy |= ALLOW_V3;
         } else {
-            policy &= ~ALLOW_V3;
+            this.policy &= ~ALLOW_V3;
         }
     }
 
@@ -242,9 +243,9 @@ public final class OtrPolicy {
      */
     public void setAllowV4(final boolean value) {
         if (value) {
-            policy |= ALLOW_V4;
+            this.policy |= ALLOW_V4;
         } else {
-            policy &= ~ALLOW_V4;
+            this.policy &= ~ALLOW_V4;
         }
     }
 
@@ -256,9 +257,9 @@ public final class OtrPolicy {
      */
     public void setErrorStartAKE(final boolean value) {
         if (value) {
-            policy |= ERROR_START_AKE;
+            this.policy |= ERROR_START_AKE;
         } else {
-            policy &= ~ERROR_START_AKE;
+            this.policy &= ~ERROR_START_AKE;
         }
     }
 
@@ -271,9 +272,9 @@ public final class OtrPolicy {
      */
     public void setRequireEncryption(final boolean value) {
         if (value) {
-            policy |= REQUIRE_ENCRYPTION;
+            this.policy |= REQUIRE_ENCRYPTION;
         } else {
-            policy &= ~REQUIRE_ENCRYPTION;
+            this.policy &= ~REQUIRE_ENCRYPTION;
         }
     }
 
@@ -285,9 +286,9 @@ public final class OtrPolicy {
      */
     public void setSendWhitespaceTag(final boolean value) {
         if (value) {
-            policy |= SEND_WHITESPACE_TAG;
+            this.policy |= SEND_WHITESPACE_TAG;
         } else {
-            policy &= ~SEND_WHITESPACE_TAG;
+            this.policy &= ~SEND_WHITESPACE_TAG;
         }
     }
 
@@ -299,9 +300,9 @@ public final class OtrPolicy {
      */
     public void setWhitespaceStartAKE(final boolean value) {
         if (value) {
-            policy |= WHITESPACE_START_AKE;
+            this.policy |= WHITESPACE_START_AKE;
         } else {
-            policy &= ~WHITESPACE_START_AKE;
+            this.policy &= ~WHITESPACE_START_AKE;
         }
     }
 

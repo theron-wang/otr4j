@@ -45,9 +45,9 @@ final class Assembler {
         switch (version) {
         case Session.Version.TWO:
         case Session.Version.THREE:
-            return inOrder.accumulate(fragment);
+            return this.inOrder.accumulate(fragment);
         case Session.Version.FOUR:
-            return outOfOrder.accumulate(fragment);
+            return this.outOfOrder.accumulate(fragment);
         default:
             throw new UnsupportedOperationException("Unsupported protocol version.");
         }
@@ -148,7 +148,7 @@ final class Assembler {
          */
         @Nullable
         String accumulate(final Fragment fragment) throws ProtocolException {
-            String[] parts = fragments.computeIfAbsent(fragment.getIdentifier(), k -> new String[fragment.getTotal()]);
+            String[] parts = this.fragments.computeIfAbsent(fragment.getIdentifier(), k -> new String[fragment.getTotal()]);
             if (fragment.getTotal() != parts.length) {
                 LOGGER.log(Level.FINEST, "OTRv4 fragmentation of other party may be broken. Initial total is different from this message. Ignoring this fragment. (Original: {0}, current fragment: {1})",
                         new Object[]{parts.length, fragment.getTotal()});
@@ -165,7 +165,7 @@ final class Assembler {
                 // Not all message parts are present. Return null and wait for next message part before continuing.
                 return null;
             }
-            fragments.remove(fragment.getIdentifier());
+            this.fragments.remove(fragment.getIdentifier());
             return concat(parts);
         }
     }

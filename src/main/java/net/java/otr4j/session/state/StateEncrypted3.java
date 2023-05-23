@@ -12,11 +12,13 @@ package net.java.otr4j.session.state;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.RemoteInfo;
+import net.java.otr4j.api.Session;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.OtrCryptoException;
+import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.EncryptedMessage.Content;
 import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.OtrOutputStream;
@@ -43,6 +45,8 @@ import java.util.logging.Logger;
 
 import static java.util.Collections.singletonList;
 import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.FINEST;
+import static java.util.logging.Level.INFO;
 import static net.java.otr4j.api.OtrEngineHosts.extraSymmetricKeyDiscovered;
 import static net.java.otr4j.api.OtrEngineHosts.showError;
 import static net.java.otr4j.api.OtrEngineHosts.unencryptedMessageReceived;
@@ -163,37 +167,57 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         return this.sessionKeyManager.extraSymmetricKey();
     }
 
+    @Nullable
+    @Override
+    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+        switch (message.version) {
+        case Session.Version.ONE:
+            this.logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
+                    new Object[]{message.version});
+            return null;
+        case Session.Version.TWO:
+        case Session.Version.THREE:
+            return handleEncodedMessage3(context, message);
+        case Session.Version.FOUR:
+            this.logger.log(INFO, "Encountered message for protocol version 4. Ignoring because OTRv3 in-progress.",
+                    new Object[]{message.version});
+            return null;
+        default:
+            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
+        }
+    }
+
     @Override
     void handleAKEMessage(final Context context, final AbstractEncodedMessage message) {
-        logger.log(FINE, "Ignoring OTRv4 DAKE message as we are in OTRv3 encrypted message state.");
+        this.logger.log(FINE, "Ignoring OTRv4 DAKE message as we are in OTRv3 encrypted message state.");
     }
 
     @Override
     @Nullable
     @SuppressWarnings("PMD.CognitiveComplexity")
     String handleDataMessage(final Context context, final DataMessage message) throws OtrException, ProtocolException {
-        logger.finest("Message state is ENCRYPTED. Trying to decrypt message.");
+        this.logger.finest("Message state is ENCRYPTED. Trying to decrypt message.");
         // Find matching session keys.
         final SessionKey matchingKeys;
         try {
-            matchingKeys = sessionKeyManager.get(message.recipientKeyID, message.senderKeyID);
+            matchingKeys = this.sessionKeyManager.get(message.recipientKeyID, message.senderKeyID);
         } catch (final SessionKeyUnavailableException ex) {
-            logger.finest("No matching keys found.");
+            this.logger.finest("No matching keys found.");
             handleUnreadableMessage(context, message, "", ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         }
 
         // Verify received MAC with a locally calculated MAC.
-        logger.finest("Transforming T to byte[] to calculate it's HmacSHA1.");
+        this.logger.finest("Transforming T to byte[] to calculate it's HmacSHA1.");
 
         final byte[] computedMAC = sha1Hmac(encode(message.getT()), matchingKeys.receivingMAC());
         if (!constantTimeEquals(computedMAC, message.mac)) {
-            logger.finest("MAC verification failed, ignoring message.");
+            this.logger.finest("MAC verification failed, ignoring message.");
             handleUnreadableMessage(context, message, "", ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         }
 
-        logger.finest("Computed HmacSHA1 value matches sent one.");
+        this.logger.finest("Computed HmacSHA1 value matches sent one.");
 
         // Mark this MAC key as old to be revealed.
         matchingKeys.markUsed();
@@ -202,7 +226,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
             final byte[] lengthenedReceivingCtr = matchingKeys.verifyReceivingCtr(message.ctr);
             dmc = aesDecrypt(matchingKeys.receivingAESKey(), lengthenedReceivingCtr, message.encryptedMessage);
         } catch (final SessionKey.ReceivingCounterValidationFailed ex) {
-            logger.log(Level.WARNING, "Receiving ctr value failed validation, ignoring message: {0}", ex.getMessage());
+            this.logger.log(Level.WARNING, "Receiving ctr value failed validation, ignoring message: {0}", ex.getMessage());
             showError(context.getHost(), context.getSessionID(), "Counter value of received message failed validation.");
             context.injectMessage(new ErrorMessage("", "Message's counter value failed validation."));
             return null;
@@ -220,7 +244,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         // Extract and process TLVs.
         final Content content = extractContents(dmc);
         for (final TLV tlv : content.tlvs) {
-            logger.log(FINE, "Received TLV type {0}", tlv.type);
+            this.logger.log(FINE, "Received TLV type {0}", tlv.type);
             if (smpPayload(tlv)) {
                 try {
                     final TLV response = this.smpTlvHandler.process(tlv);
@@ -239,7 +263,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
                 break;
             case TLV.DISCONNECTED: // TLV1
                 if (!content.message.isEmpty()) {
-                    logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
+                    this.logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
                 }
                 context.transition(this, new StateFinished(getAuthState()));
                 break;
@@ -248,7 +272,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
                 extraSymmetricKeyDiscovered(context.getHost(), context.getSessionID(), content.message, key, tlv.value);
                 break;
             default:
-                logger.log(Level.INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);
+                this.logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);
                 break;
             }
         }
@@ -269,9 +293,9 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
             return;
         }
         // Re-negotiate if we got an error and we are in ENCRYPTED message state
-        logger.finest("Error message starts AKE.");
+        this.logger.finest("Error message starts AKE.");
         final Set<Integer> versions = allowedVersions(policy);
-        logger.finest("Sending Query");
+        this.logger.finest("Sending Query");
         context.injectMessage(new QueryMessage(versions));
     }
 
@@ -280,7 +304,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     public DataMessage transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
             final byte flags) {
         final SessionID sessionID = context.getSessionID();
-        logger.log(Level.FINEST, "{0} sends an encrypted message to {1} through {2}.",
+        this.logger.log(FINEST, "{0} sends an encrypted message to {1} through {2}.",
                 new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
 
         final byte[] data = new OtrOutputStream().writeMessage(msgText).writeByte(0).writeTLV(tlvs).toByteArray();
@@ -294,7 +318,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         final byte[] ctr = encryptionKeys.acquireSendingCtr();
 
         // Encrypt message.
-        logger.log(Level.FINEST, "Encrypting message with keyids (localKeyID, remoteKeyID) = ({0}, {1})",
+        this.logger.log(FINEST, "Encrypting message with keyids (localKeyID, remoteKeyID) = ({0}, {1})",
                 new Object[]{senderKeyID, recipientKeyID});
         final byte[] encryptedMsg = aesEncrypt(encryptionKeys.sendingAESKey(), ctr, data);
 
@@ -309,7 +333,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         // Calculate T hash.
         final byte[] sendingMACKey = encryptionKeys.sendingMAC();
 
-        logger.finest("Transforming T to byte[] to calculate it's HmacSHA1.");
+        this.logger.finest("Transforming T to byte[] to calculate it's HmacSHA1.");
         final byte[] mac = sha1Hmac(encode(t), sendingMACKey);
 
         // Get old MAC keys to be revealed.

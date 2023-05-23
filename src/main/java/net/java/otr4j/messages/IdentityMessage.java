@@ -19,7 +19,6 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
-import static net.java.otr4j.util.Integers.requireInRange;
 import static net.java.otr4j.util.Objects.requireNotEquals;
 
 /**
@@ -67,7 +66,6 @@ public final class IdentityMessage extends AbstractEncodedMessage {
     /**
      * Identity message type of OTRv4.
      *
-     * @param protocolVersion       the protocol version
      * @param senderInstance        the sender instance tag
      * @param receiverInstance      the receiver instance tag
      * @param clientProfile         the client profile (as payload)
@@ -76,10 +74,10 @@ public final class IdentityMessage extends AbstractEncodedMessage {
      * @param firstECDHPublicKey the first ECDH public key to be used after DAKE completes
      * @param firstDHPublicKey   the first DH public key to be used after DAKE completes
      */
-    public IdentityMessage(final int protocolVersion, final InstanceTag senderInstance,
+    public IdentityMessage(final InstanceTag senderInstance,
             final InstanceTag receiverInstance, final ClientProfilePayload clientProfile, final Point y,
             final BigInteger b, final Point firstECDHPublicKey, final BigInteger firstDHPublicKey) {
-        super(requireInRange(Version.FOUR, Version.FOUR, protocolVersion), senderInstance, receiverInstance);
+        super(Version.FOUR, senderInstance, receiverInstance);
         this.clientProfile = requireNonNull(clientProfile);
         this.y = requireNonNull(y);
         this.b = requireNonNull(b);
@@ -97,7 +95,7 @@ public final class IdentityMessage extends AbstractEncodedMessage {
     @Override
     public void writeTo(final OtrOutputStream writer) {
         super.writeTo(writer);
-        writer.write(clientProfile);
+        writer.write(this.clientProfile);
         writer.writePoint(this.y);
         writer.writeBigInt(this.b);
         writer.writePoint(this.firstECDHPublicKey);
@@ -116,13 +114,14 @@ public final class IdentityMessage extends AbstractEncodedMessage {
             return false;
         }
         final IdentityMessage that = (IdentityMessage) o;
-        return clientProfile.equals(that.clientProfile) && y.constantTimeEquals(that.y) && b.equals(that.b)
-                && firstECDHPublicKey.constantTimeEquals(that.firstECDHPublicKey)
-                && firstDHPublicKey.equals(that.firstDHPublicKey);
+        return this.clientProfile.equals(that.clientProfile) && this.y.constantTimeEquals(that.y)
+                && this.b.equals(that.b) && this.firstECDHPublicKey.constantTimeEquals(that.firstECDHPublicKey)
+                && this.firstDHPublicKey.equals(that.firstDHPublicKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), clientProfile, y, b, firstECDHPublicKey, firstDHPublicKey);
+        return Objects.hash(super.hashCode(), this.clientProfile, this.y, this.b, this.firstECDHPublicKey,
+                this.firstDHPublicKey);
     }
 }

@@ -16,6 +16,7 @@
         critical value. In case where this is violated where you would expect to find a root cause, we can correct it.
         In any case, a stack trace exists. Although it may not be the root cause. For now I can accept this. -->
         <exclude name="PreserveStackTrace"/>
+        <exclude name="OneDeclarationPerLine"/>
     </rule>
     <rule ref="category/java/codestyle.xml">
         <exclude name="TooManyStaticImports"/>
@@ -53,6 +54,7 @@
         <exclude name="ExcessiveImports"/>
         <exclude name="ExcessiveMethodLength"/>
         <exclude name="ExcessiveClassLength"/>
+        <exclude name="GodClass"/>
     </rule>
     <rule ref="category/java/design.xml/CognitiveComplexity">
         <properties>

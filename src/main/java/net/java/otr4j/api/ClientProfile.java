@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
@@ -34,7 +33,7 @@ public final class ClientProfile {
 
     private static final Collection<Integer> MANDATORY_VERSIONS = singleton(Version.FOUR);
 
-    private static final Collection<Integer> FORBIDDEN_VERSIONS = asList(Version.ONE, Version.TWO);
+    private static final Collection<Integer> FORBIDDEN_VERSIONS = List.of(Version.ONE, Version.TWO);
 
     /**
      * Owner's instance tag.
@@ -150,15 +149,15 @@ public final class ClientProfile {
             return false;
         }
         final ClientProfile that = (ClientProfile) o;
-        return Objects.equals(instanceTag, that.instanceTag)
-                && Objects.equals(longTermPublicKey, that.longTermPublicKey)
-                && Objects.equals(forgingKey, that.forgingKey)
-                && Objects.equals(versions, that.versions)
-                && Objects.equals(dsaPublicKey, that.dsaPublicKey);
+        return Objects.equals(this.instanceTag, that.instanceTag)
+                && Objects.equals(this.longTermPublicKey, that.longTermPublicKey)
+                && Objects.equals(this.forgingKey, that.forgingKey)
+                && Objects.equals(this.versions, that.versions)
+                && Objects.equals(this.dsaPublicKey, that.dsaPublicKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(instanceTag, longTermPublicKey, forgingKey, versions, dsaPublicKey);
+        return Objects.hash(this.instanceTag, this.longTermPublicKey, this.forgingKey, this.versions, this.dsaPublicKey);
     }
 }

@@ -104,7 +104,7 @@ public abstract class AbstractEncodedMessage implements Message, OtrEncodable {
 
     @Override
     public String toString() {
-        return "AbstractEncodedMessage{" + "protocolVersion=" + protocolVersion + ", senderTag=" + senderTag
-                + ", receiverTag=" + receiverTag + '}';
+        return "AbstractEncodedMessage{" + "protocolVersion=" + this.protocolVersion + ", senderTag=" + this.senderTag
+                + ", receiverTag=" + this.receiverTag + '}';
     }
 }

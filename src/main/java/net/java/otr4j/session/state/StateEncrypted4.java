@@ -12,11 +12,13 @@ package net.java.otr4j.session.state;
 import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
+import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
+import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.EncryptedMessage.Content;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.PlainTextMessage;
@@ -44,17 +46,17 @@ import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
 import static net.java.otr4j.api.OtrEngineHosts.extraSymmetricKeyDiscovered;
 import static net.java.otr4j.api.OtrEngineHosts.unencryptedMessageReceived;
-import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.TLV.DISCONNECTED;
 import static net.java.otr4j.api.TLV.PADDING;
 import static net.java.otr4j.io.EncryptedMessage.extractContents;
 import static net.java.otr4j.io.ErrorMessage.ERROR_1_MESSAGE_UNREADABLE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_UNREADABLE_MESSAGE;
 import static net.java.otr4j.messages.DataMessage4s.encodeDataMessageSections;
-import static net.java.otr4j.messages.DataMessage4s.validate;
+import static net.java.otr4j.messages.DataMessage4s.verify;
 import static net.java.otr4j.session.smpv4.SMP.smpPayload;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
-import static org.bouncycastle.util.Arrays.concatenate;
+import static net.java.otr4j.util.ByteArrays.clear;
+import static net.java.otr4j.util.ByteArrays.concatenate;
 
 /**
  * The OTRv4 ENCRYPTED_MESSAGES state.
@@ -62,8 +64,6 @@ import static org.bouncycastle.util.Arrays.concatenate;
 // TODO write additional unit tests for StateEncrypted4
 // TODO decide whether or not we can drop the AuthState instance. Relies on fact that we need to know up to what point we should handle OTRv2/3 AKE messages.
 final class StateEncrypted4 extends AbstractCommonState implements StateEncrypted {
-
-    private static final int VERSION = FOUR;
 
     /**
      * Note that in OTRv4 the TLV type for the extra symmetric key is 0x7.
@@ -75,7 +75,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @SuppressWarnings("PMD.LoggerIsNotStaticFinal")
     private final Logger logger;
 
-    private final DoubleRatchet ratchet;
+    private DoubleRatchet ratchet;
 
     private final SMP smp;
 
@@ -93,7 +93,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         this.smp = new SMP(context.secureRandom(), context.getHost(), sessionID, ssid, ourLongTermPublicKey,
                 ourForgingKey, theirProfile.getLongTermPublicKey(), theirProfile.getForgingKey(),
                 context.getReceiverInstanceTag());
-        this.remoteinfo = new RemoteInfo(FOUR, theirProfile.getDsaPublicKey(), theirProfile);
+        this.remoteinfo = new RemoteInfo(Session.Version.FOUR, theirProfile.getDsaPublicKey(), theirProfile);
     }
 
     @Nonnull
@@ -106,7 +106,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
 
     @Override
     public int getVersion() {
-        return VERSION;
+        return Session.Version.FOUR;
     }
 
     @Nonnull
@@ -156,8 +156,12 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 : "BUG: expected providedMACsToReveal to contains some non-zero values.";
         // Perform ratchet if necessary, possibly collecting MAC codes to reveal.
         final byte[] collectedMACs;
-        if (this.ratchet.isNeedSenderKeyRotation()) {
-            final byte[] revealedMacs = this.ratchet.rotateSenderKeys();
+        if (this.ratchet.nextRotation() == DoubleRatchet.Purpose.SENDING) {
+            final byte[] revealedMacs;
+            try (DoubleRatchet previous = this.ratchet) {
+                this.ratchet = this.ratchet.rotateSenderKeys();
+                revealedMacs = previous.collectReveals();
+            }
             this.logger.log(FINEST, "Sender keys rotated. revealed MACs size: {0}.",
                     new Object[]{revealedMacs.length});
             collectedMACs = concatenate(providedMACsToReveal, revealedMacs);
@@ -171,23 +175,38 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // "When sending a data message in the same DH Ratchet: Set `i - 1` as the Data message's ratchet id. (except
         // for when immediately sending data messages after receiving a Auth-I message. In that it case it should be Set
         // `i` as the Data message's ratchet id)."
-        // TODO evaluate if this has the desired effect in all cases? (managing an edge case in the spec)
         final int ratchetId = Math.max(0, this.ratchet.getI() - 1);
         final int messageId = this.ratchet.getJ();
         final BigInteger dhPublicKey = ratchetId % 3 == 0 ? this.ratchet.getDHPublicKey() : null;
         // We intentionally set the authenticator to `new byte[64]` (all zero-bytes), such that we can calculate the
         // corresponding authenticator value. Then we construct a new DataMessage4 and substitute the real authenticator
         // for the dummy.
-        // TODO now including DH public-key in all messages of ratchet `i % 3 == 0`. Check if consistent with spec.
-        final DataMessage4 unauthenticated = new DataMessage4(VERSION, context.getSenderInstanceTag(),
+        final DataMessage4 unauthenticated = new DataMessage4(context.getSenderInstanceTag(),
                 context.getReceiverInstanceTag(), flags, this.ratchet.getPn(), ratchetId, messageId,
                 this.ratchet.getECDHPublicKey(), dhPublicKey, ciphertext, new byte[64], collectedMACs);
         final byte[] authenticator = this.ratchet.authenticate(encodeDataMessageSections(unauthenticated));
-        // TODO we rotate away, so we need to acquire the extra symmetric key for this message ID now, or never.
+        // TODO we rotate away, so we need to acquire the extra symmetric key for this message ID now or never.
         this.ratchet.rotateSendingChainKey();
         final DataMessage4 message = new DataMessage4(unauthenticated, authenticator);
         this.lastMessageSentTimestamp = System.nanoTime();
         return message;
+    }
+
+    @Nullable
+    @Override
+    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+        switch (message.version) {
+        case Session.Version.ONE:
+        case Session.Version.TWO:
+        case Session.Version.THREE:
+            this.logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
+                    new Object[]{message.version});
+            return null;
+        case Session.Version.FOUR:
+            return handleEncodedMessage4(context, message);
+        default:
+            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
+        }
     }
 
     @Override
@@ -196,11 +215,11 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             try {
                 handleIdentityMessage(context, (IdentityMessage) message);
             } catch (final ValidationException e) {
-                logger.log(INFO, "Failed to process Identity message.", e);
+                this.logger.log(INFO, "Failed to process Identity message.", e);
             }
             return;
         }
-        logger.log(INFO, "We only expect to receive an Identity message. Ignoring message with messagetype: {0}",
+        this.logger.log(INFO, "We only expect to receive an Identity message. Ignoring message with messagetype: {0}",
                 message.getType());
     }
 
@@ -214,31 +233,33 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Override
     @SuppressWarnings("PMD.CognitiveComplexity")
     String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException, ProtocolException {
-        validate(message);
+        verify(message);
         if (message.i < this.ratchet.getI() - 1) {
             // FIXME this can be assumed to work: simply pass through to Double Ratchet, look in stored keys map and return something if available.
             // Ratchet ID < our current ratchet ID. This is technically impossible, so should not be supported.
             throw new ProtocolException("The double ratchet does not allow for first messages of previous ratchet ID to arrive at a later time. This is an illegal message.");
         }
         if (message.i > this.ratchet.getI()) {
-            logger.log(WARNING, "Received message is for a future ratchet ID: message must be malicious. (Current ratchet: {0}, message ratchet: {1})",
+            this.logger.log(WARNING, "Received message is for a future ratchet ID: message must be malicious. (Current ratchet: {0}, message ratchet: {1})",
                     new Object[]{this.ratchet.getI(), message.i});
             throw new ProtocolException("Received message is for a future ratchet; must be malicious.");
         }
+        final DoubleRatchet provisional;
         if (message.i == this.ratchet.getI()) {
-            // TODO are we sure we only need to reveal on first message of ratchet? Are we sure NextECDH and nextDH are included on every message in ratchet?
-            if (message.i > 0 && message.revealedMacs.length == 0) {
-                // FIXME inspect spec to find out when we can expect revealed MACs to be included.
-                throw new ProtocolException("Expected MACs to be revealed after initial ratchet.");
-            }
             // If any message in a new ratchet is received, a new ratchet key has been received, any message keys
             // corresponding to skipped messages from the previous receiving ratchet are stored. A new DH ratchet is
             // performed.
-            // TODO generate and store skipped message for previous chain key.
-            // The Double Ratchet prescribes alternate rotations, so after a single rotation for each we expect to
-            // start revealing MAC codes.
-            // FIXME consider that i, j, nextECDH, nextDH must be authenticated before trusted. However, we must rotate before authentication. We must isolated rotation until we can confirm that the message is trustworthy..
-            this.ratchet.rotateReceiverKeys(message.ecdhPublicKey, message.dhPublicKey);
+            if (this.ratchet.nextRotation() != DoubleRatchet.Purpose.RECEIVING) {
+                throw new ProtocolException("Message in next ratchet received before sending keys were rotated. Message violates protocol; probably malicious.");
+            }
+            // NOTE: with each message in a new ratchet, we receive new public keys. To acquire the authentication and
+            // decryption keys, we need to incorporate these public keys in the ratchet. However, this means we must
+            // work with unauthenticated data. Therefore, the ratchet constructs a new instance upon each rotation. We
+            // work with the new ratchet instance provisionally, until we have authenticated and decrypted the message.
+            // Only after successfully processing the message, do we transition to the new ratchet instance.
+            provisional = this.ratchet.rotateReceiverKeys(message.ecdhPublicKey, message.dhPublicKey, message.pn);
+        } else {
+            provisional = this.ratchet;
         }
         // If the encrypted message corresponds to an stored message key corresponding to an skipped message, the
         // message is verified and decrypted with that key which is deleted from the storage.
@@ -246,30 +267,40 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // messages from the same ratchet are stored, and a symmetric-key ratchet is performed to derive the current
         // message key and the next receiving chain key. The message is then verified and decrypted.
         final byte[] decrypted;
-        // FIXME extraSymmetricKey not guaranteed to be used, must be cleared regardless.
         final byte[] extraSymmetricKey;
         try {
-            decrypted = this.ratchet.decrypt(message.i, message.j, encodeDataMessageSections(message),
+            decrypted = provisional.decrypt(message.i, message.j, encodeDataMessageSections(message),
                     message.authenticator, message.ciphertext);
-            extraSymmetricKey = this.ratchet.extraSymmetricKeyReceiver(message.i, message.j);
+            extraSymmetricKey = provisional.extraSymmetricKeyReceiver(message.i, message.j);
         } catch (final RotationLimitationException e) {
+            // TODO does RotationLimitationException still have the same meanings as described in log message below?
             this.logger.log(INFO, "Message received that is part of next ratchet. As we do not have the public keys for that ratchet yet, the message cannot be decrypted. This message is now lost.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         } catch (final OtrCryptoException e) {
-            this.logger.log(FINE, "Received message fails verification. Rejecting the message.");
+            // TODO should we signal unreadable message if malicious? How to distinguish/decide?
+            this.logger.log(INFO, "Received message fails verification. Rejecting the message.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         }
-        this.ratchet.rotateReceivingChainKey(message.i, message.j);
-        // Process decrypted message contents. Extract and process TLVs.
+        // Now that we successfully passed authentication and decryption, we know that the message was authentic.
+        // Therefore, any new key material we might have received is authentic, and the message keys we used were used
+        // and subsequently discarded correctly. At this point, malicious messages should not be able to have a lasting
+        // impact, while authentic messages correctly progress the Double Ratchet.
+        if (provisional != this.ratchet) {
+            this.ratchet.transferReveals(provisional);
+            this.ratchet.close();
+            this.ratchet = provisional;
+        }
+        this.ratchet.confirmReceivingChainKey(message.i, message.j);
+        // Process decrypted message contents. Extract and process TLVs. Possibly reply, e.g. SMP, disconnect.
         final Content content = extractContents(decrypted);
         for (final TLV tlv : content.tlvs) {
-            logger.log(FINE, "Received TLV type {0}", tlv.type);
+            this.logger.log(FINE, "Received TLV type {0}", tlv.type);
             if (smpPayload(tlv)) {
                 if ((message.flags & FLAG_IGNORE_UNREADABLE) != FLAG_IGNORE_UNREADABLE) {
                     // Detect improvements for protocol implementation of remote party.
-                    logger.log(WARNING, "Other party is using a faulty OTR client: all SMP messages are expected to have the IGNORE_UNREADABLE flag set.");
+                    this.logger.log(WARNING, "Other party is using a faulty OTR client: all SMP messages are expected to have the IGNORE_UNREADABLE flag set.");
                 }
                 try {
                     final TLV response = this.smp.process(tlv);
@@ -287,13 +318,14 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 break;
             case DISCONNECTED:
                 if ((message.flags & FLAG_IGNORE_UNREADABLE) != FLAG_IGNORE_UNREADABLE) {
-                    logger.log(WARNING, "Other party is using a faulty OTR client: DISCONNECT messages are expected to have the IGNORE_UNREADABLE flag set.");
+                    this.logger.log(WARNING, "Other party is using a faulty OTR client: DISCONNECT messages are expected to have the IGNORE_UNREADABLE flag set.");
                 }
                 if (!content.message.isEmpty()) {
-                    logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
+                    this.logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
                 }
-                // TODO this was documented, but what was the rationale to sometimes forget MACs that we should reveal?
-                this.ratchet.forgetRemainingMACsToReveal();
+                final byte[] unused = this.ratchet.collectReveals();
+                // TODO we need to reveal any remaining MK_MACs in the reveals list. (currently not used)
+                clear(unused);
                 context.transition(this, new StateFinished(getAuthState()));
                 break;
             case EXTRA_SYMMETRIC_KEY:
@@ -301,13 +333,14 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                     throw new OtrException("TLV value should contain at least 4 bytes of context identifier.");
                 }
                 extraSymmetricKeyDiscovered(context.getHost(), context.getSessionID(), content.message,
-                        extraSymmetricKey, tlv.value);
+                        extraSymmetricKey.clone(), tlv.value);
                 break;
             default:
-                logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);
+                this.logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);
                 break;
             }
         }
+        clear(extraSymmetricKey);
         return content.message.length() > 0 ? content.message : null;
     }
 
@@ -320,7 +353,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Override
     public void end(final Context context) throws OtrException {
         // Note: although we send a TLV 1 (DISCONNECT) here, we should not reveal remaining MACs.
-        final TLV disconnectTlv = new TLV(DISCONNECTED, new byte[0]);
+        final TLV disconnectTlv = new TLV(DISCONNECTED, TLV.EMPTY_BODY);
         final AbstractEncodedMessage m = transformSending(context, "", singletonList(disconnectTlv), FLAG_IGNORE_UNREADABLE);
         try {
             context.injectMessage(m);
@@ -335,7 +368,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     public void expire(final Context context) throws OtrException {
         final TLV disconnectTlv = new TLV(DISCONNECTED, TLV.EMPTY_BODY);
         final DataMessage4 m = transformSending(context, "", singleton(disconnectTlv), FLAG_IGNORE_UNREADABLE,
-                this.ratchet.collectRemainingMACsToReveal());
+                this.ratchet.collectReveals());
         try {
             context.injectMessage(m);
         } finally {

@@ -110,10 +110,10 @@ final class StateExpect2 implements SMPState {
                 multiplyByBase(r5).add(g2.multiply(r6)).encode());
         final Scalar d5 = r5.subtract(r4.multiply(cp)).mod(q);
         final Scalar d6 = r6.subtract(secretModQ.multiply(cp)).mod(q);
-        final Point ra = requireValidPoint(qa.add(smp2.qb.negate()).multiply(a3));
+        final Point ra = requireValidPoint(qa.add(smp2.qb.negate()).multiply(this.a3));
         final Scalar cr = hashToScalar(SMP_VALUE_0X07, multiplyByBase(r7).encode(),
                 qa.add(smp2.qb.negate()).multiply(r7).encode());
-        final Scalar d7 = r7.subtract(a3.multiply(cr)).mod(q);
+        final Scalar d7 = r7.subtract(this.a3.multiply(cr)).mod(q);
         context.setState(new StateExpect4(this.random, this.a3, smp2.g3b, pa, smp2.pb, qa, smp2.qb));
         return new SMPMessage3(pa, qa, cp, d5, d6, ra, cr, d7);
     }

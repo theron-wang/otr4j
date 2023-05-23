@@ -96,7 +96,7 @@ public final class EncodedMessageParser {
                 final byte[] revealedMacs = message.payload.readData();
                 // We only verify the format of the data message, but do not perform the validation actions yet.
                 // Validation is delayed until a later point as we are missing context information for full validation.
-                return new DataMessage4(message.version, message.senderTag, message.receiverTag, flags, pn, i, j,
+                return new DataMessage4(message.senderTag, message.receiverTag, flags, pn, i, j,
                         ecdhPublicKey, ZERO.equals(dhPublicKey) ? null : dhPublicKey, ciphertext, authenticator,
                         revealedMacs);
             }
@@ -137,8 +137,8 @@ public final class EncodedMessageParser {
             final BigInteger b = message.payload.readBigInt();
             final Point ourFirstECDHPublicKey = message.payload.readPoint();
             final BigInteger ourFirstDHPublicKey = message.payload.readBigInt();
-            return new IdentityMessage(message.version, message.senderTag, message.receiverTag, profile,
-                    y, b, ourFirstECDHPublicKey, ourFirstDHPublicKey);
+            return new IdentityMessage(message.senderTag, message.receiverTag, profile, y, b, ourFirstECDHPublicKey,
+                    ourFirstDHPublicKey);
         }
         case MESSAGE_AUTH_R: {
             requireOTR4(message.version);
@@ -148,13 +148,13 @@ public final class EncodedMessageParser {
             final Sigma sigma = Sigma.readFrom(message.payload);
             final Point ourFirstECDHPublicKey = message.payload.readPoint();
             final BigInteger ourFirstDHPublicKey = message.payload.readBigInt();
-            return new AuthRMessage(message.version, message.senderTag, message.receiverTag, profile, x, a, sigma,
-                    ourFirstECDHPublicKey, ourFirstDHPublicKey);
+            return new AuthRMessage(message.senderTag, message.receiverTag, profile, x, a, sigma, ourFirstECDHPublicKey,
+                    ourFirstDHPublicKey);
         }
         case MESSAGE_AUTH_I: {
             requireOTR4(message.version);
             final Sigma sigma = Sigma.readFrom(message.payload);
-            return new AuthIMessage(message.version, message.senderTag, message.receiverTag, sigma);
+            return new AuthIMessage(message.senderTag, message.receiverTag, sigma);
         }
         default:
             throw new ProtocolException("Illegal message type: " + message.type);

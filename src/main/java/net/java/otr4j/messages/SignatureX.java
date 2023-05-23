@@ -61,7 +61,7 @@ public final class SignatureX implements OtrEncodable {
      */
     @Nonnull
     public DSAPublicKey getLongTermPublicKey() {
-        return longTermPublicKey;
+        return this.longTermPublicKey;
     }
 
     /**
@@ -70,16 +70,16 @@ public final class SignatureX implements OtrEncodable {
      * @return Returns the DH key ID.
      */
     public int getDhKeyID() {
-        return dhKeyID;
+        return this.dhKeyID;
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + dhKeyID;
-        result = prime * result + longTermPublicKey.hashCode();
-        result = prime * result + Arrays.hashCode(signature);
+        result = prime * result + this.dhKeyID;
+        result = prime * result + this.longTermPublicKey.hashCode();
+        result = prime * result + Arrays.hashCode(this.signature);
         return result;
     }
 
@@ -89,13 +89,13 @@ public final class SignatureX implements OtrEncodable {
             return false;
         }
         final SignatureX other = (SignatureX) obj;
-        if (dhKeyID != other.dhKeyID) {
+        if (this.dhKeyID != other.dhKeyID) {
             return false;
         }
-        if (!longTermPublicKey.equals(other.longTermPublicKey)) {
+        if (!this.longTermPublicKey.equals(other.longTermPublicKey)) {
             return false;
         }
-        return constantTimeEquals(signature, other.signature);
+        return constantTimeEquals(this.signature, other.signature);
     }
 
     /**

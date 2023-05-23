@@ -56,7 +56,7 @@ public final class DHKeyMessage extends AbstractEncodedMessage {
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result + dhPublicKey.hashCode();
+        result = prime * result + this.dhPublicKey.hashCode();
         return result;
     }
 
@@ -72,7 +72,7 @@ public final class DHKeyMessage extends AbstractEncodedMessage {
             return false;
         }
         final DHKeyMessage other = (DHKeyMessage) obj;
-        return dhPublicKey.getY().compareTo(other.dhPublicKey.getY()) == 0;
+        return this.dhPublicKey.getY().compareTo(other.dhPublicKey.getY()) == 0;
     }
 
     @Override

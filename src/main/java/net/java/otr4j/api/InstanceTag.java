@@ -130,7 +130,7 @@ public final class InstanceTag {
      * @return Returns the tag value.
      */
     public int getValue() {
-        return value;
+        return this.value;
     }
 
     @Override
@@ -147,11 +147,11 @@ public final class InstanceTag {
 
     @Override
     public int hashCode() {
-        return value;
+        return this.value;
     }
 
     @Override
     public String toString() {
-        return "InstanceTag{value=" + value + '}';
+        return "InstanceTag{value=" + this.value + '}';
     }
 }

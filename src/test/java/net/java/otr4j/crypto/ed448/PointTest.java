@@ -133,49 +133,49 @@ public final class PointTest {
     @Test
     public void testClose() {
         final Point p = new Point(BASE_POINT_ENCODED.clone());
-        p.close();
+        Point.clear(p);
         assertTrue(allZeroBytes((byte[]) getInternalState(p, "encoded")));
     }
 
     @Test(expected = IllegalStateException.class)
     public void testEncodeClosedPoint() {
         final Point p = new Point(BASE_POINT_ENCODED.clone());
-        p.close();
+        Point.clear(p);
         p.encode();
     }
 
     @Test(expected = IllegalStateException.class)
     public void testEncodeToClosedPoint() throws IOException {
         final Point p = new Point(BASE_POINT_ENCODED.clone());
-        p.close();
+        Point.clear(p);
         p.encodeTo(System.err);
     }
 
     @Test(expected = IllegalStateException.class)
     public void testNegateClosedPoint() {
         final Point p = new Point(BASE_POINT_ENCODED.clone());
-        p.close();
+        Point.clear(p);
         p.negate();
     }
 
     @Test(expected = IllegalStateException.class)
     public void testClosedAddPoint() {
         final Point p = new Point(BASE_POINT_ENCODED.clone());
-        p.close();
+        Point.clear(p);
         p.add(new Point(BASE_POINT_ENCODED.clone()));
     }
 
     @Test(expected = IllegalStateException.class)
     public void testAddClosedPoint() {
         final Point p = new Point(BASE_POINT_ENCODED.clone());
-        p.close();
+        Point.clear(p);
         new Point(BASE_POINT_ENCODED.clone()).add(p);
     }
 
     @Test(expected = IllegalStateException.class)
     public void testClosedMultiplyPoint() {
         final Point p = new Point(BASE_POINT_ENCODED.clone());
-        p.close();
+        Point.clear(p);
         p.multiply(TWO);
     }
 

@@ -33,8 +33,8 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
   - ✔ EdDSA (the long-term keypair)
   - ❓ ECDH operations
   - ❓ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
-- ⏳ Handle ratchet ID, message ID, next ECDH public key, next DH public key, message-keys provisionally, until message is successfully authenticated (and decrypted).  
-  ⚠️ _OTRv4 requires handling part of an incoming data message before authentication is possible._ ⚠️
+- ✔ Process OTRv4 DataMessage4 provisionally: until message is successfully authenticated (and decrypted) changes cannot leave permanent change.  
+  ⚠️ _OTRv4 requires processing_ ratchet ID, message ID, next ECDH public key, next DH public key _of the data message before authenticity can be established._ ⚠️
 - ⏳ Support for skipped messages and store skipped message keys.
 - ⏳ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer</s>, refreshing client profile)  
     - TODO consider actual requirements: long-running application that needs to refresh as periodic action in its execution seems far-fetched with 2-week valid profiles. 

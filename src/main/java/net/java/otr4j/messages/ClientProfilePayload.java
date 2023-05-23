@@ -21,7 +21,6 @@ import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrInputStream.UnsupportedLengthException;
 import net.java.otr4j.io.OtrOutputStream;
-import net.java.otr4j.io.UnsupportedTypeException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -196,11 +195,7 @@ public final class ClientProfilePayload implements OtrEncodable {
                 fields.add(new TransitionalSignatureField(new DSASignature(r, s)));
                 break;
             case TRANSITIONAL_DSA_PUBLIC_KEY:
-                try {
-                    fields.add(new DSAPublicKeyField(in.readPublicKey()));
-                } catch (final UnsupportedTypeException e) {
-                    throw new ProtocolException("Unsupported type of OTRv3 Public Key encountered.");
-                }
+                fields.add(new DSAPublicKeyField(in.readPublicKey()));
                 break;
             default:
                 throw new ProtocolException("Unknown field type encountered: " + type);
@@ -233,13 +228,13 @@ public final class ClientProfilePayload implements OtrEncodable {
             return false;
         }
         final ClientProfilePayload that = (ClientProfilePayload) o;
-        return Objects.equals(fields, that.fields) && constantTimeEquals(signature, that.signature);
+        return Objects.equals(this.fields, that.fields) && constantTimeEquals(this.signature, that.signature);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(fields);
-        result = 31 * result + Arrays.hashCode(signature);
+        int result = Objects.hash(this.fields);
+        result = 31 * result + Arrays.hashCode(this.signature);
         return result;
     }
 
@@ -249,7 +244,7 @@ public final class ClientProfilePayload implements OtrEncodable {
         for (final Field field : this.fields) {
             out.write(field);
         }
-        out.writeEdDSASignature(signature);
+        out.writeEdDSASignature(this.signature);
     }
 
     /**
@@ -489,12 +484,12 @@ public final class ClientProfilePayload implements OtrEncodable {
                 return false;
             }
             final InstanceTagField that = (InstanceTagField) o;
-            return instanceTag == that.instanceTag;
+            return this.instanceTag == that.instanceTag;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(instanceTag);
+            return Objects.hash(this.instanceTag);
         }
     }
 
@@ -528,12 +523,12 @@ public final class ClientProfilePayload implements OtrEncodable {
                 return false;
             }
             final ED448PublicKeyField that = (ED448PublicKeyField) o;
-            return Objects.equals(publicKey, that.publicKey);
+            return Objects.equals(this.publicKey, that.publicKey);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(publicKey);
+            return Objects.hash(this.publicKey);
         }
     }
 
@@ -567,12 +562,12 @@ public final class ClientProfilePayload implements OtrEncodable {
                 return false;
             }
             final ED448ForgingKeyField that = (ED448ForgingKeyField) o;
-            return Objects.equals(publicKey, that.publicKey);
+            return Objects.equals(this.publicKey, that.publicKey);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(publicKey);
+            return Objects.hash(this.publicKey);
         }
     }
 
@@ -592,7 +587,7 @@ public final class ClientProfilePayload implements OtrEncodable {
         @Override
         public void writeTo(final OtrOutputStream out) {
             out.writeShort(TYPE.type);
-            out.writeData(encodeVersionString(versions).getBytes(US_ASCII));
+            out.writeData(encodeVersionString(this.versions).getBytes(US_ASCII));
         }
 
         @Override
@@ -604,12 +599,12 @@ public final class ClientProfilePayload implements OtrEncodable {
                 return false;
             }
             final VersionsField that = (VersionsField) o;
-            return Objects.equals(versions, that.versions);
+            return Objects.equals(this.versions, that.versions);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(versions);
+            return Objects.hash(this.versions);
         }
     }
 
@@ -646,12 +641,12 @@ public final class ClientProfilePayload implements OtrEncodable {
                 return false;
             }
             final ExpirationDateField that = (ExpirationDateField) o;
-            return timestamp == that.timestamp;
+            return this.timestamp == that.timestamp;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(timestamp);
+            return Objects.hash(this.timestamp);
         }
     }
 
@@ -683,12 +678,12 @@ public final class ClientProfilePayload implements OtrEncodable {
                 return false;
             }
             final DSAPublicKeyField that = (DSAPublicKeyField) o;
-            return Objects.equals(publicKey, that.publicKey);
+            return Objects.equals(this.publicKey, that.publicKey);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(publicKey);
+            return Objects.hash(this.publicKey);
         }
     }
 
@@ -721,12 +716,12 @@ public final class ClientProfilePayload implements OtrEncodable {
                 return false;
             }
             final TransitionalSignatureField that = (TransitionalSignatureField) o;
-            return Objects.equals(signature, that.signature);
+            return Objects.equals(this.signature, that.signature);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(signature);
+            return Objects.hash(this.signature);
         }
     }
 }

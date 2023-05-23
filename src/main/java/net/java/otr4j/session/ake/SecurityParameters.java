@@ -57,7 +57,7 @@ public final class SecurityParameters {
      * @return Returns protocol version.
      */
     public int getVersion() {
-        return version;
+        return this.version;
     }
 
     /**
@@ -67,7 +67,7 @@ public final class SecurityParameters {
      */
     @Nonnull
     public DHKeyPairOTR3 getLocalDHKeyPair() {
-        return localDHKeyPair;
+        return this.localDHKeyPair;
     }
 
     /**
@@ -77,7 +77,7 @@ public final class SecurityParameters {
      */
     @Nonnull
     public DSAPublicKey getRemoteLongTermPublicKey() {
-        return remoteLongTermPublicKey;
+        return this.remoteLongTermPublicKey;
     }
 
     /**
@@ -87,7 +87,7 @@ public final class SecurityParameters {
      */
     @Nonnull
     public DHPublicKey getRemoteDHPublicKey() {
-        return remoteDHPublicKey;
+        return this.remoteDHPublicKey;
     }
 
     /**
@@ -97,6 +97,6 @@ public final class SecurityParameters {
      */
     @Nonnull
     public SharedSecret getS() {
-        return s;
+        return this.s;
     }
 }

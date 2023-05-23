@@ -47,7 +47,7 @@ public final class ScalarsTest {
     public void testZeroImmutableOverInstances() {
         final Scalar zero1 = zero();
         final Scalar zero2 = zero();
-        zero1.close();
+        Scalar.clear(zero1);
         assertEquals(zero(), zero2.add(zero2));
     }
 
@@ -73,7 +73,7 @@ public final class ScalarsTest {
     public void testOneImmutableOverInstances() {
         final Scalar one1 = one();
         final Scalar one2 = one();
-        one1.close();
+        Scalar.clear(one1);
         assertEquals(one(), one2.add(zero()));
     }
 

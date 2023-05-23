@@ -25,7 +25,6 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
  * The OTRv4 data message.
@@ -91,15 +90,14 @@ public final class DataMessage4 extends AbstractEncodedMessage {
      * @param authenticator the substitute authenticator
      */
     public DataMessage4(final DataMessage4 original, final byte[] authenticator) {
-        this(original.protocolVersion, original.senderTag, original.receiverTag, original.flags,
-                original.pn, original.i, original.j, original.ecdhPublicKey, original.dhPublicKey,
-                original.ciphertext, authenticator, original.revealedMacs);
+        this(original.senderTag, original.receiverTag, original.flags, original.pn, original.i, original.j,
+                original.ecdhPublicKey, original.dhPublicKey, original.ciphertext, authenticator,
+                original.revealedMacs);
     }
 
     /**
      * Constructor for the data message.
      *
-     * @param protocolVersion     the protocol version
      * @param senderInstanceTag   the sender instance tag
      * @param receiverInstanceTag the receiver instance tag
      * @param flags               the message flags
@@ -112,11 +110,10 @@ public final class DataMessage4 extends AbstractEncodedMessage {
      * @param authenticator       the authenticator code
      * @param revealedMacs        the revealed MAC keys
      */
-    public DataMessage4(final int protocolVersion, final InstanceTag senderInstanceTag,
-            final InstanceTag receiverInstanceTag, final byte flags, final int pn, final int i, final int j,
-            final Point ecdhPublicKey, @Nullable final BigInteger dhPublicKey, final byte[] ciphertext,
-            final byte[] authenticator, final byte[] revealedMacs) {
-        super(requireInRange(Version.FOUR, Version.FOUR, protocolVersion), senderInstanceTag, receiverInstanceTag);
+    public DataMessage4(final InstanceTag senderInstanceTag, final InstanceTag receiverInstanceTag, final byte flags,
+            final int pn, final int i, final int j, final Point ecdhPublicKey, @Nullable final BigInteger dhPublicKey,
+            final byte[] ciphertext, final byte[] authenticator, final byte[] revealedMacs) {
+        super(Version.FOUR, senderInstanceTag, receiverInstanceTag);
         this.flags = flags;
         this.pn = pn;
         this.i = i;
@@ -146,20 +143,21 @@ public final class DataMessage4 extends AbstractEncodedMessage {
             return false;
         }
         final DataMessage4 that = (DataMessage4) o;
-        return flags == that.flags && pn == that.pn && i == that.i && j == that.j
-                && Objects.equals(ecdhPublicKey, that.ecdhPublicKey) && Objects.equals(dhPublicKey, that.dhPublicKey)
-                && constantTimeEquals(ciphertext, that.ciphertext)
-                && constantTimeEquals(authenticator, that.authenticator)
+        return this.flags == that.flags && this.pn == that.pn && this.i == that.i && this.j == that.j
+                && Objects.equals(this.ecdhPublicKey, that.ecdhPublicKey)
+                && Objects.equals(this.dhPublicKey, that.dhPublicKey)
+                && constantTimeEquals(this.ciphertext, that.ciphertext)
+                && constantTimeEquals(this.authenticator, that.authenticator)
                 // Note: revealed MACs are not sensitive, so there is no sense in comparing constant-time
-                && Arrays.equals(revealedMacs, that.revealedMacs);
+                && Arrays.equals(this.revealedMacs, that.revealedMacs);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(super.hashCode(), flags, pn, i, j, ecdhPublicKey, dhPublicKey);
-        result = 31 * result + Arrays.hashCode(ciphertext);
-        result = 31 * result + Arrays.hashCode(authenticator);
-        result = 31 * result + Arrays.hashCode(revealedMacs);
+        int result = Objects.hash(super.hashCode(), this.flags, this.pn, this.i, this.j, this.ecdhPublicKey, this.dhPublicKey);
+        result = 31 * result + Arrays.hashCode(this.ciphertext);
+        result = 31 * result + Arrays.hashCode(this.authenticator);
+        result = 31 * result + Arrays.hashCode(this.revealedMacs);
         return result;
     }
 

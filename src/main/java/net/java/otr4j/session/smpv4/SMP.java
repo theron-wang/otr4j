@@ -48,8 +48,8 @@ import static net.java.otr4j.session.smpv4.SMPMessage.SMP4;
 import static net.java.otr4j.session.smpv4.SMPMessage.SMP_ABORT;
 import static net.java.otr4j.session.smpv4.SMPMessages.parse;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.toHexString;
-import static org.bouncycastle.util.Arrays.clear;
 
 /**
  * OTRv4 variant of the Socialist Millionaire's Protocol.
@@ -211,7 +211,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
         } catch (final SMPAbortException e) {
             setState(new StateExpect1(this.random, UNDECIDED));
             smpAborted(this.host, this.sessionID);
-            return new TLV(SMP_ABORT, new byte[0]);
+            return new TLV(SMP_ABORT, EMPTY_BODY);
         }
         final byte[] theirFingerprint = fingerprint(this.theirLongTermPublicKey, this.theirForgingKey);
         if (this.state.getStatus() == SUCCEEDED) {

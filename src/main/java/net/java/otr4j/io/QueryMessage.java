@@ -41,7 +41,7 @@ public class QueryMessage implements Message {
      */
     @Nonnull
     public Set<Integer> getVersions() {
-        return versions;
+        return this.versions;
     }
 
     @Override

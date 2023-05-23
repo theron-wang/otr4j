@@ -10,6 +10,7 @@
 package net.java.otr4j.crypto.ed448;
 
 import com.google.errorprone.annotations.CheckReturnValue;
+import net.java.otr4j.util.ByteArrays;
 import net.java.otr4j.util.ConstantTimeEquality;
 
 import javax.annotation.Nonnull;
@@ -19,9 +20,9 @@ import java.math.BigInteger;
 import java.util.Arrays;
 
 import static java.lang.Integer.signum;
+import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static nl.dannyvanheumen.joldilocks.Ed448.primeOrder;
-import static org.bouncycastle.util.Arrays.clear;
 import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
 import static org.bouncycastle.util.Arrays.reverse;
 import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
@@ -34,7 +35,7 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
  * implementation details.
  */
 // TODO implement arithmetic operations that operate directly on byte-arrays. (Needs to be compatible with constant-time selection use in OtrCryptoEngine4#ringSign.) ('toBigInteger' is workaround to make current implementation work.)
-public final class Scalar implements Comparable<Scalar>, AutoCloseable, ConstantTimeEquality<Scalar> {
+public final class Scalar implements Comparable<Scalar>, ConstantTimeEquality<Scalar> {
 
     /**
      * Length of scalar byte-representation in bytes.
@@ -42,8 +43,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
     public static final int SCALAR_LENGTH_BYTES = 57;
 
     private final byte[] encoded;
-
-    private boolean cleared = false;
 
     Scalar(final byte[] encoded) {
         this.encoded = requireLengthExactly(SCALAR_LENGTH_BYTES, encoded);
@@ -73,13 +72,32 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
     }
 
     /**
+     * Clear clears the internal array used in the scalar.
+     *
+     * @param scalar the scalar to be cleared.
+     */
+    public static void clear(final Scalar scalar) {
+        ByteArrays.clear(scalar.encoded);
+    }
+
+    /**
+     * Copy instance of Scalar.
+     *
+     * @return Returns copy of this scalar.
+     */
+    @Nonnull
+    public Scalar copy() {
+        assert !allZeroBytes(this.encoded);
+        return new Scalar(this.encoded.clone());
+    }
+
+    /**
      * Negate scalar value.
      *
      * @return Returns negated scalar value.
      */
     @Nonnull
     public Scalar negate() {
-        requireNotCleared();
         return fromBigInteger(toBigInteger().negate());
     }
 
@@ -91,7 +109,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      */
     @Nonnull
     public Scalar multiply(final long scalar) {
-        requireNotCleared();
         return fromBigInteger(toBigInteger().multiply(BigInteger.valueOf(scalar)));
     }
 
@@ -103,7 +120,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      */
     @Nonnull
     public Scalar multiply(final Scalar scalar) {
-        requireNotCleared();
         return fromBigInteger(toBigInteger().multiply(scalar.toBigInteger()));
     }
 
@@ -115,7 +131,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      */
     @Nonnull
     public Scalar add(final Scalar scalar) {
-        requireNotCleared();
         return fromBigInteger(toBigInteger().add(scalar.toBigInteger()));
     }
 
@@ -127,7 +142,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      */
     @Nonnull
     public Scalar subtract(final Scalar scalar) {
-        requireNotCleared();
         return fromBigInteger(toBigInteger().subtract(scalar.toBigInteger()));
     }
 
@@ -139,7 +153,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      */
     @Nonnull
     public Scalar mod(final Scalar modulus) {
-        requireNotCleared();
         return fromBigInteger(toBigInteger().mod(modulus.toBigInteger()));
     }
 
@@ -150,7 +163,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      */
     @Nonnull
     public byte[] encode() {
-        requireNotCleared();
         return this.encoded.clone();
     }
 
@@ -161,7 +173,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      * @param offset the offset for the starting point to writing the encoded value
      */
     public void encodeTo(final byte[] dst, final int offset) {
-        requireNotCleared();
         System.arraycopy(this.encoded, 0, dst, offset, SCALAR_LENGTH_BYTES);
     }
 
@@ -172,7 +183,6 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
      * @throws IOException In case of failure in OutputStream during writing.
      */
     public void encodeTo(final OutputStream out) throws IOException {
-        requireNotCleared();
         out.write(this.encoded, 0, SCALAR_LENGTH_BYTES);
     }
 
@@ -185,7 +195,7 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
             return false;
         }
         final Scalar scalar = (Scalar) o;
-        return Arrays.equals(encoded, scalar.encoded);
+        return Arrays.equals(this.encoded, scalar.encoded);
     }
 
     @Override
@@ -214,24 +224,11 @@ public final class Scalar implements Comparable<Scalar>, AutoCloseable, Constant
 
     @Nonnull
     BigInteger toBigInteger() {
-        requireNotCleared();
         return new BigInteger(1, reverse(this.encoded));
     }
 
     @Override
-    public void close() {
-        clear(this.encoded);
-        this.cleared = true;
-    }
-
-    private void requireNotCleared() {
-        if (this.cleared) {
-            throw new IllegalStateException("Scalar is already cleared.");
-        }
-    }
-
-    @Override
     public String toString() {
-        return "Scalar{encoded=" + Arrays.toString(encoded) + '}';
+        return "Scalar{encoded=" + Arrays.toString(this.encoded) + '}';
     }
 }

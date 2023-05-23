@@ -153,26 +153,26 @@ final class StateExpect1 extends AbstractSMPState {
         final BigInteger secret = new BigInteger(1, secretBytes);
 
         final BigInteger[] msg2 = new BigInteger[11];
-        msg2[0] = G1.modPow(x2, DHKeyPairOTR3.MODULUS);
-        BigInteger[] res = proofKnowLog(x2, 3);
+        msg2[0] = G1.modPow(this.x2, DHKeyPairOTR3.MODULUS);
+        BigInteger[] res = proofKnowLog(this.x2, 3);
         msg2[1] = res[0];
         msg2[2] = res[1];
 
-        msg2[3] = G1.modPow(x3, DHKeyPairOTR3.MODULUS);
-        res = proofKnowLog(x3, 4);
+        msg2[3] = G1.modPow(this.x3, DHKeyPairOTR3.MODULUS);
+        res = proofKnowLog(this.x3, 4);
         msg2[4] = res[0];
         msg2[5] = res[1];
 
         /* Calculate P and Q values for Bob */
         final BigInteger r = randomExponent();
-        final BigInteger p = g3.modPow(r, DHKeyPairOTR3.MODULUS);
+        final BigInteger p = this.g3.modPow(r, DHKeyPairOTR3.MODULUS);
         msg2[6] = p;
         final BigInteger qb1 = G1.modPow(r, DHKeyPairOTR3.MODULUS);
-        final BigInteger qb2 = g2.modPow(secret, DHKeyPairOTR3.MODULUS);
+        final BigInteger qb2 = this.g2.modPow(secret, DHKeyPairOTR3.MODULUS);
         final BigInteger q = qb1.multiply(qb2).mod(DHKeyPairOTR3.MODULUS);
         msg2[7] = q;
 
-        res = proofEqualCoords(g2, g3, secret, r, 5);
+        res = proofEqualCoords(this.g2, this.g3, secret, r, 5);
         msg2[8] = res[0];
         msg2[9] = res[1];
         msg2[10] = res[2];

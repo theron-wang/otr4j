@@ -17,7 +17,6 @@ import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
-import net.java.otr4j.io.UnsupportedTypeException;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.DHCommitMessage;
 import net.java.otr4j.messages.DHKeyMessage;
@@ -90,11 +89,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
             return new Result();
         }
         if (message instanceof RevealSignatureMessage) {
-            try {
-                return handleRevealSignatureMessage(context, (RevealSignatureMessage) message);
-            } catch (final UnsupportedTypeException e) {
-                throw new OtrException("Unsupported type of signature encountered.", e);
-            }
+            return handleRevealSignatureMessage(context, (RevealSignatureMessage) message);
         }
         LOGGER.log(Level.FINEST, "Only expected message types are DHKeyMessage and RevealSignatureMessage. Ignoring message with type: {0}", message.getType());
         return new Result();
@@ -128,7 +123,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
      */
     @Nonnull
     private Result handleRevealSignatureMessage(final AuthContext context, final RevealSignatureMessage message)
-            throws OtrCryptoException, ProtocolException, UnsupportedTypeException {
+            throws OtrCryptoException, ProtocolException {
         // OTR: "Use the received value of r to decrypt the value of gx received in the D-H Commit Message, and verify
         // the hash therein. Decrypt the encrypted signature, and verify the signature and the MACs."
         final DHPublicKey remoteDHPublicKey;

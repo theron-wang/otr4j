@@ -43,6 +43,7 @@ import static net.java.otr4j.messages.EncodedMessageParser.parseEncodedMessage;
 import static net.java.otr4j.messages.IdentityMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
 import static net.java.otr4j.messages.MysteriousT4.encode;
+import static net.java.otr4j.util.Integers.requireEquals;
 
 abstract class AbstractOTR4State extends AbstractOTR3State {
 
@@ -53,13 +54,8 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
     }
 
     @Nullable
-    @Override
-    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
-        if (message.version != FOUR) {
-            // TODO is it going to be an issue if we always delegate on message != OTRv4, even if (*OTRv4*) DAKE in progress/finished?
-            // FIXME this also allows DataMessages for OTRv3 to be processed? (Need to be careful in allowing any of this to happen.)
-            return super.handleEncodedMessage(context, message);
-        }
+    String handleEncodedMessage4(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+        requireEquals(FOUR, message.version, "Encoded message must be part of protocol 4.");
         final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
         assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof IdentityMessage
                 : "BUG: receiver instance should be set for anything other than the first AKE message.";
@@ -102,7 +98,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         final DHKeyPair ourFirstDHKeyPair = DHKeyPair.generate(secureRandom);
         final byte[] k;
         final byte[] ssid;
-        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, a, x, message.b, message.y)) {
+        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, x, a, message.y, message.b)) {
             k = sharedSecret.getK();
             ssid = sharedSecret.generateSSID();
         }
@@ -119,8 +115,8 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         final Sigma sigma = ringSign(secureRandom, longTermKeyPair, theirClientProfile.getForgingKey(),
                 longTermKeyPair.getPublicKey(), message.y, t);
         // Generate response message and transition into next state.
-        context.injectMessage(new AuthRMessage(FOUR, context.getSenderInstanceTag(),
-                context.getReceiverInstanceTag(), profile, x.publicKey(), a.publicKey(), sigma,
+        context.injectMessage(new AuthRMessage(context.getSenderInstanceTag(), context.getReceiverInstanceTag(),
+                profile, x.publicKey(), a.publicKey(), sigma,
                 ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), k, ssid, x, a, ourFirstECDHKeyPair,
                 ourFirstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey, message.y, message.b,
@@ -141,8 +137,8 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         final ClientProfilePayload profilePayload = context.getClientProfilePayload();
         final ECDHKeyPair ourFirstECDHKeyPair = ECDHKeyPair.generate(secureRandom);
         final DHKeyPair ourFirstDHKeyPair = DHKeyPair.generate(secureRandom);
-        final IdentityMessage message = new IdentityMessage(FOUR, context.getSenderInstanceTag(),
-                receiverInstanceTag, profilePayload, y.publicKey(), b.publicKey(),
+        final IdentityMessage message = new IdentityMessage(context.getSenderInstanceTag(), receiverInstanceTag,
+                profilePayload, y.publicKey(), b.publicKey(),
                 ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey());
         context.injectMessage(message);
         context.transition(this, new StateAwaitingAuthR(getAuthState(), y, b, ourFirstECDHKeyPair, ourFirstDHKeyPair,

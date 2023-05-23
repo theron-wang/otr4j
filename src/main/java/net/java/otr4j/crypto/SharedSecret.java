@@ -18,12 +18,12 @@ import java.util.Arrays;
 
 import static net.java.otr4j.crypto.OtrCryptoEngine.sha256Hash;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.ByteArrays.clear;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
-import static org.bouncycastle.util.Arrays.clear;
 
 /**
  * Container for the shared secret as defined by otr.
- *
+ * <p>
  * The container offers access to all the values used by the otr protocol that
  * are derived from the shared secret 's'.
  *

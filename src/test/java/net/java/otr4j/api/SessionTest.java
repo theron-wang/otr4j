@@ -12,11 +12,15 @@ package net.java.otr4j.api;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DSAKeyPair;
+import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
+import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.MessageProcessor;
 import net.java.otr4j.messages.ClientProfilePayload;
+import net.java.otr4j.messages.DataMessage4;
+import net.java.otr4j.messages.EncodedMessageParser;
 import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.util.BlockingSubmitter;
 import net.java.otr4j.util.ConditionalBlockingQueue;
@@ -41,7 +45,7 @@ import java.util.logging.Logger;
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
-import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.FINEST;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V2;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V3;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V4;
@@ -54,13 +58,16 @@ import static net.java.otr4j.api.SessionStatus.FINISHED;
 import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
 import static net.java.otr4j.crypto.DSAKeyPair.generateDSAKeyPair;
 import static net.java.otr4j.io.MessageProcessor.otrEncoded;
+import static net.java.otr4j.io.MessageProcessor.otrError;
 import static net.java.otr4j.io.MessageProcessor.otrFragmented;
+import static net.java.otr4j.io.MessageProcessor.writeMessage;
 import static net.java.otr4j.session.OtrSessionManager.createSession;
 import static net.java.otr4j.session.smp.DSAPublicKeys.fingerprint;
 import static net.java.otr4j.util.Arrays.contains;
 import static net.java.otr4j.util.BlockingQueuesTestUtils.drop;
 import static net.java.otr4j.util.BlockingQueuesTestUtils.rearrangeFragments;
 import static net.java.otr4j.util.BlockingQueuesTestUtils.shuffle;
+import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.bouncycastle.util.encoders.Base64.toBase64String;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -146,7 +153,7 @@ public class SessionTest {
 
     @Before
     public void setUp() {
-        Logger.getLogger("").setLevel(INFO);
+        Logger.getLogger("").setLevel(FINEST);
     }
 
     @Test
@@ -880,6 +887,7 @@ public class SessionTest {
         assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
         assertTrue(c.clientAlice.receiptChannel.isEmpty());
         assertTrue(c.clientBob.receiptChannel.isEmpty());
+        // Start of confidential conversation.
         c.clientAlice.sendMessage("Hello Bob!");
         assertNotEquals("Hello Bob!", c.clientBob.receiptChannel.peek());
         assertTrue(otrFragmented(c.clientBob.receiptChannel.peek()));
@@ -1334,7 +1342,7 @@ public class SessionTest {
         final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
         final Point firstECDH = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger firstDH = DHKeyPair.generate(RANDOM).publicKey();
-        final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(0xffffffff),
+        final String message = writeMessage(new IdentityMessage(new InstanceTag(0xffffffff),
                 clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
 
         // Using incorrect sender tag.
@@ -1359,7 +1367,7 @@ public class SessionTest {
         final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
         final Point firstECDH = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger firstDH = DHKeyPair.generate(RANDOM).publicKey();
-        final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(256),
+        final String message = writeMessage(new IdentityMessage(new InstanceTag(256),
                 clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
 
         // Using incorrect receiver tag.
@@ -1383,13 +1391,99 @@ public class SessionTest {
         final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
         final Point firstECDH = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger firstDH = DHKeyPair.generate(RANDOM).publicKey();
-        final String message = MessageProcessor.writeMessage(new IdentityMessage(FOUR, new InstanceTag(256),
+        final String message = writeMessage(new IdentityMessage(new InstanceTag(256),
                 clientProfile.getInstanceTag(), clientProfilePayload, y, b, firstECDH, firstDH));
 
         // Using OTRv3 protocol format, hence protocol version mismatches with OTRv4 Identity message.
         final String illegalFragment = "?OTR|00000100|" + Integer.toHexString(clientProfile.getInstanceTag().getValue())
                 + ",1,1," + message + ",";
         assertNull(session.transformReceiving(illegalFragment).content);
+    }
+
+    @Test
+    public void testOTR4SmallConversationWithMaliciousDataMessages() throws OtrException, ProtocolException, InterruptedException {
+        final Conversation c = new Conversation(1);
+        c.clientBob.sendMessage("Hi Alice");
+        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
+        // Initiate OTR by sending query message.
+        c.clientAlice.session.startSession();
+        assertNull(c.clientBob.receiveMessage().content);
+        // Expecting Identity message from Bob.
+        assertNull(c.clientAlice.receiveMessage().content);
+        // Expecting AUTH_R message from Alice.
+        assertNull(c.clientBob.receiveMessage().content);
+        assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
+        // Expecting AUTH_I message from Bob.
+        assertNull(c.clientAlice.receiveMessage().content);
+        assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
+
+        final Random random = createDeterministicRandom(RANDOM.nextLong());
+        final ECDHKeyPair maliciousECDH = ECDHKeyPair.generate(RANDOM);
+        final DHKeyPair maliciousDH = DHKeyPair.generate(RANDOM);
+        for (int i = 0; i < 5; i++) {
+            System.err.println("Test loop iteration: " + i);
+            // Bob sending a message
+            final String messageBob = randomMessage(random, 50000);
+            c.clientBob.sendMessage(messageBob);
+            // Inject malicious messages to throw off the DoubleRatchet procedure.
+            final String raw = c.clientAlice.receiptChannel.take();
+            final DataMessage4 original = (DataMessage4) EncodedMessageParser.parseEncodedMessage(
+                    (EncodedMessage) MessageProcessor.parseMessage(raw));
+            // Craft malicious message with same message ID in same ratchet. (and different public keys)
+            final DataMessage4 malicious = new DataMessage4(original.senderTag, original.receiverTag,
+                    (byte) 0, random.nextInt(15), original.i, original.j, maliciousECDH.publicKey(),
+                    original.i % 3 == 0 ? maliciousDH.publicKey() : null, randomBytes(RANDOM, new byte[250]),
+                    randomBytes(RANDOM, new byte[OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES]), new byte[0]);
+            c.clientAlice.receiptChannel.put(writeMessage(malicious));
+            assertNull(c.clientAlice.receiveMessage().content);
+            assertTrue(otrError(c.clientBob.receiptChannel.take()));
+            // Craft malicious message with arbitrary future message in same ratchet. (and different public keys)
+            final DataMessage4 malicious2 = new DataMessage4(original.senderTag, original.receiverTag,
+                    (byte) 0, random.nextInt(50), original.i, original.j + random.nextInt(100),
+                    maliciousECDH.publicKey(), original.i % 3 == 0 ? maliciousDH.publicKey() : null,
+                    randomBytes(RANDOM, new byte[250]), randomBytes(RANDOM, new byte[OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES]),
+                    new byte[0]);
+            c.clientAlice.receiptChannel.put(writeMessage(malicious2));
+            assertNull(c.clientAlice.receiveMessage().content);
+            assertTrue(otrError(c.clientBob.receiptChannel.take()));
+            // (Re)inject original message.
+            c.clientAlice.receiptChannel.put(raw);
+            assertMessage("Iteration: " + i + ", message Bob.", messageBob, c.clientAlice.receiveMessage().content);
+
+            // Bob sending another message
+            final String messageBob2 = randomMessage(random, 50000);
+            c.clientBob.sendMessage(messageBob2);
+            // Inject malicious messages to throw off the DoubleRatchet procedure.
+            final String raw2 = c.clientAlice.receiptChannel.take();
+            final DataMessage4 original2 = (DataMessage4) EncodedMessageParser.parseEncodedMessage(
+                    (EncodedMessage) MessageProcessor.parseMessage(raw2));
+            // Craft malicious message as first message in next ratchet. (and different public keys)
+            final int nextI = original2.i + 1;
+            final DataMessage4 malicious3 = new DataMessage4(original2.senderTag, original2.receiverTag,
+                    (byte) 0, random.nextInt(10), nextI, 0, maliciousECDH.publicKey(),
+                    nextI % 3 == 0 ? maliciousDH.publicKey() : null, randomBytes(RANDOM, new byte[250]),
+                    randomBytes(RANDOM, new byte[OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES]), new byte[0]);
+            c.clientAlice.receiptChannel.put(writeMessage(malicious3));
+            assertNull(c.clientAlice.receiveMessage().content);
+            // Craft malicious message as first message in (impossible) future ratchet. (and different public keys)
+            final int futureI = original2.i + 2 + random.nextInt(10);
+            final DataMessage4 malicious4 = new DataMessage4(original2.senderTag, original2.receiverTag,
+                    (byte) 0, random.nextInt(10), futureI, 0, maliciousECDH.publicKey(),
+                    futureI % 3 == 0 ? maliciousDH.publicKey() : null, randomBytes(RANDOM, new byte[250]),
+                    randomBytes(RANDOM, new byte[OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES]), new byte[0]);
+            c.clientAlice.receiptChannel.put(writeMessage(malicious4));
+            assertNull(c.clientAlice.receiveMessage().content);
+            // (Re)inject original message.
+            c.clientAlice.receiptChannel.put(raw2);
+            assertMessage("Iteration: " + i + ", message Bob.", messageBob2, c.clientAlice.receiveMessage().content);
+
+            // Alice sending a message (alternating, to enable ratchet)
+            final String messageAlice = randomMessage(random, 1000000);
+            c.clientAlice.sendMessage(messageAlice);
+            assertMessage("Iteration: " + i + ", message Alice.", messageAlice, c.clientBob.receiveMessage().content);
+        }
+        c.clientAlice.session.endSession();
+        c.clientBob.session.endSession();
     }
 
     private static void assertMessage(final String message, final String expected, final String actual) {

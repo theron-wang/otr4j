@@ -10,7 +10,6 @@
 package net.java.otrfuzz;
 
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.io.OtrEncodable;
@@ -28,7 +27,7 @@ public class Main {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     public static void main(final String[] args) throws IOException {
-        final OtrEncodable message = new DataMessage4(Version.FOUR, InstanceTag.random(RANDOM),
+        final OtrEncodable message = new DataMessage4(InstanceTag.random(RANDOM),
                 InstanceTag.random(RANDOM), (byte) 0, 0, 0, 0, ECDHKeyPair.generate(RANDOM).publicKey(),
                 DHKeyPair.generate(RANDOM).publicKey(), randomBytes(RANDOM, new byte[80]),
                 randomBytes(RANDOM, new byte[64]), new byte[0]);

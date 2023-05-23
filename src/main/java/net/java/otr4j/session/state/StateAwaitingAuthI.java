@@ -12,6 +12,7 @@ package net.java.otr4j.session.state;
 import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
+import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.crypto.DHKeyPair;
@@ -20,6 +21,7 @@ import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
+import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.AuthIMessage;
@@ -32,10 +34,12 @@ import net.java.otr4j.messages.IdentityMessages;
 import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.api.SMPHandler;
+import net.java.otr4j.session.state.DoubleRatchet.Purpose;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.math.BigInteger;
+import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.logging.Logger;
 
@@ -43,7 +47,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
-import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.FIRST_ROOT_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
@@ -54,8 +57,7 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 import static net.java.otr4j.messages.AuthIMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
 import static net.java.otr4j.messages.MysteriousT4.encode;
-import static net.java.otr4j.session.state.DoubleRatchet.Role.ALICE;
-import static org.bouncycastle.util.Arrays.clear;
+import static net.java.otr4j.util.ByteArrays.clear;
 
 /**
  * The state AWAITING_AUTH_I.
@@ -120,7 +122,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
 
     @Override
     public int getVersion() {
-        return FOUR;
+        return Session.Version.FOUR;
     }
 
     @Nonnull
@@ -151,6 +153,23 @@ final class StateAwaitingAuthI extends AbstractCommonState {
     @Override
     public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         return message.getCleanText();
+    }
+
+    @Nullable
+    @Override
+    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+        switch (message.version) {
+        case Session.Version.ONE:
+        case Session.Version.TWO:
+        case Session.Version.THREE:
+            LOGGER.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
+                    new Object[]{message.version});
+            return null;
+        case Session.Version.FOUR:
+            return handleEncodedMessage4(context, message);
+        default:
+            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
+        }
     }
 
     @Override
@@ -204,7 +223,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         final DHKeyPair newA = DHKeyPair.generate(secureRandom);
         final ECDHKeyPair newFirstECDHKeyPair = ECDHKeyPair.generate(secureRandom);
         final DHKeyPair newFirstDHKeyPair = DHKeyPair.generate(secureRandom);
-        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, newA, newX, message.b, message.y)) {
+        try (MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, newX, newA, message.y, message.b)) {
             newK = sharedSecret.getK();
             newSSID = sharedSecret.generateSSID();
         }
@@ -220,12 +239,12 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         final OtrCryptoEngine4.Sigma sigma = ringSign(context.secureRandom(), longTermKeyPair,
                 theirNewClientProfile.getForgingKey(), longTermKeyPair.getPublicKey(), message.y, t);
         // Generate response message and transition into next state.
-        context.injectMessage(new AuthRMessage(FOUR, context.getSenderInstanceTag(), context.getReceiverInstanceTag(),
+        context.injectMessage(new AuthRMessage(context.getSenderInstanceTag(), context.getReceiverInstanceTag(),
                 profilePayload, newX.publicKey(), newA.publicKey(), sigma, newFirstECDHKeyPair.publicKey(),
                 newFirstDHKeyPair.publicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), newK, newSSID, newX, newA, newFirstECDHKeyPair,
                 newFirstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey, message.y, message.b,
-                ourProfile, message.clientProfile));
+                this.ourProfile, message.clientProfile));
     }
 
     private void handleAuthIMessage(final Context context, final AuthIMessage message) throws ValidationException {
@@ -238,10 +257,10 @@ final class StateAwaitingAuthI extends AbstractCommonState {
                 context.getSessionID().getUserID(), context.getSessionID().getAccountID());
         final SecureRandom secureRandom = context.secureRandom();
         // Initialize Double Ratchet.
-        final MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.firstDHKeyPair,
-                this.firstECDHKeyPair, this.theirFirstDHPublicKey, this.theirFirstECDHPublicKey);
-        final DoubleRatchet ratchet = new DoubleRatchet(sharedSecret, kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY,
-                this.k), ALICE);
+        final MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.firstECDHKeyPair,
+                this.firstDHKeyPair, this.theirFirstECDHPublicKey, this.theirFirstDHPublicKey);
+        final DoubleRatchet ratchet = DoubleRatchet.initialize(Purpose.SENDING, sharedSecret,
+                kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY, this.k));
         secure(context, this.ssid, ratchet, ourProfileValidated.getLongTermPublicKey(),
                 ourProfileValidated.getForgingKey(), profileBobValidated);
     }

@@ -20,7 +20,6 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
-import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
  * OTRv4 Interactive DAKE Auth R Message.
@@ -71,7 +70,6 @@ public final class AuthRMessage extends AbstractEncodedMessage {
     /**
      * Auth-R Message as used in OTRv4.
      *
-     * @param protocolVersion the protocol version
      * @param senderInstance the sender instance tag
      * @param receiverInstance the receiver instance tag
      * @param clientProfile the client profile (as payload)
@@ -81,10 +79,10 @@ public final class AuthRMessage extends AbstractEncodedMessage {
      * @param firstECDHPublicKey the first ECDH public key to be used once DAKE has completed
      * @param firstDHPublicKey the first DH public key to be used once DAKE has completed
      */
-    public AuthRMessage(final int protocolVersion, final InstanceTag senderInstance, final InstanceTag receiverInstance,
+    public AuthRMessage(final InstanceTag senderInstance, final InstanceTag receiverInstance,
             final ClientProfilePayload clientProfile, final Point x, final BigInteger a, final Sigma sigma,
             final Point firstECDHPublicKey, final BigInteger firstDHPublicKey) {
-        super(requireInRange(Version.FOUR, Version.FOUR, protocolVersion), senderInstance, receiverInstance);
+        super(Version.FOUR, senderInstance, receiverInstance);
         this.clientProfile = requireNonNull(clientProfile);
         this.x = requireNonNull(x);
         this.a = requireNonNull(a);
@@ -121,13 +119,15 @@ public final class AuthRMessage extends AbstractEncodedMessage {
             return false;
         }
         final AuthRMessage that = (AuthRMessage) o;
-        return clientProfile.equals(that.clientProfile) && x.constantTimeEquals(that.x) && a.equals(that.a)
-                && sigma.equals(that.sigma) && firstECDHPublicKey.constantTimeEquals(that.firstECDHPublicKey)
-                && firstDHPublicKey.equals(that.firstDHPublicKey);
+        return this.clientProfile.equals(that.clientProfile) && this.x.constantTimeEquals(that.x)
+                && this.a.equals(that.a) && this.sigma.equals(that.sigma)
+                && this.firstECDHPublicKey.constantTimeEquals(that.firstECDHPublicKey)
+                && this.firstDHPublicKey.equals(that.firstDHPublicKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), clientProfile, x, a, sigma, firstECDHPublicKey, firstDHPublicKey);
+        return Objects.hash(super.hashCode(), this.clientProfile, this.x, this.a, this.sigma, this.firstECDHPublicKey,
+                this.firstDHPublicKey);
     }
 }
