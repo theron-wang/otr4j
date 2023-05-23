@@ -1446,6 +1446,7 @@ public class SessionTest {
             c.clientAlice.receiptChannel.put(writeMessage(malicious2));
             assertNull(c.clientAlice.receiveMessage().content);
             assertTrue(otrError(c.clientBob.receiptChannel.take()));
+            // (Re)inject original message.
             c.clientAlice.receiptChannel.put(raw);
             assertMessage("Iteration: " + i + ", message Bob.", messageBob, c.clientAlice.receiveMessage().content);
 
@@ -1456,14 +1457,23 @@ public class SessionTest {
             final String raw2 = c.clientAlice.receiptChannel.take();
             final DataMessage4 original2 = (DataMessage4) EncodedMessageParser.parseEncodedMessage(
                     (EncodedMessage) MessageProcessor.parseMessage(raw2));
-            final int nextI = original2.i+1;
             // Craft malicious message as first message in next ratchet. (and different public keys)
+            final int nextI = original2.i + 1;
             final DataMessage4 malicious3 = new DataMessage4(original2.senderTag, original2.receiverTag,
                     (byte) 0, random.nextInt(10), nextI, 0, maliciousECDH.publicKey(),
                     nextI % 3 == 0 ? maliciousDH.publicKey() : null, randomBytes(RANDOM, new byte[250]),
                     randomBytes(RANDOM, new byte[OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES]), new byte[0]);
             c.clientAlice.receiptChannel.put(writeMessage(malicious3));
             assertNull(c.clientAlice.receiveMessage().content);
+            // Craft malicious message as first message in (impossible) future ratchet. (and different public keys)
+            final int futureI = original2.i + 2 + random.nextInt(10);
+            final DataMessage4 malicious4 = new DataMessage4(original2.senderTag, original2.receiverTag,
+                    (byte) 0, random.nextInt(10), futureI, 0, maliciousECDH.publicKey(),
+                    futureI % 3 == 0 ? maliciousDH.publicKey() : null, randomBytes(RANDOM, new byte[250]),
+                    randomBytes(RANDOM, new byte[OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES]), new byte[0]);
+            c.clientAlice.receiptChannel.put(writeMessage(malicious4));
+            assertNull(c.clientAlice.receiveMessage().content);
+            // (Re)inject original message.
             c.clientAlice.receiptChannel.put(raw2);
             assertMessage("Iteration: " + i + ", message Bob.", messageBob2, c.clientAlice.receiveMessage().content);
 
