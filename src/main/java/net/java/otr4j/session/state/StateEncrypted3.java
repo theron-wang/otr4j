@@ -12,11 +12,13 @@ package net.java.otr4j.session.state;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.RemoteInfo;
+import net.java.otr4j.api.Session;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.OtrCryptoException;
+import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.EncryptedMessage.Content;
 import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.OtrOutputStream;
@@ -43,6 +45,8 @@ import java.util.logging.Logger;
 
 import static java.util.Collections.singletonList;
 import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.FINEST;
+import static java.util.logging.Level.INFO;
 import static net.java.otr4j.api.OtrEngineHosts.extraSymmetricKeyDiscovered;
 import static net.java.otr4j.api.OtrEngineHosts.showError;
 import static net.java.otr4j.api.OtrEngineHosts.unencryptedMessageReceived;
@@ -163,6 +167,26 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         return this.sessionKeyManager.extraSymmetricKey();
     }
 
+    @Nullable
+    @Override
+    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+        switch (message.version) {
+        case Session.Version.ONE:
+        case Session.Version.TWO:
+            logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
+                    new Object[]{message.version});
+            return null;
+        case Session.Version.THREE:
+            return handleEncodedMessage3(context, message);
+        case Session.Version.FOUR:
+            logger.log(INFO, "Encountered message for protocol version 4. Ignoring because OTRv3 AKE in-progress.",
+                    new Object[]{message.version});
+            return null;
+        default:
+            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
+        }
+    }
+
     @Override
     void handleAKEMessage(final Context context, final AbstractEncodedMessage message) {
         this.logger.log(FINE, "Ignoring OTRv4 DAKE message as we are in OTRv3 encrypted message state.");
@@ -248,7 +272,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
                 extraSymmetricKeyDiscovered(context.getHost(), context.getSessionID(), content.message, key, tlv.value);
                 break;
             default:
-                this.logger.log(Level.INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);
+                this.logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);
                 break;
             }
         }
@@ -280,7 +304,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     public DataMessage transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
             final byte flags) {
         final SessionID sessionID = context.getSessionID();
-        this.logger.log(Level.FINEST, "{0} sends an encrypted message to {1} through {2}.",
+        this.logger.log(FINEST, "{0} sends an encrypted message to {1} through {2}.",
                 new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
 
         final byte[] data = new OtrOutputStream().writeMessage(msgText).writeByte(0).writeTLV(tlvs).toByteArray();
@@ -294,7 +318,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         final byte[] ctr = encryptionKeys.acquireSendingCtr();
 
         // Encrypt message.
-        this.logger.log(Level.FINEST, "Encrypting message with keyids (localKeyID, remoteKeyID) = ({0}, {1})",
+        this.logger.log(FINEST, "Encrypting message with keyids (localKeyID, remoteKeyID) = ({0}, {1})",
                 new Object[]{senderKeyID, recipientKeyID});
         final byte[] encryptedMsg = aesEncrypt(encryptionKeys.sendingAESKey(), ctr, data);
 

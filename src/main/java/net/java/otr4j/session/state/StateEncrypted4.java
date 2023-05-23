@@ -12,11 +12,13 @@ package net.java.otr4j.session.state;
 import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
+import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
+import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.EncryptedMessage.Content;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.PlainTextMessage;
@@ -44,7 +46,6 @@ import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
 import static net.java.otr4j.api.OtrEngineHosts.extraSymmetricKeyDiscovered;
 import static net.java.otr4j.api.OtrEngineHosts.unencryptedMessageReceived;
-import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.TLV.DISCONNECTED;
 import static net.java.otr4j.api.TLV.PADDING;
 import static net.java.otr4j.io.EncryptedMessage.extractContents;
@@ -92,7 +93,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         this.smp = new SMP(context.secureRandom(), context.getHost(), sessionID, ssid, ourLongTermPublicKey,
                 ourForgingKey, theirProfile.getLongTermPublicKey(), theirProfile.getForgingKey(),
                 context.getReceiverInstanceTag());
-        this.remoteinfo = new RemoteInfo(FOUR, theirProfile.getDsaPublicKey(), theirProfile);
+        this.remoteinfo = new RemoteInfo(Session.Version.FOUR, theirProfile.getDsaPublicKey(), theirProfile);
     }
 
     @Nonnull
@@ -105,7 +106,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
 
     @Override
     public int getVersion() {
-        return FOUR;
+        return Session.Version.FOUR;
     }
 
     @Nonnull
@@ -189,6 +190,23 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         final DataMessage4 message = new DataMessage4(unauthenticated, authenticator);
         this.lastMessageSentTimestamp = System.nanoTime();
         return message;
+    }
+
+    @Nullable
+    @Override
+    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+        switch (message.version) {
+        case Session.Version.ONE:
+        case Session.Version.TWO:
+        case Session.Version.THREE:
+            logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
+                    new Object[]{message.version});
+            return null;
+        case Session.Version.FOUR:
+            return handleEncodedMessage4(context, message);
+        default:
+            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
+        }
     }
 
     @Override

@@ -12,6 +12,7 @@ package net.java.otr4j.session.state;
 import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
+import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.crypto.DHKeyPair;
@@ -20,6 +21,7 @@ import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
+import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.AuthIMessage;
@@ -37,6 +39,7 @@ import net.java.otr4j.session.state.DoubleRatchet.Purpose;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.math.BigInteger;
+import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.logging.Logger;
 
@@ -44,7 +47,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
-import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.FIRST_ROOT_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
@@ -120,7 +122,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
 
     @Override
     public int getVersion() {
-        return FOUR;
+        return Session.Version.FOUR;
     }
 
     @Nonnull
@@ -151,6 +153,23 @@ final class StateAwaitingAuthI extends AbstractCommonState {
     @Override
     public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         return message.getCleanText();
+    }
+
+    @Nullable
+    @Override
+    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+        switch (message.version) {
+        case Session.Version.ONE:
+        case Session.Version.TWO:
+        case Session.Version.THREE:
+            LOGGER.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
+                    new Object[]{message.version});
+            return null;
+        case Session.Version.FOUR:
+            return handleEncodedMessage4(context, message);
+        default:
+            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
+        }
     }
 
     @Override

@@ -11,8 +11,10 @@ package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
+import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
+import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
@@ -25,6 +27,7 @@ import net.java.otr4j.session.api.SMPHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.net.ProtocolException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,6 +87,22 @@ final class StateFinished extends AbstractCommonState {
         // Display the message to the user, but warn him that the message was received unencrypted.
         unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
         return message.getCleanText();
+    }
+
+    @Nullable
+    @Override
+    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+        switch (message.version) {
+        case Session.Version.ONE:
+            throw new UnsupportedOperationException("Protocol version 1 is unsupported.");
+        case Session.Version.TWO:
+        case Session.Version.THREE:
+            return handleEncodedMessage3(context, message);
+        case Session.Version.FOUR:
+            return handleEncodedMessage4(context, message);
+        default:
+            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
+        }
     }
 
     @Override
