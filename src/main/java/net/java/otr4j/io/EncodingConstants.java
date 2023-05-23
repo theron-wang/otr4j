@@ -19,11 +19,10 @@ final class EncodingConstants {
     static final char HEAD_ENCODED = ':';
     static final char HEAD_FRAGMENTED_V2 = ',';
     static final char HEAD_FRAGMENTED_V3 = '|';
-    static final char HEAD_ERROR = ' ';
     static final char HEAD_QUERY_Q = '?';
     static final char HEAD_QUERY_V = 'v';
     static final char TAIL_FRAGMENTED = ',';
-    static final String ERROR_PREFIX = "Error:";
+    static final String ERROR_PREFIX = " Error:";
 
     static final int TYPE_LEN_BYTE = 1;
     static final int TYPE_LEN_SHORT = 2;

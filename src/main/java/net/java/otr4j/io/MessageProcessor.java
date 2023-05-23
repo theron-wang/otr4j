@@ -33,7 +33,6 @@ import static net.java.otr4j.api.Session.Version.SUPPORTED;
 import static net.java.otr4j.io.EncodingConstants.ERROR_PREFIX;
 import static net.java.otr4j.io.EncodingConstants.HEAD;
 import static net.java.otr4j.io.EncodingConstants.HEAD_ENCODED;
-import static net.java.otr4j.io.EncodingConstants.HEAD_ERROR;
 import static net.java.otr4j.io.EncodingConstants.HEAD_FRAGMENTED_V2;
 import static net.java.otr4j.io.EncodingConstants.HEAD_FRAGMENTED_V3;
 import static net.java.otr4j.io.EncodingConstants.HEAD_QUERY_Q;
@@ -89,9 +88,9 @@ public final class MessageProcessor {
     @Nonnull
     public static Message parseMessage(final String text) throws ProtocolException {
 
-        if (text.startsWith(HEAD + " " + ERROR_PREFIX)) {
+        if (otrError(text)) {
             // Error tag found.
-            final String message = text.substring(HEAD.length() + 1 + ERROR_PREFIX.length()).trim();
+            final String message = text.substring(HEAD.length() + ERROR_PREFIX.length()).trim();
             final Matcher result = PATTERN_ERROR_FORMAT.matcher(message);
             if (result.matches()) {
                 return new ErrorMessage(result.group(1), result.group(2));
@@ -191,7 +190,6 @@ public final class MessageProcessor {
         final StringWriter writer = new StringWriter();
         if (m instanceof ErrorMessage) {
             writer.write(HEAD);
-            writer.write(HEAD_ERROR);
             writer.write(ERROR_PREFIX);
             final ErrorMessage errorMessage = (ErrorMessage) m;
             if (!errorMessage.identifier.isEmpty()) {
@@ -303,5 +301,16 @@ public final class MessageProcessor {
     public static boolean otrFragmented(final String content) {
         return (content.startsWith(HEAD + HEAD_FRAGMENTED_V2) || content.startsWith(HEAD + HEAD_FRAGMENTED_V3))
             && content.endsWith(String.valueOf(TAIL_FRAGMENTED));
+    }
+
+    /**
+     * Check if the message satisfies the requirements for an OTR Error message.
+     *
+     * @param content the message
+     * @return Returns true iff correctly formatted.
+     */
+    @CheckReturnValue
+    public static boolean otrError(final String content) {
+        return content.startsWith(HEAD + ERROR_PREFIX);
     }
 }

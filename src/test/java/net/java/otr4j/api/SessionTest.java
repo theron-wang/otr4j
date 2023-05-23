@@ -58,6 +58,7 @@ import static net.java.otr4j.api.SessionStatus.FINISHED;
 import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
 import static net.java.otr4j.crypto.DSAKeyPair.generateDSAKeyPair;
 import static net.java.otr4j.io.MessageProcessor.otrEncoded;
+import static net.java.otr4j.io.MessageProcessor.otrError;
 import static net.java.otr4j.io.MessageProcessor.otrFragmented;
 import static net.java.otr4j.io.MessageProcessor.writeMessage;
 import static net.java.otr4j.session.OtrSessionManager.createSession;
@@ -1435,8 +1436,7 @@ public class SessionTest {
                     randomBytes(RANDOM, new byte[OtrCryptoEngine4.AUTHENTICATOR_LENGTH_BYTES]), new byte[0]);
             c.clientAlice.receiptChannel.put(writeMessage(malicious));
             assertNull(c.clientAlice.receiveMessage().content);
-            // FIXME make this an assertion for an error message.
-            System.err.println(c.clientBob.receiptChannel.take());
+            assertTrue(otrError(c.clientBob.receiptChannel.take()));
             // Craft malicious message with arbitrary future message in same ratchet. (and different public keys)
             final DataMessage4 malicious2 = new DataMessage4(original.senderTag, original.receiverTag,
                     (byte) 0, random.nextInt(50), original.i, original.j + random.nextInt(100),
@@ -1445,8 +1445,7 @@ public class SessionTest {
                     new byte[0]);
             c.clientAlice.receiptChannel.put(writeMessage(malicious2));
             assertNull(c.clientAlice.receiveMessage().content);
-            // FIXME make this an assertion for an error message.
-            System.err.println(c.clientBob.receiptChannel.take());
+            assertTrue(otrError(c.clientBob.receiptChannel.take()));
             c.clientAlice.receiptChannel.put(raw);
             assertMessage("Iteration: " + i + ", message Bob.", messageBob, c.clientAlice.receiveMessage().content);
 
