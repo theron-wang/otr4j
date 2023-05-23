@@ -305,8 +305,9 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 if (!content.message.isEmpty()) {
                     this.logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
                 }
-                // FIXME we need to reveal any remaining MK_MACs in the reveals list. (currently not used)
                 final byte[] unused = this.ratchet.collectReveals();
+                // TODO we need to reveal any remaining MK_MACs in the reveals list. (currently not used)
+                clear(unused);
                 context.transition(this, new StateFinished(getAuthState()));
                 break;
             case EXTRA_SYMMETRIC_KEY:
