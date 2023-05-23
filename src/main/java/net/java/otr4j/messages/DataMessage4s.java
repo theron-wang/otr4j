@@ -47,9 +47,8 @@ public final class DataMessage4s {
         }
         if (message.revealedMacs.length % MK_MAC_LENGTH_BYTES != 0) {
             LOGGER.warning("Revealed MAC keys do not have the expected length.");
-            // FIXME should we error out on this? Probably yes, be strict about the protocol so that there is no room to take advantage.
+            throw new ProtocolException("Revealed MACs do not have proper length.");
         }
-        // TODO consider further validation actions for DataMessage4.
     }
 
     /**
