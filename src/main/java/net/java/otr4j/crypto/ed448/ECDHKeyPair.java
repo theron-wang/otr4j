@@ -9,6 +9,8 @@
 
 package net.java.otr4j.crypto.ed448;
 
+import com.google.errorprone.annotations.CheckReturnValue;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.security.SecureRandom;
@@ -123,7 +125,7 @@ public final class ECDHKeyPair implements AutoCloseable {
      * @return Returns the shared secret point.
      * @throws ValidationException In case of illegal ECDH public key.
      */
-    // TODO mark as CleanupObligation, once these annotations are in use
+    @CheckReturnValue
     @Nonnull
     public Point generateSharedSecret(final Point otherPublicKey) throws ValidationException {
         if (this.secretKey == null) {

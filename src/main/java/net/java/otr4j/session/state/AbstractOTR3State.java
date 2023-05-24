@@ -39,6 +39,7 @@ import static net.java.otr4j.api.Session.Version.THREE;
 import static net.java.otr4j.api.Session.Version.TWO;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static net.java.otr4j.messages.EncodedMessageParser.parseEncodedMessage;
+import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
  * Abstract base implementation for session state implementations.
@@ -76,11 +77,10 @@ abstract class AbstractOTR3State implements State {
 
     @Nullable
     String handleEncodedMessage3(final Context context, final EncodedMessage message) throws OtrException, ProtocolException {
-        // FIXME check if message.version == 2 or 3
+        requireInRange(TWO, THREE, message.version);
         final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
         assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof DHCommitMessage
                 : "BUG: receiver instance should be set for anything other than the first AKE message.";
-
         // TODO We've started replicating current authState in *all* cases where a new slave session is created. Is this indeed correct? Probably is, but needs focused verification.
         final SessionID sessionID = context.getSessionID();
         if (encodedM instanceof DataMessage) {

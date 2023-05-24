@@ -45,6 +45,7 @@ import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
 import static net.java.otr4j.messages.MysteriousT4.encode;
 import static net.java.otr4j.util.Integers.requireEquals;
 
+// REMARK probably possible to break hierarchy between `AbstractOTR4State` and `AbstractOTR3State`. Given recent changes to the control-flow, it is likely that these can be separated, as now only the Plaintext and Finish states really have need of both.
 abstract class AbstractOTR4State extends AbstractOTR3State {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractOTR4State.class.getName());

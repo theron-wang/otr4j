@@ -297,7 +297,8 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 try {
                     final TLV response = this.smp.process(tlv);
                     if (response != null) {
-                        context.injectMessage(transformSending(context, "", singletonList(response), FLAG_IGNORE_UNREADABLE));
+                        context.injectMessage(transformSending(context, "", singletonList(response),
+                                FLAG_IGNORE_UNREADABLE));
                     }
                 } catch (final ProtocolException | OtrCryptoException e) {
                     this.logger.log(WARNING, "Illegal, bad or corrupt SMP TLV encountered. Stopped processing. This may indicate a bad implementation of OTR at the other party.", e);
