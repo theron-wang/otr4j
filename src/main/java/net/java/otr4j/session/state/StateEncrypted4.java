@@ -268,14 +268,11 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                     message.authenticator, message.ciphertext);
             extraSymmetricKey = provisional.extraSymmetricKeyReceiver(message.i, message.j);
         } catch (final RotationLimitationException e) {
-            // TODO does RotationLimitationException still have the same meanings as described in log message below?
-            this.logger.log(INFO, "Message received that is part of next ratchet. As we do not have the public keys for that ratchet yet, the message cannot be decrypted. This message is now lost.");
+            this.logger.log(INFO, "Cannot obtain public keys for that ratchet. The message cannot be decrypted.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         } catch (final OtrCryptoException e) {
-            // TODO should we signal unreadable message if malicious? How to distinguish/decide?
             this.logger.log(INFO, "Received message fails verification. Rejecting the message.");
-            handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return null;
         }
         // Now that we successfully passed authentication and decryption, we know that the message was authentic.
@@ -319,7 +316,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                     this.logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
                 }
                 final byte[] unused = this.ratchet.collectReveals();
-                // TODO we need to reveal any remaining MK_MACs in the reveals list. (currently not used)
+                // TODO we need to reveal any remaining MK_MACs in the reveals list. (This use case is not covered in the specification. Basically, the other party reveals in the same message as TLV 1, but the receiving party doesn't. They could do this in a "dummy" data message with IGNORE_UNREADABLE flag set, because revealed MK_MACs are exposed anyways.
                 clear(unused);
                 context.transition(this, new StateFinished(getAuthState()));
                 break;
