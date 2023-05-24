@@ -1,6 +1,6 @@
 **NOTE**: *This version of otr4j is in active development for the adoption of the [OTRv4][OTRv4] specification that is being developed at this moment.*
 
-The repository for otr4j OTRv4 development is [gitlab.com/cobratbq/otr4j](https://gitlab.com/cobratbq/otr4j).
+The repository for otr4j OTRv4 development is [github.com/otr4j/otr4j](https://github.com/otr4j/otr4j).
 
 ## Status
 
@@ -34,7 +34,7 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
   - ❓ ECDH operations
   - ❓ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
 - ✔ Process OTRv4 DataMessage4 provisionally: until message is successfully authenticated (and decrypted) changes cannot leave permanent change.  
-  ⚠️ _OTRv4 requires processing_ ratchet ID, message ID, next ECDH public key, next DH public key _of the data message before authenticity can be established._ ⚠️
+  ⚠️ _OTRv4 requires processing_ ratchet ID, message ID, _next_ ECDH public key, _next_ DH public key _of the data message before authenticity can be established._ ⚠️
 - ⏳ Support for skipped messages and store skipped message keys.
 - ⏳ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer</s>, refreshing client profile)  
     - TODO consider actual requirements: long-running application that needs to refresh as periodic action in its execution seems far-fetched with 2-week valid profiles. 
@@ -93,7 +93,7 @@ __Functionality__
 - Cryptographic primitives:
   - Ed448-Goldilocks elliptic curve
     - ☑ Temporary working solution
-    - ⌛ Migrate to BouncyCastle `>= 1.60`.
+    - ☑ Migrate to BouncyCastle `>= 1.60`.
   - 3072-bit Diffie-Hellman
     - ☑ Temporary working solution
     - ☐ Verify if current solution is acceptable, otherwise migrate to JCA/BC
@@ -106,7 +106,7 @@ __Functionality__
 - Key Management:
   - Double Ratchet:
     - ☑ Generate next message keys (in-order messages)
-    - ☐ Generate future message keys (skip over missing messages)
+    - ☑ Generate future message keys (skip over missing messages)
     - ☑ Implementation of Double Ratchet algorithm redesign.
   - Shared secrets management:
     - ☑ Ephemeral DH with 3072-bit parameters
@@ -120,7 +120,7 @@ __Functionality__
 - Message encryption/decryption:
   - ☑ In-order messages
   - ☑ In-order messages with some messages missing
-  - ☐ Out-of-order messages
+  - ☑ Out-of-order messages
 - Fragmentation and re-assembly:
   - ☑ Fragmentation
   - ☑ Re-assembling fragmented messages
@@ -135,8 +135,8 @@ __Functionality__
   - ☑ OTRv3
   - ☑ OTRv4
 - API support:
-  - ☐ Verify if API still fully suitable for clients to adopt.
-  - ☐ Ability to import/export DSA and EdDSA key pairs, such that `ClientProfile`s can be persisted/restored.
+  - ☑ Verify if API still fully suitable for clients to adopt.
+  - ☑ Ability to import/export DSA and EdDSA key pairs, such that `ClientProfile`s can be persisted/restored.
   - ☐ `OtrKeyManager` was removed. Evaluate whether this is a problem for adopters. (I prefer to leave it out or put it in its own repository.)
 - Interoperability (limited testing):
   - ☑ backwards-compatible with Jitsi's otr4j implementation (for OTR version 3 support)
@@ -208,11 +208,13 @@ __Developmental__
   - ☑ Introduce thread-safety verified by static analysis. ([ErrorProne: @GuardedBy annotation](https://github.com/google/error-prone/blob/master/annotations/src/main/java/com/google/errorprone/annotations/concurrent/GuardedBy.java))
   - ☑ Introduce [NullAway](https://github.com/uber/NullAway) for compile-time nullability checking. Defaults to _non-null_ by default.
   - ☐ Introduce [Animal sniffer](https://www.mojohaus.org/animal-sniffer/) build plug-in to verify that we do not break backwards-compatibility, once released.
-  - ☐ Experiment with features of [Checker Framework](https://checkerframework.org).
+  - ☒ Experiment with features of [Checker Framework](https://checkerframework.org).  
+    _Most important cases are covered._
   - ☒ spotbugs-annotations to support managing clean-up of cryptographic key material  
     _Google Error-Prone annotations prove to be more interesting. Adoption of those annotations has started already._
 - ⌛ Issue: some tests fail on a rare occasion due to the `assert` checks that are embedded in the code. These tests should be updated to assume successful execution if input would trigger the assertion.
-- ⌛ Significant amount of unit tests to accompany the library. (Currently: 1200+)
+- ☑ Significant amount of unit tests to accompany the library. (Currently: 1300+)  
+  _Most prevalent and relevant cases are covered. `SessionTest` contains tests at the API-layer for typical cases and special cases, such as for the injection of malicious messages with similar counters and public keys substituted._
 
 </details>
 
