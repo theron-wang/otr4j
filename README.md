@@ -33,7 +33,7 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
   - ✔ EdDSA (the long-term keypair)
   - ❓ ECDH operations
   - ❓ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
-- ✔ Process OTRv4 DataMessage4 provisionally: until message is successfully authenticated (and decrypted) changes cannot leave permanent change.  
+- ✔ Process OTRv4 data-messages provisionally: until a message is successfully authenticated (and decrypted) changes cannot be permanent.  
   ⚠️ _OTRv4 requires processing_ ratchet ID, message ID, _next_ ECDH public key, _next_ DH public key _of the data message before authenticity can be established._ ⚠️
 - ⏳ Support for skipped messages and store skipped message keys.
 - ⏳ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer</s>, refreshing client profile)  
@@ -190,6 +190,7 @@ __Operational__
 
 __Developmental__
 
+- ☑ Java assertions (`-ea`) provide additional sanity-checks to detect concerning cases such as working with all-zero byte-arrays early.
 - ☐ Support Java 7+ to be compatible with Android.  
   _Reevaluate requirements, given Java 9+ modules, newer Android versions, etc._
 - ☑ Encapsulate cryptographic material such that design facilitates appropriate use and maintenance.
@@ -212,7 +213,6 @@ __Developmental__
     _Most important cases are covered._
   - ☒ spotbugs-annotations to support managing clean-up of cryptographic key material  
     _Google Error-Prone annotations prove to be more interesting. Adoption of those annotations has started already._
-- ⌛ Issue: some tests fail on a rare occasion due to the `assert` checks that are embedded in the code. These tests should be updated to assume successful execution if input would trigger the assertion.
 - ☑ Significant amount of unit tests to accompany the library. (Currently: 1300+)  
   _Most prevalent and relevant cases are covered. `SessionTest` contains tests at the API-layer for typical cases and special cases, such as for the injection of malicious messages with similar counters and public keys substituted._
 
