@@ -234,11 +234,6 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @SuppressWarnings("PMD.CognitiveComplexity")
     String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException, ProtocolException {
         verify(message);
-        if (message.i < this.ratchet.getI() - 1) {
-            // FIXME this can be assumed to work: simply pass through to Double Ratchet, look in stored keys map and return something if available.
-            // Ratchet ID < our current ratchet ID. This is technically impossible, so should not be supported.
-            throw new ProtocolException("The double ratchet does not allow for first messages of previous ratchet ID to arrive at a later time. This is an illegal message.");
-        }
         if (message.i > this.ratchet.getI()) {
             this.logger.log(WARNING, "Received message is for a future ratchet ID: message must be malicious. (Current ratchet: {0}, message ratchet: {1})",
                     new Object[]{this.ratchet.getI(), message.i});
