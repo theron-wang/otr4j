@@ -307,7 +307,7 @@ public class DoubleRatchetTest {
         bobRatchet.confirmReceivingChainKey(0, 0);
     }
 
-    @Test(expected = RotationLimitationException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testDoubleRatchetSkipMessageKeysPastRatchet() throws RotationLimitationException, OtrCryptoException {
         // Prepare ratchets for Alice and Bob
         final byte[] initialRootKey = randomBytes(RANDOM, new byte[64]);

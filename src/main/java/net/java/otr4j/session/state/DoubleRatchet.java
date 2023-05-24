@@ -405,19 +405,21 @@ final class DoubleRatchet implements AutoCloseable {
      * @param ratchetId The ratchet ID as indicated in the Data message.
      * @param messageId The message ID as indicated in the Data message.
      * @return Returns corresponding MessageKeys instance.
-     * @throws RotationLimitationException Indicates that we cross a ratchet boundary and therefore we cannot fast-forward
-     *                               rotations to a point where the right message keys can be generated. This is a
-     *                               limitation of the Double Ratchet. Matching message keys cannot be generated.
+     * @throws RotationLimitationException Indicates that we cross a boundary and therefore we cannot fast-forward
+     * rotations for the right message keys to be generated, or retrieve message keys previously stored. This is a
+     * limitation of the Double Ratchet. (Or due to a malicious message.) Matching message keys cannot be generated.
      */
     @SuppressWarnings("MustBeClosedChecker")
     @MustBeClosed
-    private MessageKeys generateReceivingMessageKeys(final int ratchetId, final int messageId) throws RotationLimitationException {
-        // TODO WARNING: the generated message keys should not modify state in any way. We cannot affect state until the data message is authenticated. (This must be implemented in a fool-proof way.)
+    private MessageKeys generateReceivingMessageKeys(final int ratchetId, final int messageId)
+            throws RotationLimitationException {
+        // NOTE: generateReceivingMessageKeys should not make any (persistent) changes, due to the need to have message
+        // keys used first to confirm that the message upon which current actions are based, is authentic.
         requireNotClosed();
         final int currentRatchet = Math.max(0, this.i - 1);
         if (ratchetId > currentRatchet) {
-            // If all necessary keys are available, we should rotate receiving ratchet receiving (public) keys. 
-            throw new RotationLimitationException("BUG: cannot fast-forward receiving message keys into a new ratchet.");
+            // We should rotate receiving ratchet receiving (public) keys. 
+            throw new IllegalArgumentException("BUG: cannot fast-forward receiving message keys into a new ratchet.");
         }
         if (ratchetId < currentRatchet || messageId < this.receiverRatchet.getMessageID()) {
             // Message keys are in ratchet history, so check the store for possible stored keys.
@@ -454,7 +456,7 @@ final class DoubleRatchet implements AutoCloseable {
     void confirmReceivingChainKey(final int ratchetId, final int messageId) {
         final int currentRatchet = Math.max(0, this.i - 1);
         if (ratchetId > currentRatchet) {
-            throw new IllegalArgumentException("BUG: Ratcheting is necessary.");
+            throw new IllegalArgumentException("BUG: Ratcheting is necessary. This should not happen if message keys were previously generated successfully.");
         }
         if (ratchetId < currentRatchet || messageId < this.receiverRatchet.getMessageID()) {
             // If we previously retrieved the keys from the store, clear the keys from the store.
