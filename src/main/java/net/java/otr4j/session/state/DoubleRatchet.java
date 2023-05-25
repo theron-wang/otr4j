@@ -218,7 +218,6 @@ final class DoubleRatchet implements AutoCloseable {
      *
      * @return Returns true iff sender key rotation is required.
      */
-    // TODO check logic to see if we also need a check for receiver-ratchet rotation. (Seems like we can also have malicious messages that would initiate that logic stream.)
     @CheckReturnValue
     Purpose nextRotation() {
         return this.nextRotation;

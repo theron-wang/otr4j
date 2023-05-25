@@ -50,6 +50,8 @@ public final class AuthRMessages {
             final ClientProfile ourProfile, final ClientProfile theirProfile, final String senderAccountID,
             final String receiverAccountID, final Point y, final BigInteger b, final Point firstECDHPublicKey,
             final BigInteger firstDHPublicKey) throws ValidationException {
+        // TODO compare x to firstECDHPublicKey
+        // TODO compare a to firstDHPublicKey
         try {
             verifyECDHPublicKey(message.x);
             verifyDHPublicKey(message.a);

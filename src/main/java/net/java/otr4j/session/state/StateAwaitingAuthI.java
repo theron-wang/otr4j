@@ -100,12 +100,11 @@ final class StateAwaitingAuthI extends AbstractCommonState {
     private final byte[] k;
 
     StateAwaitingAuthI(final AuthState authState, final byte[] k, final byte[] ssid, final ECDHKeyPair x,
-            final DHKeyPair a, final ECDHKeyPair ourFirstECDHKeyPair, final DHKeyPair ourFirstDHKeyPair,
-            final Point theirFirstECDHPublicKey, final BigInteger theirFirstDHPublicKey, final Point y,
-            final BigInteger b, final ClientProfilePayload ourProfile, final ClientProfilePayload profileBob) {
+            final DHKeyPair a, final ECDHKeyPair ourFirstECDHKeyPair, final DHKeyPair ourFirstDHKeyPair, final Point y,
+            final BigInteger b, final Point theirFirstECDHPublicKey, final BigInteger theirFirstDHPublicKey,
+            final ClientProfilePayload ourProfile, final ClientProfilePayload profileBob) {
         super(authState);
         // TODO add requireNotEquals checks for y, b, ourFirst, etc.
-        // TODO reorder parameters for predictability, easier to distinguish
         this.x = requireNonNull(x);
         this.a = requireNonNull(a);
         this.firstECDHKeyPair = requireNonNull(ourFirstECDHKeyPair);
@@ -245,7 +244,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
                 profilePayload, newX.publicKey(), newA.publicKey(), sigma, newFirstECDHKeyPair.publicKey(),
                 newFirstDHKeyPair.publicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), newK, newSSID, newX, newA, newFirstECDHKeyPair,
-                newFirstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey, message.y, message.b,
+                newFirstDHKeyPair, message.y, message.b, message.firstECDHPublicKey, message.firstDHPublicKey,
                 this.ourProfile, message.clientProfile));
     }
 

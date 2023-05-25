@@ -120,7 +120,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
                 profile, x.publicKey(), a.publicKey(), sigma,
                 ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey()));
         context.transition(this, new StateAwaitingAuthI(getAuthState(), k, ssid, x, a, ourFirstECDHKeyPair,
-                ourFirstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey, message.y, message.b,
+                ourFirstDHKeyPair, message.y, message.b, message.firstECDHPublicKey, message.firstDHPublicKey,
                 profile, message.clientProfile));
     }
 

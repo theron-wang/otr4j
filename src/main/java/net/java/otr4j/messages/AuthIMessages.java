@@ -56,6 +56,10 @@ public final class AuthIMessages {
             final BigInteger aliceFirstDHPublicKey, final String bobAccountID, final String aliceAccountID)
             throws ValidationException {
         validateEquals(message.senderTag, profileBob.getInstanceTag(), "Sender instance tag does not match with owner instance tag in client profile.");
+        // TODO compare y to firstECDHPublicKey
+        // TODO compare b to firstDHPublicKey
+        // TODO compare x to firstECDHPublicKey
+        // TODO compare a to firstDHPublicKey
         // We don't do extra verification of points here, as these have been verified upon receiving the Identity
         // message. This was the previous message that was sent. So we can assume points are trustworthy.
         final byte[] t = encode(AUTH_I, payloadAlice, payloadBob, x, y, a, b,
