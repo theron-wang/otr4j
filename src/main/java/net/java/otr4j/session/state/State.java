@@ -28,7 +28,6 @@ import java.net.ProtocolException;
 /**
  * Interface to the Message state.
  */
-// TODO the whole class-hierarchy of implementation logic is not very easy to reason about. See if we can get rid of it.
 public interface State {
 
     /**
@@ -101,6 +100,7 @@ public interface State {
      * @return Returns the cleaned plaintext message. (The message excluding
      * possible whitespace tags or other OTR artifacts.)
      */
+    // FIXME change return type to Session.Result
     @Nonnull
     String handlePlainTextMessage(Context context, PlainTextMessage plainTextMessage);
 
@@ -113,6 +113,7 @@ public interface State {
      * @throws OtrException In case of failure to process encoded message.
      * @throws ProtocolException In case of bad input data resulting in an unsound message.
      */
+    // FIXME change return type to Session.Result
     @Nullable
     String handleEncodedMessage(Context context, EncodedMessage message) throws ProtocolException, OtrException;
 

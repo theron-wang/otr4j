@@ -160,6 +160,8 @@ final class StateAwaitingAuthI extends AbstractCommonState {
     public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         switch (message.version) {
         case Session.Version.ONE:
+            LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
+            return null;
         case Session.Version.TWO:
         case Session.Version.THREE:
             LOGGER.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
