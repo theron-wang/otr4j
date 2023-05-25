@@ -48,6 +48,8 @@ final class StateFinished extends AbstractCommonState {
 
     private static final Logger LOGGER = Logger.getLogger(StateFinished.class.getName());
 
+    private static final SessionStatus STATUS = SessionStatus.FINISHED;
+
     StateFinished(final AuthState authState) {
         super(authState);
     }
@@ -60,7 +62,7 @@ final class StateFinished extends AbstractCommonState {
     @Override
     @Nonnull
     public SessionStatus getStatus() {
-        return SessionStatus.FINISHED;
+        return STATUS;
     }
 
     @Nonnull
@@ -83,19 +85,19 @@ final class StateFinished extends AbstractCommonState {
 
     @Override
     @Nonnull
-    public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
+    public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
         unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
-        return message.getCleanText();
+        return new Result(STATUS, message.getCleanText());
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+    public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         switch (message.version) {
         case Session.Version.ONE:
             LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
-            return null;
+            return new Result(STATUS, null);
         case Session.Version.TWO:
         case Session.Version.THREE:
             return handleEncodedMessage3(context, message);
@@ -121,19 +123,19 @@ final class StateFinished extends AbstractCommonState {
     }
 
     @Override
-    @Nullable
-    String handleDataMessage(final Context context, final DataMessage message) throws OtrException {
+    @Nonnull
+    Result handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(Level.FINEST, "Received OTRv2/3 data message in FINISHED state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return null;
+        return new Result(STATUS, null);
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
+    Result handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
         LOGGER.log(Level.FINEST, "Received OTRv4 data message in FINISHED state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return null;
+        return new Result(STATUS, null);
     }
 
     @Override

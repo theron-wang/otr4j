@@ -28,7 +28,7 @@ import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.session.ake.AuthState;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.logging.Level;
@@ -54,8 +54,8 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         super(authState);
     }
 
-    @Nullable
-    String handleEncodedMessage4(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+    @Nonnull
+    Result handleEncodedMessage4(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         requireEquals(FOUR, message.version, "Encoded message must be part of protocol 4.");
         final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
         assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof IdentityMessage
@@ -68,7 +68,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         }
         // OTRv4 messages that are not data messages, should therefore be DAKE messages.
         handleAKEMessage(context, encodedM);
-        return null;
+        return new Result(getStatus(), null);
     }
 
     /**
@@ -177,6 +177,6 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
      * @throws OtrException      In case of failures regarding the OTR protocol (implementation).
      */
     @ForOverride
-    @Nullable
-    abstract String handleDataMessage(Context context, DataMessage4 message) throws ProtocolException, OtrException;
+    @Nonnull
+    abstract Result handleDataMessage(Context context, DataMessage4 message) throws ProtocolException, OtrException;
 }

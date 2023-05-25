@@ -75,8 +75,8 @@ abstract class AbstractOTR3State implements State {
         this.authState = requireNonNull(state);
     }
 
-    @Nullable
-    String handleEncodedMessage3(final Context context, final EncodedMessage message) throws OtrException, ProtocolException {
+    @Nonnull
+    Result handleEncodedMessage3(final Context context, final EncodedMessage message) throws OtrException, ProtocolException {
         requireInRange(TWO, THREE, message.version);
         final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
         assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof DHCommitMessage
@@ -93,7 +93,7 @@ abstract class AbstractOTR3State implements State {
         if (reply != null) {
             context.injectMessage(reply);
         }
-        return null;
+        return new Result(getStatus(), null);
     }
 
     @Nullable
@@ -171,6 +171,6 @@ abstract class AbstractOTR3State implements State {
      * @throws OtrException      In case an exception occurs.
      */
     @ForOverride
-    @Nullable
-    abstract String handleDataMessage(Context context, DataMessage message) throws ProtocolException, OtrException;
+    @Nonnull
+    abstract Result handleDataMessage(Context context, DataMessage message) throws ProtocolException, OtrException;
 }

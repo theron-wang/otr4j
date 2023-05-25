@@ -235,16 +235,16 @@ public interface Session {
      */
     final class Result {
         /**
-         * The status of the session under which the output was produced. This status may be different from the current
-         * status of the session, if the message initiated a state change.
-         */
-        @Nonnull
-        public final SessionStatus status;
-        /**
          * The instance tag for the instance that processed the message.
          */
         @Nonnull
         public final InstanceTag tag;
+        /**
+         * The status of the session state under which the output was produced. This status may be different from the
+         * current status of the session, if the message initiated a state transition.
+         */
+        @Nonnull
+        public final SessionStatus status;
         /**
          * The (original/decrypted) message content.
          */
@@ -254,14 +254,14 @@ public interface Session {
         /**
          * Constructor for Result.
          *
-         * @param status the session status of the session that processed the message.
          * @param tag the instance tag of the session that processed the message.
+         * @param status the session status of the session state that processed the message.
          * @param content String content(-body). This is the message, whether the full original content because it was
          * plaintext or the decrypted content.
          */
-        public Result(final SessionStatus status, final InstanceTag tag, @Nullable final String content) {
-            this.status = requireNonNull(status);
+        public Result(final InstanceTag tag, final SessionStatus status, @Nullable final String content) {
             this.tag = requireNonNull(tag);
+            this.status = requireNonNull(status);
             this.content = content;
         }
     }

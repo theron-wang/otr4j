@@ -35,7 +35,6 @@ import net.java.otr4j.session.smp.SmpTlvHandler;
 import net.java.otr4j.session.state.SessionKeyManager.SessionKeyUnavailableException;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.crypto.interfaces.DHPublicKey;
 import java.net.ProtocolException;
 import java.security.interfaces.DSAPublicKey;
@@ -70,6 +69,8 @@ import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
  */
 // TODO write additional unit tests for StateEncrypted3
 final class StateEncrypted3 extends AbstractCommonState implements StateEncrypted {
+
+    private static final SessionStatus STATUS = SessionStatus.ENCRYPTED;
 
     /**
      * TLV 8 notifies the recipient to use the extra symmetric key to set up an
@@ -129,10 +130,11 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
 
     @Nonnull
     @Override
-    public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
+    public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
         unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
-        return message.getCleanText();
+        // TODO what does this mean exactly: we have received a plaintext message under an ENCRYPTED context.
+        return new Result(STATUS, message.getCleanText());
     }
 
     @Override
@@ -143,7 +145,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     @Override
     @Nonnull
     public SessionStatus getStatus() {
-        return SessionStatus.ENCRYPTED;
+        return STATUS;
     }
 
     @Nonnull
@@ -167,20 +169,20 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         return this.sessionKeyManager.extraSymmetricKey();
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+    public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         switch (message.version) {
         case Session.Version.ONE:
             this.logger.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
-            return null;
+            return new Result(STATUS, null);
         case Session.Version.TWO:
         case Session.Version.THREE:
             return handleEncodedMessage3(context, message);
         case Session.Version.FOUR:
             this.logger.log(INFO, "Encountered message for protocol version 4. Ignoring because OTRv3 in-progress.",
                     new Object[]{message.version});
-            return null;
+            return new Result(STATUS, null);
         default:
             throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
         }
@@ -192,9 +194,9 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     }
 
     @Override
-    @Nullable
+    @Nonnull
     @SuppressWarnings("PMD.CognitiveComplexity")
-    String handleDataMessage(final Context context, final DataMessage message) throws OtrException, ProtocolException {
+    Result handleDataMessage(final Context context, final DataMessage message) throws OtrException, ProtocolException {
         this.logger.finest("Message state is ENCRYPTED. Trying to decrypt message.");
         // Find matching session keys.
         final SessionKey matchingKeys;
@@ -203,7 +205,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         } catch (final SessionKeyUnavailableException ex) {
             this.logger.finest("No matching keys found.");
             handleUnreadableMessage(context, message, "", ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
-            return null;
+            return new Result(STATUS, null);
         }
 
         // Verify received MAC with a locally calculated MAC.
@@ -213,7 +215,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         if (!constantTimeEquals(computedMAC, message.mac)) {
             this.logger.finest("MAC verification failed, ignoring message.");
             handleUnreadableMessage(context, message, "", ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
-            return null;
+            return new Result(STATUS, null);
         }
 
         this.logger.finest("Computed HmacSHA1 value matches sent one.");
@@ -228,7 +230,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
             this.logger.log(Level.WARNING, "Receiving ctr value failed validation, ignoring message: {0}", ex.getMessage());
             showError(context.getHost(), context.getSessionID(), "Counter value of received message failed validation.");
             context.injectMessage(new ErrorMessage("", "Message's counter value failed validation."));
-            return null;
+            return new Result(STATUS, null);
         }
 
         // Rotate keys if necessary.
@@ -275,12 +277,12 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
                 break;
             }
         }
-        return content.message.length() > 0 ? content.message : null;
+        return new Result(STATUS, content.message.length() > 0 ? content.message : null);
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    String handleDataMessage(final Context context, final DataMessage4 message) {
+    Result handleDataMessage(final Context context, final DataMessage4 message) {
         throw new IllegalStateException("BUG: OTRv2/OTRv3 encrypted message state does not handle OTRv4 data messages.");
     }
 

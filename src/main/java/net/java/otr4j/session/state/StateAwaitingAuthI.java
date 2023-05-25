@@ -37,7 +37,6 @@ import net.java.otr4j.session.api.SMPHandler;
 import net.java.otr4j.session.state.DoubleRatchet.Purpose;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
@@ -47,7 +46,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
-import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.FIRST_ROOT_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
@@ -68,6 +66,8 @@ import static net.java.otr4j.util.ByteArrays.clear;
 final class StateAwaitingAuthI extends AbstractCommonState {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingAuthI.class.getName());
+
+    private static final SessionStatus STATUS = SessionStatus.PLAINTEXT;
 
     /**
      * Our ECDH key pair. (Its public key is also known as X.)
@@ -128,7 +128,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
     @Nonnull
     @Override
     public SessionStatus getStatus() {
-        return PLAINTEXT;
+        return STATUS;
     }
 
     @Nonnull
@@ -151,22 +151,22 @@ final class StateAwaitingAuthI extends AbstractCommonState {
 
     @Nonnull
     @Override
-    public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
-        return message.getCleanText();
+    public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
+        return new Result(STATUS, message.getCleanText());
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+    public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         switch (message.version) {
         case Session.Version.ONE:
             LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
-            return null;
+            return new Result(STATUS, null);
         case Session.Version.TWO:
         case Session.Version.THREE:
             LOGGER.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
                     new Object[]{message.version});
-            return null;
+            return new Result(STATUS, null);
         case Session.Version.FOUR:
             return handleEncodedMessage4(context, message);
         default:
@@ -267,20 +267,20 @@ final class StateAwaitingAuthI extends AbstractCommonState {
                 ourProfileValidated.getForgingKey(), profileBobValidated);
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    String handleDataMessage(final Context context, final DataMessage message) throws OtrException {
+    Result handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv3 data message in state WAITING_AUTH_I. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return null;
+        return new Result(STATUS, null);
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
+    Result handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv4 data message in state WAITING_AUTH_I. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return null;
+        return new Result(STATUS, null);
     }
 
     @Override

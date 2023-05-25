@@ -25,6 +25,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
 
+import static net.java.otr4j.util.Objects.requireNonNull;
+
 /**
  * Interface to the Message state.
  */
@@ -100,9 +102,8 @@ public interface State {
      * @return Returns the cleaned plaintext message. (The message excluding
      * possible whitespace tags or other OTR artifacts.)
      */
-    // FIXME change return type to Session.Result
     @Nonnull
-    String handlePlainTextMessage(Context context, PlainTextMessage plainTextMessage);
+    Result handlePlainTextMessage(Context context, PlainTextMessage plainTextMessage);
 
     /**
      * Handle the received encoded message.
@@ -113,9 +114,35 @@ public interface State {
      * @throws OtrException In case of failure to process encoded message.
      * @throws ProtocolException In case of bad input data resulting in an unsound message.
      */
-    // FIXME change return type to Session.Result
-    @Nullable
-    String handleEncodedMessage(Context context, EncodedMessage message) throws ProtocolException, OtrException;
+    @Nonnull
+    Result handleEncodedMessage(Context context, EncodedMessage message) throws ProtocolException, OtrException;
+
+    /**
+     * Result contains the multi-field result of message processing in the state instance.
+     */
+    final class Result {
+        /**
+         * Status indicates the status of the state in which processing happened.
+         */
+        @Nonnull
+        public final SessionStatus status;
+        /**
+         * Content is the message content. (Optional)
+         */
+        @Nullable
+        public final String content;
+
+        /**
+         * Constructor for the session result.
+         *
+         * @param status the status of the processing state
+         * @param content the content
+         */
+        Result(final SessionStatus status, @Nullable final String content) {
+            this.status = requireNonNull(status);
+            this.content = content;
+        }
+    }
 
     /**
      * Get current authentication state from the AKE state machine.

@@ -475,13 +475,13 @@ final class SessionImpl implements Session, Context {
             this.logger.log(FINEST, "Entering {0} session.", this.masterSession == this ? "master" : "slave");
 
             if (msgText.length() == 0) {
-                return new Result(PLAINTEXT, ZERO_TAG, msgText);
+                return new Result(ZERO_TAG, PLAINTEXT, msgText);
             }
 
             final OtrPolicy policy = getSessionPolicy();
             if (!policy.viable()) {
                 this.logger.info("Policy does not allow any version of OTR. OTR messages will not be processed at all.");
-                return new Result(PLAINTEXT, ZERO_TAG, msgText);
+                return new Result(ZERO_TAG, PLAINTEXT, msgText);
             }
 
             final Message m;
@@ -507,7 +507,7 @@ final class SessionImpl implements Session, Context {
                 if (ZERO_TAG.equals(fragment.getSenderTag())) {
                     this.logger.log(INFO, "Message fragment contains 0 sender tag. Ignoring message. (Message ID: {0}, index: {1}, total: {2})",
                             new Object[] {fragment.getIdentifier(), fragment.getIndex(), fragment.getTotal()});
-                    return new Result(PLAINTEXT, ZERO_TAG, null);
+                    return new Result(ZERO_TAG, PLAINTEXT, null);
                 }
 
                 if (!ZERO_TAG.equals(fragment.getReceiverTag())
@@ -515,7 +515,7 @@ final class SessionImpl implements Session, Context {
                     // The message is not intended for us. Discarding...
                     this.logger.finest("Received a message fragment with receiver instance tag that is different from ours. Ignore this message.");
                     messageFromAnotherInstanceReceived(this.host, this.sessionID);
-                    return new Result(PLAINTEXT, ZERO_TAG, null);
+                    return new Result(ZERO_TAG, PLAINTEXT, null);
                 }
 
                 if (!this.slaveSessions.containsKey(fragment.getSenderTag())) {
@@ -535,14 +535,14 @@ final class SessionImpl implements Session, Context {
                 if (ZERO_TAG.equals(message.senderTag)) {
                     // An encoded message without a sender instance tag is always bad.
                     this.logger.warning("Encoded message is missing sender instance tag. Ignoring message.");
-                    return new Result(PLAINTEXT, ZERO_TAG, null);
+                    return new Result(ZERO_TAG, PLAINTEXT, null);
                 }
 
                 if (!ZERO_TAG.equals(message.receiverTag) && !message.receiverTag.equals(this.profile.getInstanceTag())) {
                     // The message is not intended for us. Discarding...
                     this.logger.finest("Received an encoded message with receiver instance tag that is different from ours. Ignore this message.");
                     messageFromAnotherInstanceReceived(this.host, this.sessionID);
-                    return new Result(PLAINTEXT, ZERO_TAG, null);
+                    return new Result(ZERO_TAG, PLAINTEXT, null);
                 }
 
                 if (!this.slaveSessions.containsKey(message.senderTag)) {
@@ -567,12 +567,12 @@ final class SessionImpl implements Session, Context {
                 return handleEncodedMessage((EncodedMessage) m);
             } else if (m instanceof ErrorMessage) {
                 handleErrorMessage((ErrorMessage) m);
-                return new Result(PLAINTEXT, ZERO_TAG, null);
+                return new Result(ZERO_TAG, PLAINTEXT, null);
             } else if (m instanceof PlainTextMessage) {
                 return handlePlainTextMessage((PlainTextMessage) m);
             } else if (m instanceof QueryMessage) {
                 handleQueryMessage((QueryMessage) m);
-                return new Result(PLAINTEXT, ZERO_TAG, null);
+                return new Result(ZERO_TAG, PLAINTEXT, null);
             } else {
                 // At this point, the message m has a known type, but support was not implemented at this point in the code.
                 // This should be considered a programming error. We should handle any known message type gracefully.
@@ -599,12 +599,12 @@ final class SessionImpl implements Session, Context {
             reassembledText = this.assembler.accumulate(fragment);
             if (reassembledText == null) {
                 this.logger.log(FINEST, "Fragment received, but message is still incomplete.");
-                return new Result(PLAINTEXT, this.receiverTag, null);
+                return new Result(this.receiverTag, PLAINTEXT, null);
             }
         } catch (final ProtocolException e) {
             this.logger.log(FINE, "Rejected message fragment from sender instance "
                     + fragment.getSenderTag().getValue(), e);
-            return new Result(PLAINTEXT, this.receiverTag, null);
+            return new Result(this.receiverTag, PLAINTEXT, null);
         }
         final EncodedMessage message;
         try {
@@ -612,12 +612,12 @@ final class SessionImpl implements Session, Context {
             if (!(m instanceof EncodedMessage)) {
                 this.logger.fine("Expected fragments to combine into an encoded message, but was something else. "
                         + m.getClass().getName());
-                return new Result(PLAINTEXT, this.receiverTag, null);
+                return new Result(this.receiverTag, PLAINTEXT, null);
             }
             message = (EncodedMessage) m;
         } catch (final ProtocolException e) {
             this.logger.log(WARNING, "Reassembled message violates the OTR protocol for encoded messages.", e);
-            return new Result(PLAINTEXT, this.receiverTag, null);
+            return new Result(this.receiverTag, PLAINTEXT, null);
         }
         // There is no good reason why the reassembled message should have any other protocol version, sender
         // instance tag or receiver instance tag than the fragments themselves. For now, be safe and drop any
@@ -625,7 +625,7 @@ final class SessionImpl implements Session, Context {
         if (message.version != fragment.getVersion() || !message.senderTag.equals(fragment.getSenderTag())
                 || !message.receiverTag.equals(fragment.getReceiverTag())) {
             this.logger.log(INFO, "Inconsistent OTR-encoded message: message contains different protocol version, sender tag or receiver tag than last received fragment. Message is ignored.");
-            return new Result(PLAINTEXT, this.receiverTag, null);
+            return new Result(this.receiverTag, PLAINTEXT, null);
         }
         return handleEncodedMessage(message);
     }
@@ -661,13 +661,11 @@ final class SessionImpl implements Session, Context {
             }
         }
         try {
-            final String content = this.sessionState.handleEncodedMessage(this, message);
-            // TODO is `this.sessionState.getStatus()` accurate, or will it have transitioned away while processing the encoded message?
-            return new Result(this.sessionState.getStatus(), this.receiverTag, content);
+            final State.Result result = this.sessionState.handleEncodedMessage(this, message);
+            return new Result(this.receiverTag, result.status, result.content);
         } catch (final ProtocolException e) {
             this.logger.log(FINE, "An illegal message was received. Processing was aborted.", e);
-            // TODO consider how we should signal unreadable message for illegal data messages and potentially show error to client. (Where we escape handling logic through ProtocolException.)
-            return new Result(this.sessionState.getStatus(), this.receiverTag, null);
+            return new Result(this.receiverTag, this.sessionState.getStatus(), null);
         }
     }
 
@@ -746,14 +744,14 @@ final class SessionImpl implements Session, Context {
         assert this.masterSession == this : "BUG: handlePlainTextMessage should only ever be called from the master session, as no instance tags are known.";
         this.logger.log(FINEST, "{0} received a plaintext message from {1} through {2}.",
                 new Object[] {this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
-        final String messagetext = this.sessionState.handlePlainTextMessage(this, message);
+        final State.Result result = this.sessionState.handlePlainTextMessage(this, message);
         if (message.getVersions().isEmpty()) {
             this.logger.finest("Received plaintext message without the whitespace tag.");
         } else {
             this.logger.finest("Received plaintext message with the whitespace tag.");
             handleWhitespaceTag(message);
         }
-        return new Result(PLAINTEXT, ZERO_TAG, messagetext);
+        return new Result(ZERO_TAG, result.status, result.content);
     }
 
     @GuardedBy("masterSession")

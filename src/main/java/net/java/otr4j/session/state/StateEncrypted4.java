@@ -32,7 +32,6 @@ import net.java.otr4j.session.smpv4.SMP;
 import net.java.otr4j.session.state.DoubleRatchet.RotationLimitationException;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.util.logging.Logger;
@@ -64,6 +63,8 @@ import static net.java.otr4j.util.ByteArrays.concatenate;
 // TODO write additional unit tests for StateEncrypted4
 // TODO decide whether or not we can drop the AuthState instance. Relies on fact that we need to know up to what point we should handle OTRv2/3 AKE messages.
 final class StateEncrypted4 extends AbstractCommonState implements StateEncrypted {
+
+    private static final SessionStatus STATUS = SessionStatus.ENCRYPTED;
 
     /**
      * Note that in OTRv4 the TLV type for the extra symmetric key is 0x7.
@@ -98,10 +99,11 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
 
     @Nonnull
     @Override
-    public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
+    public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
         unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
-        return message.getCleanText();
+        // TODO what does this mean, if we receive a plaintext message under an ENCRYPTED context?
+        return new Result(STATUS, message.getCleanText());
     }
 
     @Override
@@ -112,7 +114,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Nonnull
     @Override
     public SessionStatus getStatus() {
-        return SessionStatus.ENCRYPTED;
+        return STATUS;
     }
 
     @Nonnull
@@ -192,18 +194,18 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         return message;
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+    public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         switch (message.version) {
         case Session.Version.ONE:
             this.logger.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
-            return null;
+            return new Result(STATUS, null);
         case Session.Version.TWO:
         case Session.Version.THREE:
             this.logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
                     new Object[]{message.version});
-            return null;
+            return new Result(STATUS, null);
         case Session.Version.FOUR:
             return handleEncodedMessage4(context, message);
         default:
@@ -225,16 +227,16 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 message.getType());
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    String handleDataMessage(final Context context, final DataMessage message) {
+    Result handleDataMessage(final Context context, final DataMessage message) {
         throw new IllegalStateException("BUG: OTRv4 encrypted message state does not allow OTRv2/OTRv3 data messages.");
     }
 
-    @Nullable
+    @Nonnull
     @Override
     @SuppressWarnings("PMD.CognitiveComplexity")
-    String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException, ProtocolException {
+    Result handleDataMessage(final Context context, final DataMessage4 message) throws OtrException, ProtocolException {
         verify(message);
         if (message.i > this.ratchet.getI()) {
             this.logger.log(WARNING, "Received message is for a future ratchet ID: message must be malicious. (Current ratchet: {0}, message ratchet: {1})",
@@ -272,10 +274,10 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         } catch (final RotationLimitationException e) {
             this.logger.log(INFO, "Cannot obtain public keys for that ratchet. The message cannot be decrypted.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
-            return null;
+            return new Result(STATUS, null);
         } catch (final OtrCryptoException e) {
             this.logger.log(INFO, "Received message fails verification. Rejecting the message.");
-            return null;
+            return new Result(STATUS, null);
         }
         // Now that we successfully passed authentication and decryption, we know that the message was authentic.
         // Therefore, any new key material we might have received is authentic, and the message keys we used were used
@@ -336,7 +338,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             }
         }
         clear(extraSymmetricKey);
-        return content.message.length() > 0 ? content.message : null;
+        return new Result(STATUS, content.message.length() > 0 ? content.message : null);
     }
 
     @Nonnull

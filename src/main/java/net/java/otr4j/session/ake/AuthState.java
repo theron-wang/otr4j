@@ -20,15 +20,13 @@ import java.net.ProtocolException;
 /**
  * Interface for the AKE states.
  * <p>
- * This interface defines the methods that need to be implemented. Implementors
- * are expected to be immutable. That is, they may receive some support data at
- * construction time, but they are not supposed to mutate data inside. Instead,
- * for each receiving message, which should entail a state transition, we should
- * instantiate a new state with the appropriate set of initial data.
+ * This interface defines the methods that need to be implemented. Implementors are expected to be immutable. That is,
+ * they may receive some support data at construction time, but they are not supposed to mutate data inside. Instead,
+ * for each receiving message, which should entail a state transition, we should instantiate a new state with the
+ * appropriate set of initial data.
  *
  * @author Danny van Heumen
  */
-// FIXME check at what times we allow OTRv3 AKE messages to be processed. (Check with spec, probably not clear.) (Note: pretty much always, because there can be simultaneous sessions, as soon as InstanceTag is known.)
 public interface AuthState {
 
     /**
@@ -58,9 +56,8 @@ public interface AuthState {
      *
      * @param context The current AKE context.
      * @param message The message to be handled.
-     * @return Returns message to be injected into the transport stream to
-     * continue the AKE process. In case of 'null' no message needs to be
-     * injected after handling this message.
+     * @return Returns message to be injected into the transport stream to continue the AKE process. In case of 'null'
+     * no message needs to be injected after handling this message.
      * @throws ProtocolException Throws exception in case of bad message content. (Note that an AbstractEncodedMessage
      * instance is provided, so failures should only occur based on bad message content.)
      * @throws OtrException Throws OtrException in case of unexpected situations during message processing, such as
@@ -99,12 +96,10 @@ public interface AuthState {
     /**
      * Get active protocol version in AKE negotiation.
      * <p>
-     * Returns a version &gt; 0 in case of an active AKE negotiation in which a
-     * protocol version is already negotiated. Returns 0 in case no negotiation
-     * is in progress.
+     * Returns a version &gt; 0 in case of an active AKE negotiation in which a protocol version is already negotiated.
+     * Returns 0 in case no negotiation is in progress.
      *
-     * @return Returns active protocol version in AKE negotiation. (Or 0 if not
-     * in progress.)
+     * @return Returns active protocol version in AKE negotiation. (Or 0 if not in progress.)
      */
     int getVersion();
 }

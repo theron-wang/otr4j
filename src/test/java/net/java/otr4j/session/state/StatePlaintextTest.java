@@ -230,7 +230,7 @@ public class StatePlaintextTest {
         final StatePlaintext state = new StatePlaintext(StateInitial.instance());
         final DataMessage message = new DataMessage(THREE, (byte) 0, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
-        assertNull(state.handleDataMessage(context, message));
+        assertNull(state.handleDataMessage(context, message).content);
         verify(host).unreadableMessageReceived(eq(sessionID));
         verify(context).injectMessage(isA(ErrorMessage.class));
     }
@@ -248,7 +248,7 @@ public class StatePlaintextTest {
         final StatePlaintext state = new StatePlaintext(StateInitial.instance());
         final DataMessage message = new DataMessage(THREE, FLAG_IGNORE_UNREADABLE, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
-        assertNull(state.handleDataMessage(context, message));
+        assertNull(state.handleDataMessage(context, message).content);
         verify(host, never()).unreadableMessageReceived(eq(sessionID));
         verify(context, never()).injectMessage(isA(ErrorMessage.class));
     }
@@ -294,7 +294,7 @@ public class StatePlaintextTest {
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
                 ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
-        assertNull(state.handleDataMessage(context, message));
+        assertNull(state.handleDataMessage(context, message).content);
         verify(host).unreadableMessageReceived(eq(sessionID));
         verify(context).injectMessage(isA(ErrorMessage.class));
     }
@@ -314,7 +314,7 @@ public class StatePlaintextTest {
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, FLAG_IGNORE_UNREADABLE, 0, 0, 0,
                 ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
-        assertNull(state.handleDataMessage(context, message));
+        assertNull(state.handleDataMessage(context, message).content);
         verify(host, never()).unreadableMessageReceived(eq(sessionID));
         verify(context, never()).injectMessage(isA(ErrorMessage.class));
     }

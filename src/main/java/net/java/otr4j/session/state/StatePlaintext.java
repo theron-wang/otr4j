@@ -12,8 +12,8 @@ package net.java.otr4j.session.state;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.RemoteInfo;
-import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.Session;
+import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.Message;
@@ -39,7 +39,6 @@ import static java.util.logging.Level.INFO;
 import static net.java.otr4j.api.OfferStatus.REJECTED;
 import static net.java.otr4j.api.OtrEngineHosts.requireEncryptedMessage;
 import static net.java.otr4j.api.OtrPolicys.allowedVersions;
-import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
 import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 
@@ -52,6 +51,8 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 public final class StatePlaintext extends AbstractCommonState {
 
     private static final Logger LOGGER = Logger.getLogger(StatePlaintext.class.getName());
+
+    private static final SessionStatus STATUS = SessionStatus.PLAINTEXT;
 
     /**
      * Constructor for the Plaintext message state.
@@ -70,7 +71,7 @@ public final class StatePlaintext extends AbstractCommonState {
     @Override
     @Nonnull
     public SessionStatus getStatus() {
-        return PLAINTEXT;
+        return STATUS;
     }
 
     @Nonnull
@@ -93,18 +94,18 @@ public final class StatePlaintext extends AbstractCommonState {
 
     @Override
     @Nonnull
-    public String handlePlainTextMessage(final Context context, final PlainTextMessage message) {
-        return message.getCleanText();
+    public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
+        return new Result(STATUS, message.getCleanText());
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    public String handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
+    public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         // TODO check all `handleEncodedMessage` implementations, check whether `return null` (ignore) or `ProtocolException` is better suitable.
         switch (message.version) {
         case Session.Version.ONE:
             LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
-            return null;
+            return new Result(STATUS, null);
         case Session.Version.TWO:
         case Session.Version.THREE:
             return handleEncodedMessage3(context, message);
@@ -133,19 +134,19 @@ public final class StatePlaintext extends AbstractCommonState {
     }
 
     @Override
-    @Nullable
-    String handleDataMessage(final Context context, final DataMessage message) throws OtrException {
+    @Nonnull
+    Result handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv3 data message in PLAINTEXT state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return null;
+        return new Result(STATUS, null);
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    String handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
+    Result handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv4 data message in PLAINTEXT state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return null;
+        return new Result(STATUS, null);
     }
 
     @Override
