@@ -32,6 +32,7 @@
         <exclude name="ShortMethodName"/>
         <exclude name="AtLeastOneConstructor"/>
         <exclude name="UseUnderscoresInNumericLiterals"/>
+        <exclude name="UnnecessaryFullyQualifiedName"/>
         <!-- TODO cannot ignore clarifying parentheses because property is not being recognized. Excluding rule completely for now. -->
         <exclude name="UselessParentheses"/>
     </rule>

@@ -256,8 +256,6 @@ final class SessionImpl implements Session, Context {
     @GuardedBy("masterSession")
     private final OtrEngineListener slaveSessionsListener = new OtrEngineListener() {
 
-        // TODO temporarily suppress PMD warning due to false-positive in use of existing static import. (https://github.com/pmd/pmd/issues/1316)
-        @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
         @GuardedBy("SessionImpl.this.masterSession")
         @Override
         public void sessionStatusChanged(final SessionID sessionID, final InstanceTag receiver) {
