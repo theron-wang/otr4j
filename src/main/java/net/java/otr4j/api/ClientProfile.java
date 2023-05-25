@@ -25,6 +25,7 @@ import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.Collections.requireAbsent;
 import static net.java.otr4j.util.Collections.requireElements;
 import static net.java.otr4j.util.Collections.requireMinElements;
+import static net.java.otr4j.util.Objects.requireNotEquals;
 
 /**
  * The validated representation of the ClientProfile.
@@ -81,7 +82,7 @@ public final class ClientProfile {
      */
     public ClientProfile(final InstanceTag instanceTag, final Point longTermPublicKey, final Point forgingKey,
             final List<Integer> versions, @Nullable final DSAPublicKey dsaPublicKey) {
-        // TODO should check for `> 0` instance tag?
+        requireNotEquals(0, instanceTag.getValue(), "Zero-value instance tag is not allowed in OTRv4.");
         this.instanceTag = requireNonNull(instanceTag);
         this.longTermPublicKey = requireNonNull(longTermPublicKey);
         this.forgingKey = requireNonNull(forgingKey);

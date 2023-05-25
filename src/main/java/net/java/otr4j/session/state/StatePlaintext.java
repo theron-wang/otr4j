@@ -101,7 +101,6 @@ public final class StatePlaintext extends AbstractCommonState {
     @Nonnull
     @Override
     public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
-        // TODO check all `handleEncodedMessage` implementations, check whether `return null` (ignore) or `ProtocolException` is better suitable.
         switch (message.version) {
         case Session.Version.ONE:
             LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");

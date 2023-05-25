@@ -114,6 +114,7 @@ final class DoubleRatchet implements AutoCloseable {
     private final Purpose nextRotation;
 
     // TODO need to eventually perform clean up of `storedKeys` (inject MK_MACs into `macsToReveal`, see spec) to avoid growing indefinitely, even if only a problem for long run-times.
+    // TODO spec dictates to store message keys under composite key (`ECDH public key`, `messageId`) which is not what we currently do. (Do we care if we already authenticate the message before committing changes.)
     private final HashMap<Long, MessageKeys> storedKeys;
 
     /**

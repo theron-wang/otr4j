@@ -59,7 +59,6 @@ public final class Objects {
      * @param <T> parametric type to preserve type of instance
      * @return returns the instance if indeed non-null
      */
-    // TODO is this function weird? We annotate with @Nonnull, but at the same time, the annotations help to spot the error earlier than java.util.Objects#requireNonNull().
     @Nonnull
     public static <T> T requireNonNull(@Nonnull final T obj) {
         return java.util.Objects.requireNonNull(obj);

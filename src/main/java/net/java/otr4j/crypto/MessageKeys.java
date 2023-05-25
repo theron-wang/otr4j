@@ -33,17 +33,18 @@ import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
  * <p>
  * NOTE: Please ensure that message keys are appropriately cleared by calling {@link #close()} after use.
  */
-// TODO make immutable, closed == allZeroBytes(this.encrypt)?
 public final class MessageKeys implements AutoCloseable {
 
     /**
      * Encryption/Decryption key. (MUST be cleared after use.)
      */
+    @Nonnull
     private final byte[] encrypt;
 
     /**
      * Extra Symmetric Key. (MUST be cleared after use.)
      */
+    @Nonnull
     private final byte[] extraSymmetricKey;
 
     /**
@@ -151,10 +152,12 @@ public final class MessageKeys implements AutoCloseable {
         /**
          * The authenticator digest value.
          */
+        @Nonnull
         public final byte[] authenticator;
         /**
          * The MK_MAC key.
          */
+        @Nonnull
         public final byte[] mkMAC;
 
         private Result(final byte[] authenticator, final byte[] mkMAC) {

@@ -34,7 +34,6 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
  * arithmetic operations, but it does have the benefit that the current bad implementation is isolated to the innermost
  * implementation details.
  */
-// TODO implement arithmetic operations that operate directly on byte-arrays. (Needs to be compatible with constant-time selection use in OtrCryptoEngine4#ringSign.) ('toBigInteger' is workaround to make current implementation work.)
 public final class Scalar implements Comparable<Scalar>, ConstantTimeEquality<Scalar> {
 
     /**

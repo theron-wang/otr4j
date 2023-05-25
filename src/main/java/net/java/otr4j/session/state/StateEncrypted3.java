@@ -277,7 +277,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
                 break;
             }
         }
-        return new Result(STATUS, content.message.length() > 0 ? content.message : null);
+        return new Result(STATUS, content.message.isEmpty() ? null : content.message);
     }
 
     @Nonnull
