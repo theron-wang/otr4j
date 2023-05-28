@@ -114,7 +114,7 @@ public final class MixedSharedSecret implements AutoCloseable {
         this.random = requireNonNull(random);
         this.ecdhKeyPair = requireNonNull(ecdhKeyPair);
         this.dhKeyPair = requireNonNull(dhKeyPair);
-        if (!containsPoint(theirNextECDH) || this.ecdhKeyPair.publicKey().constantTimeEquals(theirNextECDH)) {
+        if (!containsPoint(theirNextECDH) || Point.constantTimeEquals(this.ecdhKeyPair.publicKey(), theirNextECDH)) {
             throw new IllegalArgumentException("A new, different ECDH public key is expected for initializing the new ratchet.");
         }
         this.theirECDHPublicKey = requireNonNull(theirNextECDH);
@@ -252,7 +252,7 @@ public final class MixedSharedSecret implements AutoCloseable {
         if (dhratchet == (theirNextDH == null)) {
             throw new IllegalArgumentException("Their next DH public key is unexpected.");
         }
-        if (!containsPoint(theirNextECDH) || this.theirECDHPublicKey.constantTimeEquals(theirNextECDH)
+        if (!containsPoint(theirNextECDH) || Point.constantTimeEquals(this.theirECDHPublicKey, theirNextECDH)
                 || this.ecdhKeyPair.publicKey().equals(theirNextECDH)) {
             throw new OtrCryptoException("ECDH public key failed verification.");
         }

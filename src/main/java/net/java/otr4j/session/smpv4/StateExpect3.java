@@ -93,17 +93,17 @@ final class StateExpect3 implements SMPState {
         if (!containsPoint(smp3.pa) || !containsPoint(smp3.qa) || !containsPoint(smp3.ra)) {
             throw new SMPAbortException("Message failed verification.");
         }
-        if (!smp3.cp.constantTimeEquals(hashToScalar(SMP_VALUE_0X06, this.g3.multiply(smp3.d5).add(smp3.pa.multiply(smp3.cp)).encode(),
+        if (!Scalar.constantTimeEquals(smp3.cp, hashToScalar(SMP_VALUE_0X06, this.g3.multiply(smp3.d5).add(smp3.pa.multiply(smp3.cp)).encode(),
                 multiplyByBase(smp3.d5).add(this.g2.multiply(smp3.d6)).add(smp3.qa.multiply(smp3.cp)).encode()))) {
             throw new SMPAbortException("Message failed verification.");
         }
-        if (!smp3.cr.constantTimeEquals(hashToScalar(SMP_VALUE_0X07, multiplyByBase(smp3.d7).add(this.g3a.multiply(smp3.cr)).encode(),
+        if (!Scalar.constantTimeEquals(smp3.cr, hashToScalar(SMP_VALUE_0X07, multiplyByBase(smp3.d7).add(this.g3a.multiply(smp3.cr)).encode(),
                 smp3.qa.add(this.qb.negate()).multiply(smp3.d7).add(smp3.ra.multiply(smp3.cr)).encode()))) {
             throw new SMPAbortException("Message failed verification.");
         }
         // Verify if the zero-knowledge proof succeeds on our end.
         final Point rab = smp3.ra.multiply(this.b3);
-        if (rab.constantTimeEquals(smp3.pa.add(this.pb.negate()))) {
+        if (Point.constantTimeEquals(rab, smp3.pa.add(this.pb.negate()))) {
             LOGGER.log(Level.FINE, "Successful SMP verification.");
             context.setState(new StateExpect1(this.random, SUCCEEDED));
         } else {

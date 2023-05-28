@@ -81,7 +81,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     private final SMP smp;
 
     private long lastMessageSentTimestamp = System.nanoTime();
-    
+
     private final RemoteInfo remoteinfo;
 
     StateEncrypted4(final Context context, final byte[] ssid, final DoubleRatchet ratchet,

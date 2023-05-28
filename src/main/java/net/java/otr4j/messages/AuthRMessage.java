@@ -107,6 +107,7 @@ public final class AuthRMessage extends AbstractEncodedMessage {
         writer.writeBigInt(this.firstDHPublicKey);
     }
 
+    @SuppressWarnings("ConstantValue")
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -119,9 +120,9 @@ public final class AuthRMessage extends AbstractEncodedMessage {
             return false;
         }
         final AuthRMessage that = (AuthRMessage) o;
-        return this.clientProfile.equals(that.clientProfile) && this.x.constantTimeEquals(that.x)
+        return this.clientProfile.equals(that.clientProfile) && Point.constantTimeEquals(this.x, that.x)
                 && this.a.equals(that.a) && this.sigma.equals(that.sigma)
-                && this.firstECDHPublicKey.constantTimeEquals(that.firstECDHPublicKey)
+                && Point.constantTimeEquals(this.firstECDHPublicKey, that.firstECDHPublicKey)
                 && this.firstDHPublicKey.equals(that.firstDHPublicKey);
     }
 

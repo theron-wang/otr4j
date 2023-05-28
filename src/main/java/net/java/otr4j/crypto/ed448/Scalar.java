@@ -11,7 +11,6 @@ package net.java.otr4j.crypto.ed448;
 
 import com.google.errorprone.annotations.CheckReturnValue;
 import net.java.otr4j.util.ByteArrays;
-import net.java.otr4j.util.ConstantTimeEquality;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -23,7 +22,6 @@ import static java.lang.Integer.signum;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 import static nl.dannyvanheumen.joldilocks.Ed448.primeOrder;
-import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
 import static org.bouncycastle.util.Arrays.reverse;
 import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
 
@@ -34,7 +32,7 @@ import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
  * arithmetic operations, but it does have the benefit that the current bad implementation is isolated to the innermost
  * implementation details.
  */
-public final class Scalar implements Comparable<Scalar>, ConstantTimeEquality<Scalar> {
+public final class Scalar implements Comparable<Scalar> {
 
     /**
      * Length of scalar byte-representation in bytes.
@@ -77,6 +75,18 @@ public final class Scalar implements Comparable<Scalar>, ConstantTimeEquality<Sc
      */
     public static void clear(final Scalar scalar) {
         ByteArrays.clear(scalar.encoded);
+    }
+
+    /**
+     * constantTimeEquals compares scalars in constant-time.
+     *
+     * @param s1 first scalar
+     * @param s2 second scalar
+     * @return returns true iff scalars are equal and not same instance.
+     */
+    @CheckReturnValue
+    public static boolean constantTimeEquals(final Scalar s1, final Scalar s2) {
+        return ByteArrays.constantTimeEquals(s1.encoded, s2.encoded);
     }
 
     /**
@@ -195,18 +205,12 @@ public final class Scalar implements Comparable<Scalar>, ConstantTimeEquality<Sc
             return false;
         }
         final Scalar scalar = (Scalar) o;
-        return constantTimeAreEqual(this.encoded, scalar.encoded);
+        return ByteArrays.constantTimeEquals(this.encoded, scalar.encoded);
     }
 
     @Override
     public int hashCode() {
         return Arrays.hashCode(this.encoded);
-    }
-
-    @Override
-    @CheckReturnValue
-    public boolean constantTimeEquals(final Scalar o) {
-        return constantTimeAreEqual(this.encoded, o.encoded);
     }
 
     @Override

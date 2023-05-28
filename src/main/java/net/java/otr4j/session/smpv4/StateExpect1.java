@@ -152,11 +152,11 @@ final class StateExpect1 implements SMPState {
         if (!containsPoint(smp1.g2a) || !containsPoint(smp1.g3a)) {
             throw new SMPAbortException("g2a or g3a failed verification.");
         }
-        if (!smp1.c2.constantTimeEquals(hashToScalar(SMP_VALUE_0X01,
+        if (!Scalar.constantTimeEquals(smp1.c2, hashToScalar(SMP_VALUE_0X01,
                 multiplyByBase(smp1.d2).add(smp1.g2a.multiply(smp1.c2)).encode()))) {
             throw new SMPAbortException("c2 failed verification.");
         }
-        if (!smp1.c3.constantTimeEquals(hashToScalar(SMP_VALUE_0X02,
+        if (!Scalar.constantTimeEquals(smp1.c3, hashToScalar(SMP_VALUE_0X02,
                 multiplyByBase(smp1.d3).add(smp1.g3a.multiply(smp1.c3)).encode()))) {
             throw new SMPAbortException("c3 failed verification.");
         }

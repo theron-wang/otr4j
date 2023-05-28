@@ -11,7 +11,6 @@ package net.java.otr4j.crypto.ed448;
 
 import com.google.errorprone.annotations.CheckReturnValue;
 import net.java.otr4j.util.ByteArrays;
-import net.java.otr4j.util.ConstantTimeEquality;
 import nl.dannyvanheumen.joldilocks.Points;
 
 import javax.annotation.Nonnull;
@@ -27,7 +26,7 @@ import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
 /**
  * Point wrapper classed used to abstract away from the actual cryptographic implementation.
  */
-public final class Point implements ConstantTimeEquality<Point> {
+public final class Point {
 
     private final byte[] encoded;
 
@@ -42,6 +41,18 @@ public final class Point implements ConstantTimeEquality<Point> {
      */
     public static void clear(final Point point) {
         ByteArrays.clear(point.encoded);
+    }
+
+    /**
+     * Constant-time equality test for points.
+     *
+     * @param p1 first point
+     * @param p2 second point
+     * @return returns true iff equal and not same point.
+     */
+    @CheckReturnValue
+    public static boolean constantTimeEquals(final Point p1, final Point p2) {
+        return ByteArrays.constantTimeEquals(p1.encoded, p2.encoded);
     }
 
     @SuppressWarnings("PMD.MethodReturnsInternalArray")
@@ -83,12 +94,6 @@ public final class Point implements ConstantTimeEquality<Point> {
     @Override
     public int hashCode() {
         return Arrays.hashCode(this.encoded);
-    }
-
-    @Override
-    @CheckReturnValue
-    public boolean constantTimeEquals(final Point o) {
-        return constantTimeAreEqual(this.encoded, o.encoded);
     }
 
     /**

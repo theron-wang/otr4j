@@ -18,8 +18,6 @@ import java.math.BigInteger;
 
 import static java.math.BigInteger.ZERO;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
-import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static org.bouncycastle.math.ec.rfc8032.Ed448.PUBLIC_KEY_SIZE;
 
 /**
  * Class that provides access to Ed448 constants.
@@ -140,7 +138,6 @@ public final class Ed448 {
      */
     @CheckReturnValue
     public static boolean checkIdentity(final Point point) {
-        requireLengthExactly(PUBLIC_KEY_SIZE, point.getEncoded());
         return constantTimeEquals(IDENTITY, point.getEncoded());
     }
 }

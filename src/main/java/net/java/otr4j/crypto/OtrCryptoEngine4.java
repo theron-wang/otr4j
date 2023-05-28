@@ -523,9 +523,9 @@ public final class OtrCryptoEngine4 {
         }
         final Point longTermPublicKey = longTermKeyPair.getPublicKey();
         // Calculate equality to each of the provided public keys.
-        final int eq1 = longTermPublicKey.constantTimeEquals(A1) ? 1 : 0;
-        final int eq2 = longTermPublicKey.constantTimeEquals(A2) ? 1 : 0;
-        final int eq3 = longTermPublicKey.constantTimeEquals(A3) ? 1 : 0;
+        final int eq1 = Point.constantTimeEquals(longTermPublicKey, A1) ? 1 : 0;
+        final int eq2 = Point.constantTimeEquals(longTermPublicKey, A2) ? 1 : 0;
+        final int eq3 = Point.constantTimeEquals(longTermPublicKey, A3) ? 1 : 0;
         requireEquals(1, eq1 + eq2 + eq3,  "BUG: expected long-term keypair to match exactly one of 3 public keys.");
         // "Pick random values t, c2, c3, r2, r3 in q."
         final Scalar t = generateRandomValueInZq(random);
@@ -615,7 +615,7 @@ public final class OtrCryptoEngine4 {
             throw new IllegalStateException("Failed to write point to buffer.", e);
         }
         // "Check if c ≟ c1 + c2 + c3 (mod q). If it is true, verification succeeds. If not, it fails."
-        if (!c.constantTimeEquals(sigma.c1.add(sigma.c2).add(sigma.c3).mod(q))) {
+        if (!Scalar.constantTimeEquals(c, sigma.c1.add(sigma.c2).add(sigma.c3).mod(q))) {
             throw new OtrCryptoException("Ring signature failed verification.");
         }
     }
@@ -683,9 +683,9 @@ public final class OtrCryptoEngine4 {
                 return false;
             }
             final Sigma sigma = (Sigma) o;
-            return this.c1.constantTimeEquals(sigma.c1) & this.r1.constantTimeEquals(sigma.r1)
-                    & this.c2.constantTimeEquals(sigma.c2) & this.r2.constantTimeEquals(sigma.r2)
-                    & this.c3.constantTimeEquals(sigma.c3) & this.r3.constantTimeEquals(sigma.r3);
+            return Scalar.constantTimeEquals(this.c1, sigma.c1) & Scalar.constantTimeEquals(this.r1, sigma.r1)
+                    & Scalar.constantTimeEquals(this.c2, sigma.c2) & Scalar.constantTimeEquals(this.r2, sigma.r2)
+                    & Scalar.constantTimeEquals(this.c3, sigma.c3) & Scalar.constantTimeEquals(this.r3, sigma.r3);
         }
 
         @Override

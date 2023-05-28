@@ -511,7 +511,7 @@ final class DoubleRatchet implements AutoCloseable {
         }
         LOGGER.log(FINE, "Rotating root key and receiving chain key for ratchet {0} (nextDH = {1})",
                 new Object[]{this.i, nextDH != null});
-        if (nextECDH.constantTimeEquals(this.sharedSecret.getTheirECDHPublicKey())
+        if (Point.constantTimeEquals(nextECDH, this.sharedSecret.getTheirECDHPublicKey())
                 || (dhratchet && this.sharedSecret.getTheirDHPublicKey().equals(nextDH))) {
             LOGGER.log(FINE, "Skipping rotating receiver keys as ECDH public key is already known.");
             return this;
