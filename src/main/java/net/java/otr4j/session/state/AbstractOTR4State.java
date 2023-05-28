@@ -68,7 +68,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         }
         // OTRv4 messages that are not data messages, should therefore be DAKE messages.
         handleAKEMessage(context, encodedM);
-        return new Result(getStatus(), null);
+        return new Result(getStatus(), false, false, null);
     }
 
     /**

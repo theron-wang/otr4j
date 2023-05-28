@@ -93,7 +93,7 @@ abstract class AbstractOTR3State implements State {
         if (reply != null) {
             context.injectMessage(reply);
         }
-        return new Result(getStatus(), null);
+        return new Result(getStatus(), false, false, null);
     }
 
     @Nullable

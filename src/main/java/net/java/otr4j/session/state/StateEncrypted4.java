@@ -103,7 +103,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         // Display the message to the user, but warn him that the message was received unencrypted.
         unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
         // TODO what does this mean, if we receive a plaintext message under an ENCRYPTED context?
-        return new Result(STATUS, message.getCleanText());
+        return new Result(STATUS, false, false, message.getCleanText());
     }
 
     @Override
@@ -200,12 +200,12 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         switch (message.version) {
         case Session.Version.ONE:
             this.logger.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         case Session.Version.TWO:
         case Session.Version.THREE:
             this.logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
                     new Object[]{message.version});
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         case Session.Version.FOUR:
             return handleEncodedMessage4(context, message);
         default:
@@ -274,10 +274,10 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         } catch (final RotationLimitationException e) {
             this.logger.log(INFO, "Cannot obtain public keys for that ratchet. The message cannot be decrypted.");
             handleUnreadableMessage(context, message, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         } catch (final OtrCryptoException e) {
             this.logger.log(INFO, "Received message fails verification. Rejecting the message.");
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         }
         // Now that we successfully passed authentication and decryption, we know that the message was authentic.
         // Therefore, any new key material we might have received is authentic, and the message keys we used were used
@@ -338,7 +338,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             }
         }
         clear(extraSymmetricKey);
-        return new Result(STATUS, content.message.length() > 0 ? content.message : null);
+        return new Result(STATUS, false, true, content.message.length() > 0 ? content.message : null);
     }
 
     @Nonnull

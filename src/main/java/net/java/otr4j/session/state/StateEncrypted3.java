@@ -134,7 +134,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         // Display the message to the user, but warn him that the message was received unencrypted.
         unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
         // TODO what does this mean exactly: we have received a plaintext message under an ENCRYPTED context.
-        return new Result(STATUS, message.getCleanText());
+        return new Result(STATUS, false, false, message.getCleanText());
     }
 
     @Override
@@ -175,14 +175,14 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         switch (message.version) {
         case Session.Version.ONE:
             this.logger.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         case Session.Version.TWO:
         case Session.Version.THREE:
             return handleEncodedMessage3(context, message);
         case Session.Version.FOUR:
             this.logger.log(INFO, "Encountered message for protocol version 4. Ignoring because OTRv3 in-progress.",
                     new Object[]{message.version});
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         default:
             throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
         }
@@ -205,7 +205,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         } catch (final SessionKeyUnavailableException ex) {
             this.logger.finest("No matching keys found.");
             handleUnreadableMessage(context, message, "", ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         }
 
         // Verify received MAC with a locally calculated MAC.
@@ -215,7 +215,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         if (!constantTimeEquals(computedMAC, message.mac)) {
             this.logger.finest("MAC verification failed, ignoring message.");
             handleUnreadableMessage(context, message, "", ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         }
 
         this.logger.finest("Computed HmacSHA1 value matches sent one.");
@@ -230,7 +230,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
             this.logger.log(Level.WARNING, "Receiving ctr value failed validation, ignoring message: {0}", ex.getMessage());
             showError(context.getHost(), context.getSessionID(), "Counter value of received message failed validation.");
             context.injectMessage(new ErrorMessage("", "Message's counter value failed validation."));
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         }
 
         // Rotate keys if necessary.
@@ -277,7 +277,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
                 break;
             }
         }
-        return new Result(STATUS, content.message.isEmpty() ? null : content.message);
+        return new Result(STATUS, false, true, content.message.isEmpty() ? null : content.message);
     }
 
     @Nonnull

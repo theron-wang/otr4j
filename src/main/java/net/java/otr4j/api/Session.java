@@ -246,7 +246,18 @@ public interface Session {
         @Nonnull
         public final SessionStatus status;
         /**
-         * The (original/decrypted) message content.
+         * Rejected, whether message processing was aborted due to being irrelevant or illegal.
+         */
+        public final boolean rejected;
+        /**
+         * Confidential, whether the message was received confidentially or in plaintext.
+         */
+        public final boolean confidential;
+        /**
+         * The (original/decrypted) message content. The content is `null` if there was no message, or if the message
+         * was an OTR protocol control message processed internally, or if message was a fragment and a complete message
+         * could not yet be reconstructed, or if the message was rejected for reasons good (e.g. message intended for
+         * other instance) or bad (message is illegal, violates protocol).
          */
         @Nullable
         public final String content;
@@ -256,12 +267,17 @@ public interface Session {
          *
          * @param tag the instance tag of the session that processed the message.
          * @param status the session status of the session state that processed the message.
+         * @param rejected whether the result is due to the message being rejected by the protocol.
+         * @param confidential whether the content was received confidentially or in plaintext.
          * @param content String content(-body). This is the message, whether the full original content because it was
          * plaintext or the decrypted content.
          */
-        public Result(final InstanceTag tag, final SessionStatus status, @Nullable final String content) {
+        public Result(final InstanceTag tag, final SessionStatus status, final boolean rejected,
+                final boolean confidential, @Nullable final String content) {
             this.tag = requireNonNull(tag);
             this.status = requireNonNull(status);
+            this.rejected = rejected;
+            this.confidential = confidential;
             this.content = content;
         }
     }

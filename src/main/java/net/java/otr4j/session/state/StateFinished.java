@@ -87,7 +87,7 @@ final class StateFinished extends AbstractCommonState {
     public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
         unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
-        return new Result(STATUS, message.getCleanText());
+        return new Result(STATUS, false, false, message.getCleanText());
     }
 
     // TODO currently `StateFinished` is shared among OTRv2/3/4. In OTRv4 spec, separate `FINISHED` states exist for OTRv3 and OTRv4. Consider separating as well. (Needed to prevent subtle switching from OTR 4 to OTR 3 with intermediate FINISHED.)
@@ -97,7 +97,7 @@ final class StateFinished extends AbstractCommonState {
         switch (message.version) {
         case Session.Version.ONE:
             LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         case Session.Version.TWO:
         case Session.Version.THREE:
             return handleEncodedMessage3(context, message);
@@ -127,7 +127,7 @@ final class StateFinished extends AbstractCommonState {
     Result handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(Level.FINEST, "Received OTRv2/3 data message in FINISHED state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return new Result(STATUS, null);
+        return new Result(STATUS, true, false, null);
     }
 
     @Nonnull
@@ -135,7 +135,7 @@ final class StateFinished extends AbstractCommonState {
     Result handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
         LOGGER.log(Level.FINEST, "Received OTRv4 data message in FINISHED state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return new Result(STATUS, null);
+        return new Result(STATUS, true, false, null);
     }
 
     @Override

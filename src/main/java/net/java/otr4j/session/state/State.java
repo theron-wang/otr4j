@@ -127,6 +127,15 @@ public interface State {
         @Nonnull
         public final SessionStatus status;
         /**
+         * Rejected indicates whether processing was aborted due to the message being irrelevant or illegal.
+         */
+        // FIXME is it rejected if we cannot read an encrypted message because not in appropriate state or not appropriate protocol version?
+        public final boolean rejected;
+        /**
+         * Whether the message was received confidentially or in plaintext.
+         */
+        public final boolean confidential;
+        /**
          * Content is the message content. (Optional)
          */
         @Nullable
@@ -138,8 +147,12 @@ public interface State {
          * @param status the status of the processing state
          * @param content the content
          */
-        Result(final SessionStatus status, @Nullable final String content) {
+        // FIXME should we mark AKE control messages as 'confidential'?
+        Result(final SessionStatus status, final boolean rejected, final boolean confidential,
+                @Nullable final String content) {
             this.status = requireNonNull(status);
+            this.rejected = rejected;
+            this.confidential = confidential;
             this.content = content;
         }
     }

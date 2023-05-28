@@ -133,7 +133,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
     @Nonnull
     @Override
     public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
-        return new Result(STATUS, message.getCleanText());
+        return new Result(STATUS, false, false, message.getCleanText());
     }
 
     @Nonnull
@@ -142,12 +142,12 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         switch (message.version) {
         case Session.Version.ONE:
             LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         case Session.Version.TWO:
         case Session.Version.THREE:
             LOGGER.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
                     new Object[]{message.version});
-            return new Result(STATUS, null);
+            return new Result(STATUS, true, false, null);
         case Session.Version.FOUR:
             return handleEncodedMessage4(context, message);
         default:
@@ -240,7 +240,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
     Result handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv3 data message in state WAITING_AUTH_I. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return new Result(STATUS, null);
+        return new Result(STATUS, true, false, null);
     }
 
     @Nonnull
@@ -248,7 +248,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
     Result handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv4 data message in state WAITING_AUTH_I. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return new Result(STATUS, null);
+        return new Result(STATUS, true, false, null);
     }
 
     @Override
