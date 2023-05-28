@@ -67,6 +67,7 @@ public final class Point implements ConstantTimeEquality<Point> {
         }
     }
 
+    @CheckReturnValue
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -76,7 +77,7 @@ public final class Point implements ConstantTimeEquality<Point> {
             return false;
         }
         final Point point = (Point) o;
-        return Arrays.equals(this.encoded, point.encoded);
+        return constantTimeAreEqual(this.encoded, point.encoded);
     }
 
     @Override

@@ -21,6 +21,7 @@ import static net.java.otr4j.crypto.ed448.ECDHKeyPairs.verifyECDHPublicKey;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
 import static net.java.otr4j.messages.MysteriousT4.encode;
 import static net.java.otr4j.messages.Validators.validateEquals;
+import static net.java.otr4j.messages.Validators.validateNotEquals;
 
 /**
  * Utility class for AuthRMessage. (Auth-R messages)
@@ -50,8 +51,6 @@ public final class AuthRMessages {
             final ClientProfile ourProfile, final ClientProfile theirProfile, final String senderAccountID,
             final String receiverAccountID, final Point y, final BigInteger b, final Point firstECDHPublicKey,
             final BigInteger firstDHPublicKey) throws ValidationException {
-        // TODO compare x to firstECDHPublicKey
-        // TODO compare a to firstDHPublicKey
         try {
             verifyECDHPublicKey(message.x);
             verifyDHPublicKey(message.a);
@@ -61,6 +60,10 @@ public final class AuthRMessages {
             throw new ValidationException("Illegal ephemeral public key.", e);
         }
         validateEquals(message.senderTag, theirProfile.getInstanceTag(), "Sender instance tag does not match with owner instance tag in client profile.");
+        validateNotEquals(message.x, message.firstECDHPublicKey,
+                "Different ECDH public keys expected for key exchange and first ratchet.");
+        validateNotEquals(message.a, message.firstDHPublicKey,
+                "Different DH public keys expected for key exchange and first ratchet.");
         final byte[] t = encode(AUTH_R, message.clientProfile, ourProfilePayload, message.x, y, message.a, b,
                 message.firstECDHPublicKey, message.firstDHPublicKey, firstECDHPublicKey, firstDHPublicKey,
                 message.senderTag, message.receiverTag, senderAccountID, receiverAccountID);

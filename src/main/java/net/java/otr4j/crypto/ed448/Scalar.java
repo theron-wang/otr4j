@@ -185,6 +185,7 @@ public final class Scalar implements Comparable<Scalar>, ConstantTimeEquality<Sc
         out.write(this.encoded, 0, SCALAR_LENGTH_BYTES);
     }
 
+    @CheckReturnValue
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -194,7 +195,7 @@ public final class Scalar implements Comparable<Scalar>, ConstantTimeEquality<Sc
             return false;
         }
         final Scalar scalar = (Scalar) o;
-        return Arrays.equals(this.encoded, scalar.encoded);
+        return constantTimeAreEqual(this.encoded, scalar.encoded);
     }
 
     @Override

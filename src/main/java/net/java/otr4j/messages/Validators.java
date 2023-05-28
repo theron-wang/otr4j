@@ -28,6 +28,21 @@ final class Validators {
         throw new ValidationException(message);
     }
 
+    static <T> void validateNotEquals(final T object1, final T object2, final String message) throws ValidationException {
+        if (Objects.equals(object1, object2)) {
+            throw new ValidationException(message);
+        }
+    }
+
+    // FIXME needs testing
+    static <T> void validateNotEquals(final T o1, final T o2, final T o3, final T o4, final String message)
+            throws ValidationException {
+        if (Objects.equals(o1, o2) || Objects.equals(o1, o3) || Objects.equals(o1, o4) || Objects.equals(o2, o3)
+                || Objects.equals(o2, o4) || Objects.equals(o3, o4)) {
+            throw new ValidationException(message);
+        }
+    }
+
     static void validateExactly(final int expected, final int test, final String message) throws ValidationException {
         if (expected == test) {
             return;

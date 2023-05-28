@@ -19,6 +19,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.ringVerify;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_I;
 import static net.java.otr4j.messages.MysteriousT4.encode;
 import static net.java.otr4j.messages.Validators.validateEquals;
+import static net.java.otr4j.messages.Validators.validateNotEquals;
 
 /**
  * Utility class for AuthIMessage.
@@ -55,11 +56,12 @@ public final class AuthIMessages {
             final BigInteger bobFirstDHPublicKey, final Point aliceFirstECDHPublicKey,
             final BigInteger aliceFirstDHPublicKey, final String bobAccountID, final String aliceAccountID)
             throws ValidationException {
-        validateEquals(message.senderTag, profileBob.getInstanceTag(), "Sender instance tag does not match with owner instance tag in client profile.");
-        // TODO compare y to firstECDHPublicKey
-        // TODO compare b to firstDHPublicKey
-        // TODO compare x to firstECDHPublicKey
-        // TODO compare a to firstDHPublicKey
+        validateEquals(message.senderTag, profileBob.getInstanceTag(),
+                "Sender instance tag does not match with owner instance tag in client profile.");
+        validateNotEquals(x, y, aliceFirstECDHPublicKey, bobFirstECDHPublicKey,
+                "Different ECDH public keys expected for key exchange and first ratchet.");
+        validateNotEquals(a, b, aliceFirstDHPublicKey, bobFirstDHPublicKey,
+                "Different DH public keys expected for key exchange and first ratchet.");
         // We don't do extra verification of points here, as these have been verified upon receiving the Identity
         // message. This was the previous message that was sent. So we can assume points are trustworthy.
         final byte[] t = encode(AUTH_I, payloadAlice, payloadBob, x, y, a, b,
