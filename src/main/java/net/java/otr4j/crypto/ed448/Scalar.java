@@ -205,7 +205,7 @@ public final class Scalar implements Comparable<Scalar> {
             return false;
         }
         final Scalar scalar = (Scalar) o;
-        return ByteArrays.constantTimeEquals(this.encoded, scalar.encoded);
+        return Arrays.equals(this.encoded, scalar.encoded);
     }
 
     @Override

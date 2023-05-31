@@ -252,7 +252,8 @@ public final class MixedSharedSecret implements AutoCloseable {
         if (dhratchet == (theirNextDH == null)) {
             throw new IllegalArgumentException("Their next DH public key is unexpected.");
         }
-        if (!containsPoint(theirNextECDH) || Point.constantTimeEquals(this.theirECDHPublicKey, theirNextECDH)
+        // TODO do we need constant-time comparisons here? (if so, also further down?)
+        if (!containsPoint(theirNextECDH) || this.theirECDHPublicKey.equals(theirNextECDH)
                 || this.ecdhKeyPair.publicKey().equals(theirNextECDH)) {
             throw new OtrCryptoException("ECDH public key failed verification.");
         }
