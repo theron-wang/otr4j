@@ -28,8 +28,6 @@ public final class OtrEncodables {
      */
     @Nonnull
     public static byte[] encode(final OtrEncodable encodable) {
-        final OtrOutputStream out = new OtrOutputStream();
-        encodable.writeTo(out);
-        return out.toByteArray();
+        return new OtrOutputStream().write(encodable).toByteArray();
     }
 }

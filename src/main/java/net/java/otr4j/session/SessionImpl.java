@@ -31,8 +31,8 @@ import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.Fragment;
 import net.java.otr4j.io.Message;
+import net.java.otr4j.io.OtrEncodables;
 import net.java.otr4j.io.OtrInputStream;
-import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.io.QueryMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
@@ -367,7 +367,7 @@ final class SessionImpl implements Session, Context {
             expirationDate.add(Calendar.DAY_OF_YEAR, 14);
             payload = signClientProfile(profile, expirationDate.getTimeInMillis() / 1000,
                     this.host.getLocalKeyPair(sessionID), this.host.getLongTermKeyPair(sessionID));
-            this.host.updateClientProfilePayload(new OtrOutputStream().write(payload).toByteArray());
+            this.host.updateClientProfilePayload(OtrEncodables.encode(payload));
         }
         this.profile = profile;
         this.profilePayload = payload;
