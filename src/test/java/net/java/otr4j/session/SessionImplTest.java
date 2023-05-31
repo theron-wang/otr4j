@@ -9,14 +9,14 @@
 
 package net.java.otr4j.session;
 
-import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrEngineListener;
 import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.api.SessionID;
+import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
-import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.io.QueryMessage;
 import net.java.otr4j.session.state.State;
 import org.junit.Test;
@@ -25,9 +25,8 @@ import org.mockito.internal.util.reflection.Whitebox;
 import java.security.SecureRandom;
 import java.util.HashSet;
 
-import static java.util.Collections.singletonList;
-import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
+import static net.java.otr4j.api.OtrPolicy.OPPORTUNISTIC;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -43,13 +42,11 @@ public final class SessionImplTest {
     @Test(expected = NullPointerException.class)
     public void testTransitionFromNullState() {
         final EdDSAKeyPair longTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final EdDSAKeyPair forgingKey = EdDSAKeyPair.generate(RANDOM);
         final SessionID sessionID = new SessionID("bob@network", "alice@network", "network");
-        final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), forgingKey,
-                singletonList(Version.FOUR), null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
-        when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
+        when(host.getForgingKeyPair(eq(sessionID))).thenReturn(forgingKey);
         when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
         session.transition(null, mock(State.class));
@@ -58,13 +55,11 @@ public final class SessionImplTest {
     @Test(expected = NullPointerException.class)
     public void testTransitionToNullState() {
         final EdDSAKeyPair longTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final EdDSAKeyPair forgingKey = EdDSAKeyPair.generate(RANDOM);
         final SessionID sessionID = new SessionID("bob@network", "alice@network", "network");
-        final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), forgingKey,
-                singletonList(Version.FOUR), null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
-        when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
+        when(host.getForgingKeyPair(eq(sessionID))).thenReturn(forgingKey);
         when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
         session.transition((State) Whitebox.getInternalState(session, "sessionState"), null);
@@ -73,13 +68,14 @@ public final class SessionImplTest {
     @Test
     public void testTransitionDestroysPreviousState() {
         final EdDSAKeyPair longTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final EdDSAKeyPair forgingKey = EdDSAKeyPair.generate(RANDOM);
+        final DSAKeyPair legacyKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final SessionID sessionID = new SessionID("bob@network", "alice@network", "network");
-        final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), forgingKey,
-                singletonList(Version.FOUR), null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
+        when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OPPORTUNISTIC));
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
-        when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
+        when(host.getForgingKeyPair(eq(sessionID))).thenReturn(forgingKey);
+        when(host.getLocalKeyPair(eq(sessionID))).thenReturn(legacyKeyPair);
         when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
         final State secondState = mock(State.class);
@@ -92,13 +88,14 @@ public final class SessionImplTest {
     @Test
     public void testTransitionToSecureSessionCallsSessionStatusChanged() {
         final EdDSAKeyPair longTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final EdDSAKeyPair forgingKey = EdDSAKeyPair.generate(RANDOM);
+        final DSAKeyPair legacyKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final SessionID sessionID = new SessionID("bob@network", "alice@network", "network");
-        final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), forgingKey,
-                singletonList(Version.FOUR), null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
+        when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OPPORTUNISTIC));
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
-        when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
+        when(host.getForgingKeyPair(eq(sessionID))).thenReturn(forgingKey);
+        when(host.getLocalKeyPair(eq(sessionID))).thenReturn(legacyKeyPair);
         when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
         final OtrEngineListener listener = mock(OtrEngineListener.class);
@@ -114,13 +111,14 @@ public final class SessionImplTest {
     @Test
     public void testInjectingQueryTagWithFallbackMessageTooLarge() throws OtrException {
         final EdDSAKeyPair longTermKeyPair = EdDSAKeyPair.generate(RANDOM);
-        final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        final EdDSAKeyPair forgingKey = EdDSAKeyPair.generate(RANDOM);
+        final DSAKeyPair legacyKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final SessionID sessionID = new SessionID("bob@network", "alice@network", "network");
-        final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), forgingKey,
-                singletonList(Version.FOUR), null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
+        when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OPPORTUNISTIC));
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
-        when(host.getClientProfile(eq(sessionID))).thenReturn(profile);
+        when(host.getForgingKeyPair(eq(sessionID))).thenReturn(forgingKey);
+        when(host.getLocalKeyPair(eq(sessionID))).thenReturn(legacyKeyPair);
         when(host.getFallbackMessage(sessionID)).thenReturn("This is a super-long message that does not fit on the transport channel.");
         when(host.getMaxFragmentSize(sessionID)).thenReturn(51);
         when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);

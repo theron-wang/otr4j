@@ -146,7 +146,6 @@ public final class ConditionalBlockingQueue<E> implements BlockingQueue<E> {
         return this.queue.toArray();
     }
 
-    @SuppressWarnings("SuspiciousToArrayCall")
     @Override
     public <T> T[] toArray(final T[] a) {
         return this.queue.toArray(a);

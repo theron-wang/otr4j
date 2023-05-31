@@ -26,6 +26,7 @@ import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.OtrCryptoException;
+import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.Fragment;
@@ -334,14 +335,32 @@ final class SessionImpl implements Session, Context {
         ClientProfilePayload payload;
         ClientProfile profile;
         try {
-            payload = ClientProfilePayload.readFrom(new OtrInputStream(this.host.restoreClientProfilePayload()));
-            profile = payload.validate();
-            this.logger.log(FINE, "Successfully restored client profile from OTR Engine Host.");
+            if (this.masterSession == this) {
+                payload = ClientProfilePayload.readFrom(new OtrInputStream(this.host.restoreClientProfilePayload()));
+                profile = payload.validate();
+                this.logger.log(FINE, "Successfully restored client profile from OTR Engine Host.");
+            } else {
+                payload = this.masterSession.profilePayload;
+                profile = this.masterSession.profile;
+            }
         } catch (final OtrCryptoException | ProtocolException | ValidationException e) {
             this.logger.log(FINE,
                     "Failed to load client profile from OTR Engine Host. Generating new client profile… (Problem: {0})",
                     e.getMessage());
-            profile = this.host.getClientProfile(sessionID);
+            final OtrPolicy policy = this.host.getSessionPolicy(sessionID);
+            final Point longTermPublicKey = this.host.getLongTermKeyPair(sessionID).getPublicKey();
+            final Point forgingPublicKey = this.host.getForgingKeyPair(sessionID).getPublicKey();
+            final List<Integer> versions;
+            final DSAPublicKey legacyPublicKey;
+            if (policy.isAllowV3()) {
+                versions = List.of(THREE, FOUR);
+                legacyPublicKey = this.host.getLocalKeyPair(sessionID).getPublic();
+            } else {
+                versions = List.of(FOUR);
+                legacyPublicKey = null;
+            }
+            profile = new ClientProfile(InstanceTag.random(secureRandom), longTermPublicKey, forgingPublicKey, versions,
+                    legacyPublicKey);
             requireNotEquals(ZERO_TAG, profile.getInstanceTag(),
                     "Only actual instance tags are allowed. The 'zero' tag is not valid.");
             final Calendar expirationDate = Calendar.getInstance();

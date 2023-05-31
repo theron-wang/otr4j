@@ -20,7 +20,9 @@ import javax.annotation.Nonnull;
  * and otr4j.
  *
  * @author George Politis
+ * @author Danny van Heumen
  */
+// TODO consider distinguishing keypairs (and others) only by Account, instead of by SessionID. (see dependency on Client Profile)
 public interface OtrEngineHost extends SmpEngineHost {
 
     /**
@@ -104,6 +106,7 @@ public interface OtrEngineHost extends SmpEngineHost {
      * maximum value possible, {@link Integer#MAX_VALUE}, if fragmentation
      * is not necessary.
      */
+    // FIXME consider renaming. 'Fragment' is an internal term, while any (chat) transport would use 'message'.
     int getMaxFragmentSize(SessionID sessionID);
 
     /**
@@ -113,7 +116,9 @@ public interface OtrEngineHost extends SmpEngineHost {
      * transitional signature. Only when version 4 is not acceptable/suitable, will this be the primary key pair.
      * <p>
      * The local OTRv3 key pair can be generated using {@link DSAKeyPair#generateDSAKeyPair(java.security.SecureRandom)}.
-     *
+     * <p>
+     * WARNING: the keypair is considered sensitive information and should be stored securely.
+     * 
      * @param sessionID the session ID
      * @return Returns the local key pair.
      */
@@ -124,6 +129,8 @@ public interface OtrEngineHost extends SmpEngineHost {
      * Request local long-term key pair from Engine Host. (OTRv4)
      * <p>
      * The long-term key pair can be generated using {@link EdDSAKeyPair#generate(java.security.SecureRandom)}.
+     * <p>
+     * WARNING: the keypair is considered sensitive information and should be stored securely.
      *
      * @param sessionID the session ID
      * @return Returns the local long-term Ed448-goldilocks key pair.
@@ -132,18 +139,17 @@ public interface OtrEngineHost extends SmpEngineHost {
     EdDSAKeyPair getLongTermKeyPair(SessionID sessionID);
 
     /**
-     * Request the client's Client Profile.
+     * Request local forging key pair from Engine Host. (OTRv4)
      * <p>
-     * The client profile is requested from the OTR engine host. The session ID is provided as a parameter to indicate
-     * for which session a client profile is requested. The session ID can be used to distinguish between different
-     * networks or users, such that it becomes possible to return one of many possible client profiles, based on the
-     * current session.
+     * The forging key pair can be generated using {@link EdDSAKeyPair#generate(java.security.SecureRandom)}.
+     * <p>
+     * WARNING: the keypair is considered sensitive information and should be stored securely.
      *
-     * @param sessionID The session ID for which the Client Profile is requested.
-     * @return Returns the Client Profile for this client.
+     * @param sessionID the session ID
+     * @return Returns the local long-term Ed448-goldilocks key pair.
      */
     @Nonnull
-    ClientProfile getClientProfile(SessionID sessionID);
+    EdDSAKeyPair getForgingKeyPair(SessionID sessionID);
 
     /**
      * Publish Client Profile payload.
@@ -157,14 +163,17 @@ public interface OtrEngineHost extends SmpEngineHost {
      *
      * @param payload the encoded Client Profile payload.
      */
+    // TODO how should client profile refreshes be aligned for multiple concurrent sessions?
     void updateClientProfilePayload(byte[] payload);
 
     /**
      * Restore a previously published Client Profile payload.
      * <p>
      * Initially, we restore the previous Client Profile payload. Once the payload expires, or the composition of the
-     * Client Profile changes, we will need to refresh the payload by acquiring a new client profile
-     * {@link #getClientProfile(SessionID)}.
+     * Client Profile changes, we will need to refresh the payload and the refreshed payload would need to be published.
+     * <p>
+     * The client profile "payload" is the encoded (bytes) representation of the Client Profile data-structure. This
+     * payload contains public information, so is not considered sensitive information.
      * <p>
      * Note: only payloads that are successfully published ({@link #updateClientProfilePayload(byte[])}) should be
      * restored. otr4j assumes that the payload acquired through this method is already made public.
@@ -173,16 +182,6 @@ public interface OtrEngineHost extends SmpEngineHost {
      */
     @Nonnull
     byte[] restoreClientProfilePayload();
-
-    /**
-     * Request local fingerprint in raw byte form.
-     *
-     * @param sessionID the session ID
-     * @return Returns the raw fingerprint bytes.
-     */
-    @Override
-    @Nonnull
-    byte[] getLocalFingerprintRaw(SessionID sessionID);
 
     /**
      * When a message is received that is unreadable for some reason, for example the session keys are lost/deleted

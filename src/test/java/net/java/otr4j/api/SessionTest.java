@@ -34,8 +34,6 @@ import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
@@ -49,9 +47,11 @@ import static java.util.logging.Level.FINEST;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V2;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V3;
 import static net.java.otr4j.api.OtrPolicy.ALLOW_V4;
+import static net.java.otr4j.api.OtrPolicy.ERROR_START_AKE;
 import static net.java.otr4j.api.OtrPolicy.OPPORTUNISTIC;
 import static net.java.otr4j.api.OtrPolicy.OTRL_POLICY_MANUAL;
 import static net.java.otr4j.api.OtrPolicy.OTRV4_INTERACTIVE_ONLY;
+import static net.java.otr4j.api.OtrPolicy.WHITESPACE_START_AKE;
 import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static net.java.otr4j.api.SessionStatus.FINISHED;
@@ -335,7 +335,7 @@ public class SessionTest {
 
     @Test
     public void testMultipleSessions() throws OtrException {
-        final OtrPolicy policy = new OtrPolicy(ALLOW_V2 | ALLOW_V3 | (OtrPolicy.ERROR_START_AKE & ~ALLOW_V4));
+        final OtrPolicy policy = new OtrPolicy(ALLOW_V2 | ALLOW_V3 | ERROR_START_AKE);
         final Conversation c = new Conversation(3);
 
         // Prepare conversation with multiple clients.
@@ -851,7 +851,8 @@ public class SessionTest {
 
     @Test
     public void testEstablishOTR4SessionFragmented() throws OtrException {
-        final Conversation c = new Conversation(21, 150);
+        final Conversation c = new Conversation(21, 150,
+                new OtrPolicy(ALLOW_V4 | WHITESPACE_START_AKE | ERROR_START_AKE));
         c.clientBob.sendMessage("Hi Alice");
         assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
@@ -870,7 +871,8 @@ public class SessionTest {
     @Test
     public void testEstablishOTR4SessionFragmentedMessageFragmentDropped() throws OtrException {
         final Random random = createDeterministicRandom(RANDOM.nextLong());
-        final Conversation c = new Conversation(21, 150);
+        final Conversation c = new Conversation(21, 150,
+                new OtrPolicy(ALLOW_V4 | WHITESPACE_START_AKE | ERROR_START_AKE));
         c.clientBob.sendMessage("Hi Alice");
         assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
@@ -1176,7 +1178,8 @@ public class SessionTest {
 
     @Test
     public void testOTR4ExtensiveMessagingFragmentation() throws OtrException {
-        final Conversation c = new Conversation(21, 150);
+        final Conversation c = new Conversation(21, 150,
+                new OtrPolicy(ALLOW_V4 | WHITESPACE_START_AKE | ERROR_START_AKE));
         c.clientBob.sendMessage("Hi Alice");
         assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
@@ -1209,7 +1212,8 @@ public class SessionTest {
     @Test
     public void testOTR4ExtensiveMessagingFragmentationShuffled() throws OtrException {
         final Random random = createDeterministicRandom(RANDOM.nextLong());
-        final Conversation c = new Conversation(21, 150);
+        final Conversation c = new Conversation(21, 150,
+                new OtrPolicy(ALLOW_V4 | WHITESPACE_START_AKE | ERROR_START_AKE));
         c.clientBob.sendMessage("Hi Alice");
         assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
         // Initiate OTR by sending query message.
@@ -1334,8 +1338,9 @@ public class SessionTest {
         final ClientProfileTestUtils utils = new ClientProfileTestUtils();
         final ClientProfilePayload clientProfilePayload = utils.createClientProfile();
         final ClientProfile clientProfile = clientProfilePayload.validate();
-        when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
-        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());
+        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getLongTermKeyPair());
+        when(host.getForgingKeyPair(eq(sessionID))).thenReturn(utils.getForgingKeyPair());
+        when(host.getLocalKeyPair(eq(sessionID))).thenReturn(utils.getLegacyKeyPair());
         final Session session = createSession(sessionID, host);
         final Point y = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
@@ -1359,8 +1364,8 @@ public class SessionTest {
         final ClientProfileTestUtils utils = new ClientProfileTestUtils();
         final ClientProfilePayload clientProfilePayload = utils.createClientProfile();
         final ClientProfile clientProfile = clientProfilePayload.validate();
-        when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
-        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());
+        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getLongTermKeyPair());
+        when(host.getForgingKeyPair(eq(sessionID))).thenReturn(utils.getForgingKeyPair());
         final Session session = createSession(sessionID, host);
         final Point y = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
@@ -1383,8 +1388,8 @@ public class SessionTest {
         final ClientProfileTestUtils utils = new ClientProfileTestUtils();
         final ClientProfilePayload clientProfilePayload = utils.createClientProfile();
         final ClientProfile clientProfile = clientProfilePayload.validate();
-        when(host.getClientProfile(eq(sessionID))).thenReturn(clientProfile);
-        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getEddsaLongTermKeyPair());
+        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getLongTermKeyPair());
+        when(host.getForgingKeyPair(eq(sessionID))).thenReturn(utils.getForgingKeyPair());
         final Session session = createSession(sessionID, host);
         final Point y = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger b = DHKeyPair.generate(RANDOM).publicKey();
@@ -1542,6 +1547,10 @@ public class SessionTest {
                     directChannelAlice);
         }
 
+        private Conversation(final int channelCapacity, final int maxMessageSize) {
+            this(channelCapacity, maxMessageSize, new OtrPolicy(OTRL_POLICY_MANUAL));
+        }
+
         /**
          * Constructor with configurable maximum message size and channel capacity (maximum number of messages
          * simultaneously stored).
@@ -1549,7 +1558,7 @@ public class SessionTest {
          * @param maxMessageSize  Maximum size of message allowed.
          * @param channelCapacity Maximum number of messages allowed to be in transit simultaneously.
          */
-        private Conversation(final int channelCapacity, final int maxMessageSize) {
+        private Conversation(final int channelCapacity, final int maxMessageSize, final OtrPolicy policy) {
             final Predicate<String> condition = new MaxMessageSize(maxMessageSize);
             final ConditionalBlockingQueue<String> directChannelAlice = new ConditionalBlockingQueue<>(condition,
                     new LinkedBlockingQueue<>(channelCapacity));
@@ -1563,11 +1572,9 @@ public class SessionTest {
                     "InMemoryNetwork4");
             this.sessionIDAlice = new SessionID("alice@InMemoryNetwork4", "bob@InMemoryNetwork4",
                     "InMemoryNetwork4");
-            this.clientBob = new Client("Bob", sessionIDBob, new OtrPolicy(OTRL_POLICY_MANUAL), submitterAlice,
-                    directChannelBob);
+            this.clientBob = new Client("Bob", sessionIDBob, policy, submitterAlice, directChannelBob);
             this.clientBob.setMessageSize(maxMessageSize);
-            this.clientAlice = new Client("Alice", sessionIDAlice, new OtrPolicy(OTRL_POLICY_MANUAL), submitterBob,
-                    directChannelAlice);
+            this.clientAlice = new Client("Alice", sessionIDAlice, policy, submitterBob, directChannelAlice);
             this.clientAlice.setMessageSize(maxMessageSize);
         }
     }
@@ -1598,19 +1605,15 @@ public class SessionTest {
 
         private final HashSet<String> verified = new HashSet<>();
 
-        private final InstanceTag instanceTag = InstanceTag.random(RANDOM);
-
         private final DSAKeyPair dsaKeyPair = generateDSAKeyPair(RANDOM);
 
         private final EdDSAKeyPair ed448KeyPair = EdDSAKeyPair.generate(RANDOM);
 
-        private final Point forgingPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+        private final EdDSAKeyPair forgingKeyPair = EdDSAKeyPair.generate(RANDOM);
 
         private final BlockingSubmitter<String> sendChannel;
 
         private final BlockingQueue<String> receiptChannel;
-
-        private final ClientProfile profile;
 
         private final Session session;
 
@@ -1624,10 +1627,6 @@ public class SessionTest {
             this.receiptChannel = requireNonNull(receiptChannel);
             this.sendChannel = requireNonNull(sendChannel);
             this.policy = requireNonNull(policy);
-            final Calendar expirationCalendar = Calendar.getInstance();
-            expirationCalendar.add(Calendar.DAY_OF_YEAR, 7);
-            this.profile = new ClientProfile(this.instanceTag, this.ed448KeyPair.getPublicKey(), this.forgingPublicKey,
-                    Collections.singletonList(FOUR), null);
             this.session = createSession(sessionID, this);
         }
 
@@ -1726,8 +1725,8 @@ public class SessionTest {
 
         @Nonnull
         @Override
-        public ClientProfile getClientProfile(final SessionID sessionID) {
-            return this.profile;
+        public EdDSAKeyPair getForgingKeyPair(final SessionID sessionID) {
+            return this.forgingKeyPair;
         }
 
         @Override

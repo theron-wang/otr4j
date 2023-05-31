@@ -11,11 +11,10 @@ package net.java.otr4j.api;
 
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
-import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.messages.ClientProfilePayload;
 
 import java.security.SecureRandom;
-import java.util.ArrayList;
+import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
@@ -26,9 +25,9 @@ public final class ClientProfileTestUtils {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private final EdDSAKeyPair eddsaLongTermKeyPair = EdDSAKeyPair.generate(RANDOM);
+    private final EdDSAKeyPair longTermKeyPair = EdDSAKeyPair.generate(RANDOM);
 
-    private final Point forgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+    private final EdDSAKeyPair forgingKeyPair = EdDSAKeyPair.generate(RANDOM);
 
     private final DSAKeyPair dsaKeyPair = generateDSAKeyPair(RANDOM);
 
@@ -40,22 +39,28 @@ public final class ClientProfileTestUtils {
     public ClientProfileTestUtils() {
     }
 
-    public EdDSAKeyPair getEddsaLongTermKeyPair() {
-        return eddsaLongTermKeyPair;
+    public EdDSAKeyPair getLongTermKeyPair() {
+        return this.longTermKeyPair;
+    }
+
+    public EdDSAKeyPair getForgingKeyPair() {
+        return this.forgingKeyPair;
+    }
+    
+    public DSAKeyPair getLegacyKeyPair() {
+        return this.dsaKeyPair;
     }
 
     public ClientProfilePayload createClientProfile() {
-        final ClientProfile profile = new ClientProfile(SMALLEST_TAG, this.eddsaLongTermKeyPair.getPublicKey(),
-                this.forgingKey, singletonList(Session.Version.FOUR), null);
-        return signClientProfile(profile, this.expirationTime, null, this.eddsaLongTermKeyPair);
+        final ClientProfile profile = new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(),
+                this.forgingKeyPair.getPublicKey(), singletonList(Session.Version.FOUR), null);
+        return signClientProfile(profile, this.expirationTime, null, this.longTermKeyPair);
     }
 
     public ClientProfilePayload createTransitionalClientProfile() {
-        final ArrayList<Integer> versions = new ArrayList<>();
-        versions.add(Session.Version.THREE);
-        versions.add(Session.Version.FOUR);
-        final ClientProfile profile = new ClientProfile(SMALLEST_TAG, this.eddsaLongTermKeyPair.getPublicKey(),
-                this.forgingKey, versions, this.dsaKeyPair.getPublic());
-        return signClientProfile(profile, this.expirationTime, this.dsaKeyPair, this.eddsaLongTermKeyPair);
+        final ClientProfile profile = new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(),
+                this.forgingKeyPair.getPublicKey(), List.of(Session.Version.THREE, Session.Version.FOUR),
+                this.dsaKeyPair.getPublic());
+        return signClientProfile(profile, this.expirationTime, this.dsaKeyPair, this.longTermKeyPair);
     }
 }
