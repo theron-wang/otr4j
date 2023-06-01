@@ -9,7 +9,6 @@
 
 package net.java.otr4j.api;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -33,15 +32,6 @@ public interface SmpEngineHost {
      * @param question the question to be asked to the user by the Engine Host
      */
     void askForSecret(SessionID sessionID, InstanceTag receiverTag, @Nullable String question);
-
-    /**
-     * Request local fingerprint in raw byte form.
-     *
-     * @param sessionID the session ID
-     * @return Returns the raw fingerprint bytes.
-     */
-    @Nonnull
-    byte[] getLocalFingerprintRaw(SessionID sessionID);
 
     /**
      * Call Engine Host to inform of SMP error during authentication.

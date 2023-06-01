@@ -61,7 +61,6 @@ import static net.java.otr4j.io.MessageProcessor.otrEncoded;
 import static net.java.otr4j.io.MessageProcessor.otrFragmented;
 import static net.java.otr4j.io.MessageProcessor.writeMessage;
 import static net.java.otr4j.session.OtrSessionManager.createSession;
-import static net.java.otr4j.session.smp.DSAPublicKeys.fingerprint;
 import static net.java.otr4j.util.Arrays.contains;
 import static net.java.otr4j.util.BlockingQueuesTestUtils.drop;
 import static net.java.otr4j.util.BlockingQueuesTestUtils.rearrangeFragments;
@@ -1732,12 +1731,6 @@ public class SessionTest {
         @Override
         public void askForSecret(final SessionID sessionID, final InstanceTag receiverTag, @Nullable final String question) {
             logger.finest("A request for the secret was received. (Question: " + question + ") [NOT IMPLEMENTED, LOGGING ONLY]");
-        }
-
-        @Nonnull
-        @Override
-        public byte[] getLocalFingerprintRaw(final SessionID sessionID) {
-            return fingerprint(this.dsaKeyPair.getPublic());
         }
 
         @Override

@@ -56,6 +56,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine.sha1Hmac;
 import static net.java.otr4j.io.EncryptedMessage.extractContents;
 import static net.java.otr4j.io.ErrorMessage.ERROR_1_MESSAGE_UNREADABLE_MESSAGE;
 import static net.java.otr4j.io.OtrEncodables.encode;
+import static net.java.otr4j.session.smp.DSAPublicKeys.fingerprint;
 import static net.java.otr4j.session.smp.SmpTlvHandler.smpPayload;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 
@@ -121,7 +122,8 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         final SessionID sessionID = context.getSessionID();
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.protocolVersion = params.getVersion();
-        this.smpTlvHandler = new SmpTlvHandler(context.secureRandom(), sessionID, params.getRemoteLongTermPublicKey(),
+        this.smpTlvHandler = new SmpTlvHandler(context.secureRandom(), sessionID,
+                fingerprint(context.getLocalKeyPair().getPublic()), fingerprint(params.getRemoteLongTermPublicKey()),
                 context.getReceiverInstanceTag(), context.getHost(), params.getS());
         this.remotePublicKey = params.getRemoteLongTermPublicKey();
         this.sessionKeyManager = new SessionKeyManager(context.secureRandom(), params.getLocalDHKeyPair(),
