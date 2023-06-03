@@ -8,7 +8,7 @@
  */
 /**
  * Internal API package.
- *
+ * <p>
  * API package to enable the separation of top-level OTR session from internal subsystems, such as SMP.
  */
 @ParametersAreNonnullByDefault

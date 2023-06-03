@@ -208,6 +208,7 @@ final class SessionImpl implements Session, Context {
     // TODO consider keeping an internal class-level cache of signed payload per client profile, such that we do not keep constructing it again and again
     // TODO ability for user to specify amount of expiration time on a profile
     // TODO ability to identify when a new Client Profile is composed such that we need to refresh and republish the Client Profile payload.
+    // TODO is there a risk of filling up memory by spamming unique instance tags just to have the library create sessions and grow the session map?
     @Nonnull
     private final ClientProfilePayload profilePayload;
 
@@ -536,11 +537,13 @@ final class SessionImpl implements Session, Context {
                 }
 
                 if (!this.slaveSessions.containsKey(fragment.getSenderTag())) {
+                    // TODO be more selective before creating new session instances, to avoid creating instances for bad messages.
                     final SessionImpl newSlaveSession = new SessionImpl(this, this.sessionID, this.host,
                             fragment.getSenderTag(), this.secureRandom, this.messageQueue);
                     newSlaveSession.addOtrEngineListener(this.slaveSessionsListener);
                     this.slaveSessions.put(fragment.getSenderTag(), newSlaveSession);
                 }
+
                 final SessionImpl slave = this.slaveSessions.get(fragment.getSenderTag());
                 synchronized (slave.masterSession) {
                     return slave.handleFragment(fragment);
@@ -563,6 +566,7 @@ final class SessionImpl implements Session, Context {
                 }
 
                 if (!this.slaveSessions.containsKey(message.senderTag)) {
+                    // TODO be more selective before creating new session instances, to avoid creating instances for bad messages.
                     final SessionImpl newSlaveSession = new SessionImpl(this, this.sessionID, this.host,
                             message.senderTag, this.secureRandom, this.messageQueue);
                     newSlaveSession.addOtrEngineListener(this.slaveSessionsListener);

@@ -28,5 +28,6 @@ package net.java.otr4j.crypto;
 // TODO ensure that all AutoCloseable instances are closed after use. (i.e. thoroughly validate destroy-implementations)
 // TODO investigate what we need to clean additionally for Point and BigInteger calculations where we use temporary instances during computation.
 // TODO how to do constant-time equals for BigInteger?
+// TODO double-check logging statements that may log sensitive material. (I.e. inject a logger, receive secrets)
 
 import javax.annotation.ParametersAreNonnullByDefault;
