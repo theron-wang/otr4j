@@ -67,10 +67,11 @@ public final class ClientProfilePayloadTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testConstructedPayloadWithDSAPublicKeyWithoutDSASignature() throws ValidationException {
+    public void testConstructedPayloadWithDSAPublicKeyWithoutDSASignature() {
         final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
                 singletonList(Version.FOUR), this.dsaKeyPair.getPublic());
-        assertEquals(profile, signClientProfile(profile, Long.MAX_VALUE / 1000, null, keypair).validate());
+        // NOTE: now expecting this to fail during "testValidate" as assertions are active.
+        signClientProfile(profile, Long.MAX_VALUE / 1000, null, keypair);
     }
 
     @Test
@@ -315,7 +316,7 @@ public final class ClientProfilePayloadTest {
         readFrom(new OtrInputStream(input));
     }
 
-    @Test
+    @Test(expected = ValidationException.class)
     public void testReadProfileWithTransitionalSignatureWithoutDSAPublicKey() throws OtrCryptoException, ProtocolException, ValidationException {
         final byte[] input = new byte[] {0, 0, 0, 6, 0, 1, 0, 0, 1, 0, 0, 2, 0, 16, -27, 19, 30, 56, -108, 49, -50, 52, 28, 7, 105, 30, -117, -127, -73, -113, -71, 7, 47, 56, -58, 109, -16, 86, 85, 49, -25, -22, 33, 16, 52, -127, -33, 58, -113, -96, -61, 66, -128, 13, 78, 61, 86, 87, -126, 49, -94, -62, -104, -3, -97, 45, -97, 0, 7, 119, 0, 0, 3, 0, 18, -112, -97, -86, 98, -69, -56, -128, 98, -109, -64, 126, -34, -44, -28, -113, -106, 12, 100, 123, 124, 77, 7, 85, -51, -70, 114, -38, -121, -44, 68, -99, 12, 115, 83, 73, -97, -93, -29, -49, 95, 24, -83, -103, 90, -2, -42, 78, -46, 107, -103, -44, -35, 79, 80, -111, -61, -128, 0, 4, 0, 0, 0, 1, 52, 0, 5, 0, 32, -60, -101, -91, -29, 83, -9, 0, 7, 0, 0, 0, 20, -110, 86, 89, -5, 56, 104, -18, 60, -30, 51, 12, 124, -54, 107, -31, 60, -18, 102, -73, 111, 0, 0, 0, 20, 15, -64, -120, 12, 100, -79, -65, -89, -50, -66, 54, 69, 10, -79, 12, -2, -113, 30, 66, -126, -14, -36, -87, 50, -61, 28, 3, 116, 113, -117, 77, 58, -114, -104, 109, -55, -20, -123, -124, -25, 4, 67, -73, -68, 84, -19, 98, -110, -119, -114, -14, 120, 18, -63, 35, -62, 59, -58, -62, -109, 62, -97, -80, 26, -107, -28, 58, 112, 9, -23, 87, -62, -43, -44, -107, -19, -128, 114, 74, -63, -38, -111, 94, 90, -85, -10, 21, -4, -74, 70, 111, -60, 6, 90, 72, -3, 38, -102, -38, -104, -7, -56, -118, -16, -124, 34, 79, 60, -127, -31, 72, 103, 94, -66, 92, -113, 45, -74, 76, 20, -99, 120, 123, -59, 54, 1, 115, 109, 44, -37, 77, -126, 12, 0};
         readFrom(new OtrInputStream(input));
@@ -339,7 +340,7 @@ public final class ClientProfilePayloadTest {
         readFrom(new OtrInputStream(input));
     }
 
-    @Test
+    @Test(expected = ValidationException.class)
     public void testReadReorderedFieldsInProfile2() throws OtrCryptoException, ProtocolException, ValidationException {
         final byte[] input = new byte[] {0, 0, 0, 6, 0, 4, 0, 0, 0, 1, 52, 0, 3, 0, 18, 107, 89, 45, -106, 12, 90, -71, 49, -99, 12, 23, 12, -64, -88, 0, 15, 83, 72, -63, 41, -67, -25, -71, -49, 90, 7, -55, 51, 32, 32, 65, 19, -17, 65, -127, 52, 79, 61, -93, -104, 19, 29, -7, -103, 61, -76, -99, -18, 67, 33, 93, -87, 98, -114, 90, 27, 0, 0, 5, 0, 32, -60, -101, -91, -29, 83, -9, 0, 1, 0, 0, 1, 0, 0, 2, 0, 16, -104, 85, 114, -53, -73, 65, 72, -101, 40, 73, 120, 125, -48, -124, -99, 7, -88, 94, 112, -101, -41, -15, 14, 15, -106, 64, -58, 107, 120, -123, -117, 124, -81, -79, 45, 26, -53, -41, 97, 29, -80, 37, -85, -123, -82, 115, -42, -30, -88, -119, 43, -68, 117, 23, 26, -53, 0, 0, 7, 0, 0, 0, 20, 72, 31, 0, 36, -59, 108, -109, -20, -36, 20, 17, 67, 112, 76, -111, -97, 53, -51, -125, -27, 0, 0, 0, 20, 100, 32, 10, 32, -64, -50, 0, -113, -102, 118, -19, 57, -57, -38, 36, -49, 122, 127, -59, -23, 12, 125, 28, -6, 18, 87, -45, -18, 62, 118, -127, -83, -104, -80, -20, -49, 53, -35, 44, -15, 10, -20, 21, 24, 17, 97, 67, -116, -1, 67, 58, 79, 55, -121, 126, 70, 9, -84, -69, -103, 42, 27, -103, -70, -84, 72, -23, -70, 45, 44, 97, -72, -116, 47, -124, -44, 0, 125, 76, -2, 47, 74, -126, 59, 90, 49, -52, -37, 75, 84, -120, -25, -111, -109, -96, 101, 77, -30, -28, -40, 118, -50, -40, 99, 93, -118, -123, 68, 81, 123, -70, 56, 95, 2, 84, -59, 57, -112, -20, -122, -91, -118, 58, -10, -57, 84, -23, -21, -16, 10, -59, 41, 41, 0};
         readFrom(new OtrInputStream(input));

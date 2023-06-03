@@ -43,6 +43,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.verifyEdDSAPublicKey;
 import static net.java.otr4j.io.MessageProcessor.encodeVersionString;
 import static net.java.otr4j.messages.Validators.validateAtMost;
 import static net.java.otr4j.messages.Validators.validateDateAfter;
+import static net.java.otr4j.messages.Validators.validateEquals;
 import static net.java.otr4j.messages.Validators.validateExactly;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.Iterables.findByType;
@@ -92,40 +93,35 @@ public final class ClientProfilePayload implements OtrEncodable {
      * @return Returns a Client Profile payload that can be serialized to an OTR-encoded data stream.
      */
     @Nonnull
-    public static ClientProfilePayload signClientProfile(final ClientProfile profile, final long expirationUnixTimeSeconds,
-            @Nullable final DSAKeyPair dsaKeyPair, final EdDSAKeyPair eddsaKeyPair) {
-        final ArrayList<Field> fields = new ArrayList<>();
-        fields.add(new InstanceTagField(profile.getInstanceTag().getValue()));
-        fields.add(new ED448PublicKeyField(profile.getLongTermPublicKey()));
-        fields.add(new ED448ForgingKeyField(profile.getForgingKey()));
-        fields.add(new VersionsField(new ArrayList<>(profile.getVersions())));
-        fields.add(new ExpirationDateField(expirationUnixTimeSeconds));
+    public static ClientProfilePayload signClientProfile(final ClientProfile profile,
+            final long expirationUnixTimeSeconds, @Nullable final DSAKeyPair dsaKeyPair,
+            final EdDSAKeyPair eddsaKeyPair) {
+        final ArrayList<Field> fields = new ArrayList<>(List.of(
+                new InstanceTagField(profile.getInstanceTag().getValue()),
+                new ED448PublicKeyField(profile.getLongTermPublicKey()),
+                new ED448ForgingKeyField(profile.getForgingKey()),
+                new VersionsField(new ArrayList<>(profile.getVersions())),
+                new ExpirationDateField(expirationUnixTimeSeconds)));
         final DSAPublicKey dsaPublicKey = profile.getDsaPublicKey();
         if (dsaPublicKey != null) {
-            if (dsaKeyPair == null) {
-                throw new IllegalArgumentException("DSA public key provided, but private key is not provided.");
-            }
             fields.add(new DSAPublicKeyField(dsaPublicKey));
         }
-        final OtrOutputStream out = new OtrOutputStream();
-        for (final Field field : fields) {
-            out.write(field);
-        }
-        final byte[] partialM = out.toByteArray();
-        final byte[] m;
-        if (dsaKeyPair == null) {
-            m = partialM;
-        } else {
-            final DSASignature transitionalSignature = dsaKeyPair.signRS(partialM);
+        final OtrOutputStream payload = new OtrOutputStream();
+        fields.forEach(payload::write);
+        if (dsaPublicKey != null) {
+            if (dsaKeyPair == null) {
+                throw new IllegalArgumentException("BUG: legacy (DSA) public key is present in profile, but DSA keypair is not available for signing.");
+            }
+            final DSASignature transitionalSignature = dsaKeyPair.signRS(payload.toByteArray());
             final TransitionalSignatureField transSigField = new TransitionalSignatureField(transitionalSignature);
             fields.add(transSigField);
-            out.write(transSigField);
-            m = out.toByteArray();
+            payload.write(transSigField);
         }
-        final byte[] signature = eddsaKeyPair.sign(m);
+        final byte[] signature = eddsaKeyPair.sign(payload.toByteArray());
         // We assume that the internally generated client profiles are correct, however it is tested when assertions are
         // enabled.
-        assert testValidate(fields, signature, Instant.now()) : "BUG: Internally constructed client profile payload fails validation. This should not happen.";
+        assert testValidate(fields, signature, Instant.now())
+                : "BUG: Internally constructed client profile payload fails validation. This should not happen.";
         return new ClientProfilePayload(fields, signature);
     }
 
@@ -359,24 +355,23 @@ public final class ClientProfilePayload implements OtrEncodable {
             throw new ValidationException("Expected at least OTR version 4 to be supported.");
         }
         validateExactly(1, expirationDateFields.size(), "Incorrect number of expiration date fields. Expected exactly 1.");
-        validateAtMost(1, dsaPublicKeyFields.size(), "Expected either no or single DSA public key field. Found more than one.");
-        if (dsaPublicKeyFields.size() == 1 && transitionalSignatureFields.isEmpty()) {
-            throw new ValidationException("DSA public key encountered without corresponding transitional signature.");
-        }
         validateDateAfter(now, Instant.ofEpochSecond(expirationDateFields.get(0).timestamp),
                 "Client Profile has expired.");
+        validateAtMost(1, dsaPublicKeyFields.size(), "Expected either no or single DSA public key field. Found more than one.");
         validateAtMost(1, transitionalSignatureFields.size(), "Expected at most one transitional signature, got more than one.");
+        validateEquals(dsaPublicKeyFields.size(), transitionalSignatureFields.size(),
+                "Legacy (DSA) public key should always be accompanied with transitional signature.");
         if (transitionalSignatureFields.size() == 1) {
-            if (dsaPublicKeyFields.size() == 1) {
-                // a DSA public key is available, hence we will validate the content with the transitional signature
-                try {
-                    final DSAPublicKey dsaPublicKey = dsaPublicKeyFields.get(0).publicKey;
-                    final DSASignature transitionalSignature = transitionalSignatureFields.get(0).signature;
-                    verifySignature(out.toByteArray(), dsaPublicKey, transitionalSignature.r, transitionalSignature.s);
-                } catch (final OtrCryptoException e) {
-                    throw new ValidationException("Failed transitional signature validation.", e);
-                }
+            // Verify the transitional signature with the legacy public key.
+            final DSAPublicKey dsaPublicKey = dsaPublicKeyFields.get(0).publicKey;
+            final DSASignature transitionalSignature = transitionalSignatureFields.get(0).signature;
+            try {
+                verifySignature(out.toByteArray(), dsaPublicKey, transitionalSignature.r, transitionalSignature.s);
+            } catch (final OtrCryptoException e) {
+                throw new ValidationException("Failed transitional signature validation.", e);
             }
+            // Perform the last remaining write, for transitional signature field, now that we have verified it correct.
+            // This is the last of the data, and the result can now be validated against the EdDSA signature.
             out.write(transitionalSignatureFields.get(0));
         }
         try {
