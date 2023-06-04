@@ -578,140 +578,136 @@ final class DoubleRatchet implements AutoCloseable {
             super(message);
         }
     }
-}
-
-/**
- * Ratchet, the individual ratchet used for either sending or receiving.
- */
-final class Ratchet implements AutoCloseable {
-
-    private static final int CHAIN_KEY_LENGTH_BYTES = 64;
-
-    static final Ratchet INITIAL = new Ratchet(new byte[CHAIN_KEY_LENGTH_BYTES]);
 
     /**
-     * The chain key.
-     * <p>
-     * The key relies on a first key rotation to become initialized.
+     * Ratchet, the individual ratchet used for either sending or receiving.
      */
-    private final byte[] chainKey;
+    private static final class Ratchet implements AutoCloseable {
 
-    /**
-     * Message ID.
-     */
-    private int messageID = 0;
+        private static final int CHAIN_KEY_LENGTH_BYTES = 64;
 
-    /**
-     * Create or rotate the ratchet key.
-     */
-    static Ratchet create(final byte[] concatPreviousRootKeyNewK) {
-        return new Ratchet(kdf(CHAIN_KEY_LENGTH_BYTES, CHAIN_KEY, concatPreviousRootKeyNewK));
-    }
-
-    Ratchet(final Ratchet original) {
-        this.chainKey = requireNonNull(original.chainKey.clone());
-        this.messageID = original.messageID;
-    }
-
-    private Ratchet(final byte[] chainKey) {
-        this.chainKey = requireLengthExactly(CHAIN_KEY_LENGTH_BYTES, chainKey);
-    }
-
-    int getMessageID() {
-        return this.messageID;
-    }
-
-    @Override
-    public void close() {
-        if (this == INITIAL) {
-            // TODO not happy with this construction. Ideally, INITIAL is its own immutable type, but I would like to avoid constructing a type-hierarchy.
-            assert allZeroBytes(this.chainKey) : "BUG: dummy value got corrupted.";
-            return;
-        }
-        this.messageID = MIN_VALUE;
-        clear(this.chainKey);
-    }
-
-    @Nonnull
-    Simula speculate() {
-        // NOTE: inviting trouble by calling this 'speculate'. Still seems to be the best suitable word to express a
-        // temporary projection into the future to acquire the message keys needed to authenticate and decrypt a
-        // message, such that we can confirm authenticity.
-        requireNotClosed();
-        requireNotEquals(INITIAL, this, "BUG: working with initial dummy for ratchet.");
-        return new Simula();
-    }
-
-    /**
-     * Acquire ratchet's chain key.
-     * <p>
-     * NOTE: caller needs to clear the return key after use.
-     *
-     * @return Returns chain key.
-     */
-    byte[] getChainKey() {
-        requireNotClosed();
-        requireNotEquals(INITIAL, this, "BUG: working with initial dummy for ratchet.");
-        return this.chainKey.clone();
-    }
-
-    /**
-     * Rotate the chain key.
-     * <p>
-     * Generate a new chain key based on the old chain key and increment the message ID.
-     */
-    void rotateChainKey() {
-        requireNotClosed();
-        requireNotEquals(INITIAL, this, "BUG: working with initial dummy for ratchet.");
-        this.messageID += 1;
-        kdf(this.chainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, this.chainKey);
-    }
-
-    private void requireNotClosed() {
-        if (this.messageID < 0) {
-            throw new IllegalStateException("Ratchet instance is already closed.");
-        }
-    }
-
-    /**
-     * Simula simulates a number of chain key rotations. This makes it possible to acquire the right authentication and
-     * decryption keys, resp. MK_MAC and MK_ENC, without changing the state yet.
-     */
-    final class Simula {
-
-        private Simula() {
-            // enforce private access to constructor
-        }
+        static final Ratchet INITIAL = new Ratchet(new byte[CHAIN_KEY_LENGTH_BYTES]);
 
         /**
-         * Rotate the chain key into the chain key for specified message ID.
+         * The chain key.
          * <p>
-         * Generate a new chain key based on the old chain key incremented to the message ID.
-         *
-         * @param targetMessageId fast-forward to the target message ID.
+         * The key relies on a first key rotation to become initialized.
          */
-        @Nonnull
-        byte[] rotateInto(final int targetMessageId) {
-            final byte[] localChainKey = Arrays.copyOf(Ratchet.this.chainKey, CHAIN_KEY_LENGTH_BYTES);
-            for (int i = Ratchet.this.messageID; i < targetMessageId; i++) {
-                kdf(localChainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, localChainKey);
+        private final byte[] chainKey;
+
+        /**
+         * Message ID.
+         */
+        private int messageID = 0;
+
+        /**
+         * Create or rotate the ratchet key.
+         */
+        static Ratchet create(final byte[] concatPreviousRootKeyNewK) {
+            return new Ratchet(kdf(CHAIN_KEY_LENGTH_BYTES, CHAIN_KEY, concatPreviousRootKeyNewK));
+        }
+
+        Ratchet(final Ratchet original) {
+            this.chainKey = requireNonNull(original.chainKey.clone());
+            this.messageID = original.messageID;
+        }
+
+        private Ratchet(final byte[] chainKey) {
+            this.chainKey = requireLengthExactly(CHAIN_KEY_LENGTH_BYTES, chainKey);
+        }
+
+        int getMessageID() {
+            return this.messageID;
+        }
+
+        @Override
+        public void close() {
+            if (this == INITIAL) {
+                // TODO not happy with this construction. Ideally, INITIAL is its own immutable type, but I would like to avoid constructing a type-hierarchy.
+                assert allZeroBytes(this.chainKey) : "BUG: dummy value got corrupted.";
+                return;
             }
-            return localChainKey;
+            this.messageID = MIN_VALUE;
+            clear(this.chainKey);
+        }
+
+        @Nonnull
+        Simula speculate() {
+            // NOTE: inviting trouble by calling this 'speculate'. Still seems to be the best suitable word to express a
+            // temporary projection into the future to acquire the message keys needed to authenticate and decrypt a
+            // message, such that we can confirm authenticity.
+            requireNotClosed();
+            requireNotEquals(INITIAL, this, "BUG: working with initial dummy for ratchet.");
+            return new Simula();
         }
 
         /**
-         * Generate and insert message keys into provided store from
+         * Acquire ratchet's chain key.
+         * <p>
+         * NOTE: caller needs to clear the return key after use.
          *
-         * @param store the skipped message keys store
-         * @param ratchetID the current ratchet's ID (`i`)
-         * @param messageID the receiver message ID (`k`)
+         * @return Returns chain key.
          */
-        @SuppressWarnings("MustBeClosedChecker")
-        void drainInto(final Map<Long, MessageKeys> store, final int ratchetID, final int messageID) {
-            final byte[] localChainKey = Arrays.copyOf(Ratchet.this.chainKey, CHAIN_KEY_LENGTH_BYTES);
-            for (int k = Ratchet.this.messageID; k < messageID; k++) {
-                store.put((long) ratchetID << 32 | k, MessageKeys.fromChainkey(localChainKey));
-                kdf(localChainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, localChainKey);
+        byte[] getChainKey() {
+            requireNotClosed();
+            requireNotEquals(INITIAL, this, "BUG: working with initial dummy for ratchet.");
+            return this.chainKey.clone();
+        }
+
+        /**
+         * Rotate the chain key.
+         * <p>
+         * Generate a new chain key based on the old chain key and increment the message ID.
+         */
+        void rotateChainKey() {
+            requireNotClosed();
+            requireNotEquals(INITIAL, this, "BUG: working with initial dummy for ratchet.");
+            this.messageID += 1;
+            kdf(this.chainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, this.chainKey);
+        }
+
+        private void requireNotClosed() {
+            if (this.messageID < 0) {
+                throw new IllegalStateException("Ratchet instance is already closed.");
+            }
+        }
+
+        /**
+         * Simula simulates a number of chain key rotations. This makes it possible to acquire the right authentication and
+         * decryption keys, resp. MK_MAC and MK_ENC, without changing the state yet.
+         */
+        private final class Simula {
+
+            /**
+             * Rotate the chain key into the chain key for specified message ID.
+             * <p>
+             * Generate a new chain key based on the old chain key incremented to the message ID.
+             *
+             * @param targetMessageId fast-forward to the target message ID.
+             */
+            @Nonnull
+            byte[] rotateInto(final int targetMessageId) {
+                final byte[] localChainKey = Arrays.copyOf(Ratchet.this.chainKey, CHAIN_KEY_LENGTH_BYTES);
+                for (int i = Ratchet.this.messageID; i < targetMessageId; i++) {
+                    kdf(localChainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, localChainKey);
+                }
+                return localChainKey;
+            }
+
+            /**
+             * Generate and insert message keys into provided store from
+             *
+             * @param store the skipped message keys store
+             * @param ratchetID the current ratchet's ID (`i`)
+             * @param messageID the receiver message ID (`k`)
+             */
+            @SuppressWarnings("MustBeClosedChecker")
+            void drainInto(final Map<Long, MessageKeys> store, final int ratchetID, final int messageID) {
+                final byte[] localChainKey = Arrays.copyOf(Ratchet.this.chainKey, CHAIN_KEY_LENGTH_BYTES);
+                for (int k = Ratchet.this.messageID; k < messageID; k++) {
+                    store.put((long) ratchetID << 32 | k, MessageKeys.fromChainkey(localChainKey));
+                    kdf(localChainKey, 0, CHAIN_KEY_LENGTH_BYTES, NEXT_CHAIN_KEY, localChainKey);
+                }
             }
         }
     }

@@ -9,6 +9,7 @@
 
 package net.java.otr4j.io;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.TLV;
@@ -162,7 +163,8 @@ public final class OtrInputStream {
             final byte[] b = readData();
             return new BigInteger(1, b);
         } catch (final UnsupportedLengthException e) {
-            throw new ProtocolException("Unexpectedly large MPI value encountered. This is most likely not according to specification.");
+            throw new ProtocolException("Unexpectedly large MPI value encountered. This is most likely not according to specification. (Problem: "
+                    + e.getMessage() + ")");
         }
     }
 
@@ -393,6 +395,7 @@ public final class OtrInputStream {
      * @throws UnsupportedLengthException In case a length of over 31 bits is received. This is not supported due to
      *                                    Java interpreting these values as negative by default.
      */
+    @CanIgnoreReturnValue
     private int checkDataLength(final int length) throws UnsupportedLengthException, ProtocolException {
         if (length < 0) {
             // 'length < 0' may reasonably happen because Java interprets 32-bit values as signed 31-bit values. otr4j

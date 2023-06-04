@@ -9,6 +9,7 @@
 
 package net.java.otr4j.crypto;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.generators.DHKeyPairGenerator;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
@@ -193,6 +194,7 @@ public final class DHKeyPairOTR3 {
      * @throws OtrCryptoException Throws exception in case of illegal D-H key
      * value.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public static DHPublicKey verifyDHPublicKey(final DHPublicKey dhPublicKey) throws OtrCryptoException {
         // Verifies that Alice's gy is a legal value (2 <= gy <= modulus-2)

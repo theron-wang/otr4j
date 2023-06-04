@@ -40,7 +40,8 @@ final class SMPMessages {
             try {
                 question = new String(in.readData(), UTF_8);
             } catch (final OtrInputStream.UnsupportedLengthException e) {
-                throw new ProtocolException("The question for SMP negotiation is too large. The message may have been damaged/malformed.");
+                throw new ProtocolException("The question for SMP negotiation is too large. The message may have been damaged/malformed. (Problem: "
+                        + e.getMessage() + ")");
             }
             final Point g2a = in.readPoint();
             final Scalar c2 = in.readScalar();

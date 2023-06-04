@@ -28,8 +28,8 @@ public final class Classes {
         for (final Class<?> c : classes) {
             try {
                 Class.forName(c.getName());
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException("Failed to initialize class " + c.getName());
+            } catch (final ClassNotFoundException e) {
+                throw new IllegalStateException("Failed to initialize class " + c.getName(), e);
             }
         }
     }

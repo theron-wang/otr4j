@@ -72,6 +72,7 @@ public final class MysteriousT4 {
      * @param receiverContactID          the receiver contact ID
      * @return Returns the byte-array representing the mysterious 'T' value based on provided arguments.
      */
+    @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
     @Nonnull
     public static byte[] encode(final Purpose purpose, final ClientProfilePayload profileAlice,
             final ClientProfilePayload profileBob, final Point x, final Point y, final BigInteger a, final BigInteger b,

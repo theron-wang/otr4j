@@ -94,28 +94,6 @@ final class Fragmenter {
     }
 
     /**
-     * Compute the number of fragments required.
-     *
-     * @param message      the original message
-     * @param fragmentSize size of fragments
-     * @return returns number of fragments required.
-     * @throws OtrException if fragment size is too small.
-     */
-    private int computeFragmentNumber(final int version, final String message, final int fragmentSize)
-            throws OtrException {
-        final int overhead = computeHeaderSize(version);
-        final int payloadSize = fragmentSize - overhead;
-        if (payloadSize <= 0) {
-            throw new OtrException("Fragment size too small for storing content.");
-        }
-        int messages = message.length() / payloadSize;
-        if (message.length() % payloadSize != 0) {
-            messages++;
-        }
-        return messages;
-    }
-
-    /**
      * Fragment the given message into pieces.
      * <p>
      * Note that the fragmenter will fragment any arbitrary piece of content into fragments. Users need to determine
@@ -190,8 +168,8 @@ final class Fragmenter {
      * @throws UnsupportedOperationException in case v1 is only allowed in policy
      */
     @Nonnull
-    private String createMessageFragment(final int version, final int id, final int sendertag, final int receivertag,
-            final int count, final int total, final String partialContent) {
+    private static String createMessageFragment(final int version, final int id, final int sendertag,
+            final int receivertag, final int count, final int total, final String partialContent) {
         switch (version) {
         case Version.TWO:
             return createV2MessageFragment(count, total, partialContent);
@@ -214,7 +192,7 @@ final class Fragmenter {
      * @return returns the full message fragment
      */
     @Nonnull
-    private String createV4MessageFragment(final int id, final int sendertag, final int receivertag, final int count,
+    private static String createV4MessageFragment(final int id, final int sendertag, final int receivertag, final int count,
             final int total, final String partialContent) {
         return String.format("?OTR|%08x|%08x|%08x,%05d,%05d,%s,", id, sendertag, receivertag, count + 1, total, partialContent);
     }
@@ -228,7 +206,7 @@ final class Fragmenter {
      * @return returns the full message fragment
      */
     @Nonnull
-    private String createV3MessageFragment(final int sendertag, final int receivertag, final int count, final int total,
+    private static String createV3MessageFragment(final int sendertag, final int receivertag, final int count, final int total,
             final String partialContent) {
         return String.format("?OTR|%08x|%08x,%05d,%05d,%s,", sendertag, receivertag, count + 1, total, partialContent);
     }
@@ -242,17 +220,25 @@ final class Fragmenter {
      * @return returns the full message fragment
      */
     @Nonnull
-    private String createV2MessageFragment(final int count, final int total, final String partialContent) {
+    private static String createV2MessageFragment(final int count, final int total, final String partialContent) {
         return String.format("?OTR,%d,%d,%s,", count + 1, total, partialContent);
     }
 
-    /**
-     * Compute size of fragmentation header size.
-     *
-     * @return returns size of fragment header
-     * @throws UnsupportedOperationException in case v1 is only allowed in policy
-     */
-    private int computeHeaderSize(final int version) {
+    private static int computeFragmentNumber(final int version, final String message, final int fragmentSize)
+            throws OtrException {
+        final int overhead = computeHeaderSize(version);
+        final int payloadSize = fragmentSize - overhead;
+        if (payloadSize <= 0) {
+            throw new OtrException("Fragment size too small for storing content.");
+        }
+        int messages = message.length() / payloadSize;
+        if (message.length() % payloadSize != 0) {
+            messages++;
+        }
+        return messages;
+    }
+
+    private static int computeHeaderSize(final int version) {
         switch (version) {
         case Version.TWO:
             return OTRV2_HEADER_SIZE;

@@ -59,7 +59,7 @@ abstract class AbstractAuthState implements AuthState {
     }
 
     @Nonnull
-    private DHCommitMessage initiateVersion3(final AuthContext context, final int version, final InstanceTag receiverTag) {
+    private static DHCommitMessage initiateVersion3(final AuthContext context, final int version, final InstanceTag receiverTag) {
         // OTR: "Choose a random value x (at least 320 bits)"
         final DHKeyPairOTR3 keypair = generateDHKeyPair(context.secureRandom());
         LOGGER.finest("Generated local D-H key pair.");
@@ -73,12 +73,11 @@ abstract class AbstractAuthState implements AuthState {
         }
         // OTR: "Serialize gx as an MPI, gxmpi. [gxmpi will probably be 196 bytes long, starting with "\x00\x00\x00\xc0".]"
         final byte[] publicKeyBytes = new OtrOutputStream().writeBigInt(localDHPublicKey.getY()).toByteArray();
-        // OTR: "Encrypt gxmpi using AES128-CTR, with key r and initial counter value 0. The result will be the same length as gxmpi."
-        final byte[] publicKeyEncrypted;
         // OTR: "Choose a random value r (128 bits)"
         final byte[] r = randomBytes(context.secureRandom(), new byte[OtrCryptoEngine.AES_KEY_LENGTH_BYTES]);
+        // OTR: "Encrypt gxmpi using AES128-CTR, with key r and initial counter value 0. The result will be the same length as gxmpi."
         // use initial counter of all zero-bytes.
-        publicKeyEncrypted = aesEncrypt(r, new byte[CTR_LENGTH_BYTES], publicKeyBytes);
+        final byte[] publicKeyEncrypted = aesEncrypt(r, new byte[CTR_LENGTH_BYTES], publicKeyBytes);
         // OTR: "This is the SHA256 hash of gxmpi."
         final byte[] publicKeyHash = sha256Hash(publicKeyBytes);
         // OTR: "Sends Alice AESr(gx), HASH(gx)"

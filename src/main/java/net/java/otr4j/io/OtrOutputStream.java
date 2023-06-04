@@ -9,6 +9,7 @@
 
 package net.java.otr4j.io;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.ed448.Point;
@@ -82,6 +83,7 @@ public final class OtrOutputStream {
      * @param encodable the encodable entity
      * @return Returns the output stream such that chaining method calls is possible.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream write(final OtrEncodable encodable) {
         encodable.writeTo(this);
@@ -100,6 +102,7 @@ public final class OtrOutputStream {
      * @param message the plain text message being sent
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeMessage(final String message) {
         if (message.isEmpty()) {
@@ -119,6 +122,7 @@ public final class OtrOutputStream {
      * @param tlvs TLV records
      * @return Returns OtrOutputStream instance such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeTLV(final Iterable<TLV> tlvs) {
         for (final TLV tlv : tlvs) {
@@ -140,6 +144,7 @@ public final class OtrOutputStream {
      * @param bi big integer value
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeBigInt(final BigInteger bi) {
         writeData(asUnsignedByteArray(bi));
@@ -152,6 +157,7 @@ public final class OtrOutputStream {
      * @param b the byte b
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeByte(final int b) {
         writeNumber(b, TYPE_LEN_BYTE);
@@ -164,6 +170,7 @@ public final class OtrOutputStream {
      * @param b the byte-array b
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeData(final byte[] b) {
         writeNumber(b.length, DATA_LEN);
@@ -179,6 +186,7 @@ public final class OtrOutputStream {
      * @param i the integer value
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeInt(final int i) {
         writeNumber(i, TYPE_LEN_INT);
@@ -191,6 +199,7 @@ public final class OtrOutputStream {
      * @param s the short value
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeShort(final int s) {
         writeNumber(s, TYPE_LEN_SHORT);
@@ -203,6 +212,7 @@ public final class OtrOutputStream {
      * @param value the long value
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeLong(final long value) {
         final byte[] b = new byte[TYPE_LEN_LONG];
@@ -220,6 +230,7 @@ public final class OtrOutputStream {
      * @param tag instance tag
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeInstanceTag(final InstanceTag tag) {
         writeInt(tag.getValue());
@@ -232,6 +243,7 @@ public final class OtrOutputStream {
      * @param mac the MAC
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeMac(final byte[] mac) {
         requireLengthExactly(TYPE_LEN_MAC, mac);
@@ -250,6 +262,7 @@ public final class OtrOutputStream {
      * @param ctr the counter value (only its first 8 bytes are relevant)
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeCtr(final byte[] ctr) {
         requireLengthAtLeast(TYPE_LEN_CTR, ctr);
@@ -264,6 +277,7 @@ public final class OtrOutputStream {
      * @param dhPublicKey the DH public key
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeDHPublicKey(final DHPublicKey dhPublicKey) {
         final byte[] data = asUnsignedByteArray(dhPublicKey.getY());
@@ -278,6 +292,7 @@ public final class OtrOutputStream {
      * @param pubKey the DSA public key
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writePublicKey(final DSAPublicKey pubKey) {
         writeShort(PUBLIC_KEY_TYPE_DSA);
@@ -295,6 +310,7 @@ public final class OtrOutputStream {
      * @param signature the signature
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeDSASignature(final byte[] signature) {
         requireLengthExactly(DSA_SIGNATURE_LENGTH_BYTES, signature);
@@ -309,6 +325,7 @@ public final class OtrOutputStream {
      * @param nonce The nonce.
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeNonce(final byte[] nonce) {
         requireLengthExactly(NONCE_LENGTH_BYTES, nonce);
@@ -323,6 +340,7 @@ public final class OtrOutputStream {
      * @param mac 64-byte MAC as used in OTRv4
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeMacOTR4(final byte[] mac) {
         requireLengthExactly(MAC_OTR4_LENGTH_BYTES, mac);
@@ -337,6 +355,7 @@ public final class OtrOutputStream {
      * @param p The Edwards point.
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writePoint(final Point p) {
         final byte[] data = p.encode();
@@ -350,6 +369,7 @@ public final class OtrOutputStream {
      * @param s the scalar value
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeScalar(final Scalar s) {
         final byte[] value = s.encode();
@@ -363,6 +383,7 @@ public final class OtrOutputStream {
      * @param signature A signature consisting of exactly 114 bytes is expected.
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeEdDSASignature(final byte[] signature) {
         requireLengthExactly(EDDSA_SIGNATURE_LENGTH_BYTES, signature);
@@ -377,6 +398,7 @@ public final class OtrOutputStream {
      * @param fingerprint the fingerprint of the public key
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeFingerprint(final byte[] fingerprint) {
         requireLengthExactly(FINGERPRINT_LENGTH_BYTES, fingerprint);
@@ -391,6 +413,7 @@ public final class OtrOutputStream {
      * @param ssid 8-byte SSID value
      * @return Returns this instance of OtrOutputStream such that method calls can be chained.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writeSSID(final byte[] ssid) {
         requireLengthExactly(SSID_LENGTH_BYTES, ssid);

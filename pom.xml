@@ -342,10 +342,8 @@
                                         <arg>-Xlint:all,-requires-automatic</arg>
                                         <arg>-Xdoclint:all/protected</arg>
                                         <arg>-XDcompilePolicy=simple</arg>
-                                        <!-- TODO update list of warns/errors for errorprone to include newer checks. -->
-                                        <!-- TODO Removed/changed checks: -Xep:LockMethodChecker:ERROR -Xep:DivZero:ERROR -Xep:UnlockMethod:ERROR -->
                                         <!-- FIXME disabled NotJavadoc due to false positive on module-info javadoc. Fixed but not yet released. (#3923) -->
-                                        <arg>-Xplugin:ErrorProne -Xep:NotJavadoc:OFF -Xep:InsecureCryptoUsage:ERROR -Xep:EmptyIf:ERROR -Xep:EqualsBrokenForNull:WARN -Xep:MissingDefault:WARN -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=net.java.otr4j</arg>
+                                        <arg>-Xplugin:ErrorProne -XepAllDisabledChecksAsWarnings -Xep:AvoidObjectArrays:OFF -Xep:InconsistentOverloads:OFF -Xep:Java7ApiChecker:OFF -Xep:Java8ApiChecker:OFF -Xep:AndroidJdkLibsChecker:OFF -Xep:Varifier:OFF -Xep:Var:OFF -Xep:NotJavadoc:OFF -Xep:InsecureCryptoUsage:ERROR -Xep:MultiVariableDeclaration:OFF -Xep:UnnecessaryDefaultInEnumSwitch:OFF -Xep:BooleanParameter:OFF -Xep:TooManyParameters:OFF -Xep:UnnecessaryFinal:OFF -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=net.java.otr4j</arg>
                                     </compilerArgs>
                                 </configuration>
                             </execution>

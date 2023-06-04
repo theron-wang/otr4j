@@ -10,7 +10,6 @@
 package net.java.otr4j.messages;
 
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrOutputStream;
@@ -25,6 +24,7 @@ import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 /**
  * MysteriousT represents the T_a composite as described in "Exchanging Data" section.
  */
+@SuppressWarnings("ClassNamedLikeTypeParameter")
 public final class MysteriousT implements OtrEncodable {
 
     /**
@@ -85,7 +85,7 @@ public final class MysteriousT implements OtrEncodable {
     public MysteriousT(final int protocolVersion, final InstanceTag senderInstanceTag,
             final InstanceTag receiverInstanceTag, final byte flags, final int senderKeyID, final int recipientKeyID,
             final DHPublicKey nextDH, final byte[] ctr, final byte[] encryptedMessage) {
-        if (protocolVersion < Session.Version.TWO || protocolVersion > Session.Version.THREE) {
+        if (protocolVersion < Version.TWO || protocolVersion > Version.THREE) {
             throw new IllegalArgumentException("Illegal protocol version specified.");
         }
         this.protocolVersion = protocolVersion;

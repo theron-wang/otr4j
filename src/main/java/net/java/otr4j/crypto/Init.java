@@ -15,8 +15,14 @@ import net.java.otr4j.util.Classes;
  * Init uses the static initializer to initialize the parts of cryptography that have run-time dependencies on algorithm
  * support in the Java Runtime Environment. This ensures that all required algorithms are available.
  */
+@SuppressWarnings("PMD.MissingStaticMethodInNonInstantiatableClass")
 public final class Init {
+
     static {
         Classes.initialize(OtrCryptoEngine.class, DHKeyPairOTR3.class, DSAKeyPair.class);
+    }
+
+    private Init() {
+        // No need to instantiate.
     }
 }

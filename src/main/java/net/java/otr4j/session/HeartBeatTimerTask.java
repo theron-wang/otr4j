@@ -68,7 +68,7 @@ final class HeartBeatTimerTask extends TimerTask {
         }
     }
 
-    private void sendHeartbeatOnIdleness(final long now, final SessionImpl session) {
+    private static void sendHeartbeatOnIdleness(final long now, final SessionImpl session) {
         try {
             if (now - session.getLastMessageSentTimestamp() > IDLENESS_THRESHOLD_NANOSECONDS) {
                 LOGGER.log(FINE, "Sending heartbeat for session " + session.getSessionID() + " (" + session.getSenderInstanceTag() + ")");

@@ -33,6 +33,7 @@ public interface Session {
     /**
      * Constants for OTR versions.
      */
+    @SuppressWarnings("InterfaceWithOnlyStatics")
     interface Version {
 
         /**
@@ -69,21 +70,22 @@ public interface Session {
     SessionID getSessionID();
 
     /**
+     * Get session status for specified session.
+     *
+     * @param tag Instance tag identifying session. In case of {@link InstanceTag#ZERO_TAG} queries session status for
+     * OTRv2 session.
+     * @return Returns current session status.
+     */
+    @Nonnull
+    SessionStatus getSessionStatus(InstanceTag tag);
+
+    /**
      * Get current outgoing session's status.
      *
      * @return Returns session status.
      */
     @Nonnull
     SessionStatus getSessionStatus();
-
-    /**
-     * Get current session status for a particular receiver instance.
-     *
-     * @param tag the receiver instance tag
-     * @return Returns session status.
-     */
-    @Nonnull
-    SessionStatus getSessionStatus(InstanceTag tag);
 
     /**
      * Get session policy.
@@ -129,16 +131,6 @@ public interface Session {
     /**
      * Get remote's long-term public key.
      *
-     * @return Returns long-term public key.
-     * @throws OtrException Thrown in case message state is not ENCRYPTED, hence
-     * no long-term public key is known.
-     */
-    @Nonnull
-    RemoteInfo getRemoteInfo() throws OtrException;
-
-    /**
-     * Get remote's long-term public key.
-     *
      * @param tag receiver instance tag
      * @return Returns long-term public key.
      * @throws OtrException Thrown in case message state is not ENCRYPTED, hence no long-term public key is
@@ -146,6 +138,16 @@ public interface Session {
      */
     @Nonnull
     RemoteInfo getRemoteInfo(InstanceTag tag) throws OtrException;
+
+    /**
+     * Get remote's long-term public key.
+     *
+     * @return Returns long-term public key.
+     * @throws OtrException Thrown in case message state is not ENCRYPTED, hence
+     * no long-term public key is known.
+     */
+    @Nonnull
+    RemoteInfo getRemoteInfo() throws OtrException;
 
     /**
      * Get list of session instances.

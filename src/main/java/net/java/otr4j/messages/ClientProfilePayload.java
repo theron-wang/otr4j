@@ -126,6 +126,21 @@ public final class ClientProfilePayload implements OtrEncodable {
     }
 
     /**
+     * Custom method to make {@link #validate()} suitable for assertions.
+     *
+     * @return true iff validated successfully
+     */
+    private static boolean testValidate(final List<Field> fields, final byte[] signature, final Instant now) {
+        try {
+            validate(fields, signature, now);
+            return true;
+        } catch (final ValidationException e) {
+            LOGGER.log(Level.SEVERE, "Failed validation.", e);
+            return false;
+        }
+    }
+
+    /**
      * Read Client Profile payload from OTR-encoded input stream.
      *
      * @param in The OTR-encoded input stream.
@@ -179,7 +194,8 @@ public final class ClientProfilePayload implements OtrEncodable {
                 try {
                     fields.add(new VersionsField(parseVersions(in.readData())));
                 } catch (final UnsupportedLengthException e) {
-                    throw new ProtocolException("Versions are not expected to be stored in an exceptionally large data field. This is not according to specification.");
+                    throw new ProtocolException("Versions are not expected to be stored in an exceptionally large data field. This is not according to specification. (Problem: "
+                            + e.getMessage() + ")");
                 }
                 break;
             case PROFILE_EXPIRATION:
@@ -253,40 +269,6 @@ public final class ClientProfilePayload implements OtrEncodable {
     public ClientProfile validate() throws ValidationException {
         validate(this.fields, this.signature, Instant.now());
         return reconstructClientProfile();
-    }
-
-    /**
-     * Reconstruct client profile from fields and signatures stored in the payload.
-     * <p>
-     * This method is expected to succeed always. Validation MUST be performed prior to calling this method to ensure
-     * that a valid composition of fields is available.
-     *
-     * @return Returns reconstructed client profile from fields and signatures stored inside the payload.
-     */
-    @Nonnull
-    private ClientProfile reconstructClientProfile() {
-        final InstanceTag instanceTag = new InstanceTag(findByType(this.fields, InstanceTagField.class).instanceTag);
-        final Point longTermPublicKey = findByType(this.fields, ED448PublicKeyField.class).publicKey;
-        final Point forgingKey = findByType(this.fields, ED448ForgingKeyField.class).publicKey;
-        final List<Integer> versions = findByType(this.fields, VersionsField.class).versions;
-        final DSAPublicKeyField dsaPublicKeyField = findByType(this.fields, DSAPublicKeyField.class, null);
-        return new ClientProfile(instanceTag, longTermPublicKey, forgingKey, versions,
-            dsaPublicKeyField == null ? null : dsaPublicKeyField.publicKey);
-    }
-
-    /**
-     * Custom method to make {@link #validate()} suitable for assertions.
-     *
-     * @return true iff validated successfully
-     */
-    private static boolean testValidate(final List<Field> fields, final byte[] signature, final Instant now) {
-        try {
-            validate(fields, signature, now);
-            return true;
-        } catch (final ValidationException e) {
-            LOGGER.log(Level.SEVERE, "Failed validation.", e);
-            return false;
-        }
     }
 
     /**
@@ -379,6 +361,25 @@ public final class ClientProfilePayload implements OtrEncodable {
         } catch (final net.java.otr4j.crypto.ed448.ValidationException e) {
             throw new ValidationException("Verification of EdDSA signature failed.", e);
         }
+    }
+
+    /**
+     * Reconstruct client profile from fields and signatures stored in the payload.
+     * <p>
+     * This method is expected to succeed always. Validation MUST be performed prior to calling this method to ensure
+     * that a valid composition of fields is available.
+     *
+     * @return Returns reconstructed client profile from fields and signatures stored inside the payload.
+     */
+    @Nonnull
+    private ClientProfile reconstructClientProfile() {
+        final InstanceTag instanceTag = new InstanceTag(findByType(this.fields, InstanceTagField.class).instanceTag);
+        final Point longTermPublicKey = findByType(this.fields, ED448PublicKeyField.class).publicKey;
+        final Point forgingKey = findByType(this.fields, ED448ForgingKeyField.class).publicKey;
+        final List<Integer> versions = findByType(this.fields, VersionsField.class).versions;
+        final DSAPublicKeyField dsaPublicKeyField = findByType(this.fields, DSAPublicKeyField.class, null);
+        return new ClientProfile(instanceTag, longTermPublicKey, forgingKey, versions,
+                dsaPublicKeyField == null ? null : dsaPublicKeyField.publicKey);
     }
 
     /**

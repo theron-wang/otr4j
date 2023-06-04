@@ -9,7 +9,6 @@
 
 package net.java.otr4j.session.ake;
 
-import net.java.otr4j.api.Session;
 import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.messages.AbstractEncodedMessage;
@@ -51,11 +50,20 @@ public final class StateInitial extends AbstractAuthState {
     @Nonnull
     @Override
     public Result handle(final AuthContext context, final AbstractEncodedMessage message) {
-        if (message.protocolVersion < Session.Version.TWO || message.protocolVersion > Version.THREE) {
+        if (message.protocolVersion < Version.TWO || message.protocolVersion > Version.THREE) {
             throw new IllegalArgumentException("unsupported protocol version");
         }
         if (message instanceof DHCommitMessage) {
-            return handleDHCommitMessage(context, (DHCommitMessage) message);
+            // OTR: "Reply with a D-H Key Message, and transition authstate to AUTHSTATE_AWAITING_REVEALSIG."
+            // OTR: "Choose a random value y (at least 320 bits), and calculate gy."
+            final DHKeyPairOTR3 keypair = generateDHKeyPair(context.secureRandom());
+            LOGGER.finest("Generated local D-H key pair.");
+            context.setAuthState(new StateAwaitingRevealSig(message.protocolVersion, keypair,
+                    ((DHCommitMessage) message).dhPublicKeyHash, ((DHCommitMessage) message).dhPublicKeyEncrypted));
+            LOGGER.finest("Sending D-H key message.");
+            // OTR: "Sends Bob gy"
+            return new Result(new DHKeyMessage(message.protocolVersion, keypair.getPublic(),
+                    context.getSenderInstanceTag(), context.getReceiverInstanceTag()), null);
         }
         // OTR: "Ignore the message."
         LOGGER.log(Level.INFO, "We only expect to receive a DH Commit message or its protocol version does not match expectations. Ignoring message with messagetype: {0}",
@@ -66,19 +74,5 @@ public final class StateInitial extends AbstractAuthState {
     @Override
     public int getVersion() {
         return 0;
-    }
-
-    @Nonnull
-    private Result handleDHCommitMessage(final AuthContext context, final DHCommitMessage message) {
-        // OTR: "Reply with a D-H Key Message, and transition authstate to AUTHSTATE_AWAITING_REVEALSIG."
-        // OTR: "Choose a random value y (at least 320 bits), and calculate gy."
-        final DHKeyPairOTR3 keypair = generateDHKeyPair(context.secureRandom());
-        LOGGER.finest("Generated local D-H key pair.");
-        context.setAuthState(new StateAwaitingRevealSig(message.protocolVersion, keypair, message.dhPublicKeyHash,
-                message.dhPublicKeyEncrypted));
-        LOGGER.finest("Sending D-H key message.");
-        // OTR: "Sends Bob gy"
-        return new Result(new DHKeyMessage(message.protocolVersion, keypair.getPublic(),
-                context.getSenderInstanceTag(), context.getReceiverInstanceTag()), null);
     }
 }

@@ -15,11 +15,10 @@ import net.java.otr4j.crypto.ed448.Point;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.security.interfaces.DSAPublicKey;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
-import static java.util.Collections.singleton;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.Collections.requireAbsent;
@@ -32,9 +31,9 @@ import static net.java.otr4j.util.Objects.requireNotEquals;
  */
 public final class ClientProfile {
 
-    private static final Collection<Integer> MANDATORY_VERSIONS = singleton(Version.FOUR);
+    private static final Set<Integer> MANDATORY_VERSIONS = Set.of(Version.FOUR);
 
-    private static final Collection<Integer> FORBIDDEN_VERSIONS = List.of(Version.ONE, Version.TWO);
+    private static final Set<Integer> FORBIDDEN_VERSIONS = Set.of(Version.ONE, Version.TWO);
 
     /**
      * Owner's instance tag.
@@ -86,8 +85,8 @@ public final class ClientProfile {
         this.instanceTag = requireNonNull(instanceTag);
         this.longTermPublicKey = requireNonNull(longTermPublicKey);
         this.forgingKey = requireNonNull(forgingKey);
-        this.versions = unmodifiableList(requireMinElements(1, requireElements(MANDATORY_VERSIONS,
-                requireAbsent(FORBIDDEN_VERSIONS, versions))));
+        this.versions = unmodifiableList(requireMinElements(1,
+                requireElements(MANDATORY_VERSIONS, requireAbsent(FORBIDDEN_VERSIONS, versions))));
         this.dsaPublicKey = dsaPublicKey;
     }
 

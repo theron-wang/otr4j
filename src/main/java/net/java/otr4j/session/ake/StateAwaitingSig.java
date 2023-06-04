@@ -103,7 +103,7 @@ final class StateAwaitingSig extends AbstractAuthState {
     }
 
     @Nonnull
-    private Result handleDHCommitMessage(final AuthContext context, final DHCommitMessage message) {
+    private static Result handleDHCommitMessage(final AuthContext context, final DHCommitMessage message) {
         // OTR: "Reply with a new D-H Key message, and transition authstate to AUTHSTATE_AWAITING_REVEALSIG."
         LOGGER.finest("Generating local D-H key pair.");
         // OTR: "Choose a random value y (at least 320 bits), and calculate gy."

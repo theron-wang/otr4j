@@ -450,16 +450,6 @@ final class SessionImpl implements Session, Context {
 
     @Override
     @Nonnull
-    public SessionStatus getSessionStatus() {
-        synchronized (this.masterSession) {
-            synchronized (this.outgoingSession.masterSession) {
-                return this.outgoingSession.sessionState.getStatus();
-            }
-        }
-    }
-
-    @Override
-    @Nonnull
     public SessionID getSessionID() {
         return this.sessionID;
     }
@@ -933,17 +923,6 @@ final class SessionImpl implements Session, Context {
     }
 
     @Override
-    @Nonnull
-    public RemoteInfo getRemoteInfo() throws IncorrectStateException {
-        synchronized (this.masterSession) {
-            if (this != this.outgoingSession) {
-                return this.outgoingSession.getRemoteInfo();
-            }
-            return this.sessionState.getRemoteInfo();
-        }
-    }
-
-    @Override
     public void addOtrEngineListener(final OtrEngineListener l) {
         synchronized (this.masterSession) {
             if (!this.listeners.contains(l)) {
@@ -1041,13 +1020,6 @@ final class SessionImpl implements Session, Context {
         }
     }
 
-    /**
-     * Get session status for specified session.
-     *
-     * @param tag Instance tag identifying session. In case of
-     *            {@link InstanceTag#ZERO_TAG} queries session status for OTRv2 session.
-     * @return Returns current session status.
-     */
     @Override
     @Nonnull
     public SessionStatus getSessionStatus(final InstanceTag tag) {
@@ -1060,6 +1032,16 @@ final class SessionImpl implements Session, Context {
                 throw new IllegalArgumentException("Unknown instance tag specified: " + tag.getValue());
             }
             return slave.getSessionStatus();
+        }
+    }
+
+    @Override
+    @Nonnull
+    public SessionStatus getSessionStatus() {
+        synchronized (this.masterSession) {
+            synchronized (this.outgoingSession.masterSession) {
+                return this.outgoingSession.sessionState.getStatus();
+            }
         }
     }
 
@@ -1084,6 +1066,17 @@ final class SessionImpl implements Session, Context {
                 throw new IllegalArgumentException("Unknown tag specified: " + tag.getValue());
             }
             return slave.getRemoteInfo();
+        }
+    }
+
+    @Override
+    @Nonnull
+    public RemoteInfo getRemoteInfo() throws IncorrectStateException {
+        synchronized (this.masterSession) {
+            if (this != this.outgoingSession) {
+                return this.outgoingSession.getRemoteInfo();
+            }
+            return this.sessionState.getRemoteInfo();
         }
     }
 

@@ -108,16 +108,16 @@ public final class MessageProcessor {
 
             if (contentType == HEAD_QUERY_V || contentType == HEAD_QUERY_Q) {
                 // Query tag found.
-                if (HEAD_QUERY_Q == contentType && (content.isEmpty() || content.charAt(0) != 'v')) {
+                if (contentType == HEAD_QUERY_Q && (content.isEmpty() || content.charAt(0) != 'v')) {
                     // OTR v1 ONLY query tags will be caught in this else clause and is unsupported.
                     return new QueryMessage(Collections.emptySet());
                 }
                 final String versionString;
-                if (HEAD_QUERY_Q == contentType && content.charAt(0) == 'v' && content.indexOf('?') > -1) {
+                if (contentType == HEAD_QUERY_Q && content.charAt(0) == 'v' && content.indexOf('?') > -1) {
                     // OTR v1 + ... query tag format. However, we do not actively support OTRv1 anymore. Therefore the
                     // logic only supports skipping over the OTRv1 tags in order to reach OTR v2 and v3 version tags.
                     versionString = content.substring(1, content.indexOf('?'));
-                } else if (HEAD_QUERY_V == contentType && content.indexOf('?') > -1) {
+                } else if (contentType == HEAD_QUERY_V && content.indexOf('?') > -1) {
                     // OTR v2+ query tag format.
                     versionString = content.substring(0, content.indexOf('?'));
                 } else {
@@ -134,7 +134,8 @@ public final class MessageProcessor {
                 try {
                     contentBytes = decode(content.substring(0, content.length() - 1).getBytes(US_ASCII));
                 } catch (final DecoderException e) {
-                    throw new ProtocolException("OTR encoded payload contains invalid characters. Cannot decode Base64-encoded content.");
+                    throw new ProtocolException("OTR encoded payload contains invalid characters. Cannot decode Base64-encoded content. (Problem: "
+                            + e.getMessage() + ")");
                 }
                 final OtrInputStream input = new OtrInputStream(contentBytes);
                 final int protocolVersion = input.readShort();

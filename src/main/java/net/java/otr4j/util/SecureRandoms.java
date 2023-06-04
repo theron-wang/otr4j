@@ -9,6 +9,8 @@
 
 package net.java.otr4j.util;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+
 import javax.annotation.Nonnull;
 import java.security.SecureRandom;
 
@@ -30,6 +32,7 @@ public final class SecureRandoms {
      *               data.
      * @return Returns 'dest' filled with random data.
      */
+    @CanIgnoreReturnValue
     @Nonnull
     public static byte[] randomBytes(final SecureRandom random, final byte[] dest) {
         random.nextBytes(dest);
