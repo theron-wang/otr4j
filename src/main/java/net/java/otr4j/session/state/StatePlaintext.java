@@ -9,6 +9,7 @@
 
 package net.java.otr4j.session.state;
 
+import net.java.otr4j.api.Event;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.RemoteInfo;
@@ -37,7 +38,7 @@ import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static net.java.otr4j.api.OfferStatus.REJECTED;
-import static net.java.otr4j.api.OtrEngineHosts.requireEncryptedMessage;
+import static net.java.otr4j.api.OtrEngineHosts.onEvent;
 import static net.java.otr4j.api.OtrPolicys.allowedVersions;
 import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
@@ -160,7 +161,8 @@ public final class StatePlaintext extends AbstractCommonState {
             }
             context.startSession();
             context.queueMessage(msgText);
-            requireEncryptedMessage(context.getHost(), context.getSessionID(), msgText);
+            onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+                    Event.ENCRYPTED_MESSAGES_REQUIRED, msgText);
             return null;
         }
         if (!otrPolicy.isSendWhitespaceTag() || context.getOfferStatus() == REJECTED) {

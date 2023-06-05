@@ -22,8 +22,7 @@ import javax.annotation.Nonnull;
  * @author George Politis
  * @author Danny van Heumen
  */
-// TODO consider distinguishing keypairs (and others) only by Account, instead of by SessionID. (see dependency on Client Profile)
-public interface OtrEngineHost extends SmpEngineHost {
+public interface OtrEngineHost {
 
     /**
      * Request host to inject a new message into the IM communication stream upon which the OTR session is built.
@@ -39,50 +38,6 @@ public interface OtrEngineHost extends SmpEngineHost {
     void injectMessage(SessionID sessionID, String msg);
 
     /**
-     * Warn the user that an encrypted message was received that could not be
-     * decrypted, most likely because it was encrypted to a different session,
-     * or an old session.
-     *
-     * @param sessionID The session ID
-     */
-    void unreadableMessageReceived(SessionID sessionID);
-
-    /**
-     * Display the message to the user, but warn him that the message was
-     * received decrypted.
-     *
-     * @param sessionID The session ID
-     * @param msg       the body of the received message that was not encrypted
-     */
-    void unencryptedMessageReceived(SessionID sessionID, String msg);
-
-    /**
-     * Ask Engine Host to show provided error message that was received over
-     * OTR.
-     *
-     * @param sessionID the session ID
-     * @param error     the error message
-     */
-    void showError(SessionID sessionID, String error);
-
-    /**
-     * Signal Engine Host that OTR secure session is finished.
-     *
-     * @param sessionID the session ID
-     * @param msgText   message text
-     */
-    void finishedSessionMessage(SessionID sessionID, String msgText);
-
-    /**
-     * Signal Engine Host that current policy dictates that a secure session is
-     * required for messages to be sent.
-     *
-     * @param sessionID the session ID
-     * @param msgText   the encryption required message
-     */
-    void requireEncryptedMessage(SessionID sessionID, String msgText);
-
-    /**
      * Request the current session policy for provided session ID.
      *
      * @param sessionID the session ID
@@ -93,18 +48,15 @@ public interface OtrEngineHost extends SmpEngineHost {
     /**
      * Get instructions for the necessary fragmentation operations.
      * <p>
-     * If no fragmentation is necessary, return {@link Integer#MAX_VALUE} to
-     * indicate the largest possible fragment size. Return any positive
-     * integer to specify a maximum fragment size and enable fragmentation
-     * using that boundary condition. If specified max fragment size is too
-     * small to fit at least the fragmentation overhead + some part of the
-     * message, fragmentation will fail with an IOException when
-     * fragmentation is attempted during message encryption.
+     * If no fragmentation is necessary, return {@link Integer#MAX_VALUE} to indicate the largest possible fragment
+     * size. Return any positive integer to specify a maximum fragment size and enable fragmentation using that boundary
+     * condition. If specified max fragment size is too small to fit at least the fragmentation overhead + some part of
+     * the message, fragmentation will fail with an IOException when fragmentation is attempted during message
+     * encryption.
      *
      * @param sessionID the session ID of the session
-     * @return Returns the maximum fragment size allowed. Or return the
-     * maximum value possible, {@link Integer#MAX_VALUE}, if fragmentation
-     * is not necessary.
+     * @return Returns the maximum fragment size allowed. Or return the maximum value possible,
+     * {@link Integer#MAX_VALUE}, if fragmentation is not necessary.
      */
     // FIXME consider renaming. 'Fragment' is an internal term, while any (chat) transport would use 'message'.
     int getMaxFragmentSize(SessionID sessionID);
@@ -198,11 +150,10 @@ public interface OtrEngineHost extends SmpEngineHost {
     String getReplyForUnreadableMessage(SessionID sessionID, String identifier);
 
     /**
-     * Return the localized message that explains to the recipient how to get an
-     * OTR-enabled client. This is sent as part of the initial OTR Query message
-     * that prompts the other side to set up an OTR session. If this returns
-     * {@code null} or {@code ""}, then otr4j will use the built-in default
-     * message specified in SerializationConstants#DEFAULT_FALLBACK_MESSAGE.
+     * Return the localized message that explains to the recipient how to get an OTR-enabled client. This is sent as
+     * part of the initial OTR Query message that prompts the other side to set up an OTR session. If this returns
+     * {@code null} or {@code ""}, then otr4j will use the built-in default message specified in
+     * SerializationConstants#DEFAULT_FALLBACK_MESSAGE.
      *
      * @param sessionID the session ID
      * @return String the localized message
@@ -210,33 +161,13 @@ public interface OtrEngineHost extends SmpEngineHost {
     String getFallbackMessage(SessionID sessionID);
 
     /**
-     * Signal the Engine Host that a message is received that is intended for
-     * another instance. The (local) user may have multiple OTR capable chat
-     * clients active on this account.
+     * onEvent is the common method to signal an event to the OTR Engine Host.
      *
      * @param sessionID the session ID
+     * @param receiver the receiver (remote participant) instance tag
+     * @param event the type of event
+     * @param payload the payload corresponding to the event
+     * @param <T> the parametric type used to provide type-safety between event and payload.
      */
-    void messageFromAnotherInstanceReceived(SessionID sessionID);
-
-    /**
-     * Signal the Engine Host that we have received a message that is intended
-     * for us, but is sent from another instance. Our chat buddy may be logged
-     * in at multiple locations.
-     *
-     * @param sessionID the session ID
-     */
-    void multipleInstancesDetected(SessionID sessionID);
-
-    /**
-     * Report on discovery of extra symmetric key in message.
-     *
-     * @param sessionID         The session ID
-     * @param message           The message that contained TLV 8. (The signal that
-     *                          indicates use of the Extra Symmetric Key)
-     * @param extraSymmetricKey The extra symmetric key itself. The key is
-     *                          calculated from the session key matching that of the message that
-     *                          contained TLV 8.
-     * @param tlvData           The data embedded in TLV 8.
-     */
-    void extraSymmetricKeyDiscovered(SessionID sessionID, String message, byte[] extraSymmetricKey, byte[] tlvData);
+    <T> void onEvent(SessionID sessionID, InstanceTag receiver, Event<T> event, T payload);
 }

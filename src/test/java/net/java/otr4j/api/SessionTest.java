@@ -29,7 +29,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
@@ -1676,31 +1675,6 @@ public class SessionTest {
         }
 
         @Override
-        public void unreadableMessageReceived(final SessionID sessionID) {
-            logger.finest("Unreadable message received. (Session: " + sessionID + ")");
-        }
-
-        @Override
-        public void unencryptedMessageReceived(final SessionID sessionID, final String msg) {
-            logger.finest("Message received unencrypted: " + msg + " (Session: " + sessionID + ")");
-        }
-
-        @Override
-        public void showError(final SessionID sessionID, final String error) {
-            logger.finest("OTR received an error: " + error + " (Session: " + sessionID + ")");
-        }
-
-        @Override
-        public void finishedSessionMessage(final SessionID sessionID, final String msgText) {
-            logger.finest("Encrypted session finished. (Session: " + sessionID + ")");
-        }
-
-        @Override
-        public void requireEncryptedMessage(final SessionID sessionID, final String msgText) {
-            logger.finest("Encrypted message is required. (Session: " + sessionID + "). Sent in plain text: " + msgText);
-        }
-
-        @Override
         public OtrPolicy getSessionPolicy(final SessionID sessionID) {
             return this.policy;
         }
@@ -1728,31 +1702,15 @@ public class SessionTest {
             return this.forgingKeyPair;
         }
 
+        @Nonnull
         @Override
-        public void askForSecret(final SessionID sessionID, final InstanceTag receiverTag, @Nullable final String question) {
-            logger.finest("A request for the secret was received. (Question: " + question + ") [NOT IMPLEMENTED, LOGGING ONLY]");
+        public byte[] restoreClientProfilePayload() {
+            return new byte[0];
         }
 
         @Override
-        public void smpError(final SessionID sessionID, final int tlvType, final boolean cheated) {
-            logger.finest("SMP process resulted in error. (TLV type: " + tlvType + ", cheated: " + cheated + ", session: " + sessionID + ")");
-        }
-
-        @Override
-        public void smpAborted(final SessionID sessionID) {
-            logger.finest("SMP process is aborted. (Session: " + sessionID + ")");
-        }
-
-        @Override
-        public void verify(final SessionID sessionID, final String fingerprint) {
-            logger.finest("Verifying fingerprint " + fingerprint + " (Session: " + sessionID + ")");
-            this.verified.add(fingerprint);
-        }
-
-        @Override
-        public void unverify(final SessionID sessionID, final String fingerprint) {
-            logger.finest("Invalidating fingerprint " + fingerprint + " (Session: " + sessionID + ")");
-            this.verified.remove(fingerprint);
+        public void updateClientProfilePayload(final byte[] payload) {
+            // No need to do anything as we don't publish in this test dummy.
         }
 
         @Override
@@ -1766,30 +1724,49 @@ public class SessionTest {
         }
 
         @Override
-        public void messageFromAnotherInstanceReceived(final SessionID sessionID) {
-            logger.finest("Message from another instance received. (Session: " + sessionID + ")");
-        }
-
-        @Override
-        public void multipleInstancesDetected(final SessionID sessionID) {
-            logger.finest("Multiple instances detected. (Session: " + sessionID + ")");
-        }
-
-        @Override
-        public void extraSymmetricKeyDiscovered(final SessionID sessionID, final String message,
-                final byte[] extraSymmetricKey, final byte[] tlvData) {
-            logger.finest("Extra symmetric key TLV discovered in encoded message. (Session: " + sessionID + ")");
-        }
-
-        @Nonnull
-        @Override
-        public byte[] restoreClientProfilePayload() {
-            return new byte[0];
-        }
-
-        @Override
-        public void updateClientProfilePayload(final byte[] payload) {
-            // No need to do anything as we don't publish in this test dummy.
+        public <T> void onEvent(final SessionID sessionID, final InstanceTag receiver,
+                final Event<T> event, final T payload) {
+            if (event == Event.ENCRYPTED_MESSAGES_REQUIRED) {
+                final String msg = Event.ENCRYPTED_MESSAGES_REQUIRED.convert(payload);
+                logger.log(FINEST, "Encrypted session is required by policy for {0}). (message: {1})",
+                        new Object[]{sessionID, msg});
+            } else if (event == Event.UNREADABLE_MESSAGE_RECEIVED) {
+                logger.log(FINEST, "Unreadable message received. (Session: {0})", new Object[]{sessionID});
+            } else if (event == Event.UNENCRYPTED_MESSAGE_RECEIVED) {
+                final String msg = Event.UNENCRYPTED_MESSAGE_RECEIVED.convert(payload);
+                logger.log(FINEST, "Message received unencrypted: {1} (Session: {0})", new Object[]{sessionID, msg});
+            } else if (event == Event.ERROR) {
+                final String error = Event.ERROR.convert(payload);
+                logger.log(FINEST, "Error for session: {0}: {1}", new Object[]{sessionID, error});
+            } else if (event == Event.SESSION_FINISHED) {
+                logger.log(FINEST, "Encrypted session finished for {1}. (Session: {0})",
+                        new Object[]{sessionID, receiver});
+            } else if (event == Event.MULTIPLE_INSTANCES_DETECTED) {
+                logger.log(FINEST, "Multiple instances detected. (Session: {0})", new Object[]{sessionID});
+            } else if (event == Event.EXTRA_SYMMETRIC_KEY_DISCOVERED) {
+                // FIXME take payload
+                logger.log(FINEST, "Extra symmetric key TLV discovered in encoded message. (Session: {0})",
+                        new Object[]{sessionID});
+            } else if (event == Event.MESSAGE_FOR_ANOTHER_INSTANCE_RECEIVED) {
+                logger.log(FINEST, "Message from another instance received: {1} (Session: {0})",
+                        new Object[]{sessionID, receiver});
+            } else if (event == Event.SMP_ABORTED) {
+                logger.log(FINEST, "SMP process is aborted for {1}. (Session: {0})",
+                        new Object[]{sessionID, receiver});
+            } else if (event == Event.SMP_SUCCEEDED) {
+                final String fingerprint = Event.SMP_SUCCEEDED.convert(payload);
+                logger.finest("Verifying fingerprint " + fingerprint + " (Session: " + sessionID + ")");
+                this.verified.add(fingerprint);
+            } else if (event == Event.SMP_FAILED) {
+                final String fingerprint = Event.SMP_SUCCEEDED.convert(payload);
+                logger.finest("Invalidating fingerprint " + fingerprint + " (Session: " + sessionID + ")");
+                this.verified.remove(fingerprint);
+            } else if (event == Event.SMP_REQUEST_SECRET) {
+                final String question = Event.SMP_REQUEST_SECRET.convert(payload);
+                logger.log(FINEST, "A request for the secret was received. (Question: " + question + ") [NOT IMPLEMENTED, LOGGING ONLY]");
+            } else {
+                throw new UnsupportedOperationException("BUG: received unknown EventType:  " + event.getClass().getName());
+            }
         }
     }
 }

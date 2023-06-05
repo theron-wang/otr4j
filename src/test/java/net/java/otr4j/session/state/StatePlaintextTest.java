@@ -10,6 +10,7 @@
 package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.ClientProfileTestUtils;
+import net.java.otr4j.api.Event;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
@@ -29,6 +30,7 @@ import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.session.ake.StateInitial;
+import net.java.otr4j.util.Unit;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -224,6 +226,7 @@ public class StatePlaintextTest {
         when(context.getHost()).thenReturn(host);
         final SessionID sessionID = new SessionID("alice", "bob", "network");
         when(context.getSessionID()).thenReturn(sessionID);
+        when(context.getReceiverInstanceTag()).thenReturn(SMALLEST_TAG);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
         final DHKeyPairOTR3 keypair = DHKeyPairOTR3.generateDHKeyPair(RANDOM);
@@ -231,7 +234,7 @@ public class StatePlaintextTest {
         final DataMessage message = new DataMessage(THREE, (byte) 0, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
         assertNull(state.handleDataMessage(context, message).content);
-        verify(host).unreadableMessageReceived(eq(sessionID));
+        verify(host).onEvent(eq(sessionID), eq(SMALLEST_TAG), eq(Event.UNREADABLE_MESSAGE_RECEIVED), eq(Unit.UNIT));
         verify(context).injectMessage(isA(ErrorMessage.class));
     }
 
@@ -249,7 +252,7 @@ public class StatePlaintextTest {
         final DataMessage message = new DataMessage(THREE, FLAG_IGNORE_UNREADABLE, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
         assertNull(state.handleDataMessage(context, message).content);
-        verify(host, never()).unreadableMessageReceived(eq(sessionID));
+        verify(host, never()).onEvent(eq(sessionID), eq(SMALLEST_TAG), eq(Event.UNREADABLE_MESSAGE_RECEIVED), eq(Unit.UNIT));
         verify(context, never()).injectMessage(isA(ErrorMessage.class));
     }
 
@@ -287,6 +290,7 @@ public class StatePlaintextTest {
         when(context.getHost()).thenReturn(host);
         final SessionID sessionID = new SessionID("alice", "bob", "network");
         when(context.getSessionID()).thenReturn(sessionID);
+        when(context.getReceiverInstanceTag()).thenReturn(SMALLEST_TAG);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
         final StatePlaintext state = new StatePlaintext(StateInitial.instance());
@@ -295,7 +299,7 @@ public class StatePlaintextTest {
         final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
                 ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
         assertNull(state.handleDataMessage(context, message).content);
-        verify(host).unreadableMessageReceived(eq(sessionID));
+        verify(host).onEvent(eq(sessionID), eq(SMALLEST_TAG), eq(Event.UNREADABLE_MESSAGE_RECEIVED), eq(Unit.UNIT));
         verify(context).injectMessage(isA(ErrorMessage.class));
     }
 
@@ -315,7 +319,7 @@ public class StatePlaintextTest {
         final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, FLAG_IGNORE_UNREADABLE, 0, 0, 0,
                 ecdh.publicKey(), dh.publicKey(), new byte[80], new byte[64], new byte[0]);
         assertNull(state.handleDataMessage(context, message).content);
-        verify(host, never()).unreadableMessageReceived(eq(sessionID));
+        verify(host, never()).onEvent(eq(sessionID), eq(SMALLEST_TAG), eq(Event.UNREADABLE_MESSAGE_RECEIVED), eq(Unit.UNIT));
         verify(context, never()).injectMessage(isA(ErrorMessage.class));
     }
 

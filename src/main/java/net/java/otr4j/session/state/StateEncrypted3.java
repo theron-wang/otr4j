@@ -9,6 +9,8 @@
 
 package net.java.otr4j.session.state;
 
+import net.java.otr4j.api.Event;
+import net.java.otr4j.api.EventExtraSymmetricKey;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.RemoteInfo;
@@ -33,6 +35,7 @@ import net.java.otr4j.session.ake.SecurityParameters;
 import net.java.otr4j.session.smp.SMException;
 import net.java.otr4j.session.smp.SmpTlvHandler;
 import net.java.otr4j.session.state.SessionKeyManager.SessionKeyUnavailableException;
+import net.java.otr4j.util.ByteArrays;
 
 import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
@@ -46,13 +49,13 @@ import static java.util.Collections.singletonList;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
-import static net.java.otr4j.api.OtrEngineHosts.extraSymmetricKeyDiscovered;
-import static net.java.otr4j.api.OtrEngineHosts.showError;
-import static net.java.otr4j.api.OtrEngineHosts.unencryptedMessageReceived;
+import static java.util.logging.Level.WARNING;
+import static net.java.otr4j.api.OtrEngineHosts.onEvent;
 import static net.java.otr4j.api.OtrPolicys.allowedVersions;
 import static net.java.otr4j.crypto.OtrCryptoEngine.aesDecrypt;
 import static net.java.otr4j.crypto.OtrCryptoEngine.aesEncrypt;
 import static net.java.otr4j.crypto.OtrCryptoEngine.sha1Hmac;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES;
 import static net.java.otr4j.io.EncryptedMessage.extractContents;
 import static net.java.otr4j.io.ErrorMessage.ERROR_1_MESSAGE_UNREADABLE_MESSAGE;
 import static net.java.otr4j.io.OtrEncodables.encode;
@@ -134,7 +137,8 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     @Override
     public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
-        unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
+        onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+                Event.UNENCRYPTED_MESSAGE_RECEIVED, message.getCleanText());
         // TODO what does this mean exactly: we have received a plaintext message under an ENCRYPTED context.
         return new Result(STATUS, false, false, message.getCleanText());
     }
@@ -230,7 +234,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
             dmc = aesDecrypt(matchingKeys.receivingAESKey(), lengthenedReceivingCtr, message.encryptedMessage);
         } catch (final SessionKey.ReceivingCounterValidationFailed ex) {
             this.logger.log(Level.WARNING, "Receiving ctr value failed validation, ignoring message: {0}", ex.getMessage());
-            showError(context.getHost(), context.getSessionID(), "Counter value of received message failed validation.");
+            // FIXME should we inject an ErrorMessage because of this? Seems better to just ignore.
             context.injectMessage(new ErrorMessage("", "Message's counter value failed validation."));
             return new Result(STATUS, true, false, null);
         }
@@ -271,8 +275,17 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
                 context.transition(this, new StateFinished(getAuthState()));
                 break;
             case USE_EXTRA_SYMMETRIC_KEY:
+                if (tlv.value.length < EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES) {
+                    throw new ProtocolException("OTR protocol specification requires at least 4 bytes, indicating the purpose for the extra symmetric key.");
+                }
                 final byte[] key = matchingKeys.extraSymmetricKey();
-                extraSymmetricKeyDiscovered(context.getHost(), context.getSessionID(), content.message, key, tlv.value);
+                if (constantTimeEquals(key, tlv.value)) {
+                    this.logger.log(WARNING, "Other party sent Extra Symmetric Key in the TLV payload. This is incorrect use of the Extra Symmetric Key and exposes a secret value unnecessarily.");
+                }
+                final byte[] eskContext = ByteArrays.cloneRange(tlv.value, 0, 4);
+                final byte[] eskValue = ByteArrays.cloneRange(tlv.value, 4, tlv.value.length - 4);
+                onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+                        Event.EXTRA_SYMMETRIC_KEY_DISCOVERED, new EventExtraSymmetricKey(key, eskContext, eskValue));
                 break;
             default:
                 this.logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);

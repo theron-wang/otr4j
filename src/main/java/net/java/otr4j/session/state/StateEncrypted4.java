@@ -10,12 +10,16 @@
 package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.ClientProfile;
+import net.java.otr4j.api.Event;
+import net.java.otr4j.api.EventExtraSymmetricKey;
+import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
+import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.io.EncodedMessage;
@@ -30,6 +34,7 @@ import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.smpv4.SMP;
 import net.java.otr4j.session.state.DoubleRatchet.RotationLimitationException;
+import net.java.otr4j.util.ByteArrays;
 
 import javax.annotation.Nonnull;
 import java.math.BigInteger;
@@ -43,10 +48,10 @@ import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
-import static net.java.otr4j.api.OtrEngineHosts.extraSymmetricKeyDiscovered;
-import static net.java.otr4j.api.OtrEngineHosts.unencryptedMessageReceived;
+import static net.java.otr4j.api.OtrEngineHosts.onEvent;
 import static net.java.otr4j.api.TLV.DISCONNECTED;
 import static net.java.otr4j.api.TLV.PADDING;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES;
 import static net.java.otr4j.io.EncryptedMessage.extractContents;
 import static net.java.otr4j.io.ErrorMessage.ERROR_1_MESSAGE_UNREADABLE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_UNREADABLE_MESSAGE;
@@ -70,8 +75,6 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
      * Note that in OTRv4 the TLV type for the extra symmetric key is 0x7.
      */
     private static final int EXTRA_SYMMETRIC_KEY = 0x7;
-
-    private static final int EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES = 4;
 
     @SuppressWarnings("PMD.LoggerIsNotStaticFinal")
     private final Logger logger;
@@ -101,8 +104,9 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Override
     public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
-        unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
-        // TODO what does this mean, if we receive a plaintext message under an ENCRYPTED context?
+        onEvent(context.getHost(), context.getSessionID(), InstanceTag.ZERO_TAG, Event.UNENCRYPTED_MESSAGE_RECEIVED,
+                message.getCleanText());
+        // TODO what does this mean, if we receive a plaintext message under an ENCRYPTED context? (One option is if OTRv2 ZERO-tag instance is encrypted session)
         return new Result(STATUS, false, false, message.getCleanText());
     }
 
@@ -291,7 +295,8 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         this.ratchet.confirmReceivingChainKey(message.i, message.j);
         // Process decrypted message contents. Extract and process TLVs. Possibly reply, e.g. SMP, disconnect.
         final Content content = extractContents(decrypted);
-        for (final TLV tlv : content.tlvs) {
+        for (int i = 0; i < content.tlvs.size(); i++) {
+            final TLV tlv = content.tlvs.get(i);
             this.logger.log(FINE, "Received TLV type {0}", tlv.type);
             if (smpPayload(tlv)) {
                 if ((message.flags & FLAG_IGNORE_UNREADABLE) != FLAG_IGNORE_UNREADABLE) {
@@ -326,11 +331,18 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 context.transition(this, new StateFinished(getAuthState()));
                 break;
             case EXTRA_SYMMETRIC_KEY:
+                final byte[] eskContext;
+                final byte[] eskValue;
                 if (tlv.value.length < EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES) {
-                    throw new OtrException("TLV value should contain at least 4 bytes of context identifier.");
+                    eskContext = new byte[4];
+                    eskValue = new byte[0];
+                } else {
+                    eskContext = ByteArrays.cloneRange(tlv.value, 0, 4);
+                    eskValue = ByteArrays.cloneRange(tlv.value, 4, tlv.value.length - 4);
                 }
-                extraSymmetricKeyDiscovered(context.getHost(), context.getSessionID(), content.message,
-                        extraSymmetricKey.clone(), tlv.value);
+                final byte[] symmkey = OtrCryptoEngine4.deriveExtraSymmetricKey((byte) i, eskContext, extraSymmetricKey);
+                onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+                        Event.EXTRA_SYMMETRIC_KEY_DISCOVERED, new EventExtraSymmetricKey(symmkey, eskContext, eskValue));
                 break;
             default:
                 this.logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);

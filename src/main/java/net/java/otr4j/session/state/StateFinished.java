@@ -9,6 +9,7 @@
 
 package net.java.otr4j.session.state;
 
+import net.java.otr4j.api.Event;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.Session;
@@ -24,6 +25,7 @@ import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.api.SMPHandler;
+import net.java.otr4j.util.Unit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,8 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.logging.Level.INFO;
-import static net.java.otr4j.api.OtrEngineHosts.finishedSessionMessage;
-import static net.java.otr4j.api.OtrEngineHosts.unencryptedMessageReceived;
+import static net.java.otr4j.api.OtrEngineHosts.onEvent;
 import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 
@@ -86,7 +87,8 @@ final class StateFinished extends AbstractCommonState {
     @Nonnull
     public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
-        unencryptedMessageReceived(context.getHost(), context.getSessionID(), message.getCleanText());
+        onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+                Event.UNENCRYPTED_MESSAGE_RECEIVED, message.getCleanText());
         return new Result(STATUS, false, false, message.getCleanText());
     }
 
@@ -143,7 +145,8 @@ final class StateFinished extends AbstractCommonState {
     public Message transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
             final byte flags) {
         context.queueMessage(msgText);
-        finishedSessionMessage(context.getHost(), context.getSessionID(), msgText);
+        onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(), Event.SESSION_FINISHED,
+                Unit.UNIT);
         return null;
     }
 

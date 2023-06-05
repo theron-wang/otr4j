@@ -117,7 +117,7 @@ public final class OtrCryptoEngine4 {
     /**
      * Length of the context prefix in the Extra Symmetric Key TLV payload in bytes.
      */
-    private static final int EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES = 4;
+    public static final int EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES = 4;
 
     /**
      * KDF Usage IDs.

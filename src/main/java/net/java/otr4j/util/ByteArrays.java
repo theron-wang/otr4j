@@ -239,4 +239,20 @@ public final class ByteArrays {
     public static void clear(final byte[] data) {
         Arrays.fill(data, (byte) 0);
     }
+
+    /**
+     * Clone a range from an existing byte-array into a newly constructed byte-array.
+     *
+     * @param src the source
+     * @param offset the offset from 0 as starting position
+     * @param length the length of the range to clone
+     * @return Returns a newly created byte-array with range copied into it.
+     */
+    // FIXME need testing.
+    public static byte[] cloneRange(final byte[] src, final int offset, final int length) {
+        final byte[] dst = new byte[length];
+        // FIXME put in more parameter checking to catch input errors.
+        System.arraycopy(src, offset, dst, 0, length);
+        return dst;
+    }
 }

@@ -147,7 +147,7 @@ final class SM implements AutoCloseable {
     /**
      * Abort the current SM exchange. This resets the state machine to the
      * default/initial state.
-     *
+     * <p>
      * In case the abort is initiated by the local user, it may be necessary to
      * send a type 6 TLV to the counterparty as to inform them of the decision.
      * This is outside the scope of responsibility of the state machine.

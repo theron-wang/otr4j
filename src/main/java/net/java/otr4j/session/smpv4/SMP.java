@@ -9,9 +9,11 @@
 
 package net.java.otr4j.session.smpv4;
 
+import net.java.otr4j.api.Event;
+import net.java.otr4j.api.EventAbortReason;
 import net.java.otr4j.api.InstanceTag;
+import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.SessionID;
-import net.java.otr4j.api.SmpEngineHost;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
@@ -28,10 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
-import static net.java.otr4j.api.SmpEngineHosts.askForSecret;
-import static net.java.otr4j.api.SmpEngineHosts.smpAborted;
-import static net.java.otr4j.api.SmpEngineHosts.unverify;
-import static net.java.otr4j.api.SmpEngineHosts.verify;
+import static net.java.otr4j.api.OtrEngineHosts.onEvent;
 import static net.java.otr4j.api.TLV.EMPTY_BODY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.SMP_SECRET;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.fingerprint;
@@ -64,7 +63,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
 
     private final SecureRandom random;
 
-    private final SmpEngineHost host;
+    private final OtrEngineHost host;
 
     private final byte[] ssid;
 
@@ -95,7 +94,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
      * @param theirForgingKey        the remote party's forging key
      * @param receiverTag            receiver tag this SMP instance belongs to
      */
-    public SMP(final SecureRandom random, final SmpEngineHost host, final SessionID sessionID, final byte[] ssid,
+    public SMP(final SecureRandom random, final OtrEngineHost host, final SessionID sessionID, final byte[] ssid,
             final Point ourLongTermPublicKey, final Point ourForgingKey, final Point theirLongTermPublicKey,
             final Point theirForgingKey, final InstanceTag receiverTag) {
         this.random = requireNonNull(random);
@@ -134,7 +133,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
 
     @Override
     public void requestSecret(final String question) {
-        askForSecret(this.host, this.sessionID, this.receiverTag, question);
+        onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_REQUEST_SECRET, question);
     }
 
     /**
@@ -210,14 +209,14 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
             response = this.state.process(this, parse(tlv));
         } catch (final SMPAbortException e) {
             setState(new StateExpect1(this.random, UNDECIDED));
-            smpAborted(this.host, this.sessionID);
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, EventAbortReason.INTERRUPTION);
             return new TLV(SMP_ABORT, EMPTY_BODY);
         }
         final byte[] theirFingerprint = fingerprint(this.theirLongTermPublicKey, this.theirForgingKey);
         if (this.state.getStatus() == SUCCEEDED) {
-            verify(this.host, this.sessionID, toHexString(theirFingerprint));
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_SUCCEEDED, toHexString(theirFingerprint));
         } else if (this.state.getStatus() == FAILED) {
-            unverify(this.host, this.sessionID, toHexString(theirFingerprint));
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_FAILED, toHexString(theirFingerprint));
         }
         if (response == null) {
             return null;
@@ -232,13 +231,13 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
     }
 
     /**
-     * Abort an in-progress SMP negotiation.
+     * Abort an in-progress SMP.
      */
     @Nonnull
     @Override
     public TLV abort() {
         setState(new StateExpect1(this.random, UNDECIDED));
-        smpAborted(this.host, this.sessionID);
+        onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, EventAbortReason.USER);
         return new TLV(SMP_ABORT, EMPTY_BODY);
     }
 

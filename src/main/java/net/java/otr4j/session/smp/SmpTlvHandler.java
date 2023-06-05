@@ -10,10 +10,12 @@
 package net.java.otr4j.session.smp;
 
 import com.google.errorprone.annotations.CheckReturnValue;
+import net.java.otr4j.api.Event;
+import net.java.otr4j.api.EventAbortReason;
 import net.java.otr4j.api.InstanceTag;
+import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.SessionID;
-import net.java.otr4j.api.SmpEngineHost;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.session.api.SMPHandler;
@@ -25,13 +27,8 @@ import java.security.SecureRandom;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
-import static net.java.otr4j.api.SmpEngineHosts.askForSecret;
-import static net.java.otr4j.api.SmpEngineHosts.smpAborted;
-import static net.java.otr4j.api.SmpEngineHosts.smpError;
-import static net.java.otr4j.api.SmpEngineHosts.unverify;
-import static net.java.otr4j.api.SmpEngineHosts.verify;
+import static net.java.otr4j.api.OtrEngineHosts.onEvent;
 import static net.java.otr4j.crypto.OtrCryptoEngine.sha256Hash;
-import static net.java.otr4j.session.api.SMPStatus.CHEATED;
 import static net.java.otr4j.session.api.SMPStatus.INPROGRESS;
 import static net.java.otr4j.session.api.SMPStatus.SUCCEEDED;
 import static net.java.otr4j.util.ByteArrays.toHexString;
@@ -71,7 +68,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
      */
     private static final int SMP1Q = 0x0007;
 
-    private final SmpEngineHost host;
+    private final OtrEngineHost host;
     private final SessionID sessionID;
     private final byte[] localFingerprint;
     private final byte[] remoteFingerprint;
@@ -87,11 +84,11 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
      * @param localFingerprint the fingerprint of the local public key
      * @param remoteFingerprint the fingerprint of the remote public key
      * @param receiverTag the receiver instance tag for this SMP session
-     * @param host the SMP engine host
+     * @param host the OTR engine host
      * @param s the session's shared secret
      */
     public SmpTlvHandler(final SecureRandom random, final SessionID sessionID, final byte[] localFingerprint,
-            final byte[] remoteFingerprint, final InstanceTag receiverTag, final SmpEngineHost host,
+            final byte[] remoteFingerprint, final InstanceTag receiverTag, final OtrEngineHost host,
             final SharedSecret s) {
         this.sessionID = requireNonNull(sessionID);
         this.localFingerprint = requireNonNull(localFingerprint);
@@ -133,7 +130,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
             // As prescribed by OTR, we must always be allowed to initiate a new SMP exchange. In case another SMP
             // exchange is in progress, an abort is signaled. We honor the abort exception and send the abort signal
             // to the counter party. Then we immediately initiate a new SMP exchange as requested.
-            smpAborted(this.host, this.sessionID);
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, EventAbortReason.INTERRUPTION);
             return new TLV(SMP_ABORT, TLV.EMPTY_BODY);
         } catch (final SMException e) {
             throw new OtrException("Failed to initiate SMP negotiation.", e);
@@ -153,7 +150,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
             // As prescribed by OTR, we must always be allowed to initiate a new SMP exchange. In case another SMP
             // exchange is in progress, an abort is signaled. We honor the abort exception and send the abort signal
             // to the counter party. Then we immediately initiate a new SMP exchange as requested.
-            smpAborted(this.host, this.sessionID);
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, EventAbortReason.INTERRUPTION);
             return new TLV(SMP_ABORT, TLV.EMPTY_BODY);
         } catch (final SMException e) {
             throw new OtrException("Failed to respond to SMP with answer to the question.", e);
@@ -182,7 +179,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
     @Override
     public TLV abort() {
         if (this.sm.abort()) {
-            smpAborted(this.host, this.sessionID);
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, EventAbortReason.USER);
         }
         return new TLV(SMP_ABORT, TLV.EMPTY_BODY);
     }
@@ -226,10 +223,10 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
                 throw new IllegalStateException("Unknown SMP TLV type: " + tlv.type + ". Cannot process this TLV.");
             }
         } catch (final SMAbortedException e) {
-            smpAborted(this.host, this.sessionID);
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, EventAbortReason.INTERRUPTION);
             return new TLV(SMP_ABORT, TLV.EMPTY_BODY);
         } catch (final SMException e) {
-            smpError(this.host, this.sessionID, tlv.type, this.sm.status() == CHEATED);
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, EventAbortReason.VIOLATION);
             throw e;
         }
     }
@@ -257,7 +254,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
         }
         final byte[] plainq = new byte[qlen];
         System.arraycopy(question, 0, plainq, 0, qlen);
-        askForSecret(this.host, this.sessionID, this.receiverTag, new String(plainq, UTF_8));
+        onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_REQUEST_SECRET, new String(plainq, UTF_8));
         return null;
     }
 
@@ -265,7 +262,7 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
     private TLV processTlvSMP1(final TLV tlv) throws SMException {
         // We can only do the verification half now. We must wait for the secret to be entered to continue.
         this.sm.step2a(tlv.value);
-        askForSecret(this.host, this.sessionID, this.receiverTag, null);
+        onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_REQUEST_SECRET, "");
         return null;
     }
 
@@ -281,9 +278,9 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
         // Set trust level based on result.
         final String fingerprint = toHexString(this.remoteFingerprint);
         if (this.sm.status() == SUCCEEDED) {
-            verify(this.host, this.sessionID, fingerprint);
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_SUCCEEDED, fingerprint);
         } else {
-            unverify(this.host, this.sessionID, fingerprint);
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_FAILED, fingerprint);
         }
         return new TLV(SMP4, nextmsg);
     }
@@ -293,9 +290,9 @@ public final class SmpTlvHandler implements SMPHandler, AutoCloseable {
         this.sm.step5(tlv.value);
         final String fingerprint = toHexString(this.remoteFingerprint);
         if (this.sm.status() == SUCCEEDED) {
-            verify(this.host, this.sessionID, fingerprint);
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_SUCCEEDED, fingerprint);
         } else {
-            unverify(this.host, this.sessionID, fingerprint);
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_FAILED, fingerprint);
         }
         return null;
     }

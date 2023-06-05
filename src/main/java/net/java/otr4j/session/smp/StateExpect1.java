@@ -20,9 +20,9 @@ import java.security.SecureRandom;
 /**
  * SMP state in expectation of SMP message 1. (Or when initiating SMP
  * negotiation.)
- *
+ * <p>
  * In this state we accept messages 1 (TLV type 2), and 1Q (TLV type 7).
- *
+ * <p>
  * This is the initial and default state. SMP is reset to this state whenever an
  * error occurs or SMP is aborted.
  */

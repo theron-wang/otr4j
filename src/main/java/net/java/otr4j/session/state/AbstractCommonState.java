@@ -9,6 +9,7 @@
 
 package net.java.otr4j.session.state;
 
+import net.java.otr4j.api.Event;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.io.ErrorMessage;
@@ -20,8 +21,7 @@ import net.java.otr4j.session.ake.AuthState;
 import javax.annotation.Nullable;
 import java.util.logging.Logger;
 
-import static net.java.otr4j.api.OtrEngineHosts.requireEncryptedMessage;
-import static net.java.otr4j.api.OtrEngineHosts.showError;
+import static net.java.otr4j.api.OtrEngineHosts.onEvent;
 import static net.java.otr4j.session.state.Contexts.signalUnreadableMessage;
 
 abstract class AbstractCommonState extends AbstractOTR4State {
@@ -34,7 +34,8 @@ abstract class AbstractCommonState extends AbstractOTR4State {
 
     @Override
     public void handleErrorMessage(final Context context, final ErrorMessage errorMessage) throws OtrException {
-        showError(context.getHost(), context.getSessionID(), errorMessage.error);
+        onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+                Event.ERROR, "OTR error: " + errorMessage.error);
     }
 
     void handleUnreadableMessage(final Context context, final DataMessage message, final String identifier,
@@ -71,7 +72,8 @@ abstract class AbstractCommonState extends AbstractOTR4State {
     public Message transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
             final byte flags) throws OtrException {
         context.queueMessage(msgText);
-        requireEncryptedMessage(context.getHost(), context.getSessionID(), msgText);
+        onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+                Event.ENCRYPTED_MESSAGES_REQUIRED, msgText);
         return null;
     }
 

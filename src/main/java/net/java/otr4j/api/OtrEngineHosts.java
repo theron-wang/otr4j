@@ -50,80 +50,6 @@ public final class OtrEngineHosts {
     }
 
     /**
-     * Safely call 'messageFromAnotherInstanceReceived' event on provided
-     * OtrEngineHost. Catch any runtime exception and log occurrence of the
-     * exception and consequently the misbehaving of the OtrEngineHost instance.
-     *
-     * @param host the engine host instance
-     * @param sessionID the session ID
-     */
-    public static void messageFromAnotherInstanceReceived(final OtrEngineHost host, final SessionID sessionID) {
-        try {
-            host.messageFromAnotherInstanceReceived(sessionID);
-        } catch (final RuntimeException e) {
-            LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'messageFromAnotherInstanceReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        }
-    }
-
-    /**
-     * Safely call 'multipleInstancesDetected' event on provided OtrEngineHost.
-     * Catch any runtime exceptions and log occurrence of the exception and
-     * consequently the misbehaving of the OtrEngineHost instance.
-     *
-     * @param host the engine host instance
-     * @param sessionID the session ID
-     */
-    public static void multipleInstancesDetected(final OtrEngineHost host, final SessionID sessionID) {
-        try {
-            host.multipleInstancesDetected(sessionID);
-        } catch (final RuntimeException e) {
-            LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'multipleInstancesDetected' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        }
-    }
-
-    /**
-     * Safely call 'unencryptedMessageReceived' event on provided OtrEngineHost.
-     * Catch any runtime exceptions and log occurrence of the exception and
-     * consequently the misbehaving of the OtrEngineHost instance.
-     * <p>
-     * OtrException exceptions are caught, logged and silenced. Calling code
-     * cannot handle interruptions by exception and will result in incomplete
-     * message processing.
-     *
-     * @param host the engine host instance
-     * @param sessionID the session ID
-     * @param message the received message
-     */
-    public static void unencryptedMessageReceived(final OtrEngineHost host, final SessionID sessionID,
-            final String message) {
-        try {
-            host.unencryptedMessageReceived(sessionID, message);
-        } catch (final RuntimeException e) {
-            LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'unencryptedMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        }
-    }
-
-    /**
-     * Safely call 'unreadableMessageReceived' event on provided OtrEngineHost.
-     * Catch any runtime exceptions and log occurrence of the exception and
-     * consequently the misbehaving of the OtrEngineHost instance.
-     * <p>
-     * OtrException exceptions are caught, logged and silenced. Calling code
-     * cannot handle interruptions by exception and will result in incomplete
-     * message processing.
-     *
-     * @param host the engine host instance
-     * @param sessionID the session ID
-     */
-    public static void unreadableMessageReceived(final OtrEngineHost host, final SessionID sessionID) {
-        try {
-            host.unreadableMessageReceived(sessionID);
-        } catch (final RuntimeException e) {
-            LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'unreadableMessageReceived' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        }
-    }
-
-    /**
      * Safely call 'getFallbackMessage' in order to retrieve customized fallback
      * message for a chat client that does not support OTR. In case of a runtime
      * exception, null will be returned in order to signal to otr4j to use its
@@ -141,70 +67,6 @@ public final class OtrEngineHosts {
             LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'getFallbackMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }
         return null;
-    }
-
-    /**
-     * Safely call 'showError' on Engine Host. In case of runtime exception a
-     * warning will be logged and execution will continue. By logging the
-     * exception and continuing we ensure that the protocol interaction for the
-     * current session will continue as expected, even if something went wrong
-     * on the Engine Host in showing the error message.
-     * <p>
-     * OtrException exceptions are caught, logged and silenced. Calling code
-     * cannot handle interruptions by exception and will result in incomplete
-     * message processing.
-     *
-     * @param host the Engine Host
-     * @param sessionID the session ID
-     * @param error the error message
-     */
-    public static void showError(final OtrEngineHost host, final SessionID sessionID, final String error) {
-        try {
-            host.showError(sessionID, error);
-        } catch (final RuntimeException e) {
-            LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'showError' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        }
-    }
-
-    /**
-     * Signal finished session to Engine Host with provided message. Call Engine
-     * Host safely and log any runtime exceptions that are thrown.
-     * <p>
-     * OtrException exceptions are caught, logged and silenced. Calling code
-     * cannot handle interruptions by exception and will result in incomplete
-     * message processing.
-     *
-     * @param host the Engine Host
-     * @param sessionID the session ID
-     * @param msgText a message text about the finished session
-     */
-    public static void finishedSessionMessage(final OtrEngineHost host, final SessionID sessionID, final String msgText) {
-        try {
-            host.finishedSessionMessage(sessionID, msgText);
-        } catch (final RuntimeException e) {
-            LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'finishedSessionMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        }
-    }
-
-    /**
-     * Signal require encryption to Engine Host with provided message. Call
-     * Engine Host safely and log any runtime exceptions that are thrown.
-     * <p>
-     * OtrException exceptions are caught, logged and silenced. Calling code
-     * cannot handle interruptions by exception and will result in incomplete
-     * message processing.
-     *
-     * @param host the Engine Host
-     * @param sessionID the session ID
-     * @param msgText the message
-     */
-    public static void requireEncryptedMessage(final OtrEngineHost host, final SessionID sessionID,
-            final String msgText) {
-        try {
-            host.requireEncryptedMessage(sessionID, msgText);
-        } catch (final RuntimeException e) {
-            LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'requireEncryptedMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
-        }
     }
 
     /**
@@ -228,31 +90,22 @@ public final class OtrEngineHosts {
     }
 
     /**
-     * Callback in case the Extra Symmetric Key is discovered.
-     * <p>
-     * The extra symmetric key that is provided here, is the base key. If multiple type 8 (OTRv3) or type 7 (OTRv4) TLVs
-     * are attached to the same Data Message, the same key will be provided repeatedly. Additional keys can be derived
-     * using {@link net.java.otr4j.crypto.OtrCryptoEngine4#deriveExtraSymmetricKey(int, byte[], byte[])}.
-     * <p>
-     * For convenience the user's message is also provided. However this message is also returned as it would be
-     * normally as a result of transforming a receiving message. The extra symmetric key is provided as a byte-array.
-     * Any data embedded in the TLV8 (OTRv3) or TLV7 (OTRv4) record is provided.
+     * Signal an event to the OTR Engine Host with context. This utility offers a safety net in that it mitigates
+     * unchecked exceptions that may occur as a result of a bad OTR Engine Host implementation.
      *
-     * @param host              The OTR engine host.
-     * @param sessionID         The session ID.
-     * @param message           The user's message (also returned after extraction from OTR encoded message).
-     * @param extraSymmetricKey The extra symmetric key as calculated from the session key.
-     * @param tlvData           The data embedded in TLV 8 which typically gives a hint of how/where the extra symmetric
-     *                          key is used. (This value is still prefixed with the 4-byte context value described in
-     *                          OTRv4.)
+     * @param host the OTR engine host
+     * @param sessionID the session ID
+     * @param receiver the receiver instance tag
+     * @param event the event type
+     * @param payload the event payload, can be type-cast using the event-type
+     * @param <T> the parametric type to enforce type-safety between event-type and payload.
      */
-    public static void extraSymmetricKeyDiscovered(final OtrEngineHost host, final SessionID sessionID,
-            final String message, final byte[] extraSymmetricKey, final byte[] tlvData) {
+    public static <T> void onEvent(final OtrEngineHost host, final SessionID sessionID, final InstanceTag receiver,
+            final Event<T> event, final T payload) {
         try {
-            host.extraSymmetricKeyDiscovered(sessionID, message, extraSymmetricKey, tlvData);
+            host.onEvent(sessionID, receiver, event, payload);
         } catch (final RuntimeException e) {
-            LOGGER.log(WARNING, "Faulty OtrEngineHost: Runtime exception thrown while calling 'extraSymmetricKeyDiscovered' on OtrEngineHost '"
-                    + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
+            LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while signaling event.", e);
         }
     }
 }

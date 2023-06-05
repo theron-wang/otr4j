@@ -19,7 +19,7 @@ import java.util.Objects;
 
 /**
  * Abstract class implementing the base for SMP exchange states.
- *
+ * <p>
  * This implementation is dedicated to the management of SMP exchange state
  * only. Specific exceptions are thrown to indicate the unexpected state
  * changes.
@@ -55,12 +55,12 @@ abstract class AbstractSMPState implements AutoCloseable {
 
     /**
      * Start SMP negotiation.
-     *
+     * <p>
      * An SMP exchange can be started at any time during the protocol state. For
      * any state but the first, we need to send an SMP abort message. After
      * having sent the SMP abort message it is perfectly valid to immediately
      * start a new SMP exchange.
-     *
+     * <p>
      * The default implementation resets the state and sends the
      * SMAbortedOperation exception. StateExpect1 should override and create the
      * initiation message.
@@ -79,7 +79,7 @@ abstract class AbstractSMPState implements AutoCloseable {
 
     /**
      * Abort SMP negotiation.
-     *
+     * <p>
      * The state is reset due to the abort operation. Calling code is expected
      * to send type 6 TLV to signal SMP abort.
      *
