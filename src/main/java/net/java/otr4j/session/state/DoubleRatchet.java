@@ -471,8 +471,8 @@ final class DoubleRatchet implements AutoCloseable {
         while (messageId > this.receiverRatchet.getMessageID()) {
             // Catch up to current message ID, store these message keys for later use as these messages haven't arrived
             // yet.
-            LOGGER.log(FINEST, "Fast-forward rotating receiving chain key to catch up with message ID: {0}",
-                    new Object[]{messageId});
+            LOGGER.log(FINEST, "Fast-forward rotating receiving chain key message ID {0} to catch up with message ID: {0}",
+                    new Object[]{this.receiverRatchet.getMessageID(), messageId});
             // After every successful decryption of a received message, the receiving chain key is also rotated away.
             // This means that the current receiving message ID (`K`) is always a key not used successfully before.
             // (A failed attempt at decrypting a corrupt/malicious message is still possible.)
