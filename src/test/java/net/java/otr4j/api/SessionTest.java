@@ -1497,7 +1497,8 @@ public class SessionTest {
     }
 
     private static String randomMessage(final Random random, final int maxLength) {
-        return randomMessage(random, 0, maxLength);
+        // NOTE: cannot use length 0, because that would give `null` content, instead of zero-length content.
+        return randomMessage(random, 1, maxLength);
     }
 
     private static String randomMessage(final Random random, final int minLength, final int maxLength) {
