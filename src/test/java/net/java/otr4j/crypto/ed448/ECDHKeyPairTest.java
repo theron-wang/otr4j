@@ -9,6 +9,7 @@
 
 package net.java.otr4j.crypto.ed448;
 
+import net.java.otr4j.util.Classes;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -20,11 +21,11 @@ import static net.java.otr4j.crypto.ed448.Ed448.identity;
 import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
 import static net.java.otr4j.crypto.ed448.Scalar.SCALAR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.ed448.Scalar.fromBigInteger;
+import static net.java.otr4j.util.Classes.readValue;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored", "resource"})
 public class ECDHKeyPairTest {
@@ -54,7 +55,7 @@ public class ECDHKeyPairTest {
     public void testPublicKeyRegeneratable() {
         final ECDHKeyPair keypair = generate(RANDOM);
         final Point expected = keypair.publicKey();
-        final Point generated = multiplyByBase((Scalar) getInternalState(keypair, "secretKey"));
+        final Point generated = multiplyByBase(Classes.readValue(Scalar.class, keypair, "secretKey"));
         assertEquals(expected, generated);
     }
 
@@ -68,14 +69,14 @@ public class ECDHKeyPairTest {
     @Test
     public void testGetSecretKey() {
         final ECDHKeyPair keypair = new ECDHKeyPair(sk);
-        assertEquals(sk, getInternalState(keypair, "secretKey"));
+        assertEquals(sk, Classes.readValue(Scalar.class, keypair, "secretKey"));
     }
 
     @Test
     public void testGetSecretKeyAfterClose() {
         final ECDHKeyPair keypair = generate(RANDOM);
         keypair.close();
-        assertNull(getInternalState(keypair, "secretKey"));
+        assertNull(Classes.readValue(Scalar.class, keypair, "secretKey"));
     }
 
     @Test

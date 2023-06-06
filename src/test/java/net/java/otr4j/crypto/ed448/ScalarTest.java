@@ -9,6 +9,7 @@
 
 package net.java.otr4j.crypto.ed448;
 
+import net.java.otr4j.util.Classes;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -21,6 +22,7 @@ import static net.java.otr4j.crypto.ed448.Scalar.SCALAR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
 import static net.java.otr4j.crypto.ed448.Scalar.fromBigInteger;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.Classes.readValue;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.bouncycastle.util.Arrays.reverse;
 import static org.bouncycastle.util.BigIntegers.asUnsignedByteArray;
@@ -29,7 +31,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @SuppressWarnings({"ConstantConditions", "EqualsWithItself"})
 public final class ScalarTest {
@@ -291,7 +292,7 @@ public final class ScalarTest {
     public void testScalarClear() {
         final Scalar scalar = decodeScalar(randomBytes(RANDOM, new byte[57]));
         Scalar.clear(scalar);
-        assertTrue(allZeroBytes((byte[]) getInternalState(scalar, "encoded")));
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, scalar, "encoded")));
     }
 
     // FIXME right now we don't do checking of cleared scalar.

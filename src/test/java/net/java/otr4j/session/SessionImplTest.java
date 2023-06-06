@@ -19,8 +19,8 @@ import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.io.QueryMessage;
 import net.java.otr4j.session.state.State;
+import net.java.otr4j.util.Classes;
 import org.junit.Test;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.security.SecureRandom;
 import java.util.HashSet;
@@ -28,7 +28,7 @@ import java.util.HashSet;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.api.OtrPolicy.OPPORTUNISTIC;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
-import static org.mockito.Matchers.eq;
+import static net.java.otr4j.util.Classes.readValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -62,7 +62,7 @@ public final class SessionImplTest {
         when(host.getForgingKeyPair(eq(sessionID))).thenReturn(forgingKey);
         when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
-        session.transition((State) Whitebox.getInternalState(session, "sessionState"), null);
+        session.transition(Classes.readValue(State.class, session, "sessionState"), null);
     }
 
     @Test
@@ -79,7 +79,7 @@ public final class SessionImplTest {
         when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
         final State secondState = mock(State.class);
-        session.transition((State) Whitebox.getInternalState(session, "sessionState"), secondState);
+        session.transition(Classes.readValue(State.class, session, "sessionState"), secondState);
         verify(secondState, times(0)).destroy();
         session.transition(secondState, mock(State.class));
         verify(secondState, times(1)).destroy();
@@ -102,7 +102,7 @@ public final class SessionImplTest {
         session.addOtrEngineListener(listener);
         final State secondState = mock(State.class);
         when(secondState.getStatus()).thenReturn(ENCRYPTED);
-        session.transition((State) Whitebox.getInternalState(session, "sessionState"), secondState);
+        session.transition(Classes.readValue(State.class, session, "sessionState"), secondState);
         // Testing with master session here for simplicity, so not completely representative, but does confirm that
         // sessionStatusChanged is called.
         verify(listener, times(1)).sessionStatusChanged(eq(sessionID), eq(ZERO_TAG));

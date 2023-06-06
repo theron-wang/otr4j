@@ -15,6 +15,7 @@ import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.session.state.DoubleRatchet.RotationLimitationException;
+import net.java.otr4j.util.Classes;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -27,6 +28,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
 import static net.java.otr4j.session.state.DoubleRatchet.Purpose.RECEIVING;
 import static net.java.otr4j.session.state.DoubleRatchet.Purpose.SENDING;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.Classes.readValue;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -34,7 +36,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @SuppressWarnings({"ConstantConditions", "resource", "ResultOfMethodCallIgnored"})
 public class DoubleRatchetTest {
@@ -237,14 +238,14 @@ public class DoubleRatchetTest {
         bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), aliceRatchet.getDHPublicKey(), 0);
         bobRatchet.decrypt(0, 0, message, authenticator, ciphertext);
         bobRatchet.collectReveals();
-        assertFalse(allZeroBytes((byte[]) getInternalState(bobRatchet, "rootKey")));
-        assertFalse(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "senderRatchet"), "chainKey")));
-        assertFalse(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "receiverRatchet"), "chainKey")));
+        assertFalse(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "rootKey")));
+        assertFalse(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "senderRatchet", "chainKey")));
+        assertFalse(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "receiverRatchet", "chainKey")));
         bobRatchet.close();
-        assertEquals(0, ((ByteArrayOutputStream) getInternalState(bobRatchet, "reveals")).size());
-        assertTrue(allZeroBytes((byte[]) getInternalState(bobRatchet, "rootKey")));
-        assertTrue(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "senderRatchet"), "chainKey")));
-        assertTrue(allZeroBytes((byte[]) getInternalState(getInternalState(bobRatchet, "receiverRatchet"), "chainKey")));
+        assertEquals(0, Classes.readValue(ByteArrayOutputStream.class, bobRatchet, "reveals").size());
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "rootKey")));
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "senderRatchet", "chainKey")));
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "receiverRatchet", "chainKey")));
     }
 
     @Test

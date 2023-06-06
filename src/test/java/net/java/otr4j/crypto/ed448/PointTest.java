@@ -9,6 +9,7 @@
 
 package net.java.otr4j.crypto.ed448;
 
+import net.java.otr4j.util.Classes;
 import nl.dannyvanheumen.joldilocks.Points;
 import org.junit.Test;
 
@@ -20,10 +21,10 @@ import static net.java.otr4j.crypto.ed448.Ed448.basePoint;
 import static net.java.otr4j.crypto.ed448.Ed448.identity;
 import static net.java.otr4j.crypto.ed448.Point.decodePoint;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.Classes.readValue;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @SuppressWarnings("ConstantConditions")
 public final class PointTest {
@@ -134,7 +135,7 @@ public final class PointTest {
     public void testClose() {
         final Point p = new Point(BASE_POINT_ENCODED.clone());
         Point.clear(p);
-        assertTrue(allZeroBytes((byte[]) getInternalState(p, "encoded")));
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, p, "encoded")));
     }
 
     @Test(expected = IllegalStateException.class)

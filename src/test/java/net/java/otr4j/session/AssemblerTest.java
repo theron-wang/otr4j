@@ -11,8 +11,8 @@ package net.java.otr4j.session;
 
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.io.Fragment;
+import net.java.otr4j.util.Classes;
 import org.junit.Test;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.net.ProtocolException;
 import java.security.SecureRandom;
@@ -23,6 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.shuffle;
 import static net.java.otr4j.io.MessageProcessor.parseMessage;
+import static net.java.otr4j.util.Classes.readValue;
 import static org.bouncycastle.util.encoders.Base64.toBase64String;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -69,8 +70,7 @@ public final class AssemblerTest {
                 tag.getValue()))));
         assertEquals("abcd", assembler.accumulate((Fragment) parseMessage(String.format("?OTR|ff123456|%08x,00004,00004,d,",
                 tag.getValue()))));
-        assertTrue(((Map<?, ?>) Whitebox.getInternalState(Whitebox.getInternalState(assembler, "inOrder"),
-                "accumulations")).isEmpty());
+        assertTrue(Classes.readValue(Map.class, assembler, "inOrder", "accumulations").isEmpty());
     }
 
     @Test
@@ -90,8 +90,7 @@ public final class AssemblerTest {
                 helloWorldBase64));
         final Assembler assembler = new Assembler();
         assertEquals(helloWorldBase64, assembler.accumulate(fragment));
-        assertTrue(((Map<?, ?>) Whitebox.getInternalState(Whitebox.getInternalState(assembler, "outOfOrder"),
-                "fragments")).isEmpty());
+        assertTrue(Classes.readValue(Map.class, assembler, "outOfOrder", "fragments").isEmpty());
     }
 
     @Test
@@ -130,8 +129,7 @@ public final class AssemblerTest {
             assertNull(assembler.accumulate((Fragment) parseMessage(parts[i])));
         }
         assertEquals(helloWorldBase64, assembler.accumulate((Fragment) parseMessage(parts[parts.length - 1])));
-        assertTrue(((Map<?, ?>) Whitebox.getInternalState(Whitebox.getInternalState(assembler, "outOfOrder"),
-                "fragments")).isEmpty());
+        assertTrue(Classes.readValue(Map.class, assembler, "outOfOrder", "fragments").isEmpty());
     }
 
     @Test
@@ -159,8 +157,7 @@ public final class AssemblerTest {
             assertNull(assembler.accumulate((Fragment) parseMessage(parts.get(i))));
         }
         assertEquals(helloWorldBase64, assembler.accumulate((Fragment) parseMessage(parts.get(parts.size() - 1))));
-        assertTrue(((Map<?, ?>) Whitebox.getInternalState(Whitebox.getInternalState(assembler, "outOfOrder"),
-                "fragments")).isEmpty());
+        assertTrue(Classes.readValue(Map.class, assembler, "outOfOrder", "fragments").isEmpty());
     }
 
     @Test

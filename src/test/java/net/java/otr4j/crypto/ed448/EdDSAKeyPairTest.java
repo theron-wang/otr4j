@@ -9,6 +9,7 @@
 
 package net.java.otr4j.crypto.ed448;
 
+import net.java.otr4j.util.Classes;
 import org.junit.Test;
 
 import java.security.SecureRandom;
@@ -18,11 +19,11 @@ import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
 import static net.java.otr4j.crypto.ed448.EdDSAKeyPair.generate;
 import static net.java.otr4j.crypto.ed448.EdDSAKeyPair.verify;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.Classes.readValue;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @SuppressWarnings("ConstantConditions")
 public final class EdDSAKeyPairTest {
@@ -114,7 +115,7 @@ public final class EdDSAKeyPairTest {
     public void testClose() {
         final EdDSAKeyPair keypair = generate(RANDOM);
         keypair.close();
-        assertTrue(allZeroBytes((byte[]) getInternalState(keypair, "symmetricKey")));
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, keypair, "symmetricKey")));
     }
 
     @Test

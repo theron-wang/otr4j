@@ -24,9 +24,9 @@ import net.java.otr4j.io.Message;
 import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.session.ake.StateInitial;
+import net.java.otr4j.util.Classes;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
@@ -37,6 +37,7 @@ import static java.util.Collections.singletonList;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.session.state.DoubleRatchet.Purpose.SENDING;
 import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
+import static net.java.otr4j.util.Classes.readValue;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -255,7 +256,7 @@ public final class StateEncrypted4Test {
 
         // Test StateEncrypted4 expiring
         final byte[] artificialMACsToReveal = randomBytes(RANDOM, new byte[120]);
-        ((ByteArrayOutputStream) Whitebox.getInternalState(ratchet, "reveals")).write(artificialMACsToReveal, 0,
+        Classes.readValue(ByteArrayOutputStream.class, ratchet, "reveals").write(artificialMACsToReveal, 0,
                 artificialMACsToReveal.length);
         final StateEncrypted4 state = new StateEncrypted4(context, ssid, ratchet, myPublicKey, myForgingKey,
                 theirProfile, StateInitial.instance());

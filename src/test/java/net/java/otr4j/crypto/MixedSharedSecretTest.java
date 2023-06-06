@@ -11,6 +11,7 @@ package net.java.otr4j.crypto;
 
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
+import net.java.otr4j.util.Classes;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -18,6 +19,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
+import static net.java.otr4j.util.Classes.readValue;
 import static org.bouncycastle.util.Arrays.fill;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -25,7 +27,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 /**
  * The MixedSharedSecret tests currently do not perform a test that binary-exactly verifies that the right values are
@@ -291,8 +292,8 @@ public class MixedSharedSecretTest {
         final MixedSharedSecret shared = new MixedSharedSecret(RANDOM, ECDHKeyPair.generate(RANDOM),
                 DHKeyPair.generate(RANDOM),theirECDHPublicKey, theirDHPublicKey);
         shared.close();
-        assertTrue(allZeroBytes((byte[]) getInternalState(shared, "k")));
-        assertTrue(allZeroBytes((byte[]) getInternalState(shared, "braceKey")));
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, shared, "k")));
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, shared, "braceKey")));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -363,13 +364,13 @@ public class MixedSharedSecretTest {
     public void testCorrectClearingOfFieldsWhenClosed() {
         final MixedSharedSecret secret = new MixedSharedSecret(RANDOM, ECDHKeyPair.generate(RANDOM),
                 DHKeyPair.generate(RANDOM), theirECDHPublicKey, theirDHPublicKey);
-        assertFalse(allZeroBytes((byte[]) getInternalState(secret, "k")));
-        assertFalse(allZeroBytes((byte[]) getInternalState(secret, "braceKey")));
+        assertFalse(allZeroBytes(Classes.readValue(byte[].class, secret, "k")));
+        assertFalse(allZeroBytes(Classes.readValue(byte[].class, secret, "braceKey")));
         secret.close();
-        assertTrue(allZeroBytes((byte[]) getInternalState(secret, "k")));
-        assertTrue(allZeroBytes((byte[]) getInternalState(secret, "braceKey")));
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, secret, "k")));
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, secret, "braceKey")));
         secret.close();
-        assertTrue(allZeroBytes((byte[]) getInternalState(secret, "k")));
-        assertTrue(allZeroBytes((byte[]) getInternalState(secret, "braceKey")));
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, secret, "k")));
+        assertTrue(allZeroBytes(Classes.readValue(byte[].class, secret, "braceKey")));
     }
 }
