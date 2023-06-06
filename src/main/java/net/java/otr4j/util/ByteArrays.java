@@ -255,4 +255,49 @@ public final class ByteArrays {
         System.arraycopy(src, offset, dst, 0, length);
         return dst;
     }
+
+    /**
+     * Bytes is a wrapper for a byte-array that provides equals() and hashCode() in an immutable container.
+     */
+    public static final class Bytes {
+
+        @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
+        @Nonnull
+        private final byte[] bytes;
+
+        /**
+         * Construct Bytes wrapper.
+         *
+         * @param bytes the byte-array
+         */
+        public Bytes(final byte[] bytes) {
+            this.bytes = requireNonNull(bytes);
+        }
+
+        /**
+         * Retrieve a copy of the internal bytes.
+         *
+         * @return Returns clone of the bytes.
+         */
+        public byte[] array() {
+            return this.bytes.clone();
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            final Bytes bytes1 = (Bytes) o;
+            return Arrays.equals(this.bytes, bytes1.bytes);
+        }
+
+        @Override
+        public int hashCode() {
+            return Arrays.hashCode(this.bytes);
+        }
+    }
 }

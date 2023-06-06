@@ -20,7 +20,7 @@ import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.crypto.ed448.Scalar;
 import net.java.otr4j.session.api.SMPStatus;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentCaptor;
 
 import java.net.ProtocolException;
 import java.security.SecureRandom;
@@ -40,16 +40,18 @@ import static net.java.otr4j.session.smpv4.SMP.smpPayload;
 import static net.java.otr4j.session.smpv4.SMPMessage.SMP1;
 import static net.java.otr4j.session.smpv4.SMPMessage.SMP4;
 import static net.java.otr4j.session.smpv4.SMPMessage.SMP_ABORT;
-import static net.java.otr4j.util.ByteArrays.toHexString;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +70,8 @@ public final class SMPTest {
     private final Point forgingKeyAlice = EdDSAKeyPair.generate(RANDOM).getPublicKey();
     private final Point publicKeyBob = EdDSAKeyPair.generate(RANDOM).getPublicKey();
     private final Point forgingKeyBob = EdDSAKeyPair.generate(RANDOM).getPublicKey();
+
+    private final ArgumentCaptor<Event.SMPResult> resultCaptor = ArgumentCaptor.forClass(Event.SMPResult.class);
 
     @Test
     public void testSMPStraightforwardSuccessful() throws OtrCryptoException, ProtocolException {
@@ -92,12 +96,16 @@ public final class SMPTest {
         final TLV smp4 = smpBob.process(smp3);
         assertNotNull(smp4);
         assertEquals(SUCCEEDED, smpBob.getStatus());
-        verify(hostBob).onEvent(sessionIDBob, tagAlice, Event.SMP_SUCCEEDED,
-                toHexString(fingerprint(publicKeyAlice, forgingKeyAlice)));
+        verify(hostBob, times(2)).onEvent(eq(sessionIDBob), eq(tagAlice), eq(Event.SMP_COMPLETED),
+                this.resultCaptor.capture());
+        assertTrue(this.resultCaptor.getValue().success);
+        assertArrayEquals(fingerprint(publicKeyAlice, forgingKeyAlice), this.resultCaptor.getValue().fingerprint);
         assertNull(smpAlice.process(smp4));
         assertEquals(SUCCEEDED, smpAlice.getStatus());
-        verify(hostAlice).onEvent(sessionIDAlice, tagBob, Event.SMP_SUCCEEDED,
-                toHexString(fingerprint(publicKeyBob, forgingKeyBob)));
+        verify(hostAlice, times(2)).onEvent(eq(sessionIDAlice), eq(tagBob), eq(Event.SMP_COMPLETED),
+                this.resultCaptor.capture());
+        assertTrue(this.resultCaptor.getValue().success);
+        assertArrayEquals(fingerprint(publicKeyBob, forgingKeyBob), this.resultCaptor.getValue().fingerprint);
     }
 
     @Test
@@ -123,12 +131,14 @@ public final class SMPTest {
         final TLV smp4 = smpBob.process(smp3);
         assertNotNull(smp4);
         assertEquals(SUCCEEDED, smpBob.getStatus());
-        verify(hostBob).onEvent(sessionIDBob, tagAlice, Event.SMP_SUCCEEDED,
-                toHexString(fingerprint(publicKeyAlice, forgingKeyAlice)));
+        verify(hostBob, times(2)).onEvent(eq(sessionIDBob), eq(tagAlice), eq(Event.SMP_COMPLETED), this.resultCaptor.capture());
+        assertTrue(this.resultCaptor.getValue().success);
+        assertArrayEquals(fingerprint(publicKeyAlice, forgingKeyAlice), this.resultCaptor.getValue().fingerprint);
         assertNull(smpAlice.process(smp4));
         assertEquals(SUCCEEDED, smpAlice.getStatus());
-        verify(hostAlice).onEvent(sessionIDAlice, tagBob, Event.SMP_SUCCEEDED,
-                toHexString(fingerprint(publicKeyBob, forgingKeyBob)));
+        verify(hostAlice, times(2)).onEvent(eq(sessionIDAlice), eq(tagBob), eq(Event.SMP_COMPLETED), this.resultCaptor.capture());
+        assertTrue(this.resultCaptor.getValue().success);
+        assertArrayEquals(fingerprint(publicKeyBob, forgingKeyBob), this.resultCaptor.getValue().fingerprint);
     }
 
     @Test
@@ -153,12 +163,16 @@ public final class SMPTest {
         final TLV smp4 = smpBob.process(smp3);
         assertNotNull(smp4);
         assertEquals(SUCCEEDED, smpBob.getStatus());
-        verify(hostBob).onEvent(sessionIDBob, tagAlice, Event.SMP_SUCCEEDED,
-                toHexString(fingerprint(publicKeyAlice, forgingKeyAlice)));
+        verify(hostBob, times(2)).onEvent(eq(sessionIDBob), eq(tagAlice), eq(Event.SMP_COMPLETED),
+                this.resultCaptor.capture());
+        assertTrue(this.resultCaptor.getValue().success);
+        assertArrayEquals(fingerprint(publicKeyAlice, forgingKeyAlice), this.resultCaptor.getValue().fingerprint);
         assertNull(smpAlice.process(smp4));
         assertEquals(SUCCEEDED, smpAlice.getStatus());
-        verify(hostAlice).onEvent(sessionIDAlice, tagBob, Event.SMP_SUCCEEDED,
-                toHexString(fingerprint(publicKeyBob, forgingKeyBob)));
+        verify(hostAlice, times(2)).onEvent(eq(sessionIDAlice), eq(tagBob), eq(Event.SMP_COMPLETED),
+                this.resultCaptor.capture());
+        assertTrue(this.resultCaptor.getValue().success);
+        assertArrayEquals(fingerprint(publicKeyBob, forgingKeyBob), this.resultCaptor.getValue().fingerprint);
     }
 
     @Test
@@ -183,12 +197,15 @@ public final class SMPTest {
         final TLV smp4 = smpBob.process(smp3);
         assertNotNull(smp4);
         assertEquals(FAILED, smpBob.getStatus());
-        verify(hostBob).onEvent(sessionIDBob, tagAlice, Event.SMP_FAILED,
-                toHexString(fingerprint(publicKeyAlice, forgingKeyAlice)));
+        // NOTE: apparently must count also earlier invocations.
+        verify(hostBob, times(2)).onEvent(eq(sessionIDBob), eq(tagAlice), eq(Event.SMP_COMPLETED), this.resultCaptor.capture());
+        assertFalse(this.resultCaptor.getValue().success);
+        assertArrayEquals(fingerprint(publicKeyAlice, forgingKeyAlice), this.resultCaptor.getValue().fingerprint);
         assertNull(smpAlice.process(smp4));
         assertEquals(FAILED, smpAlice.getStatus());
-        verify(hostAlice).onEvent(sessionIDAlice, tagBob, Event.SMP_FAILED,
-                toHexString(fingerprint(publicKeyBob, forgingKeyBob)));
+        verify(hostAlice, times(2)).onEvent(eq(sessionIDAlice), eq(tagBob), eq(Event.SMP_COMPLETED), this.resultCaptor.capture());
+        assertFalse(this.resultCaptor.getValue().success);
+        assertArrayEquals(fingerprint(publicKeyBob, forgingKeyBob), this.resultCaptor.getValue().fingerprint);
     }
 
     @Test
@@ -218,12 +235,16 @@ public final class SMPTest {
         final TLV smp4 = smpBob.process(smp3);
         assertNotNull(smp4);
         assertEquals(FAILED, smpBob.getStatus());
-        verify(hostBob).onEvent(sessionIDBob, tagAlice, Event.SMP_FAILED,
-                toHexString(fingerprint(publicKeyAlice, forgingKeyAlice)));
+        verify(hostBob, times(2)).onEvent(eq(sessionIDBob), eq(tagAlice), eq(Event.SMP_COMPLETED),
+                this.resultCaptor.capture());
+        assertFalse(resultCaptor.getValue().success);
+        assertArrayEquals(fingerprint(publicKeyAlice, forgingKeyAlice), this.resultCaptor.getValue().fingerprint);
         assertNull(smpAlice.process(smp4));
         assertEquals(FAILED, smpAlice.getStatus());
-        verify(hostAlice).onEvent(sessionIDAlice, tagBob, Event.SMP_FAILED,
-                toHexString(fingerprint(publicKeyBob, forgingKeyBob)));
+        verify(hostAlice, times(2)).onEvent(eq(sessionIDAlice), eq(tagBob), eq(Event.SMP_COMPLETED),
+                this.resultCaptor.capture());
+        assertFalse(resultCaptor.getValue().success);
+        assertArrayEquals(fingerprint(publicKeyBob, forgingKeyBob), this.resultCaptor.getValue().fingerprint);
     }
 
     @Test
@@ -333,7 +354,7 @@ public final class SMPTest {
         final Point g3a = basePoint().multiply(fromBigInteger(valueOf(3L)));
         final SMPMessage1 illegalMessage = new SMPMessage1(question, g2a, c2, d2, g3a, c3, d3);
         when(badSMPState.getStatus()).thenReturn(SMPStatus.INPROGRESS);
-        when(badSMPState.process(Matchers.eq(smpAlice), any(SMPMessage.class))).thenReturn(illegalMessage);
+        when(badSMPState.process(eq(smpAlice), any(SMPMessage.class))).thenReturn(illegalMessage);
         smpAlice.setState(badSMPState);
         final byte[] tlvPayload = encode(new SMPMessage4(basePoint(), generateRandomValueInZq(RANDOM),
                 generateRandomValueInZq(RANDOM)));

@@ -28,7 +28,6 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
 import static net.java.otr4j.session.state.DoubleRatchet.Purpose.RECEIVING;
 import static net.java.otr4j.session.state.DoubleRatchet.Purpose.SENDING;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
-import static net.java.otr4j.util.Classes.readValue;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;

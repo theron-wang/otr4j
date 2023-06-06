@@ -15,6 +15,7 @@ import net.java.otr4j.util.Unit;
 import javax.annotation.Nonnull;
 
 import static java.util.Objects.requireNonNull;
+import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 
 /**
  * Event represents each of the possible event variants that may be signaled to the OtrEngineHost.
@@ -47,7 +48,7 @@ public final class Event<T> {
      * The received data message contains a TLV for use of the Extra Symmetric Key. (Payload is a composite class with
      * additional data for use of the extra symmetric key.) This event is triggered for each TLV.
      */
-    public static final Event<EventExtraSymmetricKey> EXTRA_SYMMETRIC_KEY_DISCOVERED = new Event<>(EventExtraSymmetricKey.class);
+    public static final Event<ExtraSymmetricKey> EXTRA_SYMMETRIC_KEY_DISCOVERED = new Event<>(ExtraSymmetricKey.class);
     /**
      * Event is triggered if the policy forbids messaging without establishing an encrypted session first. (Payload is
      * the original message.)
@@ -70,21 +71,14 @@ public final class Event<T> {
      * question/answer, this event will be called upon successful completion of that process.
      * (Payload is the fingerprint that is verified.)
      */
-    // FIXME consider combining SMP_SUCCEEDED and SMP_FAILED with fields verified/success, and fingerprint.
-    public static final Event<String> SMP_SUCCEEDED = new Event<>(String.class);
-
-    /**
-     * If the Socialist Millionaire's Protocol (SMP) process fails, then this event signals the fingerprint that should
-     * be marked as untrustworthy. (Payload is the fingerprint.)
-     */
-    public static final Event<String> SMP_FAILED = new Event<>(String.class);
+    public static final Event<SMPResult> SMP_COMPLETED = new Event<>(SMPResult.class);
     /**
      * Signal OTR Engine Host to inform that SMP is aborted.
      * <p>
      * Payload is a boolean value that indicates whether: `false` abort is called by user request or incoming abort TLV,
      * or `true` abort is motivated by cheating.
      */
-    public static final Event<EventAbortReason> SMP_ABORTED = new Event<>(EventAbortReason.class);
+    public static final Event<AbortReason> SMP_ABORTED = new Event<>(AbortReason.class);
 
     private final Class<T> type;
 
@@ -102,5 +96,82 @@ public final class Event<T> {
     @Nonnull
     public T convert(final Object payload) {
         return this.type.cast(payload);
+    }
+
+    /**
+     * SMPResult represents the result of a completed Socialist Millionaire Protocol exchange.
+     */
+    public static final class SMPResult {
+
+        /**
+         * Flag indicating whether SMP completed successfully or resulted in failure.
+         */
+        public final boolean success;
+
+        /**
+         * The fingerprint of the remote's public key.
+         */
+        public final byte[] fingerprint;
+
+        /**
+         * SMPResult constructs an SMP result for the corresponding event.
+         *
+         * @param success flag indicating success or failure
+         * @param fingerprint the fingerprint of the remote public key
+         */
+        public SMPResult(final boolean success, final byte[] fingerprint) {
+            this.success = success;
+            this.fingerprint = requireNonNull(fingerprint);
+        }
+    }
+
+    /**
+     * EventAbortReason is the set of reasons for aborting the SMP.
+     */
+    public enum AbortReason {
+        /**
+         * User-initiated abort, either by the local user or the remote user (through TLV).
+         */
+        USER,
+        /**
+         * SMP process interrupted by unexpected event, e.g. reset for not following protocol. Not necessarily malicious.
+         */
+        INTERRUPTION,
+        /**
+         * SMP process reset because of some violation, such as bad input or conclusion 'cheated'.
+         */
+        VIOLATION
+    }
+
+    /**
+     * EventExtraSymmetricKey is the event class that carries the data for the corresponding event.
+     */
+    public static final class ExtraSymmetricKey {
+
+        /**
+         * The extra symmetric key, base-key in case of OTRv3, or derived key (according to spec) for OTRv4.
+         */
+        public final byte[] key;
+        /**
+         * The context (4-byte) value present in the TLV value.
+         */
+        public final byte[] context;
+        /**
+         * The remaining bytes present in the TLV value.
+         */
+        public final byte[] value;
+
+        /**
+         * Constructor for the event.
+         *
+         * @param key the extra symmetric key
+         * @param context the context
+         * @param value the (remaining) value
+         */
+        public ExtraSymmetricKey(final byte[] key, final byte[] context, final byte[] value) {
+            this.key = requireNonNull(key);
+            this.context = requireLengthExactly(4, context);
+            this.value = requireNonNull(value);
+        }
     }
 }

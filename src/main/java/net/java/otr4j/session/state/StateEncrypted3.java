@@ -10,7 +10,6 @@
 package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.Event;
-import net.java.otr4j.api.EventExtraSymmetricKey;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.RemoteInfo;
@@ -285,7 +284,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
                 final byte[] eskContext = ByteArrays.cloneRange(tlv.value, 0, 4);
                 final byte[] eskValue = ByteArrays.cloneRange(tlv.value, 4, tlv.value.length - 4);
                 onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
-                        Event.EXTRA_SYMMETRIC_KEY_DISCOVERED, new EventExtraSymmetricKey(key, eskContext, eskValue));
+                        Event.EXTRA_SYMMETRIC_KEY_DISCOVERED, new Event.ExtraSymmetricKey(key, eskContext, eskValue));
                 break;
             default:
                 this.logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);

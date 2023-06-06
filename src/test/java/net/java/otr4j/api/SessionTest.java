@@ -23,6 +23,7 @@ import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.EncodedMessageParser;
 import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.util.BlockingSubmitter;
+import net.java.otr4j.util.ByteArrays;
 import net.java.otr4j.util.ConditionalBlockingQueue;
 import net.java.otr4j.util.ConditionalBlockingQueue.Predicate;
 import org.junit.Before;
@@ -40,6 +41,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
 import static java.lang.Integer.MAX_VALUE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINEST;
@@ -73,7 +75,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -1602,7 +1604,7 @@ public class SessionTest {
 
         private final Logger logger;
 
-        private final HashSet<String> verified = new HashSet<>();
+        private final HashSet<ByteArrays.Bytes> verified = new HashSet<>();
 
         private final DSAKeyPair dsaKeyPair = generateDSAKeyPair(RANDOM);
 
@@ -1754,14 +1756,14 @@ public class SessionTest {
             } else if (event == Event.SMP_ABORTED) {
                 logger.log(FINEST, "SMP process is aborted for {1}. (Session: {0})",
                         new Object[]{sessionID, receiver});
-            } else if (event == Event.SMP_SUCCEEDED) {
-                final String fingerprint = Event.SMP_SUCCEEDED.convert(payload);
-                logger.finest("Verifying fingerprint " + fingerprint + " (Session: " + sessionID + ")");
-                this.verified.add(fingerprint);
-            } else if (event == Event.SMP_FAILED) {
-                final String fingerprint = Event.SMP_SUCCEEDED.convert(payload);
-                logger.finest("Invalidating fingerprint " + fingerprint + " (Session: " + sessionID + ")");
-                this.verified.remove(fingerprint);
+            } else if (event == Event.SMP_COMPLETED) {
+                final Event.SMPResult result = Event.SMP_COMPLETED.convert(payload);
+                logger.finest("(Un)verifying fingerprint " + new String(result.fingerprint, UTF_8) + " (Session: " + sessionID + ")");
+                if (result.success) {
+                    this.verified.add(new ByteArrays.Bytes(result.fingerprint));
+                } else {
+                    this.verified.remove(new ByteArrays.Bytes(result.fingerprint));
+                }
             } else if (event == Event.SMP_REQUEST_SECRET) {
                 final String question = Event.SMP_REQUEST_SECRET.convert(payload);
                 logger.log(FINEST, "A request for the secret was received. (Question: " + question + ") [NOT IMPLEMENTED, LOGGING ONLY]");

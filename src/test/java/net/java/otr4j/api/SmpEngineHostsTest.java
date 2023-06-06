@@ -17,6 +17,7 @@ import java.security.SecureRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -44,28 +45,26 @@ public class SmpEngineHostsTest {
     public void testSmpErrorOnGoodHost() {
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, EventAbortReason.VIOLATION);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, EventAbortReason.VIOLATION);
+        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
+        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
     }
 
     @Test
     public void testSmpErrorOnFaultyHost() {
-        final boolean cheated = true;
-        final int type = 1;
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new IllegalArgumentException("programming error occurred"))
-                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, EventAbortReason.VIOLATION);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, EventAbortReason.VIOLATION);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, EventAbortReason.VIOLATION);
+                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
+        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
+        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
     }
 
     @Test
     public void testSmpAbortedOnGoodHost() {
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, EventAbortReason.USER);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, EventAbortReason.USER);
+        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
+        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
     }
 
     @Test
@@ -73,49 +72,53 @@ public class SmpEngineHostsTest {
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new IllegalArgumentException("programming error occurred"))
-                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, EventAbortReason.USER);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, EventAbortReason.USER);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, EventAbortReason.USER);
+                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
+        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
+        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
     }
 
     @Test
     public void testVerifyOnGoodHost() {
-        final String fingerprint = "myfingerprint";
+        final byte[] fingerprint = "myfingerprint".getBytes(UTF_8);
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_SUCCEEDED, fingerprint);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_SUCCEEDED, fingerprint);
+        final Event.SMPResult result = new Event.SMPResult(true, fingerprint);
+        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
     }
 
     @Test
     public void testVerifyOnBadHost() {
-        final String fingerprint = "myfingerprint";
+        final byte[] fingerprint = "myfingerprint".getBytes(UTF_8);
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
+        final Event.SMPResult result = new Event.SMPResult(true, fingerprint);
         doThrow(new IllegalStateException("some bad stuff happened"))
-                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_SUCCEEDED, fingerprint);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_SUCCEEDED, fingerprint);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_SUCCEEDED, fingerprint);
+                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
     }
 
     @Test
     public void testUnverifyOnGoodHost() {
-        final String fingerprint = "myfingerprint";
+        final byte[] fingerprint = "myfingerprint".getBytes(UTF_8);
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_FAILED, fingerprint);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_FAILED, fingerprint);
+        final Event.SMPResult result = new Event.SMPResult(true, fingerprint);
+        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
     }
 
     @Test
     public void testUnverifyOnBadHost() {
-        final String fingerprint = "myfingerprint";
+        final byte[] fingerprint = "myfingerprint".getBytes(UTF_8);
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
+        final Event.SMPResult result = new Event.SMPResult(true, fingerprint);
         doThrow(new IllegalStateException("some bad stuff happened"))
-                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_FAILED, fingerprint);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_FAILED, fingerprint);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_FAILED, fingerprint);
+                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
     }
 
     @Test

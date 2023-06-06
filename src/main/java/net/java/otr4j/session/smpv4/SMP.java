@@ -10,7 +10,6 @@
 package net.java.otr4j.session.smpv4;
 
 import net.java.otr4j.api.Event;
-import net.java.otr4j.api.EventAbortReason;
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.SessionID;
@@ -37,7 +36,6 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.fingerprint;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.hwc;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
 import static net.java.otr4j.io.OtrEncodables.encode;
-import static net.java.otr4j.session.api.SMPStatus.FAILED;
 import static net.java.otr4j.session.api.SMPStatus.SUCCEEDED;
 import static net.java.otr4j.session.api.SMPStatus.UNDECIDED;
 import static net.java.otr4j.session.smpv4.SMPMessage.SMP1;
@@ -48,7 +46,6 @@ import static net.java.otr4j.session.smpv4.SMPMessage.SMP_ABORT;
 import static net.java.otr4j.session.smpv4.SMPMessages.parse;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
 import static net.java.otr4j.util.ByteArrays.clear;
-import static net.java.otr4j.util.ByteArrays.toHexString;
 
 /**
  * OTRv4 variant of the Socialist Millionaire's Protocol.
@@ -209,15 +206,12 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
             response = this.state.process(this, parse(tlv));
         } catch (final SMPAbortException e) {
             setState(new StateExpect1(this.random, UNDECIDED));
-            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, EventAbortReason.INTERRUPTION);
+            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, Event.AbortReason.INTERRUPTION);
             return new TLV(SMP_ABORT, EMPTY_BODY);
         }
         final byte[] theirFingerprint = fingerprint(this.theirLongTermPublicKey, this.theirForgingKey);
-        if (this.state.getStatus() == SUCCEEDED) {
-            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_SUCCEEDED, toHexString(theirFingerprint));
-        } else if (this.state.getStatus() == FAILED) {
-            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_FAILED, toHexString(theirFingerprint));
-        }
+        final Event.SMPResult result = new Event.SMPResult(this.state.getStatus() == SUCCEEDED, theirFingerprint);
+        onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_COMPLETED, result);
         if (response == null) {
             return null;
         }
@@ -237,7 +231,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
     @Override
     public TLV abort() {
         setState(new StateExpect1(this.random, UNDECIDED));
-        onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, EventAbortReason.USER);
+        onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, Event.AbortReason.USER);
         return new TLV(SMP_ABORT, EMPTY_BODY);
     }
 
