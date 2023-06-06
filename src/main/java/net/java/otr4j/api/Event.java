@@ -29,8 +29,6 @@ public final class Event<T> {
     /**
      * T.b.d.
      */
-    // TODO change payload to include both (OTRv4) error identifier and error string
-    // FIXME do we need an OTRError event, or an event that shows an error in the UI?
     public static final Event<String> ERROR = new Event<>(String.class);
     /**
      * An unreadable message was received, i.e. due to encryption keys no longer being available. (No payload.)
@@ -72,6 +70,7 @@ public final class Event<T> {
      * question/answer, this event will be called upon successful completion of that process.
      * (Payload is the fingerprint that is verified.)
      */
+    // FIXME consider combining SMP_SUCCEEDED and SMP_FAILED with fields verified/success, and fingerprint.
     public static final Event<String> SMP_SUCCEEDED = new Event<>(String.class);
 
     /**

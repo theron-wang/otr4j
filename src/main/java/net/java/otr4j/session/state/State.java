@@ -189,6 +189,7 @@ public interface State {
      * @param errorMessage The error message.
      * @throws OtrException In case an exception occurs.
      */
+    // TODO allow translation of pre-defined error identifiers?
     void handleErrorMessage(Context context, ErrorMessage errorMessage) throws OtrException;
 
     /**
