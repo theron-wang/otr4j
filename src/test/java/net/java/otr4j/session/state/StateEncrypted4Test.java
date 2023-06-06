@@ -37,7 +37,7 @@ import static java.util.Collections.singletonList;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.session.state.DoubleRatchet.Purpose.SENDING;
 import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
-import static net.java.otr4j.util.Classes.readValue;
+import static net.java.otr4j.util.Classes.readField;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -256,7 +256,7 @@ public final class StateEncrypted4Test {
 
         // Test StateEncrypted4 expiring
         final byte[] artificialMACsToReveal = randomBytes(RANDOM, new byte[120]);
-        Classes.readValue(ByteArrayOutputStream.class, ratchet, "reveals").write(artificialMACsToReveal, 0,
+        Classes.readField(ByteArrayOutputStream.class, ratchet, "reveals").write(artificialMACsToReveal, 0,
                 artificialMACsToReveal.length);
         final StateEncrypted4 state = new StateEncrypted4(context, ssid, ratchet, myPublicKey, myForgingKey,
                 theirProfile, StateInitial.instance());

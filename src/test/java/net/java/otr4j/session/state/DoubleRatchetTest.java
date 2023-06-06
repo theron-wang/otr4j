@@ -237,14 +237,14 @@ public class DoubleRatchetTest {
         bobRatchet = bobRatchet.rotateReceiverKeys(aliceRatchet.getECDHPublicKey(), aliceRatchet.getDHPublicKey(), 0);
         bobRatchet.decrypt(0, 0, message, authenticator, ciphertext);
         bobRatchet.collectReveals();
-        assertFalse(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "rootKey")));
-        assertFalse(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "senderRatchet", "chainKey")));
-        assertFalse(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "receiverRatchet", "chainKey")));
+        assertFalse(allZeroBytes(Classes.readField(byte[].class, bobRatchet, "rootKey")));
+        assertFalse(allZeroBytes(Classes.readField(byte[].class, bobRatchet, "senderRatchet", "chainKey")));
+        assertFalse(allZeroBytes(Classes.readField(byte[].class, bobRatchet, "receiverRatchet", "chainKey")));
         bobRatchet.close();
-        assertEquals(0, Classes.readValue(ByteArrayOutputStream.class, bobRatchet, "reveals").size());
-        assertTrue(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "rootKey")));
-        assertTrue(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "senderRatchet", "chainKey")));
-        assertTrue(allZeroBytes(Classes.readValue(byte[].class, bobRatchet, "receiverRatchet", "chainKey")));
+        assertEquals(0, Classes.readField(ByteArrayOutputStream.class, bobRatchet, "reveals").size());
+        assertTrue(allZeroBytes(Classes.readField(byte[].class, bobRatchet, "rootKey")));
+        assertTrue(allZeroBytes(Classes.readField(byte[].class, bobRatchet, "senderRatchet", "chainKey")));
+        assertTrue(allZeroBytes(Classes.readField(byte[].class, bobRatchet, "receiverRatchet", "chainKey")));
     }
 
     @Test

@@ -21,7 +21,7 @@ import static net.java.otr4j.crypto.ed448.Ed448.identity;
 import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
 import static net.java.otr4j.crypto.ed448.Scalar.SCALAR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.ed448.Scalar.fromBigInteger;
-import static net.java.otr4j.util.Classes.readValue;
+import static net.java.otr4j.util.Classes.readField;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -55,7 +55,7 @@ public class ECDHKeyPairTest {
     public void testPublicKeyRegeneratable() {
         final ECDHKeyPair keypair = generate(RANDOM);
         final Point expected = keypair.publicKey();
-        final Point generated = multiplyByBase(Classes.readValue(Scalar.class, keypair, "secretKey"));
+        final Point generated = multiplyByBase(Classes.readField(Scalar.class, keypair, "secretKey"));
         assertEquals(expected, generated);
     }
 
@@ -69,14 +69,14 @@ public class ECDHKeyPairTest {
     @Test
     public void testGetSecretKey() {
         final ECDHKeyPair keypair = new ECDHKeyPair(sk);
-        assertEquals(sk, Classes.readValue(Scalar.class, keypair, "secretKey"));
+        assertEquals(sk, Classes.readField(Scalar.class, keypair, "secretKey"));
     }
 
     @Test
     public void testGetSecretKeyAfterClose() {
         final ECDHKeyPair keypair = generate(RANDOM);
         keypair.close();
-        assertNull(Classes.readValue(Scalar.class, keypair, "secretKey"));
+        assertNull(Classes.readField(Scalar.class, keypair, "secretKey"));
     }
 
     @Test

@@ -45,10 +45,10 @@ public final class Classes {
      * @return Returns the value in the field.
      * @param <T> the type of the intended field's value
      */
-    public static <T> T readValue(final Class<T> type, final Object entry, final String... fieldNames) {
+    public static <T> T readField(final Class<T> type, final Object entry, final String... fieldNames) {
         Object value = entry;
         for (final String name : fieldNames) {
-            value = readValue(value, name);
+            value = readField(value, name);
         }
         return type.cast(value);
     }
@@ -62,8 +62,8 @@ public final class Classes {
      * @return Returns the value in the field.
      * @param <T> the type of the intended field's value
      */
-    public static <T> T readValue(final Class<T> type, final Object entry, final String fieldName) {
-        return type.cast(readValue(entry, fieldName));
+    public static <T> T readField(final Class<T> type, final Object entry, final String fieldName) {
+        return type.cast(readField(entry, fieldName));
     }
 
     /**
@@ -74,7 +74,7 @@ public final class Classes {
      * @return Returns the value in the field.
      */
     @SuppressWarnings("PMD.AvoidAccessibilityAlteration")
-    public static Object readValue(final Object entry, final String fieldName) {
+    public static Object readField(final Object entry, final String fieldName) {
         try {
             final Field field = entry.getClass().getDeclaredField(fieldName);
             final boolean accessible = field.canAccess(entry);

@@ -21,7 +21,7 @@ import static net.java.otr4j.crypto.ed448.Ed448.basePoint;
 import static net.java.otr4j.crypto.ed448.Ed448.identity;
 import static net.java.otr4j.crypto.ed448.Point.decodePoint;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
-import static net.java.otr4j.util.Classes.readValue;
+import static net.java.otr4j.util.Classes.readField;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -135,7 +135,7 @@ public final class PointTest {
     public void testClose() {
         final Point p = new Point(BASE_POINT_ENCODED.clone());
         Point.clear(p);
-        assertTrue(allZeroBytes(Classes.readValue(byte[].class, p, "encoded")));
+        assertTrue(allZeroBytes(Classes.readField(byte[].class, p, "encoded")));
     }
 
     @Test(expected = IllegalStateException.class)

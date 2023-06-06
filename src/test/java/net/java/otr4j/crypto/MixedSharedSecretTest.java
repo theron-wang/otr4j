@@ -19,7 +19,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
-import static net.java.otr4j.util.Classes.readValue;
+import static net.java.otr4j.util.Classes.readField;
 import static org.bouncycastle.util.Arrays.fill;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -292,8 +292,8 @@ public class MixedSharedSecretTest {
         final MixedSharedSecret shared = new MixedSharedSecret(RANDOM, ECDHKeyPair.generate(RANDOM),
                 DHKeyPair.generate(RANDOM),theirECDHPublicKey, theirDHPublicKey);
         shared.close();
-        assertTrue(allZeroBytes(Classes.readValue(byte[].class, shared, "k")));
-        assertTrue(allZeroBytes(Classes.readValue(byte[].class, shared, "braceKey")));
+        assertTrue(allZeroBytes(Classes.readField(byte[].class, shared, "k")));
+        assertTrue(allZeroBytes(Classes.readField(byte[].class, shared, "braceKey")));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -364,13 +364,13 @@ public class MixedSharedSecretTest {
     public void testCorrectClearingOfFieldsWhenClosed() {
         final MixedSharedSecret secret = new MixedSharedSecret(RANDOM, ECDHKeyPair.generate(RANDOM),
                 DHKeyPair.generate(RANDOM), theirECDHPublicKey, theirDHPublicKey);
-        assertFalse(allZeroBytes(Classes.readValue(byte[].class, secret, "k")));
-        assertFalse(allZeroBytes(Classes.readValue(byte[].class, secret, "braceKey")));
+        assertFalse(allZeroBytes(Classes.readField(byte[].class, secret, "k")));
+        assertFalse(allZeroBytes(Classes.readField(byte[].class, secret, "braceKey")));
         secret.close();
-        assertTrue(allZeroBytes(Classes.readValue(byte[].class, secret, "k")));
-        assertTrue(allZeroBytes(Classes.readValue(byte[].class, secret, "braceKey")));
+        assertTrue(allZeroBytes(Classes.readField(byte[].class, secret, "k")));
+        assertTrue(allZeroBytes(Classes.readField(byte[].class, secret, "braceKey")));
         secret.close();
-        assertTrue(allZeroBytes(Classes.readValue(byte[].class, secret, "k")));
-        assertTrue(allZeroBytes(Classes.readValue(byte[].class, secret, "braceKey")));
+        assertTrue(allZeroBytes(Classes.readField(byte[].class, secret, "k")));
+        assertTrue(allZeroBytes(Classes.readField(byte[].class, secret, "braceKey")));
     }
 }
