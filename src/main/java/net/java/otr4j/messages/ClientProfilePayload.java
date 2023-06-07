@@ -32,11 +32,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Objects.requireNonNull;
+import static java.util.logging.Level.WARNING;
 import static net.java.otr4j.api.InstanceTag.isValidInstanceTag;
 import static net.java.otr4j.crypto.DSAKeyPair.verifySignature;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.verifyEdDSAPublicKey;
@@ -120,24 +120,8 @@ public final class ClientProfilePayload implements OtrEncodable {
         final byte[] signature = eddsaKeyPair.sign(payload.toByteArray());
         // We assume that the internally generated client profiles are correct, however it is tested when assertions are
         // enabled.
-        assert testValidate(fields, signature, Instant.now())
-                : "BUG: Internally constructed client profile payload fails validation. This should not happen.";
+        assert check(fields, signature) : "BUG: Internally constructed client profile payload fails validation. This should not happen.";
         return new ClientProfilePayload(fields, signature);
-    }
-
-    /**
-     * Custom method to make {@link #validate()} suitable for assertions.
-     *
-     * @return true iff validated successfully
-     */
-    private static boolean testValidate(final List<Field> fields, final byte[] signature, final Instant now) {
-        try {
-            validate(fields, signature, now);
-            return true;
-        } catch (final ValidationException e) {
-            LOGGER.log(Level.SEVERE, "Failed validation.", e);
-            return false;
-        }
     }
 
     /**
@@ -218,6 +202,7 @@ public final class ClientProfilePayload implements OtrEncodable {
         return new ClientProfilePayload(fields, signature);
     }
 
+    // TODO consider moving out of ClientProfilePayload. Is really just a utility doing encoding/decoding.
     @Nonnull
     private static ArrayList<Integer> parseVersions(@Nonnull final byte[] versiondata) throws ProtocolException {
         final ArrayList<Integer> versions = new ArrayList<>();
@@ -259,6 +244,16 @@ public final class ClientProfilePayload implements OtrEncodable {
         out.writeEdDSASignature(this.signature);
     }
 
+    private static boolean check(final Iterable<Field> fields, final byte[] signature) {
+        try {
+            validate(fields, signature, Instant.now());
+            return true;
+        } catch (final ValidationException e) {
+            LOGGER.log(WARNING, "BUG: constructed client profile payload does not satisfy requirements.", e);
+            return false;
+        }
+    }
+
     /**
      * Validate the Client Profile payload and return a corresponding Client Profile instance iff validation succeeds.
      *
@@ -274,13 +269,13 @@ public final class ClientProfilePayload implements OtrEncodable {
     /**
      * Verify consistency of fields list.
      *
-     * @param fields    List of fields.
+     * @param fields the fields
      * @param signature The OTRv4 signature for the fields contained in the client profile.
      * @throws ValidationException In case ClientProfilePayload contents are not inconsistent or signature is invalid.
      */
     // TODO consider reducing complexity.
     @SuppressWarnings("PMD.CognitiveComplexity")
-    private static void validate(final List<Field> fields, final byte[] signature, final Instant now)
+    private static void validate(final Iterable<Field> fields, final byte[] signature, final Instant now)
             throws ValidationException {
         final ArrayList<InstanceTagField> instanceTagFields = new ArrayList<>();
         final ArrayList<ED448PublicKeyField> publicKeyFields = new ArrayList<>();
