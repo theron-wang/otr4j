@@ -32,13 +32,15 @@
         <project.build.outputTimestamp>2023-01-01T00:00:00Z</project.build.outputTimestamp>
         <project-java-version>11</project-java-version>
     </properties>
-    <!-- force HTTPS access for downloading jars -->
+    <!-- force HTTPS access, strict checksum validation for downloading jars -->
     <repositories>
         <repository>
             <id>central</id>
             <url>https://repo.maven.apache.org/maven2</url>
             <releases>
                 <enabled>true</enabled>
+                <checksumPolicy>fail</checksumPolicy>
+                <updatePolicy>never</updatePolicy>
             </releases>
         </repository>
     </repositories>
@@ -48,6 +50,8 @@
             <url>https://repo.maven.apache.org/maven2</url>
             <releases>
                 <enabled>true</enabled>
+                <checksumPolicy>fail</checksumPolicy>
+                <updatePolicy>never</updatePolicy>
             </releases>
         </pluginRepository>
     </pluginRepositories>
