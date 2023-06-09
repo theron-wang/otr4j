@@ -8,6 +8,11 @@ The repository for otr4j OTRv4 development is [github.com/otr4j/otr4j](https://g
 - __feature-incomplete__, missing: managing skipped encryption keys for out-of-order message handling, non-interactive session initiation, client-profile renewals during continuous execution, … (see _checklist_ below for details)
 - __in development__: _not reviewed_, _not widely adopted_ yet.
 
+_Under consideration_:
+
+- ⁉️ single method introduced for signaling any event that `OtrEngineHost` handles:  
+The method `<T> void onEvent(SessionID sessionID, InstanceTag receiver, Event<T> event, T payload);` as single method that receives all events defined in the `Event<T>` type. This is an experiment with advantages and disadvantages.
+
 ## otr4j
 
 This is a fork of the [original otr4j](https://github.com/jitsi/otr4j). The original otr4j started development as an GSoC 2009 project. A few years ago, a attempt was made to create a "community-friendly fork" of otr4j with the intention to lower the barrier for contribution: it is not required to sign a CLA.
