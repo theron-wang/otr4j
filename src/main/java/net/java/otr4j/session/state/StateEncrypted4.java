@@ -78,11 +78,11 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @SuppressWarnings("PMD.LoggerIsNotStaticFinal")
     private final Logger logger;
 
-    private DoubleRatchet ratchet;
+    private volatile DoubleRatchet ratchet;
 
     private final SMP smp;
 
-    private long lastMessageSentTimestamp = System.nanoTime();
+    private volatile long lastMessageSentTimestamp = System.nanoTime();
 
     private final RemoteInfo remoteinfo;
 

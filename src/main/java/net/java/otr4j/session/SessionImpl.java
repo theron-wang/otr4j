@@ -143,9 +143,8 @@ final class SessionImpl implements Session, Context {
      * incoming and outgoing messages, and everything related to this message
      * state.
      */
-    @GuardedBy("masterSession")
     @Nonnull
-    private State sessionState;
+    private volatile State sessionState;
 
     /**
      * Slave sessions contain the mappings of instance tags to outgoing
@@ -1286,9 +1285,7 @@ final class SessionImpl implements Session, Context {
      *                                 "last activity".
      */
     long getLastActivityTimestamp() throws IncorrectStateException {
-        synchronized (this.masterSession) {
-            return this.sessionState.getLastActivityTimestamp();
-        }
+        return this.sessionState.getLastActivityTimestamp();
     }
 
     /**
@@ -1318,9 +1315,7 @@ final class SessionImpl implements Session, Context {
      * @throws IncorrectStateException In case session is not in private messaging state.
      */
     long getLastMessageSentTimestamp() throws IncorrectStateException {
-        synchronized (this.masterSession) {
-            return this.sessionState.getLastMessageSentTimestamp();
-        }
+        return this.sessionState.getLastMessageSentTimestamp();
     }
 
     /**

@@ -19,7 +19,6 @@ import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
 import static net.java.otr4j.crypto.ed448.EdDSAKeyPair.generate;
 import static net.java.otr4j.crypto.ed448.EdDSAKeyPair.verify;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
-import static net.java.otr4j.util.Classes.readField;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
