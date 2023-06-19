@@ -169,5 +169,6 @@ public interface OtrEngineHost {
      * @param payload the payload corresponding to the event
      * @param <T> the parametric type used to provide type-safety between event and payload.
      */
+    // TODO consider renaming to `dispatch`-something.
     <T> void onEvent(SessionID sessionID, InstanceTag receiver, Event<T> event, T payload);
 }

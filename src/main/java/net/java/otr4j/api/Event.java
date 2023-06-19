@@ -10,6 +10,7 @@
 package net.java.otr4j.api;
 
 import com.google.errorprone.annotations.CheckReturnValue;
+import com.google.errorprone.annotations.Immutable;
 import net.java.otr4j.util.Unit;
 
 import javax.annotation.Nonnull;
@@ -22,6 +23,7 @@ import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
  *
  * @param <T> the type for the event payload
  */
+@Immutable(containerOf = "T")
 public final class Event<T> {
     /**
      * An unencrypted message was received. (The message is the payload.)
