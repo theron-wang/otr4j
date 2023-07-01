@@ -8,6 +8,8 @@
  */
 /**
  * Utilities for general types.
+ * <p>
+ * A small collection of utilities to avoid external dependencies for this convenience.
  */
 @ParametersAreNonnullByDefault
 package net.java.otr4j.util;

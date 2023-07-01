@@ -1727,7 +1727,7 @@ public class SessionTest {
         }
 
         @Override
-        public <T> void onEvent(final SessionID sessionID, final InstanceTag receiver,
+        public <T> void handleEvent(final SessionID sessionID, final InstanceTag receiver,
                 final Event<T> event, final T payload) {
             if (event == Event.ENCRYPTED_MESSAGES_REQUIRED) {
                 final String msg = Event.ENCRYPTED_MESSAGES_REQUIRED.convert(payload);

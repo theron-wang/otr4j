@@ -49,7 +49,7 @@ import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
-import static net.java.otr4j.api.OtrEngineHosts.onEvent;
+import static net.java.otr4j.api.OtrEngineHosts.handleEvent;
 import static net.java.otr4j.api.OtrPolicys.allowedVersions;
 import static net.java.otr4j.crypto.OtrCryptoEngine.aesDecrypt;
 import static net.java.otr4j.crypto.OtrCryptoEngine.aesEncrypt;
@@ -136,7 +136,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     @Override
     public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
-        onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+        handleEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
                 Event.UNENCRYPTED_MESSAGE_RECEIVED, message.getCleanText());
         // TODO what does this mean exactly: we have received a plaintext message under an ENCRYPTED context.
         return new Result(STATUS, false, false, message.getCleanText());
@@ -283,7 +283,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
                 }
                 final byte[] eskContext = ByteArrays.cloneRange(tlv.value, 0, 4);
                 final byte[] eskValue = ByteArrays.cloneRange(tlv.value, 4, tlv.value.length - 4);
-                onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+                handleEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
                         Event.EXTRA_SYMMETRIC_KEY_DISCOVERED, new Event.ExtraSymmetricKey(key, eskContext, eskValue));
                 break;
             default:

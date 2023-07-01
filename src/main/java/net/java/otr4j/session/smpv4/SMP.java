@@ -29,7 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
-import static net.java.otr4j.api.OtrEngineHosts.onEvent;
+import static net.java.otr4j.api.OtrEngineHosts.handleEvent;
 import static net.java.otr4j.api.TLV.EMPTY_BODY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.SMP_SECRET;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.fingerprint;
@@ -130,7 +130,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
 
     @Override
     public void requestSecret(final String question) {
-        onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_REQUEST_SECRET, question);
+        handleEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_REQUEST_SECRET, question);
     }
 
     /**
@@ -206,12 +206,12 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
             response = this.state.process(this, parse(tlv));
         } catch (final SMPAbortException e) {
             setState(new StateExpect1(this.random, UNDECIDED));
-            onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, Event.AbortReason.INTERRUPTION);
+            handleEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, Event.AbortReason.INTERRUPTION);
             return new TLV(SMP_ABORT, EMPTY_BODY);
         }
         final byte[] theirFingerprint = fingerprint(this.theirLongTermPublicKey, this.theirForgingKey);
         final Event.SMPResult result = new Event.SMPResult(this.state.getStatus() == SUCCEEDED, theirFingerprint);
-        onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_COMPLETED, result);
+        handleEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_COMPLETED, result);
         if (response == null) {
             return null;
         }
@@ -231,7 +231,7 @@ public final class SMP implements AutoCloseable, SMPContext, SMPHandler {
     @Override
     public TLV abort() {
         setState(new StateExpect1(this.random, UNDECIDED));
-        onEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, Event.AbortReason.USER);
+        handleEvent(this.host, this.sessionID, this.receiverTag, Event.SMP_ABORTED, Event.AbortReason.USER);
         return new TLV(SMP_ABORT, EMPTY_BODY);
     }
 

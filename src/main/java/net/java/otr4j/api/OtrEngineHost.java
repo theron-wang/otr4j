@@ -161,7 +161,7 @@ public interface OtrEngineHost {
     String getFallbackMessage(SessionID sessionID);
 
     /**
-     * onEvent is the common method to signal an event to the OTR Engine Host.
+     * handleEvent is the common method to signal an event to the OTR Engine Host.
      *
      * @param sessionID the session ID
      * @param receiver the receiver (remote participant) instance tag
@@ -169,6 +169,5 @@ public interface OtrEngineHost {
      * @param payload the payload corresponding to the event
      * @param <T> the parametric type used to provide type-safety between event and payload.
      */
-    // TODO consider renaming to `dispatch`-something.
-    <T> void onEvent(SessionID sessionID, InstanceTag receiver, Event<T> event, T payload);
+    <T> void handleEvent(SessionID sessionID, InstanceTag receiver, Event<T> event, T payload);
 }

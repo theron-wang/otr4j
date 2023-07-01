@@ -47,7 +47,7 @@ import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
-import static net.java.otr4j.api.OtrEngineHosts.onEvent;
+import static net.java.otr4j.api.OtrEngineHosts.handleEvent;
 import static net.java.otr4j.api.TLV.DISCONNECTED;
 import static net.java.otr4j.api.TLV.PADDING;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES;
@@ -103,7 +103,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Override
     public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
-        onEvent(context.getHost(), context.getSessionID(), InstanceTag.ZERO_TAG, Event.UNENCRYPTED_MESSAGE_RECEIVED,
+        handleEvent(context.getHost(), context.getSessionID(), InstanceTag.ZERO_TAG, Event.UNENCRYPTED_MESSAGE_RECEIVED,
                 message.getCleanText());
         // TODO what does this mean, if we receive a plaintext message under an ENCRYPTED context? (One option is if OTRv2 ZERO-tag instance is encrypted session)
         return new Result(STATUS, false, false, message.getCleanText());
@@ -340,7 +340,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                     eskValue = ByteArrays.cloneRange(tlv.value, 4, tlv.value.length - 4);
                 }
                 final byte[] symmkey = OtrCryptoEngine4.deriveExtraSymmetricKey((byte) i, eskContext, extraSymmetricKey);
-                onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+                handleEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
                         Event.EXTRA_SYMMETRIC_KEY_DISCOVERED, new Event.ExtraSymmetricKey(symmkey, eskContext, eskValue));
                 break;
             default:

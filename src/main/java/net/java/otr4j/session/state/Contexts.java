@@ -42,7 +42,7 @@ public final class Contexts {
         final OtrEngineHost host = context.getHost();
         final SessionID sessionID = context.getSessionID();
         final InstanceTag tag = context.getReceiverInstanceTag();
-        OtrEngineHosts.onEvent(host, sessionID, tag, Event.UNREADABLE_MESSAGE_RECEIVED, Unit.UNIT);
+        OtrEngineHosts.handleEvent(host, sessionID, tag, Event.UNREADABLE_MESSAGE_RECEIVED, Unit.UNIT);
         final String replymsg = getReplyForUnreadableMessage(host, sessionID, identifier, message);
         context.injectMessage(new ErrorMessage(identifier, replymsg));
     }

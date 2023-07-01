@@ -34,7 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.logging.Level.INFO;
-import static net.java.otr4j.api.OtrEngineHosts.onEvent;
+import static net.java.otr4j.api.OtrEngineHosts.handleEvent;
 import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 
@@ -87,7 +87,7 @@ final class StateFinished extends AbstractCommonState {
     @Nonnull
     public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
         // Display the message to the user, but warn him that the message was received unencrypted.
-        onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+        handleEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
                 Event.UNENCRYPTED_MESSAGE_RECEIVED, message.getCleanText());
         return new Result(STATUS, false, false, message.getCleanText());
     }
@@ -145,7 +145,7 @@ final class StateFinished extends AbstractCommonState {
     public Message transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
             final byte flags) {
         context.queueMessage(msgText);
-        onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(), Event.SESSION_FINISHED,
+        handleEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(), Event.SESSION_FINISHED,
                 Unit.UNIT);
         return null;
     }

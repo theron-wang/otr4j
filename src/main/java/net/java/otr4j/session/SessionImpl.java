@@ -71,7 +71,7 @@ import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
-import static net.java.otr4j.api.OtrEngineHosts.onEvent;
+import static net.java.otr4j.api.OtrEngineHosts.handleEvent;
 import static net.java.otr4j.api.OtrEngineListeners.duplicate;
 import static net.java.otr4j.api.OtrEngineListeners.outgoingSessionChanged;
 import static net.java.otr4j.api.OtrEngineListeners.sessionStatusChanged;
@@ -524,7 +524,7 @@ final class SessionImpl implements Session, Context {
                         && fragment.getReceiverTag().getValue() != this.profile.getInstanceTag().getValue()) {
                     // The message is not intended for us. Discarding...
                     this.logger.finest("Received a message fragment with receiver instance tag that is different from ours. Ignore this message.");
-                    onEvent(this.host, this.sessionID, fragment.getReceiverTag(), Event.MESSAGE_FOR_ANOTHER_INSTANCE_RECEIVED,
+                    handleEvent(this.host, this.sessionID, fragment.getReceiverTag(), Event.MESSAGE_FOR_ANOTHER_INSTANCE_RECEIVED,
                             Unit.UNIT);
                     return new Result(ZERO_TAG, PLAINTEXT, true, false, null);
                 }
@@ -554,7 +554,7 @@ final class SessionImpl implements Session, Context {
                 if (!ZERO_TAG.equals(message.receiverTag) && !message.receiverTag.equals(this.profile.getInstanceTag())) {
                     // The message is not intended for us. Discarding...
                     this.logger.finest("Received an encoded message with receiver instance tag that is different from ours. Ignore this message.");
-                    onEvent(this.host, this.sessionID, message.receiverTag, Event.MESSAGE_FOR_ANOTHER_INSTANCE_RECEIVED,
+                    handleEvent(this.host, this.sessionID, message.receiverTag, Event.MESSAGE_FOR_ANOTHER_INSTANCE_RECEIVED,
                             Unit.UNIT);
                     return new Result(ZERO_TAG, PLAINTEXT, true, false, null);
                 }

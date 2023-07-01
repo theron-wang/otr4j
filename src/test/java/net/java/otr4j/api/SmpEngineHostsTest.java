@@ -45,8 +45,8 @@ public class SmpEngineHostsTest {
     public void testSmpErrorOnGoodHost() {
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
+        OtrEngineHosts.handleEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
+        verify(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
     }
 
     @Test
@@ -54,17 +54,17 @@ public class SmpEngineHostsTest {
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new IllegalArgumentException("programming error occurred"))
-                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
+                .when(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
+        OtrEngineHosts.handleEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
+        verify(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.VIOLATION);
     }
 
     @Test
     public void testSmpAbortedOnGoodHost() {
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
+        OtrEngineHosts.handleEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
+        verify(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
     }
 
     @Test
@@ -72,9 +72,9 @@ public class SmpEngineHostsTest {
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new IllegalArgumentException("programming error occurred"))
-                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
+                .when(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
+        OtrEngineHosts.handleEvent(host, sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
+        verify(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_ABORTED, Event.AbortReason.USER);
     }
 
     @Test
@@ -83,8 +83,8 @@ public class SmpEngineHostsTest {
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
         final Event.SMPResult result = new Event.SMPResult(true, fingerprint);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        OtrEngineHosts.handleEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        verify(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
     }
 
     @Test
@@ -94,9 +94,9 @@ public class SmpEngineHostsTest {
         final OtrEngineHost host = mock(OtrEngineHost.class);
         final Event.SMPResult result = new Event.SMPResult(true, fingerprint);
         doThrow(new IllegalStateException("some bad stuff happened"))
-                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+                .when(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        OtrEngineHosts.handleEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        verify(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
     }
 
     @Test
@@ -105,8 +105,8 @@ public class SmpEngineHostsTest {
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
         final Event.SMPResult result = new Event.SMPResult(true, fingerprint);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        OtrEngineHosts.handleEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        verify(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
     }
 
     @Test
@@ -116,9 +116,9 @@ public class SmpEngineHostsTest {
         final OtrEngineHost host = mock(OtrEngineHost.class);
         final Event.SMPResult result = new Event.SMPResult(true, fingerprint);
         doThrow(new IllegalStateException("some bad stuff happened"))
-                .when(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
-        OtrEngineHosts.onEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
-        verify(host).onEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+                .when(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        OtrEngineHosts.handleEvent(host, sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
+        verify(host).handleEvent(sessionID, SMALLEST_TAG, Event.SMP_COMPLETED, result);
     }
 
     @Test
@@ -127,8 +127,8 @@ public class SmpEngineHostsTest {
         final InstanceTag sender = InstanceTag.random(RANDOM);
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
-        OtrEngineHosts.onEvent(host, sessionID, sender, Event.SMP_REQUEST_SECRET, question);
-        verify(host).onEvent(sessionID, sender, Event.SMP_REQUEST_SECRET, question);
+        OtrEngineHosts.handleEvent(host, sessionID, sender, Event.SMP_REQUEST_SECRET, question);
+        verify(host).handleEvent(sessionID, sender, Event.SMP_REQUEST_SECRET, question);
     }
 
     @Test
@@ -138,8 +138,8 @@ public class SmpEngineHostsTest {
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);
         doThrow(new IllegalArgumentException("programming error occurred"))
-                .when(host).onEvent(sessionID, sender, Event.SMP_REQUEST_SECRET, question);
-        OtrEngineHosts.onEvent(host, sessionID, sender, Event.SMP_REQUEST_SECRET, question);
-        verify(host).onEvent(sessionID, sender, Event.SMP_REQUEST_SECRET, question);
+                .when(host).handleEvent(sessionID, sender, Event.SMP_REQUEST_SECRET, question);
+        OtrEngineHosts.handleEvent(host, sessionID, sender, Event.SMP_REQUEST_SECRET, question);
+        verify(host).handleEvent(sessionID, sender, Event.SMP_REQUEST_SECRET, question);
     }
 }

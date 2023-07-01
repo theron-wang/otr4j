@@ -100,10 +100,10 @@ public final class OtrEngineHosts {
      * @param payload the event payload, can be type-cast using the event-type
      * @param <T> the parametric type to enforce type-safety between event-type and payload.
      */
-    public static <T> void onEvent(final OtrEngineHost host, final SessionID sessionID, final InstanceTag receiver,
+    public static <T> void handleEvent(final OtrEngineHost host, final SessionID sessionID, final InstanceTag receiver,
             final Event<T> event, final T payload) {
         try {
-            host.onEvent(sessionID, receiver, event, payload);
+            host.handleEvent(sessionID, receiver, event, payload);
         } catch (final RuntimeException e) {
             LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while signaling event.", e);
         }

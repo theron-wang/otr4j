@@ -44,6 +44,7 @@ public final class Event<T> {
     /**
      * Multiple instances have been detected. (No payload.)
      */
+    // TODO is "Multiple Instances Detected" case still valid or is it superseeded by stricter checks?
     public static final Event<Unit> MULTIPLE_INSTANCES_DETECTED = new Event<>(Unit.class);
     // TODO first 4 bytes of TLV value are indicator (ID?) of usage, e.g. file transfer, encrypted audio, rest is freeform possibly (file)name, URL or whatever.
     /**

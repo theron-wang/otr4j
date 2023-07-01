@@ -63,7 +63,7 @@ public final class ContextsTest {
         when(context.getHost()).thenReturn(host);
         ArgumentCaptor<ErrorMessage> captor = ArgumentCaptor.forClass(ErrorMessage.class);
         signalUnreadableMessage(context, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
-        verify(host, times(1)).onEvent(eq(sessionID), eq(SMALLEST_TAG),
+        verify(host, times(1)).handleEvent(eq(sessionID), eq(SMALLEST_TAG),
                 eq(Event.UNREADABLE_MESSAGE_RECEIVED), eq(Unit.UNIT));
         verify(context, times(1)).injectMessage(captor.capture());
         assertEquals(message, captor.getValue().error);
@@ -80,7 +80,7 @@ public final class ContextsTest {
         when(context.getHost()).thenReturn(host);
         ArgumentCaptor<ErrorMessage> captor = ArgumentCaptor.forClass(ErrorMessage.class);
         signalUnreadableMessage(context, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
-        verify(host, times(1)).onEvent(eq(sessionID), eq(SMALLEST_TAG),
+        verify(host, times(1)).handleEvent(eq(sessionID), eq(SMALLEST_TAG),
                 eq(Event.UNREADABLE_MESSAGE_RECEIVED), eq(Unit.UNIT));
         verify(context, times(1)).injectMessage(captor.capture());
         assertEquals(ERROR_ID_UNREADABLE_MESSAGE, captor.getValue().identifier);
@@ -95,12 +95,12 @@ public final class ContextsTest {
         when(context.getReceiverInstanceTag()).thenReturn(SMALLEST_TAG);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(host.getReplyForUnreadableMessage(eq(sessionID), eq(ERROR_ID_UNREADABLE_MESSAGE))).thenReturn("Cannot read message.");
-        doThrow(RuntimeException.class).when(host).onEvent(eq(sessionID), eq(SMALLEST_TAG),
+        doThrow(RuntimeException.class).when(host).handleEvent(eq(sessionID), eq(SMALLEST_TAG),
                 eq(Event.UNREADABLE_MESSAGE_RECEIVED), eq(Unit.UNIT));
         when(context.getHost()).thenReturn(host);
         ArgumentCaptor<ErrorMessage> captor = ArgumentCaptor.forClass(ErrorMessage.class);
         signalUnreadableMessage(context, ERROR_ID_UNREADABLE_MESSAGE, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
-        verify(host, times(1)).onEvent(eq(sessionID), eq(SMALLEST_TAG),
+        verify(host, times(1)).handleEvent(eq(sessionID), eq(SMALLEST_TAG),
                 eq(Event.UNREADABLE_MESSAGE_RECEIVED), eq(Unit.UNIT));
         verify(context, times(1)).injectMessage(captor.capture());
         assertEquals(ERROR_ID_UNREADABLE_MESSAGE, captor.getValue().identifier);

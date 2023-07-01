@@ -38,7 +38,7 @@ import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static net.java.otr4j.api.OfferStatus.REJECTED;
-import static net.java.otr4j.api.OtrEngineHosts.onEvent;
+import static net.java.otr4j.api.OtrEngineHosts.handleEvent;
 import static net.java.otr4j.api.OtrPolicys.allowedVersions;
 import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE;
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
@@ -161,7 +161,7 @@ public final class StatePlaintext extends AbstractCommonState {
             }
             context.startSession();
             context.queueMessage(msgText);
-            onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+            handleEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
                     Event.ENCRYPTED_MESSAGES_REQUIRED, msgText);
             return null;
         }

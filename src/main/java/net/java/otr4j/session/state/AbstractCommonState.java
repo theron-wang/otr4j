@@ -21,7 +21,7 @@ import net.java.otr4j.session.ake.AuthState;
 import javax.annotation.Nullable;
 import java.util.logging.Logger;
 
-import static net.java.otr4j.api.OtrEngineHosts.onEvent;
+import static net.java.otr4j.api.OtrEngineHosts.handleEvent;
 import static net.java.otr4j.session.state.Contexts.signalUnreadableMessage;
 
 abstract class AbstractCommonState extends AbstractOTR4State {
@@ -34,7 +34,7 @@ abstract class AbstractCommonState extends AbstractOTR4State {
 
     @Override
     public void handleErrorMessage(final Context context, final ErrorMessage errorMessage) throws OtrException {
-        onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+        handleEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
                 Event.ERROR, "OTR error: " + errorMessage.error);
     }
 
@@ -72,7 +72,7 @@ abstract class AbstractCommonState extends AbstractOTR4State {
     public Message transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
             final byte flags) throws OtrException {
         context.queueMessage(msgText);
-        onEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+        handleEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
                 Event.ENCRYPTED_MESSAGES_REQUIRED, msgText);
         return null;
     }
