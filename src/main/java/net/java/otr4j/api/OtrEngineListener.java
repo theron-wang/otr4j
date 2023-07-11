@@ -15,6 +15,7 @@ package net.java.otr4j.api;
  *
  * @author George Politis
  */
+// TODO consider implementing defaults such that not all methods require overriding.
 public interface OtrEngineListener {
 
     /**

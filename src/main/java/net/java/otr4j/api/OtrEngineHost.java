@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
  * @author George Politis
  * @author Danny van Heumen
  */
+// TODO consider default implementations for methods similar to <https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpClient.html#newWebSocketBuilder()> to prevent having to implement methods that should execute as expected.
 public interface OtrEngineHost {
 
     /**
