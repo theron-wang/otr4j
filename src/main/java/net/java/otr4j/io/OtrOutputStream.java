@@ -207,6 +207,20 @@ public final class OtrOutputStream {
     }
 
     /**
+     * Write a short (2-byte) value to the output stream in Little-Endian byte-order.
+     *
+     * @param s the short value
+     * @return Returns this instance of OtrOutputStream such that method calls can be chained.
+     */
+    @CanIgnoreReturnValue
+    @Nonnull
+    public OtrOutputStream writeShortLE(final int s) {
+        this.out.write(s & 0x00ff);
+        this.out.write((s & 0xff00) >>> 8);
+        return this;
+    }
+
+    /**
      * Write a long (8-byte) value to the output stream.
      *
      * @param value the long value

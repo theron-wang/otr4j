@@ -115,6 +115,17 @@ public final class OtrInputStream {
     }
 
     /**
+     * Read a short value in Little-Endian byte-order.
+     *
+     * @return Returns the short value.
+     * @throws ProtocolException In case of unexpected content in the message stream.
+     */
+    public int readShortLE() throws ProtocolException {
+        final byte[] bytes = checkedRead(2);
+        return bytes[0] | (bytes[1] << 8);
+    }
+
+    /**
      * Read instance tag.
      *
      * @return Returns the instance tag.

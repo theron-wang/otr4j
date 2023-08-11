@@ -153,7 +153,7 @@ public final class ClientProfilePayload implements OtrEncodable {
                 fields.add(new InstanceTagField(in.readInt()));
                 break;
             case LONG_TERM_EDDSA_PUBLIC_KEY:
-                final int publicKeyType = in.readShort();
+                final int publicKeyType = in.readShortLE();
                 switch (publicKeyType) {
                 case ED448PublicKeyField.ED448_PUBLIC_KEY_TYPE:
                     final Point publicKey = in.readPoint();
@@ -164,7 +164,7 @@ public final class ClientProfilePayload implements OtrEncodable {
                 }
                 break;
             case ED448_FORGING_PUBLIC_KEY:
-                final int forgingKeyType = in.readShort();
+                final int forgingKeyType = in.readShortLE();
                 switch (forgingKeyType) {
                 case ED448ForgingKeyField.ED448_FORGING_KEY_TYPE:
                     final Point publicKey = in.readPoint();
@@ -284,7 +284,6 @@ public final class ClientProfilePayload implements OtrEncodable {
         final ArrayList<ExpirationDateField> expirationDateFields = new ArrayList<>();
         final ArrayList<DSAPublicKeyField> dsaPublicKeyFields = new ArrayList<>();
         final ArrayList<TransitionalSignatureField> transitionalSignatureFields = new ArrayList<>();
-        final OtrOutputStream out = new OtrOutputStream();
         for (final Field field : fields) {
             if (field instanceof InstanceTagField) {
                 instanceTagFields.add((InstanceTagField) field);
@@ -300,19 +299,16 @@ public final class ClientProfilePayload implements OtrEncodable {
                 dsaPublicKeyFields.add((DSAPublicKeyField) field);
             } else if (field instanceof TransitionalSignatureField) {
                 transitionalSignatureFields.add((TransitionalSignatureField) field);
-                // Note: we need to skip the step of writing the transitional signature to the output stream, because
-                // the transitional signature needs to be verified first, which means excluding the transitional
-                // signature itself.
-                continue;
             } else {
                 throw new UnsupportedOperationException("BUG: incomplete implementation: support for field type " + field.getClass() + " is not implemented yet.");
             }
-            out.write(field);
         }
         validateExactly(1, instanceTagFields.size(), "Incorrect number of instance tag fields. Expected exactly 1.");
         if (!isValidInstanceTag(instanceTagFields.get(0).instanceTag) || instanceTagFields.get(0).instanceTag == 0) {
             throw new ValidationException("Illegal instance tag.");
         }
+        final OtrOutputStream out = new OtrOutputStream();
+        instanceTagFields.forEach(out::write);
         validateExactly(1, publicKeyFields.size(), "Incorrect number of public key fields. Expected exactly 1.");
         final Point longTermPublicKey;
         try {
@@ -321,20 +317,25 @@ public final class ClientProfilePayload implements OtrEncodable {
         } catch (final OtrCryptoException e) {
             throw new ValidationException("Illegal EdDSA long-term public key.", e);
         }
+        publicKeyFields.forEach(out::write);
         validateExactly(1, forgingKeyFields.size(), "Incorrect number of forging key fields. Expected exactly 1.");
         try {
             verifyEdDSAPublicKey(forgingKeyFields.get(0).publicKey);
         } catch (final OtrCryptoException e) {
             throw new ValidationException("Illegal Ed448 forging key.", e);
         }
+        forgingKeyFields.forEach(out::write);
         validateExactly(1, versionsFields.size(), "Incorrect number of versions fields. Expected exactly 1.");
         if (!versionsFields.get(0).versions.contains(Version.FOUR)) {
             throw new ValidationException("Expected at least OTR version 4 to be supported.");
         }
+        versionsFields.forEach(out::write);
         validateExactly(1, expirationDateFields.size(), "Incorrect number of expiration date fields. Expected exactly 1.");
         validateDateAfter(now, Instant.ofEpochSecond(expirationDateFields.get(0).timestamp),
                 "Client Profile has expired.");
+        expirationDateFields.forEach(out::write);
         validateAtMost(1, dsaPublicKeyFields.size(), "Expected either no or single DSA public key field. Found more than one.");
+        dsaPublicKeyFields.forEach(out::write);
         validateAtMost(1, transitionalSignatureFields.size(), "Expected at most one transitional signature, got more than one.");
         validateEquals(dsaPublicKeyFields.size(), transitionalSignatureFields.size(),
                 "Legacy (DSA) public key should always be accompanied with transitional signature.");
@@ -347,10 +348,8 @@ public final class ClientProfilePayload implements OtrEncodable {
             } catch (final OtrCryptoException e) {
                 throw new ValidationException("Failed transitional signature validation.", e);
             }
-            // Perform the last remaining write, for transitional signature field, now that we have verified it correct.
-            // This is the last of the data, and the result can now be validated against the EdDSA signature.
-            out.write(transitionalSignatureFields.get(0));
         }
+        transitionalSignatureFields.forEach(out::write);
         try {
             EdDSAKeyPair.verify(longTermPublicKey, out.toByteArray(), signature);
         } catch (final net.java.otr4j.crypto.ed448.ValidationException e) {
@@ -501,7 +500,7 @@ public final class ClientProfilePayload implements OtrEncodable {
         @Override
         public void writeTo(final OtrOutputStream out) {
             out.writeShort(TYPE.type);
-            out.writeShort(ED448_PUBLIC_KEY_TYPE);
+            out.writeShortLE(ED448_PUBLIC_KEY_TYPE);
             out.writePoint(this.publicKey);
         }
 
@@ -540,7 +539,7 @@ public final class ClientProfilePayload implements OtrEncodable {
         @Override
         public void writeTo(final OtrOutputStream out) {
             out.writeShort(TYPE.type);
-            out.writeShort(ED448_FORGING_KEY_TYPE);
+            out.writeShortLE(ED448_FORGING_KEY_TYPE);
             out.writePoint(this.publicKey);
         }
 
