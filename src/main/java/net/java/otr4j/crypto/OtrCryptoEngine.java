@@ -9,9 +9,11 @@
 
 package net.java.otr4j.crypto;
 
-import org.bouncycastle.crypto.BufferedBlockCipher;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.modes.CTRModeCipher;
 import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -223,15 +225,16 @@ public final class OtrCryptoEngine {
      * @return Returns the decrypted content.
      * @throws OtrCryptoException In case of illegal ciphertext.
      */
+    // TODO migrate AES encryption/decryption to JDK JCA facilities.
     @Nonnull
     public static byte[] aesDecrypt(final byte[] key, final byte[] ctr, final byte[] b)
             throws OtrCryptoException {
         requireLengthExactly(CTR_LENGTH_BYTES, ctr);
         assert !allZeroBytes(key) : "Expected non-zero bytes for key. This may indicate that a critical bug is present, or it may be a false warning.";
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
-        final AESEngine aesDec = new AESEngine();
-        final SICBlockCipher sicAesDec = new SICBlockCipher(aesDec);
-        final BufferedBlockCipher bufSicAesDec = new BufferedBlockCipher(sicAesDec);
+        final MultiBlockCipher aesDec = AESEngine.newInstance();
+        final CTRModeCipher sicAesDec = SICBlockCipher.newInstance(aesDec);
+        final DefaultBufferedBlockCipher bufSicAesDec = new DefaultBufferedBlockCipher(sicAesDec);
         bufSicAesDec.init(false, new ParametersWithIV(new KeyParameter(key), ctr));
         final byte[] aesOutLwDec = new byte[b.length];
         final int done = bufSicAesDec.processBytes(b, 0, b.length, aesOutLwDec, 0);
@@ -252,14 +255,15 @@ public final class OtrCryptoEngine {
      * @param b   the plaintext content in bytes
      * @return Returns the encrypted content.
      */
+    // TODO migrate AES encryption/decryption to JDK JCA facilities.
     @Nonnull
     public static byte[] aesEncrypt(final byte[] key, final byte[] ctr, final byte[] b) {
         requireLengthExactly(CTR_LENGTH_BYTES, ctr);
         assert !allZeroBytes(key) : "Expected non-zero bytes for key. This may indicate that a critical bug is present, or it may be a false warning.";
         assert !allZeroBytes(b) : "Expected non-zero bytes for b. This may indicate that a critical bug is present, or it may be a false warning.";
-        final AESEngine aesEnc = new AESEngine();
-        final SICBlockCipher sicAesEnc = new SICBlockCipher(aesEnc);
-        final BufferedBlockCipher bufSicAesEnc = new BufferedBlockCipher(sicAesEnc);
+        final MultiBlockCipher aesEnc = AESEngine.newInstance();
+        final CTRModeCipher sicAesEnc = SICBlockCipher.newInstance(aesEnc);
+        final DefaultBufferedBlockCipher bufSicAesEnc = new DefaultBufferedBlockCipher(sicAesEnc);
         bufSicAesEnc.init(true, new ParametersWithIV(new KeyParameter(key), ctr));
         final byte[] aesOutLwEnc = new byte[b.length];
         final int done = bufSicAesEnc.processBytes(b, 0, b.length, aesOutLwEnc, 0);
