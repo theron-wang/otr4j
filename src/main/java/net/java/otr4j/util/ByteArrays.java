@@ -248,11 +248,10 @@ public final class ByteArrays {
      * @param length the length of the range to clone
      * @return Returns a newly created byte-array with range copied into it.
      */
-    // FIXME need testing.
     public static byte[] cloneRange(final byte[] src, final int offset, final int length) {
+        requireLengthAtLeast(offset + length, src);
         final byte[] dst = new byte[length];
-        // FIXME put in more parameter checking to catch input errors.
-        System.arraycopy(src, offset, dst, 0, length);
+        System.arraycopy(src, offset, dst, 0, dst.length);
         return dst;
     }
 

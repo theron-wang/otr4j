@@ -59,8 +59,8 @@ import static org.bouncycastle.util.Arrays.concatenate;
  * DoubleRatchet is NOT thread-safe.
  */
 // TODO current idempotent rotation procedure (to start DoubleRatchet changes provisional) require a lot of copying/cloning data. Can we do this in a more efficient way?
-// FIXME set-up clean up, revealed MAC keys, ...
-// FIXME carefully inspect that this way of working with "provisional" ratchet instance, does indeed not leave any changes/traces. (public key handling .. closing keypairs when rotating receiver keys?)
+// TODO set-up clean up, revealed MAC keys, ...
+// TODO carefully inspect that this way of working with "provisional" ratchet instance, does indeed not leave any changes/traces. (public key handling .. closing keypairs when rotating receiver keys?)
 final class DoubleRatchet implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(DoubleRatchet.class.getName());

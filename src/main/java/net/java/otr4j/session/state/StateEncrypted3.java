@@ -233,7 +233,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
             dmc = aesDecrypt(matchingKeys.receivingAESKey(), lengthenedReceivingCtr, message.encryptedMessage);
         } catch (final SessionKey.ReceivingCounterValidationFailed ex) {
             this.logger.log(Level.WARNING, "Receiving ctr value failed validation, ignoring message: {0}", ex.getMessage());
-            // FIXME should we inject an ErrorMessage because of this? Seems better to just ignore.
+            // TODO injecting error message because message MAC is already verified. This is a protocol error on the sender-side.
             context.injectMessage(new ErrorMessage("", "Message's counter value failed validation."));
             return new Result(STATUS, true, false, null);
         }

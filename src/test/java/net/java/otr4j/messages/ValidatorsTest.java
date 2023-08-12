@@ -17,6 +17,7 @@ import static net.java.otr4j.messages.Validators.validateAtMost;
 import static net.java.otr4j.messages.Validators.validateDateAfter;
 import static net.java.otr4j.messages.Validators.validateEquals;
 import static net.java.otr4j.messages.Validators.validateExactly;
+import static net.java.otr4j.messages.Validators.validateNotEquals;
 
 @SuppressWarnings("ConstantConditions")
 public final class ValidatorsTest {
@@ -90,5 +91,27 @@ public final class ValidatorsTest {
         final Instant now = Instant.now();
         final Instant before = Instant.ofEpochMilli(Long.MIN_VALUE);
         validateDateAfter(now, before, "Not good");
+    }
+
+    @Test
+    public void testValidateNotEquals() throws ValidationException {
+        final Object o1 = new Object();
+        final Object o2 = new Object();
+        validateNotEquals(o1, o2, "Objects should not be equal.");
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testValidateNotEqualsSameObject() throws ValidationException {
+        final Object o = new Object();
+        validateNotEquals(o, o, "Objects should not be equal.");
+    }
+
+    @SuppressWarnings({"StringOperationCanBeSimplified", "StringEquality", "NewObjectEquality"})
+    @Test(expected = ValidationException.class)
+    public void testValidateNotEqualsDifferentInstancesSameValue() throws ValidationException {
+        final String s1 = new String("my new string");
+        final String s2 = new String("my new string");
+        assert s1 != s2;
+        validateNotEquals(s1, s2, "Objects should not be equal.");
     }
 }

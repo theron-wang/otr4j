@@ -59,8 +59,9 @@ public interface OtrEngineHost {
      * @return Returns the maximum fragment size allowed. Or return the maximum value possible,
      * {@link Integer#MAX_VALUE}, if fragmentation is not necessary.
      */
-    // FIXME consider renaming. 'Fragment' is an internal term, while any (chat) transport would use 'message'.
-    int getMaxFragmentSize(SessionID sessionID);
+    default int getMaxFragmentSize(final SessionID sessionID) {
+        return Integer.MAX_VALUE;
+    }
 
     /**
      * Request local key pair from Engine Host. (OTRv2/OTRv3)

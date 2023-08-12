@@ -163,7 +163,7 @@ final class SessionImpl implements Session, Context {
      * The currently selected slave session that will be used as the session
      * for outgoing messages.
      */
-    // FIXME how can the master session be outgoing but also there can be slave sessions? (Should we prevent slave session for instance zero?)
+    // TODO how can the master session be outgoing but also there can be slave sessions? (Should we prevent slave session for instance zero?)
     @GuardedBy("masterSession")
     @Nonnull
     private SessionImpl outgoingSession;

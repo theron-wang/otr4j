@@ -44,10 +44,13 @@ public final class Event<T> {
      */
     // TODO is "Multiple Instances Detected" case still valid or is it superseeded by stricter checks?
     public static final Event<Unit> MULTIPLE_INSTANCES_DETECTED = new Event<>(Unit.class);
-    // TODO first 4 bytes of TLV value are indicator (ID?) of usage, e.g. file transfer, encrypted audio, rest is freeform possibly (file)name, URL or whatever.
     /**
      * The received data message contains a TLV for use of the Extra Symmetric Key. (Payload is a composite class with
      * additional data for use of the extra symmetric key.) This event is triggered for each TLV.
+     * <p>
+     * Field `key` is the extra symmetric key, as locally derived from the session key material.
+     * Field `context` represents the 4-byte context value, as described in the specification.
+     * Field `value` are the remaining bytes, i.e. `[4,)`.
      */
     public static final Event<ExtraSymmetricKey> EXTRA_SYMMETRIC_KEY_DISCOVERED = new Event<>(ExtraSymmetricKey.class);
     /**

@@ -1747,7 +1747,7 @@ public class SessionTest {
             } else if (event == Event.MULTIPLE_INSTANCES_DETECTED) {
                 logger.log(FINEST, "Multiple instances detected. (Session: {0})", new Object[]{sessionID});
             } else if (event == Event.EXTRA_SYMMETRIC_KEY_DISCOVERED) {
-                // FIXME take payload
+                // TODO take payload
                 logger.log(FINEST, "Extra symmetric key TLV discovered in encoded message. (Session: {0})",
                         new Object[]{sessionID});
             } else if (event == Event.MESSAGE_FOR_ANOTHER_INSTANCE_RECEIVED) {
