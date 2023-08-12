@@ -389,7 +389,7 @@ public final class OtrCryptoEngine4 {
         // "Compute h = KDF_1(d, 64) as an unsigned value, little-endian."
         final byte[] h = hwc(HASH_TO_SCALAR_LENGTH_BYTES, usageID, d);
         try {
-            // FIXME no pruning is performed. Is this correct?
+            // FIXME no pruning is performed. Double-check with spec to see if this correct.
             // "Return h (mod q)"
             return decodeScalar(h);
         } finally {

@@ -336,6 +336,7 @@ public final class OtrInputStream {
      */
     @Nonnull
     public Scalar readScalar() throws ProtocolException {
+        // TODO `mod(primeOrder)` is probably redundant
         return decodeScalar(checkedRead(SCALAR_LENGTH_BYTES)).mod(primeOrder());
     }
 

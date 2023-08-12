@@ -372,6 +372,7 @@ public final class OtrOutputStream {
     @CanIgnoreReturnValue
     @Nonnull
     public OtrOutputStream writePoint(final Point p) {
+        // FIXME need to check if `writePoint` is used to encode Ed448 public keys. There is a specced type ED448-PUBKEY for this, which includes a 2-byte type identifier prefix.
         final byte[] data = p.encode();
         this.out.write(data, 0, data.length);
         return this;
