@@ -134,6 +134,7 @@ public final class MysteriousT4 {
      *                                   bare JID.)
      * @return Returns generate Phi value.
      */
+    // FIXME this implementation violates OTRv4 spec: spec dictates that we sort values numerically and strings/data lexicographically, then generate Phi from that.
     @Nonnull
     static byte[] generatePhi(final InstanceTag senderTag, final InstanceTag receiverTag,
             final Point senderFirstECDHPublicKey, final BigInteger senderFirstDHPublicKey,
