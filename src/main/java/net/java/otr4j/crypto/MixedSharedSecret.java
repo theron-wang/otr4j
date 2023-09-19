@@ -134,14 +134,14 @@ public final class MixedSharedSecret implements AutoCloseable {
         }
         if (dhratchet) {
             final byte[] secretDH = asUnsignedByteArray(this.dhKeyPair.generateSharedSecret(this.theirDHPublicKey));
-            kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, THIRD_BRACE_KEY, secretDH);
+            kdf(this.braceKey, 0, this.braceKey.length, THIRD_BRACE_KEY, secretDH);
             clear(secretDH);
         } else {
             assert !allZeroBytes(braceKey) : "BUG: not performing DH ratchet, but received brace key with all zero-bytes.";
-            kdf(this.braceKey, 0, BRACE_KEY_LENGTH_BYTES, BRACE_KEY, braceKey);
+            kdf(this.braceKey, 0, this.braceKey.length, BRACE_KEY, braceKey);
         }
         assert !allZeroBytes(this.braceKey) : "BUG: cannot have brace key consisting of all zero-bytes.";
-        kdf(this.k, 0, K_LENGTH_BYTES, SHARED_SECRET, secretECDH, this.braceKey);
+        kdf(this.k, 0, this.k.length, SHARED_SECRET, secretECDH, this.braceKey);
         assert !allZeroBytes(this.k) : "BUG: cannot have 'K' consisting of all zero-bytes.";
         clear(secretECDH);
     }
@@ -216,6 +216,7 @@ public final class MixedSharedSecret implements AutoCloseable {
      *
      * @return Returns the SSID.
      */
+    // TODO we should probably move this outside, as it is a one-time action only valid for the first mixed-shared-secret.
     @Nonnull
     public byte[] generateSSID() {
         expectNotClosed();

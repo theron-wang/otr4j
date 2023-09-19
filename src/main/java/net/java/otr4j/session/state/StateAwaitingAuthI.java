@@ -99,6 +99,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
 
     private final byte[] k;
 
+    // TODO we don't need the full keypairs anymore. Only pass on the public keys?
     StateAwaitingAuthI(final AuthState authState, final byte[] k, final byte[] ssid, final ECDHKeyPair x,
             final DHKeyPair a, final ECDHKeyPair ourFirstECDHKeyPair, final DHKeyPair ourFirstDHKeyPair, final Point y,
             final BigInteger b, final Point theirFirstECDHPublicKey, final BigInteger theirFirstDHPublicKey,
