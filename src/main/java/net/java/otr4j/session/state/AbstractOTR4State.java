@@ -119,6 +119,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         context.injectMessage(new AuthRMessage(context.getSenderInstanceTag(), context.getReceiverInstanceTag(),
                 profile, x.publicKey(), a.publicKey(), sigma,
                 ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey()));
+        // TODO issue with spec?: replaying previous Identity messages should make it possible to force an OTRv4 session out of `ENCRYPTED_MESSAGES` mode, effectively offering an entry into Denial-of-Service. This would not be possible if DAKE is completed in full before transitioning away. The OTRv4 DAKE state-machine should be decoupled from the 'messaging states' as is the case with OTRv3.
         context.transition(this, new StateAwaitingAuthI(getAuthState(), k, ssid, x, a, ourFirstECDHKeyPair,
                 ourFirstDHKeyPair, message.y, message.b, message.firstECDHPublicKey, message.firstDHPublicKey,
                 profile, message.clientProfile));

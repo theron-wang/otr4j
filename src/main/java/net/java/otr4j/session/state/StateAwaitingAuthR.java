@@ -182,6 +182,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
     void handleIdentityMessage(final Context context, final IdentityMessage message) throws OtrException {
         final ClientProfile theirProfile = message.clientProfile.validate();
         IdentityMessages.validate(message, theirProfile);
+        // FIXME spec: "Compare the hashed `B` you sent in your Identity message with the DH value from the message you received, considered as 32-byte unsigned big-endian values" (there may be gaps in the spec w.r.t. exact comparison details)
         if (this.previousMessage.b.compareTo(message.b) > 0) {
             // No state change necessary, we assume that by resending other party will still follow existing protocol
             // execution.
