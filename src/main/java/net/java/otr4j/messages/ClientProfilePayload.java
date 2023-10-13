@@ -277,6 +277,7 @@ public final class ClientProfilePayload implements OtrEncodable {
     @SuppressWarnings("PMD.CognitiveComplexity")
     private static void validate(final Iterable<Field> fields, final byte[] signature, final Instant now)
             throws ValidationException {
+        // FIXME should probably be changed to using `Optional`, because we only accept 0 and 1 fields. (spec: "The supported fields should not be duplicated.")
         final ArrayList<InstanceTagField> instanceTagFields = new ArrayList<>();
         final ArrayList<ED448PublicKeyField> publicKeyFields = new ArrayList<>();
         final ArrayList<ED448ForgingKeyField> forgingKeyFields = new ArrayList<>();
