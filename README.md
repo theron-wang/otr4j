@@ -2,6 +2,8 @@
 
 The repository for otr4j OTRv4 development is [github.com/otr4j/otr4j](https://github.com/otr4j/otr4j).
 
+__update__ revoked a GPG subkey on a hardware-token that disappeared under suspicious circumstances. Actions were taken immediately. This is the latest thing in a long series of harassment.
+
 ## Status
 
 - __operational__: OTRv4 interactive: confidentiality, authentication (SMP),  backwards-compatible with OTR version 3
@@ -258,6 +260,7 @@ Due to initial lack of support for Ed448-Goldilocks, a _very_ basic, limited Jav
 
 ## Misc
 
+- __2023-12-01__ Subkey revoked.
 - __2019-10-28__ Due to third-party contributions made under dubious circumstances, i.e. possibly made during working time instead of personal time, some merges in the commit history have been redone. There are no longer any third-party contributions in the OTRv4 work. The [original master-branch content][original-master] is still available.
 
 
