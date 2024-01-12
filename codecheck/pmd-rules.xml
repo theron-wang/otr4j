@@ -17,6 +17,8 @@
         In any case, a stack trace exists. Although it may not be the root cause. For now I can accept this. -->
         <exclude name="PreserveStackTrace"/>
         <exclude name="OneDeclarationPerLine"/>
+        <!-- Covered by compiler warnings. -->
+        <exclude name="SystemPrintln"/>
     </rule>
     <rule ref="category/java/codestyle.xml">
         <exclude name="TooManyStaticImports"/>
