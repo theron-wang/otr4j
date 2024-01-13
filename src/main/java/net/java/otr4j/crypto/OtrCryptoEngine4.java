@@ -172,49 +172,41 @@ public final class OtrCryptoEngine4 {
          */
         FIRST_ROOT_KEY((byte) 0x0B),
         /**
-         * Usage ID for generating the first ephemeral ECDH key, to initialize the Double Ratchet.
-         */
-        ECDH_FIRST_EPHEMERAL((byte) 0x12),
-        /**
-         * Usage ID for generating the first ephemeral DH key, to initialize the Double Ratchet.
-         */
-        DH_FIRST_EPHEMERAL((byte) 0x13),
-        /**
          * Usage ID for generating a root key.
          */
-        ROOT_KEY((byte) 0x14),
+        ROOT_KEY((byte) 0x12),
         /**
          * Usage ID for generating a chain key.
          */
-        CHAIN_KEY((byte) 0x15),
+        CHAIN_KEY((byte) 0x13),
         /**
          * Usage ID for generating the next chain key.
          */
-        NEXT_CHAIN_KEY((byte) 0x16),
+        NEXT_CHAIN_KEY((byte) 0x14),
         /**
          * Usage ID for generating a message key.
          */
-        MESSAGE_KEY((byte) 0x17),
+        MESSAGE_KEY((byte) 0x15),
         /**
          * Usage ID for generating a MAC key.
          */
-        MAC_KEY((byte) 0x18),
+        MAC_KEY((byte) 0x16),
         /**
          * Usage ID for generating the Extra Symmetric Key.
          */
-        EXTRA_SYMMETRIC_KEY((byte) 0x19),
+        EXTRA_SYMMETRIC_KEY((byte) 0x17),
         /**
          * Usage ID for generating the Authenticator MAC value.
          */
-        AUTHENTICATOR((byte) 0x1A),
+        AUTHENTICATOR((byte) 0x18),
         /**
          * Usage ID for generating the secret used in the SMP negotiation.
          */
-        SMP_SECRET((byte) 0x1B),
+        SMP_SECRET((byte) 0x19),
         /**
          * Usage ID for generating the authentication code for the ring signatures.
          */
-        AUTH((byte) 0x1C),
+        AUTH((byte) 0x1A),
         /**
          * Usage ID for SMP value 0x01.
          */
@@ -527,7 +519,7 @@ public final class OtrCryptoEngine4 {
         final int eq1 = Point.constantTimeEquals(longTermPublicKey, A1) ? 1 : 0;
         final int eq2 = Point.constantTimeEquals(longTermPublicKey, A2) ? 1 : 0;
         final int eq3 = Point.constantTimeEquals(longTermPublicKey, A3) ? 1 : 0;
-        requireEquals(1, eq1 + eq2 + eq3,  "BUG: expected long-term keypair to match exactly one of 3 public keys.");
+        requireEquals(1, eq1 + eq2 + eq3, "BUG: expected long-term keypair to match exactly one of 3 public keys.");
         // "Pick random values t, c2, c3, r2, r3 in q."
         final Scalar t = generateRandomValueInZq(random);
         Scalar ci = generateRandomValueInZq(random);
@@ -547,15 +539,16 @@ public final class OtrCryptoEngine4 {
         final Scalar q = primeOrder();
         final Scalar c;
         try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
-            basePoint().encodeTo(buffer);
-            q.encodeTo(buffer);
-            A1.encodeTo(buffer);
-            A2.encodeTo(buffer);
-            A3.encodeTo(buffer);
-            T1.encodeTo(buffer);
-            T2.encodeTo(buffer);
-            T3.encodeTo(buffer);
-            buffer.write(m, 0, m.length);
+            final OtrOutputStream encoder = new OtrOutputStream(buffer);
+            encoder.writePoint(basePoint())
+                    .writeScalar(q)
+                    .writePoint(A1)
+                    .writePoint(A2)
+                    .writePoint(A3)
+                    .writePoint(T1)
+                    .writePoint(T2)
+                    .writePoint(T3)
+                    .writeData(m);
             c = hashToScalar(AUTH, buffer.toByteArray());
         } catch (final IOException e) {
             throw new IllegalStateException("Failed to write point to buffer.", e);
@@ -602,15 +595,16 @@ public final class OtrCryptoEngine4 {
         // "Compute c = HashToScalar(0x1D || G || q || A1 || A2 || A3 || T1 || T2 || T3 || m)."
         final Scalar c;
         try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
-            basePoint().encodeTo(buffer);
-            q.encodeTo(buffer);
-            A1.encodeTo(buffer);
-            A2.encodeTo(buffer);
-            A3.encodeTo(buffer);
-            T1.encodeTo(buffer);
-            T2.encodeTo(buffer);
-            T3.encodeTo(buffer);
-            buffer.write(m, 0, m.length);
+            final OtrOutputStream encoder = new OtrOutputStream(buffer);
+            encoder.writePoint(basePoint())
+                    .writeScalar(q)
+                    .writePoint(A1)
+                    .writePoint(A2)
+                    .writePoint(A3)
+                    .writePoint(T1)
+                    .writePoint(T2)
+                    .writePoint(T3)
+                    .writeData(m);
             c = hashToScalar(AUTH, buffer.toByteArray());
         } catch (final IOException e) {
             throw new IllegalStateException("Failed to write point to buffer.", e);

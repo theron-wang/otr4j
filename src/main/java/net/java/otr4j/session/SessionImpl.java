@@ -658,6 +658,11 @@ final class SessionImpl implements Session, Context {
         assert this.masterSession != this || message.version == TWO : "BUG: We should not process encoded message in master session for protocol version 3 or higher.";
         assert !ZERO_TAG.equals(message.senderTag) : "BUG: No encoded message without sender instance tag should reach this point.";
         if (message.version == THREE && checkDHKeyMessage(message)) {
+            // NOTE to myself: we check for DH-Key messages, because we would have sent a DH-Commit message with a 0
+            // receiver tag, therefore the AKE-context is not yet part of a dedicated session instance. Therefore, the
+            // DH-Key message, which *does* have the instance tag we need, needs to be redirected to the proper session
+            // instance *together with* the AKE-context in its current state, such that processing can continue on a
+            // per-instance basis.
             // Copy state to slave session, as this is the earliest moment that we know the instance tag of the other party.
             synchronized (this.masterSession.masterSession) {
                 final AuthState slaveAuthState = this.sessionState.getAuthState();
