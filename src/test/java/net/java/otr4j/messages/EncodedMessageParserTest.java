@@ -42,6 +42,7 @@ import static net.java.otr4j.api.InstanceTag.HIGHEST_TAG;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.crypto.DHKeyPairOTR3.generateDHKeyPair;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.AUTH_I_PHI;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ringSign;
 import static net.java.otr4j.io.MessageProcessor.writeMessage;
 import static net.java.otr4j.messages.ClientProfilePayload.signClientProfile;
@@ -276,9 +277,11 @@ public class EncodedMessageParserTest {
         final Point theirY = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger theirB = DHKeyPair.generate(RANDOM).publicKey();
         // The ring signature
+        final byte[] phi = MysteriousT4.generatePhi(AUTH_I_PHI, SMALLEST_TAG, HIGHEST_TAG,
+                ourFirstECDHPublicKey, ourFirstDHPublicKey, theirFirstECDHPublicKey, theirFirstDHPublicKey,
+                "alice@network", "bob@network");
         final byte[] m = MysteriousT4.encode(MysteriousT4.Purpose.AUTH_I, ourProfilePayload, theirProfilePayload, ourX,
-                theirY, ourA, theirB, ourFirstECDHPublicKey, ourFirstDHPublicKey, theirFirstECDHPublicKey,
-                theirFirstDHPublicKey, SMALLEST_TAG, HIGHEST_TAG, "alice@network", "bob@network");
+                theirY, ourA, theirB, phi);
         final OtrCryptoEngine4.Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, theirLongTermKeyPair.getPublicKey(),
                 ourForgingKey, ourX, m);
         // Prepare Auth-R message and test parsing result.
@@ -317,9 +320,11 @@ public class EncodedMessageParserTest {
         final Point theirY = ECDHKeyPair.generate(RANDOM).publicKey();
         final BigInteger theirB = DHKeyPair.generate(RANDOM).publicKey();
         // The Auth-I message
+        final byte[] phi = MysteriousT4.generatePhi(AUTH_I_PHI, SMALLEST_TAG, HIGHEST_TAG,
+                ourFirstECDHPublicKey, ourFirstDHPublicKey, theirFirstECDHPublicKey, theirFirstDHPublicKey,
+                "alice@network", "bob@network");
         final byte[] m = MysteriousT4.encode(MysteriousT4.Purpose.AUTH_I, ourProfilePayload, theirProfilePayload, ourX,
-                theirY, ourA, theirB, ourFirstECDHPublicKey, ourFirstDHPublicKey, theirFirstECDHPublicKey,
-                theirFirstDHPublicKey, SMALLEST_TAG, HIGHEST_TAG, "alice@network", "bob@network");
+                theirY, ourA, theirB, phi);
         final OtrCryptoEngine4.Sigma sigma = ringSign(RANDOM, theirLongTermKeyPair, theirLongTermKeyPair.getPublicKey(),
                 ourForgingKey, ourX, m);
         final AuthIMessage message = new AuthIMessage(SMALLEST_TAG, HIGHEST_TAG, sigma);

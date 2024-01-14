@@ -16,11 +16,12 @@ import net.java.otr4j.io.OtrEncodables;
 import net.java.otr4j.io.OtrOutputStream;
 
 import javax.annotation.Nonnull;
+import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.hwc;
-import static org.bouncycastle.util.Arrays.concatenate;
+import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
 
 /**
  * Mysterious value t that is used in phi (shared session state) identification of OTRv4.
@@ -55,64 +56,55 @@ public final class MysteriousT4 {
     /**
      * Encode provided parameters in an byte-array representation of the mysterious 'T' value.
      *
-     * @param purpose                    the purpose for the mysterious 'T' value
-     * @param profileAlice               the client profile of Alice
-     * @param profileBob                 the client profile of Bob
-     * @param x                          the ECDH public key 'X'
-     * @param y                          the ECDH public key 'Y'
-     * @param a                          the DH public key 'A'
-     * @param b                          the DH public key 'B'
-     * @param senderFirstECDHPublicKey   the sender's first ECDH public key to use after DAKE completes
-     * @param senderFirstDHPublicKey     the sender's first DH public key to use after DAKE completes
-     * @param receiverFirstECDHPublicKey the receiver's first ECDH public key to use after DAKE completes
-     * @param receiverFirstDHPublicKey   the receiver's first DH public key to use after DAKE completes
-     * @param senderTag                  the sender instance tag
-     * @param receiverTag                the receiver instance tag
-     * @param senderContactID            the sender contact ID
-     * @param receiverContactID          the receiver contact ID
+     * @param purpose the purpose for the mysterious 'T' value
+     * @param bobProfile the client profile of Bob
+     * @param aliceProfile the client profile of Alice
+     * @param bobDakeECDH the DAKE ECDH public key of Bob 
+     * @param aliceDakeECDH the DAKE ECDH public key of Alice
+     * @param bobDakeDH the DH public key of Bob
+     * @param aliceDakeDH the DH public key of Alice
+     * @param phi the shared session state (phi)
      * @return Returns the byte-array representing the mysterious 'T' value based on provided arguments.
      */
-    @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
+    @SuppressWarnings({"UnnecessaryDefaultInEnumSwitch", "UnnecessarilyFullyQualified"})
     @Nonnull
-    public static byte[] encode(final Purpose purpose, final ClientProfilePayload profileAlice,
-            final ClientProfilePayload profileBob, final Point x, final Point y, final BigInteger a, final BigInteger b,
-            final Point senderFirstECDHPublicKey, final BigInteger senderFirstDHPublicKey,
-            final Point receiverFirstECDHPublicKey, final BigInteger receiverFirstDHPublicKey,
-            final InstanceTag senderTag, final InstanceTag receiverTag, final String senderContactID,
-            final String receiverContactID) {
-        final KDFUsage bobsProfileUsage;
-        final KDFUsage alicesProfileUsage;
-        final KDFUsage phiUsage;
-        final byte[] prefix;
+    public static byte[] encode(final Purpose purpose, final ClientProfilePayload bobProfile,
+            final ClientProfilePayload aliceProfile, final Point bobDakeECDH, final Point aliceDakeECDH,
+            final BigInteger bobDakeDH, final BigInteger aliceDakeDH, final byte[] phi) {
+        requireLengthExactly(64, phi);
+        final KDFUsage bobProfileUsage;
+        final KDFUsage aliceProfileUsage;
+        final byte prefix;
         switch (purpose) {
         case AUTH_R:
-            bobsProfileUsage = KDFUsage.AUTH_R_BOB_CLIENT_PROFILE;
-            alicesProfileUsage = KDFUsage.AUTH_R_ALICE_CLIENT_PROFILE;
-            phiUsage = KDFUsage.AUTH_R_PHI;
-            prefix = new byte[] {0x00};
+            bobProfileUsage = KDFUsage.AUTH_R_BOB_CLIENT_PROFILE;
+            aliceProfileUsage = KDFUsage.AUTH_R_ALICE_CLIENT_PROFILE;
+            prefix = 0x00;
             break;
         case AUTH_I:
-            bobsProfileUsage = KDFUsage.AUTH_I_BOB_CLIENT_PROFILE;
-            alicesProfileUsage = KDFUsage.AUTH_I_ALICE_CLIENT_PROFILE;
-            phiUsage = KDFUsage.AUTH_I_PHI;
-            prefix = new byte[] {0x01};
+            bobProfileUsage = KDFUsage.AUTH_I_BOB_CLIENT_PROFILE;
+            aliceProfileUsage = KDFUsage.AUTH_I_ALICE_CLIENT_PROFILE;
+            prefix = 0x01;
             break;
         default:
             throw new UnsupportedOperationException("Unsupported purpose.");
         }
-        final byte[] bobsProfileEncoded = hwc(USER_PROFILE_DERIVATIVE_LENGTH_BYTES, bobsProfileUsage,
-                OtrEncodables.encode(profileBob));
-        final byte[] alicesProfileEncoded = hwc(USER_PROFILE_DERIVATIVE_LENGTH_BYTES, alicesProfileUsage,
-                OtrEncodables.encode(profileAlice));
-        final byte[] yEncoded = y.encode();
-        final byte[] xEncoded = x.encode();
-        final byte[] bEncoded = new OtrOutputStream().writeBigInt(b).toByteArray();
-        final byte[] aEncoded = new OtrOutputStream().writeBigInt(a).toByteArray();
-        final byte[] phi = generatePhi(senderTag, receiverTag, senderFirstECDHPublicKey, senderFirstDHPublicKey,
-                receiverFirstECDHPublicKey, receiverFirstDHPublicKey, senderContactID, receiverContactID);
-        final byte[] sharedSessionDerivative = hwc(PHI_DERIVATIVE_LENGTH_BYTES, phiUsage, phi);
-        return concatenate(new byte[][] {prefix, bobsProfileEncoded, alicesProfileEncoded, yEncoded, xEncoded,
-                bEncoded, aEncoded, sharedSessionDerivative});
+        try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+            final OtrOutputStream encoder = new OtrOutputStream(buffer);
+            final byte[] bobProfileDerivative = hwc(USER_PROFILE_DERIVATIVE_LENGTH_BYTES, bobProfileUsage, OtrEncodables.encode(aliceProfile));
+            final byte[] aliceProfileDerivative = hwc(USER_PROFILE_DERIVATIVE_LENGTH_BYTES, aliceProfileUsage, OtrEncodables.encode(bobProfile));
+            return encoder.writeByte(prefix)
+                    .writeRaw(bobProfileDerivative)
+                    .writeRaw(aliceProfileDerivative)
+                    .writePoint(bobDakeECDH)
+                    .writePoint(aliceDakeECDH)
+                    .writeBigInt(bobDakeDH)
+                    .writeBigInt(aliceDakeDH)
+                    .writeRaw(phi)
+                    .toByteArray();
+        } catch (final java.io.IOException e) {
+            throw new IllegalStateException("BUG: no IOException should occur.", e);
+        }
     }
 
     /**
@@ -122,29 +114,36 @@ public final class MysteriousT4 {
      * NOTE: the generated phi value is the value defined by the OTRv4 spec, and additional contact ID values which
      * would be part of the implementer contribution.
      *
-     * @param senderTag                  The sender instance tag.
-     * @param receiverTag                The receiver instance tag.
-     * @param senderFirstECDHPublicKey   The sender's first ECDH public key to use after DAKE completes
-     * @param senderFirstDHPublicKey     The sender's first DH public key to use after DAKE completes
-     * @param receiverFirstECDHPublicKey The receiver's first ECDH public key to use after DAKE completes
-     * @param receiverFirstDHPublicKey   The receiver's first DH public key to use after DAKE completes
-     * @param senderContactID            The sender's contact ID (i.e. the infrastructure's identifier such as XMPP's
-     *                                   bare JID.)
-     * @param receiverContactID          The receiver's contact ID (i.e. the infrastructure's identifier such as XMPP's
-     *                                   bare JID.)
+     * @param usage the usage of Phi
+     * @param senderTag The sender instance tag.
+     * @param receiverTag The receiver instance tag.
+     * @param senderECDH0 The sender's first ECDH public key to use after DAKE completes
+     * @param senderDH0 The sender's first DH public key to use after DAKE completes
+     * @param receiverECDH0 The receiver's first ECDH public key to use after DAKE completes
+     * @param receiverDH0 The receiver's first DH public key to use after DAKE completes
+     * @param senderContactID The sender's contact ID (i.e. the infrastructure's identifier such as XMPP's
+     * bare JID.)
+     * @param receiverContactID The receiver's contact ID (i.e. the infrastructure's identifier such as XMPP's
+     * bare JID.)
      * @return Returns generate Phi value.
      */
-    // FIXME this implementation violates OTRv4 spec: spec dictates that we sort values numerically and strings/data lexicographically, then generate Phi from that.
+    // TODO this implementation violates OTRv4 spec: spec dictates that we sort values numerically and strings/data lexicographically, then generate Phi from that.
     @Nonnull
-    static byte[] generatePhi(final InstanceTag senderTag, final InstanceTag receiverTag,
-            final Point senderFirstECDHPublicKey, final BigInteger senderFirstDHPublicKey,
-            final Point receiverFirstECDHPublicKey, final BigInteger receiverFirstDHPublicKey,
+    public static byte[] generatePhi(final KDFUsage usage, final InstanceTag senderTag, final InstanceTag receiverTag,
+            final Point senderECDH0, final BigInteger senderDH0,
+            final Point receiverECDH0, final BigInteger receiverDH0,
             final String senderContactID, final String receiverContactID) {
         final byte[] senderIDBytes = senderContactID.getBytes(UTF_8);
         final byte[] receiverIDBytes = receiverContactID.getBytes(UTF_8);
-        return new OtrOutputStream().writeInstanceTag(senderTag).writeInstanceTag(receiverTag)
-                .writePoint(senderFirstECDHPublicKey).writeBigInt(senderFirstDHPublicKey)
-                .writePoint(receiverFirstECDHPublicKey).writeBigInt(receiverFirstDHPublicKey).writeData(senderIDBytes)
-                .writeData(receiverIDBytes).toByteArray();
+        return hwc(PHI_DERIVATIVE_LENGTH_BYTES, usage, new OtrOutputStream()
+                .writeInstanceTag(senderTag)
+                .writeInstanceTag(receiverTag)
+                .writePoint(senderECDH0)
+                .writeBigInt(senderDH0)
+                .writePoint(receiverECDH0)
+                .writeBigInt(receiverDH0)
+                .writeData(senderIDBytes)
+                .writeData(receiverIDBytes)
+                .toByteArray());
     }
 }

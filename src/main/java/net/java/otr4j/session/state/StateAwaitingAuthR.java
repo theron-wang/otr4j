@@ -31,6 +31,7 @@ import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.messages.IdentityMessages;
+import net.java.otr4j.messages.MysteriousT4;
 import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.api.SMPHandler;
@@ -45,6 +46,8 @@ import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.AUTH_I_PHI;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.AUTH_R_PHI;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.FIRST_ROOT_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
@@ -53,7 +56,6 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAG
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 import static net.java.otr4j.messages.AuthRMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_I;
-import static net.java.otr4j.messages.MysteriousT4.encode;
 
 /**
  * OTRv4 AKE state AWAITING_AUTH_R.
@@ -202,18 +204,21 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         // Validate received Auth-R message.
         final ClientProfile ourClientProfile = this.profilePayload.validate();
         final ClientProfile theirClientProfile = message.clientProfile.validate();
-        validate(message, this.profilePayload, ourClientProfile, theirClientProfile, sessionID.getUserID(),
-                sessionID.getAccountID(), this.y.publicKey(), this.b.publicKey(),
-                this.firstECDHKeyPair.publicKey(), this.firstDHKeyPair.publicKey());
+        // FIXME wrong order of fields?
+        final byte[] phiR = MysteriousT4.generatePhi(AUTH_R_PHI, message.senderTag, message.receiverTag,
+                message.firstECDHPublicKey, message.firstDHPublicKey, this.firstECDHKeyPair.publicKey(),
+                this.firstDHKeyPair.publicKey(), sessionID.getUserID(), sessionID.getAccountID());
+        validate(message, this.profilePayload, ourClientProfile, theirClientProfile, this.y.publicKey(),
+                this.b.publicKey(), phiR);
         final SecureRandom secureRandom = context.secureRandom();
         // Prepare Auth-I message to be sent.
         final InstanceTag senderTag = context.getSenderInstanceTag();
         final InstanceTag receiverTag = context.getReceiverInstanceTag();
-        final byte[] t = encode(AUTH_I, message.clientProfile, this.profilePayload, message.x,
-                this.y.publicKey(), message.a, this.b.publicKey(),
+        final byte[] phiI = MysteriousT4.generatePhi(AUTH_I_PHI, senderTag, receiverTag,
                 this.firstECDHKeyPair.publicKey(), this.firstDHKeyPair.publicKey(),
-                message.firstECDHPublicKey, message.firstDHPublicKey, senderTag, receiverTag,
-                sessionID.getAccountID(), sessionID.getUserID());
+                message.firstECDHPublicKey, message.firstDHPublicKey, sessionID.getAccountID(), sessionID.getUserID());
+        final byte[] t = MysteriousT4.encode(AUTH_I, this.profilePayload, message.clientProfile, this.y.publicKey(),
+                message.x, this.b.publicKey(), message.a, phiI);
         final OtrCryptoEngine4.Sigma sigma = ringSign(secureRandom, ourLongTermKeyPair,
                 ourLongTermKeyPair.getPublicKey(), theirClientProfile.getForgingKey(), message.x, t);
         context.injectMessage(new AuthIMessage(senderTag, receiverTag, sigma));

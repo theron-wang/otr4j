@@ -26,6 +26,7 @@ import net.java.otr4j.messages.AuthRMessage;
 import net.java.otr4j.messages.ClientProfilePayload;
 import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.IdentityMessage;
+import net.java.otr4j.messages.MysteriousT4;
 import net.java.otr4j.session.ake.AuthState;
 
 import javax.annotation.Nonnull;
@@ -38,11 +39,11 @@ import static java.util.logging.Level.FINEST;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.AUTH_R_PHI;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ringSign;
 import static net.java.otr4j.messages.EncodedMessageParser.parseEncodedMessage;
 import static net.java.otr4j.messages.IdentityMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
-import static net.java.otr4j.messages.MysteriousT4.encode;
 import static net.java.otr4j.util.Integers.requireEquals;
 
 // REMARK probably possible to break hierarchy between `AbstractOTR4State` and `AbstractOTR3State`. Given recent changes to the control-flow, it is likely that these can be separated, as now only the Plaintext and Finish states really have need of both.
@@ -109,10 +110,11 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
         final ClientProfilePayload profile = context.getClientProfilePayload();
         final SessionID sessionID = context.getSessionID();
         final EdDSAKeyPair longTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
-        final byte[] t = encode(AUTH_R, profile, message.clientProfile, x.publicKey(), message.y, a.publicKey(),
-                message.b, ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey(),
-                message.firstECDHPublicKey, message.firstDHPublicKey, context.getSenderInstanceTag(),
-                context.getReceiverInstanceTag(), sessionID.getAccountID(), sessionID.getUserID());
+        final byte[] phi = MysteriousT4.generatePhi(AUTH_R_PHI, context.getSenderInstanceTag(),
+                context.getReceiverInstanceTag(), ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey(),
+                message.firstECDHPublicKey, message.firstDHPublicKey, sessionID.getAccountID(), sessionID.getUserID());
+        final byte[] t = MysteriousT4.encode(AUTH_R, message.clientProfile, profile, message.y, x.publicKey(),
+                message.b, a.publicKey(), phi);
         final Sigma sigma = ringSign(secureRandom, longTermKeyPair, theirClientProfile.getForgingKey(),
                 longTermKeyPair.getPublicKey(), message.y, t);
         // Generate response message and transition into next state.

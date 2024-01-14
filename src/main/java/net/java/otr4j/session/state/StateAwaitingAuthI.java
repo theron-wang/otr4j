@@ -31,6 +31,7 @@ import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.messages.IdentityMessages;
+import net.java.otr4j.messages.MysteriousT4;
 import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.api.SMPHandler;
@@ -46,6 +47,8 @@ import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.AUTH_I_PHI;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.AUTH_R_PHI;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.FIRST_ROOT_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
@@ -54,7 +57,6 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAG
 import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 import static net.java.otr4j.messages.AuthIMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
-import static net.java.otr4j.messages.MysteriousT4.encode;
 import static net.java.otr4j.util.ByteArrays.clear;
 
 /**
@@ -234,10 +236,11 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         // Generate t value and calculate sigma based on known facts and generated t value.
         final ClientProfilePayload profilePayload = context.getClientProfilePayload();
         final EdDSAKeyPair longTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
-        final byte[] t = encode(AUTH_R, profilePayload, message.clientProfile, newX.publicKey(), message.y,
-                newA.publicKey(), message.b, newFirstECDHKeyPair.publicKey(), newFirstDHKeyPair.publicKey(),
-                message.firstECDHPublicKey, message.firstDHPublicKey, context.getSenderInstanceTag(),
-                context.getReceiverInstanceTag(), sessionID.getUserID(), sessionID.getAccountID());
+        final byte[] phi = MysteriousT4.generatePhi(AUTH_R_PHI, context.getSenderInstanceTag(),
+                context.getReceiverInstanceTag(), newFirstECDHKeyPair.publicKey(), newFirstDHKeyPair.publicKey(),
+                message.firstECDHPublicKey, message.firstDHPublicKey, sessionID.getAccountID(), sessionID.getUserID());
+        final byte[] t = MysteriousT4.encode(AUTH_R, message.clientProfile, profilePayload,
+                message.y, newX.publicKey(), message.b, newA.publicKey(), phi);
         final OtrCryptoEngine4.Sigma sigma = ringSign(context.secureRandom(), longTermKeyPair,
                 theirNewClientProfile.getForgingKey(), longTermKeyPair.getPublicKey(), message.y, t);
         // Generate response message and transition into next state.
@@ -253,14 +256,15 @@ final class StateAwaitingAuthI extends AbstractCommonState {
         // Validate message.
         final ClientProfile profileBobValidated = this.profileBob.validate();
         final ClientProfile ourProfileValidated = this.ourProfile.validate();
+        final byte[] phi = MysteriousT4.generatePhi(AUTH_I_PHI, message.senderTag, message.receiverTag,
+                this.theirFirstECDHPublicKey, this.theirFirstDHPublicKey, this.firstECDHKeyPair.publicKey(),
+                this.firstDHKeyPair.publicKey(), context.getSessionID().getUserID(),
+                context.getSessionID().getAccountID());
         validate(message, this.ourProfile, ourProfileValidated, this.profileBob, profileBobValidated,
-                this.x.publicKey(), this.y, this.a.publicKey(), this.b, this.theirFirstECDHPublicKey,
-                this.theirFirstDHPublicKey, this.firstECDHKeyPair.publicKey(), this.firstDHKeyPair.publicKey(),
-                context.getSessionID().getUserID(), context.getSessionID().getAccountID());
-        final SecureRandom secureRandom = context.secureRandom();
+                this.x.publicKey(), this.y, this.a.publicKey(), this.b, phi);
         // Initialize Double Ratchet.
-        final MixedSharedSecret sharedSecret = new MixedSharedSecret(secureRandom, this.firstECDHKeyPair,
-                this.firstDHKeyPair, this.theirFirstECDHPublicKey, this.theirFirstDHPublicKey);
+        final MixedSharedSecret sharedSecret = new MixedSharedSecret(context.secureRandom(),
+                this.firstECDHKeyPair, this.firstDHKeyPair, this.theirFirstECDHPublicKey, this.theirFirstDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(Purpose.SENDING, sharedSecret,
                 kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY, this.k));
         secure(context, this.ssid, ratchet, ourProfileValidated.getLongTermPublicKey(),

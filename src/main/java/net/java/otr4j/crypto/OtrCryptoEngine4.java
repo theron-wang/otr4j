@@ -577,7 +577,7 @@ public final class OtrCryptoEngine4 {
      * @throws OtrCryptoException In case verification fails on sigma, or in case A1, A2 or A3 contains an illegal
      *                            value.
      */
-    @SuppressWarnings ({"PMD.FormalParameterNamingConventions", "PMD.LocalVariableNamingConventions"})
+    @SuppressWarnings({"PMD.FormalParameterNamingConventions", "PMD.LocalVariableNamingConventions"})
     public static void ringVerify(final Point A1, final Point A2, final Point A3, final Sigma sigma, final byte[] m)
             throws OtrCryptoException {
         if (!containsPoint(A1) || !containsPoint(A2) || !containsPoint(A3)) {

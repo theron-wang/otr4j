@@ -17,9 +17,7 @@ import java.math.BigInteger;
 
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ringVerify;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_I;
-import static net.java.otr4j.messages.MysteriousT4.encode;
 import static net.java.otr4j.messages.Validators.validateEquals;
-import static net.java.otr4j.messages.Validators.validateNotEquals;
 
 /**
  * Utility class for AuthIMessage.
@@ -42,31 +40,19 @@ public final class AuthIMessages {
      * @param y ephemeral ECDH public key 'Y'
      * @param a ephemeral DH public key 'A'
      * @param b ephemeral DH public key 'B'
-     * @param bobAccountID sender account ID
-     * @param aliceAccountID receiver account ID
-     * @param bobFirstECDHPublicKey the sender's first ECDH public key to use after DAKE completes
-     * @param bobFirstDHPublicKey the sender's first DH public key to use after DAKE completes
-     * @param aliceFirstECDHPublicKey the receiver's first ECDH public key to use after DAKE completes
-     * @param aliceFirstDHPublicKey the receiver's first DH public key to use after DAKE completes
+     * @param phi shared session state (phi)
      * @throws ValidationException In case validation fails.
      */
     public static void validate(final AuthIMessage message, final ClientProfilePayload payloadAlice,
             final ClientProfile profileAlice, final ClientProfilePayload payloadBob, final ClientProfile profileBob,
-            final Point x, final Point y, final BigInteger a, final BigInteger b, final Point bobFirstECDHPublicKey,
-            final BigInteger bobFirstDHPublicKey, final Point aliceFirstECDHPublicKey,
-            final BigInteger aliceFirstDHPublicKey, final String bobAccountID, final String aliceAccountID)
+            final Point x, final Point y, final BigInteger a, final BigInteger b, final byte[] phi)
             throws ValidationException {
         validateEquals(message.senderTag, profileBob.getInstanceTag(),
                 "Sender instance tag does not match with owner instance tag in client profile.");
-        validateNotEquals(x, y, aliceFirstECDHPublicKey, bobFirstECDHPublicKey,
-                "Different ECDH public keys expected for key exchange and first ratchet.");
-        validateNotEquals(a, b, aliceFirstDHPublicKey, bobFirstDHPublicKey,
-                "Different DH public keys expected for key exchange and first ratchet.");
+        // FIXME need to verify that message does not contain same points multiple times (i.e. not actually rotating)
         // We don't do extra verification of points here, as these have been verified upon receiving the Identity
         // message. This was the previous message that was sent. So we can assume points are trustworthy.
-        final byte[] t = encode(AUTH_I, payloadAlice, payloadBob, x, y, a, b,
-                bobFirstECDHPublicKey, bobFirstDHPublicKey, aliceFirstECDHPublicKey, aliceFirstDHPublicKey,
-                message.senderTag, message.receiverTag, bobAccountID, aliceAccountID);
+        final byte[] t = MysteriousT4.encode(AUTH_I, payloadBob, payloadAlice, y, x, b, a, phi);
         try {
             ringVerify(profileBob.getLongTermPublicKey(), profileAlice.getForgingKey(), x, message.sigma, t);
         } catch (final OtrCryptoException e) {

@@ -422,6 +422,19 @@ public final class OtrOutputStream {
     }
 
     /**
+     * Write raw bytes.
+     *
+     * @param bytes the bytes of data (written in full)
+     * @return Returns this instance of OtrOutputStream such that method calls can be chained.
+     */
+    @CanIgnoreReturnValue
+    @Nonnull
+    public OtrOutputStream writeRaw(final byte[] bytes) {
+        this.out.write(bytes, 0, bytes.length);
+        return this;
+    }
+
+    /**
      * Write OTRv4 SSID (Secret Session ID).
      *
      * @param ssid 8-byte SSID value
