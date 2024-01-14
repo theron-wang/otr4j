@@ -77,25 +77,23 @@ public final class MysteriousT4 {
         final byte prefix;
         switch (purpose) {
         case AUTH_R:
+            prefix = 0x00;
             bobProfileUsage = KDFUsage.AUTH_R_BOB_CLIENT_PROFILE;
             aliceProfileUsage = KDFUsage.AUTH_R_ALICE_CLIENT_PROFILE;
-            prefix = 0x00;
             break;
         case AUTH_I:
+            prefix = 0x01;
             bobProfileUsage = KDFUsage.AUTH_I_BOB_CLIENT_PROFILE;
             aliceProfileUsage = KDFUsage.AUTH_I_ALICE_CLIENT_PROFILE;
-            prefix = 0x01;
             break;
         default:
-            throw new UnsupportedOperationException("Unsupported purpose.");
+            throw new UnsupportedOperationException("BUG: unsupported purpose.");
         }
         try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
-            final OtrOutputStream encoder = new OtrOutputStream(buffer);
-            final byte[] bobProfileDerivative = hwc(USER_PROFILE_DERIVATIVE_LENGTH_BYTES, bobProfileUsage, OtrEncodables.encode(aliceProfile));
-            final byte[] aliceProfileDerivative = hwc(USER_PROFILE_DERIVATIVE_LENGTH_BYTES, aliceProfileUsage, OtrEncodables.encode(bobProfile));
-            return encoder.writeByte(prefix)
-                    .writeRaw(bobProfileDerivative)
-                    .writeRaw(aliceProfileDerivative)
+            return new OtrOutputStream(buffer)
+                    .writeByte(prefix)
+                    .writeRaw(hwc(USER_PROFILE_DERIVATIVE_LENGTH_BYTES, bobProfileUsage, OtrEncodables.encode(bobProfile)))
+                    .writeRaw(hwc(USER_PROFILE_DERIVATIVE_LENGTH_BYTES, aliceProfileUsage, OtrEncodables.encode(aliceProfile)))
                     .writePoint(bobDakeECDH)
                     .writePoint(aliceDakeECDH)
                     .writeBigInt(bobDakeDH)
@@ -103,7 +101,7 @@ public final class MysteriousT4 {
                     .writeRaw(phi)
                     .toByteArray();
         } catch (final java.io.IOException e) {
-            throw new IllegalStateException("BUG: no IOException should occur.", e);
+            throw new IllegalStateException("BUG: IOException should not occur.", e);
         }
     }
 
