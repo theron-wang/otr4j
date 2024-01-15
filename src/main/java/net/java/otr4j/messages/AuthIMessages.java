@@ -49,7 +49,6 @@ public final class AuthIMessages {
             throws ValidationException {
         validateEquals(message.senderTag, profileBob.getInstanceTag(),
                 "Sender instance tag does not match with owner instance tag in client profile.");
-        // FIXME need to verify that message does not contain same points multiple times (i.e. not actually rotating)
         // We don't do extra verification of points here, as these have been verified upon receiving the Identity
         // message. This was the previous message that was sent. So we can assume points are trustworthy.
         final byte[] t = MysteriousT4.encode(AUTH_I, payloadBob, payloadAlice, y, x, b, a, phi);
