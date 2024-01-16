@@ -13,7 +13,7 @@ package net.java.otr4j.util;
  * Debug utils for accessing and/or printing information for debugging purposes.
  */
 // TODO no use of `Debug` should remain once things are working.
-@SuppressWarnings({"SystemOut", "PMD.SystemPrintln"})
+@SuppressWarnings({"SystemOut", "PMD.SystemPrintln", "unused"})
 public final class Debug {
 
     private Debug() {
