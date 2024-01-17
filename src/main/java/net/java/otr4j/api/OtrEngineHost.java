@@ -149,6 +149,8 @@ public interface OtrEngineHost {
      * @param identifier the OTRv4 error identifier, or empty-string.
      * @return Returns an error message.
      */
+    // TODO define default implementation to simplify adoption
+    @Nonnull
     String getReplyForUnreadableMessage(SessionID sessionID, String identifier);
 
     /**

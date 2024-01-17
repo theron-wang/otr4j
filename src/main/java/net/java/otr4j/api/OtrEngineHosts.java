@@ -8,6 +8,7 @@
  */
 package net.java.otr4j.api;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.logging.Logger;
 
@@ -79,6 +80,7 @@ public final class OtrEngineHosts {
      * @param defaultMessage the default message to use in case call to OtrEngineHost fails
      * @return Returns the reply for unreadable message to send as error to other party.
      */
+    @Nonnull
     public static String getReplyForUnreadableMessage(final OtrEngineHost host, final SessionID sessionID,
             final String identifier, final String defaultMessage) {
         try {
