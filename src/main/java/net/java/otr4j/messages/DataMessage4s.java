@@ -42,7 +42,7 @@ public final class DataMessage4s {
     // TODO create tests that verify appropriate expectations for DataMessage4, especially given need to handle before all data can be authenticated.
     public static void verify(final DataMessage4 message) throws ProtocolException {
         if ((message.i % 3 == 0) == (message.dhPublicKey == null)) {
-            LOGGER.log(INFO, "Ratchet DH public key presence is not following specification: ratchet {0}, DH public key present: {1}",
+            LOGGER.log(INFO, "Ratchet DH public key presence is not following specification: ratchet {0}, DH public key present: {1}. Aborting.",
                     new Object[]{message.i, message.dhPublicKey != null});
             throw new ProtocolException("Ratchet DH public key presence is not following specification.");
         }

@@ -27,7 +27,7 @@ public final class Debug {
      * @param bytes the value(array)
      */
     public static void dumpHex(final String label, final byte[] bytes) {
-        System.err.print(label + "(" + bytes.length + "): 0x");
+        System.err.print(label + " (" + bytes.length + "): 0x");
         for (final byte b : bytes) {
             System.err.printf("%02x", b);
         }
