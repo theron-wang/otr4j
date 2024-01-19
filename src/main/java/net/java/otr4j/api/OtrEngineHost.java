@@ -13,6 +13,7 @@ import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * This interface should be implemented by the host application. It is required
@@ -44,6 +45,7 @@ public interface OtrEngineHost {
      * @param sessionID the session ID
      * @return Returns the current policy for specified session.
      */
+    @Nonnull
     OtrPolicy getSessionPolicy(SessionID sessionID);
 
     /**
@@ -145,12 +147,12 @@ public interface OtrEngineHost {
      * error messages based on the identifier. If case is custom / not predefined by OTRv4, an empty string will be
      * provided.
      *
-     * @param sessionID  the session ID
+     * @param sessionID the session ID
      * @param identifier the OTRv4 error identifier, or empty-string.
-     * @return Returns an error message.
+     * @return Returns a message corresponding to the identifier of the error. (<code>null</code> to ignore custom error
+     * message.)
      */
-    // TODO define default implementation to simplify adoption
-    @Nonnull
+    @Nullable
     String getReplyForUnreadableMessage(SessionID sessionID, String identifier);
 
     /**
@@ -162,6 +164,7 @@ public interface OtrEngineHost {
      * @param sessionID the session ID
      * @return String the localized message
      */
+    @Nullable
     String getFallbackMessage(SessionID sessionID);
 
     /**

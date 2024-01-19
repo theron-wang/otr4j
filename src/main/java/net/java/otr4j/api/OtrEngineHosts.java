@@ -84,7 +84,8 @@ public final class OtrEngineHosts {
     public static String getReplyForUnreadableMessage(final OtrEngineHost host, final SessionID sessionID,
             final String identifier, final String defaultMessage) {
         try {
-            return host.getReplyForUnreadableMessage(sessionID, identifier);
+            final String reply = host.getReplyForUnreadableMessage(sessionID, identifier);
+            return reply == null ? "" : reply;
         } catch (final RuntimeException e) {
             LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while calling 'getReplyForUnreadableMessage' on OtrEngineHost '" + host.getClass().getCanonicalName() + "' for session " + sessionID, e);
         }

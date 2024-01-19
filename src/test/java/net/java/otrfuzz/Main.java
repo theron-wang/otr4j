@@ -9,13 +9,20 @@
 
 package net.java.otrfuzz;
 
+import net.java.otr4j.api.Event;
 import net.java.otr4j.api.InstanceTag;
+import net.java.otr4j.api.OtrEngineHost;
+import net.java.otr4j.api.OtrPolicy;
+import net.java.otr4j.api.SessionID;
 import net.java.otr4j.crypto.DHKeyPair;
+import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
+import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.messages.DataMessage4;
 
+import javax.annotation.Nonnull;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
@@ -36,5 +43,10 @@ public class Main {
             output.write(result);
         }
 //        System.err.println(result);
+    }
+
+    @Nonnull
+    private static String testOuter(final OtrEngineHost host) {
+        return host.getReplyForUnreadableMessage(new SessionID("a", "b", "c"), "1");
     }
 }

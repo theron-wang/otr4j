@@ -41,10 +41,9 @@ import static net.java.otr4j.api.InstanceTag.isValidInstanceTag;
 import static net.java.otr4j.crypto.DSAKeyPair.verifySignature;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.verifyEdDSAPublicKey;
 import static net.java.otr4j.io.MessageProcessor.encodeVersionString;
-import static net.java.otr4j.messages.Validators.validateAtMost;
 import static net.java.otr4j.messages.Validators.validateDateAfter;
-import static net.java.otr4j.messages.Validators.validateEquals;
-import static net.java.otr4j.messages.Validators.validateExactly;
+import static net.java.otr4j.messages.Validators.validateNotNull;
+import static net.java.otr4j.messages.Validators.validateNull;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
 import static net.java.otr4j.util.Iterables.findByType;
 
@@ -98,10 +97,10 @@ public final class ClientProfilePayload implements OtrEncodable {
             final EdDSAKeyPair eddsaKeyPair) {
         final ArrayList<Field> fields = new ArrayList<>(List.of(
                 new InstanceTagField(profile.getInstanceTag().getValue()),
-                new ED448PublicKeyField(profile.getLongTermPublicKey()),
+                new ED448IdentityKeyField(profile.getLongTermPublicKey()),
                 new ED448ForgingKeyField(profile.getForgingKey()),
                 new VersionsField(new ArrayList<>(profile.getVersions())),
-                new ExpirationDateField(expirationUnixTimeSeconds)));
+                new ExpirationField(expirationUnixTimeSeconds)));
         final DSAPublicKey dsaPublicKey = profile.getDsaPublicKey();
         if (dsaPublicKey != null) {
             fields.add(new DSAPublicKeyField(dsaPublicKey));
@@ -155,9 +154,9 @@ public final class ClientProfilePayload implements OtrEncodable {
             case LONG_TERM_EDDSA_PUBLIC_KEY:
                 final int publicKeyType = in.readShortLE();
                 switch (publicKeyType) {
-                case ED448PublicKeyField.ED448_PUBLIC_KEY_TYPE:
+                case ED448IdentityKeyField.ED448_PUBLIC_KEY_TYPE:
                     final Point publicKey = in.readPoint();
-                    fields.add(new ED448PublicKeyField(publicKey));
+                    fields.add(new ED448IdentityKeyField(publicKey));
                     break;
                 default:
                     throw new ProtocolException("Unsupported Ed448 public key type: " + publicKeyType);
@@ -183,7 +182,7 @@ public final class ClientProfilePayload implements OtrEncodable {
                 }
                 break;
             case PROFILE_EXPIRATION:
-                fields.add(new ExpirationDateField(in.readLong()));
+                fields.add(new ExpirationField(in.readLong()));
                 break;
             case TRANSITIONAL_SIGNATURE:
                 final BigInteger r = in.readBigInt();
@@ -273,84 +272,89 @@ public final class ClientProfilePayload implements OtrEncodable {
      * @param signature The OTRv4 signature for the fields contained in the client profile.
      * @throws ValidationException In case ClientProfilePayload contents are not inconsistent or signature is invalid.
      */
-    // TODO consider reducing complexity.
     @SuppressWarnings("PMD.CognitiveComplexity")
     private static void validate(final Iterable<Field> fields, final byte[] signature, final Instant now)
             throws ValidationException {
-        // FIXME should probably be changed to using `Optional`, because we only accept 0 and 1 fields. (spec: "The supported fields should not be duplicated.")
-        final ArrayList<InstanceTagField> instanceTagFields = new ArrayList<>();
-        final ArrayList<ED448PublicKeyField> publicKeyFields = new ArrayList<>();
-        final ArrayList<ED448ForgingKeyField> forgingKeyFields = new ArrayList<>();
-        final ArrayList<VersionsField> versionsFields = new ArrayList<>();
-        final ArrayList<ExpirationDateField> expirationDateFields = new ArrayList<>();
-        final ArrayList<DSAPublicKeyField> dsaPublicKeyFields = new ArrayList<>();
-        final ArrayList<TransitionalSignatureField> transitionalSignatureFields = new ArrayList<>();
+        InstanceTagField instanceTagField = null;
+        ED448IdentityKeyField identityKeyField = null;
+        ED448ForgingKeyField forgingKeyField = null;
+        VersionsField versionsField = null;
+        ExpirationField expirationField = null;
+        DSAPublicKeyField legacyKeyField = null;
+        TransitionalSignatureField transitionalSignatureField = null;
         for (final Field field : fields) {
             if (field instanceof InstanceTagField) {
-                instanceTagFields.add((InstanceTagField) field);
-            } else if (field instanceof ED448PublicKeyField) {
-                publicKeyFields.add((ED448PublicKeyField) field);
+                validateNull(instanceTagField, "Too many instance-tag fields.");
+                instanceTagField = (InstanceTagField) field;
+            } else if (field instanceof ED448IdentityKeyField) {
+                validateNull(identityKeyField, "Too many identity-key fields.");
+                identityKeyField = (ED448IdentityKeyField) field;
             } else if (field instanceof ED448ForgingKeyField) {
-                forgingKeyFields.add((ED448ForgingKeyField) field);
+                validateNull(forgingKeyField, "Too many forging-key fields.");
+                forgingKeyField = (ED448ForgingKeyField) field;
             } else if (field instanceof VersionsField) {
-                versionsFields.add((VersionsField) field);
-            } else if (field instanceof ExpirationDateField) {
-                expirationDateFields.add((ExpirationDateField) field);
+                validateNull(versionsField, "Too many versions fields.");
+                versionsField = (VersionsField) field;
+            } else if (field instanceof ExpirationField) {
+                validateNull(expirationField, "Too many expiration fields.");
+                expirationField = (ExpirationField) field;
             } else if (field instanceof DSAPublicKeyField) {
-                dsaPublicKeyFields.add((DSAPublicKeyField) field);
+                validateNull(legacyKeyField, "Too many legacy-key fields.");
+                legacyKeyField = (DSAPublicKeyField) field;
             } else if (field instanceof TransitionalSignatureField) {
-                transitionalSignatureFields.add((TransitionalSignatureField) field);
+                validateNull(transitionalSignatureField, "Too many transitional signature fields.");
+                transitionalSignatureField = (TransitionalSignatureField) field;
             } else {
-                throw new UnsupportedOperationException("BUG: incomplete implementation: support for field type " + field.getClass() + " is not implemented yet.");
+                throw new ValidationException("Unknown field-type encountered.");
             }
         }
-        validateExactly(1, instanceTagFields.size(), "Incorrect number of instance tag fields. Expected exactly 1.");
-        if (!isValidInstanceTag(instanceTagFields.get(0).instanceTag) || instanceTagFields.get(0).instanceTag == 0) {
+        validateNotNull(instanceTagField, "Incorrect number of instance tag fields. Expected exactly 1.");
+        if (!isValidInstanceTag(instanceTagField.instanceTag) || instanceTagField.instanceTag == 0) {
             throw new ValidationException("Illegal instance tag.");
         }
         final OtrOutputStream out = new OtrOutputStream();
-        instanceTagFields.forEach(out::write);
-        validateExactly(1, publicKeyFields.size(), "Incorrect number of public key fields. Expected exactly 1.");
+        out.write(instanceTagField);
+        validateNotNull(identityKeyField, "Incorrect number of identity-key fields. Expected exactly 1.");
         final Point longTermPublicKey;
         try {
-            verifyEdDSAPublicKey(publicKeyFields.get(0).publicKey);
-            longTermPublicKey = publicKeyFields.get(0).publicKey;
+            verifyEdDSAPublicKey(identityKeyField.publicKey);
+            longTermPublicKey = identityKeyField.publicKey;
         } catch (final OtrCryptoException e) {
             throw new ValidationException("Illegal EdDSA long-term public key.", e);
         }
-        publicKeyFields.forEach(out::write);
-        validateExactly(1, forgingKeyFields.size(), "Incorrect number of forging key fields. Expected exactly 1.");
+        out.write(identityKeyField);
+        validateNotNull(forgingKeyField, "Incorrect number of forging key fields. Expected exactly 1.");
         try {
-            verifyEdDSAPublicKey(forgingKeyFields.get(0).publicKey);
+            verifyEdDSAPublicKey(forgingKeyField.publicKey);
         } catch (final OtrCryptoException e) {
             throw new ValidationException("Illegal Ed448 forging key.", e);
         }
-        forgingKeyFields.forEach(out::write);
-        validateExactly(1, versionsFields.size(), "Incorrect number of versions fields. Expected exactly 1.");
-        if (!versionsFields.get(0).versions.contains(Version.FOUR)) {
+        out.write(forgingKeyField);
+        validateNotNull(versionsField, "Incorrect number of versions fields. Expected exactly 1.");
+        if (!versionsField.versions.contains(Version.FOUR)) {
             throw new ValidationException("Expected at least OTR version 4 to be supported.");
         }
-        versionsFields.forEach(out::write);
-        validateExactly(1, expirationDateFields.size(), "Incorrect number of expiration date fields. Expected exactly 1.");
-        validateDateAfter(now, Instant.ofEpochSecond(expirationDateFields.get(0).timestamp),
-                "Client Profile has expired.");
-        expirationDateFields.forEach(out::write);
-        validateAtMost(1, dsaPublicKeyFields.size(), "Expected either no or single DSA public key field. Found more than one.");
-        dsaPublicKeyFields.forEach(out::write);
-        validateAtMost(1, transitionalSignatureFields.size(), "Expected at most one transitional signature, got more than one.");
-        validateEquals(dsaPublicKeyFields.size(), transitionalSignatureFields.size(),
-                "Legacy (DSA) public key should always be accompanied with transitional signature.");
-        if (transitionalSignatureFields.size() == 1) {
+        out.write(versionsField);
+        validateNotNull(expirationField, "Incorrect number of expiration date fields. Expected exactly 1.");
+        validateDateAfter(now, Instant.ofEpochSecond(expirationField.timestamp), "Client Profile has expired.");
+        out.write(expirationField);
+        if (legacyKeyField != null) {
+            out.write(legacyKeyField);
+        }
+        // TODO double-check if transitional signature is mandatory for presence of legacy key
+        if (transitionalSignatureField != null) {
+            if (legacyKeyField == null) {
+                throw new ValidationException("Legacy public key and transitional signature should both be present or both absent.");
+            }
             // Verify the transitional signature with the legacy public key.
-            final DSAPublicKey dsaPublicKey = dsaPublicKeyFields.get(0).publicKey;
-            final DSASignature transitionalSignature = transitionalSignatureFields.get(0).signature;
             try {
-                verifySignature(out.toByteArray(), dsaPublicKey, transitionalSignature.r, transitionalSignature.s);
+                verifySignature(out.toByteArray(), legacyKeyField.publicKey, transitionalSignatureField.signature.r,
+                        transitionalSignatureField.signature.s);
             } catch (final OtrCryptoException e) {
                 throw new ValidationException("Failed transitional signature validation.", e);
             }
+            out.write(transitionalSignatureField);
         }
-        transitionalSignatureFields.forEach(out::write);
         try {
             EdDSAKeyPair.verify(longTermPublicKey, out.toByteArray(), signature);
         } catch (final net.java.otr4j.crypto.ed448.ValidationException e) {
@@ -369,7 +373,7 @@ public final class ClientProfilePayload implements OtrEncodable {
     @Nonnull
     private ClientProfile reconstructClientProfile() {
         final InstanceTag instanceTag = new InstanceTag(findByType(this.fields, InstanceTagField.class).instanceTag);
-        final Point longTermPublicKey = findByType(this.fields, ED448PublicKeyField.class).publicKey;
+        final Point longTermPublicKey = findByType(this.fields, ED448IdentityKeyField.class).publicKey;
         final Point forgingKey = findByType(this.fields, ED448ForgingKeyField.class).publicKey;
         final List<Integer> versions = findByType(this.fields, VersionsField.class).versions;
         final DSAPublicKeyField dsaPublicKeyField = findByType(this.fields, DSAPublicKeyField.class, null);
@@ -487,14 +491,14 @@ public final class ClientProfilePayload implements OtrEncodable {
     /**
      * Field for Ed448 public keys.
      */
-    private static final class ED448PublicKeyField implements Field {
+    private static final class ED448IdentityKeyField implements Field {
 
         private static final int ED448_PUBLIC_KEY_TYPE = 0x0010;
         private static final FieldType TYPE = FieldType.LONG_TERM_EDDSA_PUBLIC_KEY;
 
         private final Point publicKey;
 
-        private ED448PublicKeyField(final Point publicKey) {
+        private ED448IdentityKeyField(final Point publicKey) {
             this.publicKey = requireNonNull(publicKey);
         }
 
@@ -513,7 +517,7 @@ public final class ClientProfilePayload implements OtrEncodable {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            final ED448PublicKeyField that = (ED448PublicKeyField) o;
+            final ED448IdentityKeyField that = (ED448IdentityKeyField) o;
             return Objects.equals(this.publicKey, that.publicKey);
         }
 
@@ -602,7 +606,7 @@ public final class ClientProfilePayload implements OtrEncodable {
     /**
      * Field for expiration date.
      */
-    private static final class ExpirationDateField implements Field {
+    private static final class ExpirationField implements Field {
 
         private static final FieldType TYPE = FieldType.PROFILE_EXPIRATION;
 
@@ -613,7 +617,7 @@ public final class ClientProfilePayload implements OtrEncodable {
          *
          * @param timestamp expiration timestamp
          */
-        private ExpirationDateField(final long timestamp) {
+        private ExpirationField(final long timestamp) {
             this.timestamp = timestamp;
         }
 
@@ -631,7 +635,7 @@ public final class ClientProfilePayload implements OtrEncodable {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            final ExpirationDateField that = (ExpirationDateField) o;
+            final ExpirationField that = (ExpirationField) o;
             return this.timestamp == that.timestamp;
         }
 

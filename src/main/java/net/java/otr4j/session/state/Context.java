@@ -61,6 +61,7 @@ public interface Context extends AuthContext {
      *
      * @return Returns session status.
      */
+    @Nonnull
     SessionStatus getSessionStatus();
 
     /**

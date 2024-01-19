@@ -75,7 +75,7 @@
         <dependency>
             <groupId>com.google.errorprone</groupId>
             <artifactId>error_prone_annotations</artifactId>
-            <version>2.19.1</version>
+            <version>2.24.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -347,8 +347,10 @@
                                         <arg>-Xlint:all,-requires-automatic</arg>
                                         <arg>-Xdoclint:all/protected</arg>
                                         <arg>-XDcompilePolicy=simple</arg>
-                                        <!-- FIXME disabled NotJavadoc due to false positive on module-info javadoc. Fixed but not yet released. (#3923) -->
-                                        <arg>-Xplugin:ErrorProne -XepAllDisabledChecksAsWarnings -Xep:AvoidObjectArrays:OFF -Xep:InconsistentOverloads:OFF -Xep:Java7ApiChecker:OFF -Xep:Java8ApiChecker:OFF -Xep:AndroidJdkLibsChecker:OFF -Xep:Varifier:OFF -Xep:Var:OFF -Xep:NotJavadoc:OFF -Xep:InsecureCryptoUsage:ERROR -Xep:MultiVariableDeclaration:OFF -Xep:UnnecessaryDefaultInEnumSwitch:OFF -Xep:BooleanParameter:OFF -Xep:TooManyParameters:OFF -Xep:UnnecessaryFinal:OFF -Xep:AssertFalse:OFF -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=net.java.otr4j</arg>
+                                        <!-- TODO reported issue (<https://github.com/google/error-prone/issues/4254>) -->
+                                        <!-- TODO temporarily disabled NullAway. Most benefit seem to come from PMD and errorprone. -->
+                                        <!--<arg>-Xplugin:ErrorProne -XepAllDisabledChecksAsWarnings -Xep:NonApiType:OFF -Xep:MemberName:OFF -Xep:AvoidObjectArrays:OFF -Xep:InconsistentOverloads:OFF -Xep:Java7ApiChecker:OFF -Xep:Java8ApiChecker:OFF -Xep:AndroidJdkLibsChecker:OFF -Xep:Varifier:OFF -Xep:Var:OFF -Xep:InsecureCryptoUsage:ERROR -Xep:MultiVariableDeclaration:OFF -Xep:UnnecessaryDefaultInEnumSwitch:OFF -Xep:BooleanParameter:OFF -Xep:TooManyParameters:OFF -Xep:UnnecessaryFinal:OFF -Xep:AssertFalse:OFF -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=net.java.otr4j</arg>-->
+                                        <arg>-Xplugin:ErrorProne -XepAllDisabledChecksAsWarnings -Xep:NonApiType:OFF -Xep:MemberName:OFF -Xep:AvoidObjectArrays:OFF -Xep:InconsistentOverloads:OFF -Xep:Java7ApiChecker:OFF -Xep:Java8ApiChecker:OFF -Xep:AndroidJdkLibsChecker:OFF -Xep:Varifier:OFF -Xep:Var:OFF -Xep:InsecureCryptoUsage:ERROR -Xep:MultiVariableDeclaration:OFF -Xep:UnnecessaryDefaultInEnumSwitch:OFF -Xep:BooleanParameter:OFF -Xep:TooManyParameters:OFF -Xep:UnnecessaryFinal:OFF -Xep:AssertFalse:OFF</arg>
                                     </compilerArgs>
                                 </configuration>
                             </execution>
@@ -369,13 +371,14 @@
                                 <path>
                                     <groupId>com.google.errorprone</groupId>
                                     <artifactId>error_prone_core</artifactId>
-                                    <version>2.19.1</version>
+                                    <version>2.24.1</version>
                                 </path>
-                                <path>
-                                    <groupId>com.uber.nullaway</groupId>
-                                    <artifactId>nullaway</artifactId>
-                                    <version>0.10.10</version>
-                                </path>
+                                <!-- TODO temporarily disabled NullAway. Most benefit seem to come from PMD and errorprone. -->
+                                <!--<path>-->
+                                <!--    <groupId>com.uber.nullaway</groupId>-->
+                                <!--    <artifactId>nullaway</artifactId>-->
+                                <!--    <version>0.10.21</version>-->
+                                <!--</path>-->
                             </annotationProcessorPaths>
                         </configuration>
                     </plugin>

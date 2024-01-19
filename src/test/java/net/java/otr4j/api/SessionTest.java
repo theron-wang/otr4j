@@ -1677,6 +1677,7 @@ public class SessionTest {
             this.sendChannel.add(msg);
         }
 
+        @Nonnull
         @Override
         public OtrPolicy getSessionPolicy(final SessionID sessionID) {
             return this.policy;

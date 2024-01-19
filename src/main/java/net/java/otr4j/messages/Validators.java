@@ -9,6 +9,7 @@
 
 package net.java.otr4j.messages;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -20,6 +21,18 @@ final class Validators {
 
     private Validators() {
         // No need to instantiate utility class.
+    }
+    
+    static void validateNull(@Nullable final Object o, final String message) throws ValidationException {
+        if (o != null) {
+            throw new ValidationException(message);
+        }
+    }
+    
+    static void validateNotNull(@Nullable  final Object o, final String message) throws ValidationException {
+        if (o == null) {
+            throw new ValidationException(message);
+        }
     }
 
     static <T> void validateEquals(final T object1, final T object2, final String message) throws ValidationException {
