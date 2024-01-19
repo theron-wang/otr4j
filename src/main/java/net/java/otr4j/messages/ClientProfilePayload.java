@@ -341,8 +341,10 @@ public final class ClientProfilePayload implements OtrEncodable {
         if (legacyKeyField != null) {
             out.write(legacyKeyField);
         }
+        // FIXME require presence of transitional signature if Version 3 is present in versions-list.
         // TODO double-check if transitional signature is mandatory for presence of legacy key
         if (transitionalSignatureField != null) {
+            // FIXME legacy DSA public key field is optional, even if transitional signature is present.
             if (legacyKeyField == null) {
                 throw new ValidationException("Legacy public key and transitional signature should both be present or both absent.");
             }
