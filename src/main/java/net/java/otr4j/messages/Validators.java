@@ -12,7 +12,6 @@ package net.java.otr4j.messages;
 import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Utilities for the benefit of shorthands when performing validations throwing {@link ValidationException}.
@@ -54,13 +53,6 @@ final class Validators {
                 || Objects.equals(o2, o4) || Objects.equals(o3, o4)) {
             throw new ValidationException(message);
         }
-    }
-    
-    static <T> void validatePresent(final Optional<T> opt, final String message) throws ValidationException {
-        if (opt.isPresent()) {
-            return;
-        }
-        throw new ValidationException(message);
     }
 
     static void validateExactly(final int expected, final int test, final String message) throws ValidationException {
