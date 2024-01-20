@@ -6,7 +6,7 @@ __update__ revoked a GPG subkey on a hardware-token that disappeared under suspi
 
 ## Status
 
-- __operational__: OTRv4 interactive: confidentiality, authentication (SMP),  backwards-compatible with OTR version 3
+- __operational__: OTRv4 interactive: confidentiality, authentication (SMP), backwards-compatible with OTR version 3
 - __feature-incomplete__, missing: managing skipped encryption keys for out-of-order message handling, non-interactive session initiation, client-profile renewals during continuous execution, … (see _checklist_ below for details)
 - __in development__: _not reviewed_, _not widely adopted_ yet.
 

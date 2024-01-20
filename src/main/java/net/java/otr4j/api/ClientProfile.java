@@ -88,6 +88,9 @@ public final class ClientProfile {
         this.forgingKey = requireNonNull(forgingKey);
         this.versions = unmodifiableList(requireMinElements(1,
                 requireElements(MANDATORY_VERSIONS, requireAbsent(FORBIDDEN_VERSIONS, versions))));
+        if (this.versions.contains(Version.THREE) && dsaPublicKey == null) {
+            throw new IllegalArgumentException("Support for OTR version 3 requires that a DSA public key is provided.");
+        }
         this.dsaPublicKey = dsaPublicKey;
     }
 

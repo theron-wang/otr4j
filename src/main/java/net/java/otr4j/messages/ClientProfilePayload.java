@@ -334,21 +334,22 @@ public final class ClientProfilePayload implements OtrEncodable {
         if (!versionsField.versions.contains(Version.FOUR)) {
             throw new ValidationException("Expected at least OTR version 4 to be supported.");
         }
+        if (versionsField.versions.contains(Version.THREE)) {
+            validateNotNull(transitionalSignatureField, "Version 3 is present in versions field. A transitional signature is required, but not provided.");
+        }
         out.write(versionsField);
         validateNotNull(expirationField, "Incorrect number of expiration date fields. Expected exactly 1.");
         validateDateAfter(now, Instant.ofEpochSecond(expirationField.timestamp), "Client Profile has expired.");
         out.write(expirationField);
         if (legacyKeyField != null) {
+            validateNotNull(transitionalSignatureField, "Presence of a DSA public key requires a transitional signature.");
             out.write(legacyKeyField);
         }
-        // FIXME require presence of transitional signature if Version 3 is present in versions-list.
-        // TODO double-check if transitional signature is mandatory for presence of legacy key
         if (transitionalSignatureField != null) {
-            // FIXME legacy DSA public key field is optional, even if transitional signature is present.
             if (legacyKeyField == null) {
+                // TODO this is dubious: strictly speaking the DSA public key is not necessary, but it does mean we cannot validate the transitional signature until we receive the DSA public key during OTR3 session. (Clients only store the DSA public key's _fingerprint_.)
                 throw new ValidationException("Legacy public key and transitional signature should both be present or both absent.");
             }
-            // FIXME transitional signature cannot be used in validation if DSA public key no provided, therefore we would need to preserve payload until first OTR3 session is established such that we acquire the DSA public key. This seems very suboptimal, butter not allow this. 
             // Verify the transitional signature with the legacy public key.
             try {
                 verifySignature(out.toByteArray(), legacyKeyField.publicKey, transitionalSignatureField.signature.r,
