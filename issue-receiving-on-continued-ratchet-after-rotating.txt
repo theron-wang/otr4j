@@ -1,0 +1,62 @@
+```otrr-client:
+127.0.0.1:33066 ?OTRv4?
+Waiting to receive message…
+Message processed without result for user.
+Waiting to receive message…
+Confidential session started on 2965766932
+127.0.0.1:33066#2965766932 hi
+Waiting to receive message…
+Confidential message on instance 2965766932 with 0 tlvs: "hi\n"
+127.0.0.1:33066#2965766932 hi hi
+127.0.0.1:33066#2965766932 hi hi hi
+Waiting to receive message…
+Confidential message on instance 2965766932 with 0 tlvs: "hi hi\n"
+```
+
+```otr4j-client
+19:55:12 INFO (nl.dannyvanheumen.echonetwork.client.otr4j.EchoClient): Client started on address 127.0.0.1:33,066
+19:55:12 INFO (net.java.otr4j.session.OtrSessionManager): OTR session expiration timer started.
+19:55:12 INFO (net.java.otr4j.session.OtrSessionManager): OTR heartbeat timer started.
+19:55:12 INFO (nl.dannyvanheumen.echonetwork.client.otr4j.EchoClient): Local ID: 127.0.0.1:33066
+19:55:12 FINE (nl.dannyvanheumen.echonetwork.client.otr4j.EchoClient): Waiting to receive next message from connection…
+19:56:17 FINE (net.java.otr4j.session.state.AbstractOTR4State): Generating new short-term keypairs for DAKE…
+19:56:17 FINE (nl.dannyvanheumen.echonetwork.client.otr4j.EchoClient): Waiting to receive next message from connection…
+19:57:37 FINE (net.java.otr4j.session.state.DoubleRatchet): Rotating root key and sending chain key for ratchet 0
+19:57:38 INFO (net.java.otr4j.session.state.AbstractOTR4State): Session secured. Message state transitioned to ENCRYPTED. (OTRv4)
+19:57:38 FINE (nl.dannyvanheumen.echonetwork.client.otr4j.EchoClient): Waiting to receive next message from connection…
+19:58:34 FINEST (net.java.otr4j.session.state.AbstractOTR4State): 127.0.0.1:33066 received a data message (OTRv4) from 127.0.0.1:60712, handling in state net.java.otr4j.session.state.StateEncrypted4.
+19:58:34 FINER (net.java.otr4j.session.state.DoubleRatchet): Generating message keys for verification and decryption of ratchet 0, message 0.
+19:58:34 FINEST (net.java.otr4j.session.state.DoubleRatchet): Generating extra symmetric keys for encryption of ratchet 0, message 0.
+19:58:34 FINER (net.java.otr4j.session.state.DoubleRatchet): Rotate receiver chainkey: rotating to next chainkey 0, 0
+19:58:34 INFO (nl.dannyvanheumen.echonetwork.client.otr4j.EchoClient): Echoing: (InstanceTag{value=1231236800}, ENCRYPTED) hi
+
+19:58:34 FINER (net.java.otr4j.session.state.DoubleRatchet): Generating message keys for encryption of ratchet 0, message 0.
+19:58:34 FINER (net.java.otr4j.session.state.DoubleRatchet): Generating message keys for authentication of ratchet 0, message 0.
+19:58:34 FINE (nl.dannyvanheumen.echonetwork.client.otr4j.EchoClient): Waiting to receive next message from connection…
+19:59:10 FINEST (net.java.otr4j.session.state.AbstractOTR4State): 127.0.0.1:33066 received a data message (OTRv4) from 127.0.0.1:60712, handling in state net.java.otr4j.session.state.StateEncrypted4.
+19:59:10 FINE (net.java.otr4j.session.state.DoubleRatchet): Rotating root key and receiving chain key for ratchet 1 (nextDH = false)
+19:59:10 FINER (net.java.otr4j.session.state.DoubleRatchet): Generating message keys for verification and decryption of ratchet 1, message 0.
+19:59:10 FINEST (net.java.otr4j.session.state.DoubleRatchet): Generating extra symmetric keys for encryption of ratchet 1, message 0.
+19:59:10 FINER (net.java.otr4j.session.state.DoubleRatchet): Rotate receiver chainkey: rotating to next chainkey 1, 0
+19:59:10 INFO (nl.dannyvanheumen.echonetwork.client.otr4j.EchoClient): Echoing: (InstanceTag{value=1231236800}, ENCRYPTED) hi hi
+
+19:59:10 FINE (net.java.otr4j.session.state.DoubleRatchet): Rotating root key and sending chain key for ratchet 2
+19:59:11 FINER (net.java.otr4j.session.state.DoubleRatchet): Generating message keys for encryption of ratchet 2, message 0.
+19:59:11 FINER (net.java.otr4j.session.state.DoubleRatchet): Generating message keys for authentication of ratchet 2, message 0.
+19:59:11 FINE (nl.dannyvanheumen.echonetwork.client.otr4j.EchoClient): Waiting to receive next message from connection…
+19:59:12 FINEST (net.java.otr4j.session.state.AbstractOTR4State): 127.0.0.1:33066 received a data message (OTRv4) from 127.0.0.1:60712, handling in state net.java.otr4j.session.state.StateEncrypted4.
+19:59:12 FINER (net.java.otr4j.session.state.DoubleRatchet): Generating message keys for verification and decryption of ratchet 2, message 1.
+19:59:12 INFO (127.0.0.1:33066-->127.0.0.1:60712): Cannot obtain public keys for that ratchet. The message cannot be decrypted.
+Exception in thread "EchoClient:127.0.0.1:33066" java.lang.NullPointerException
+	at java.base/java.util.Objects.requireNonNull(Objects.java:209)
+	at net.java.otr4j.io.ErrorMessage.<init>(ErrorMessage.java:62)
+	at net.java.otr4j.session.state.Contexts.signalUnreadableMessage(Contexts.java:47)
+	at net.java.otr4j.session.state.AbstractCommonState.handleUnreadableMessage(AbstractCommonState.java:56)
+	at net.java.otr4j.session.state.StateEncrypted4.handleDataMessage(StateEncrypted4.java:279)
+	at net.java.otr4j.session.state.AbstractOTR4State.handleEncodedMessage4(AbstractOTR4State.java:68)
+	at net.java.otr4j.session.state.StateEncrypted4.handleEncodedMessage(StateEncrypted4.java:213)
+	at net.java.otr4j.session.SessionImpl.handleEncodedMessage(SessionImpl.java:684)
+	at net.java.otr4j.session.SessionImpl.transformReceiving(SessionImpl.java:574)
+	at nl.dannyvanheumen.echonetwork.client.otr4j.EchoClient.processMessage(EchoClient.java:79)
+	at nl.dannyvanheumen.echonetwork.client.otr4j.EchoClient.main(EchoClient.java:71)
+```
