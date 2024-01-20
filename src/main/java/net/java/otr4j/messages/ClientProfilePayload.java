@@ -348,6 +348,7 @@ public final class ClientProfilePayload implements OtrEncodable {
             if (legacyKeyField == null) {
                 throw new ValidationException("Legacy public key and transitional signature should both be present or both absent.");
             }
+            // FIXME transitional signature cannot be used in validation if DSA public key no provided, therefore we would need to preserve payload until first OTR3 session is established such that we acquire the DSA public key. This seems very suboptimal, butter not allow this. 
             // Verify the transitional signature with the legacy public key.
             try {
                 verifySignature(out.toByteArray(), legacyKeyField.publicKey, transitionalSignatureField.signature.r,
