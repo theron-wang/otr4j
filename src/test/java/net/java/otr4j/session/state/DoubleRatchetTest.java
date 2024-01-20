@@ -16,15 +16,18 @@ import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.session.state.DoubleRatchet.RotationLimitationException;
 import net.java.otr4j.util.Classes;
+import net.java.otr4j.util.SecureRandoms;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.MK_MAC_LENGTH_BYTES;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
 import static net.java.otr4j.session.state.DoubleRatchet.Purpose.RECEIVING;
 import static net.java.otr4j.session.state.DoubleRatchet.Purpose.SENDING;
 import static net.java.otr4j.util.ByteArrays.allZeroBytes;
@@ -325,6 +328,51 @@ public class DoubleRatchetTest {
         // ... Alice, however, does not receive all of them. Until, receiving message 2, 1, for which receiver keys
         // rotation is needed.
         aliceRatchet.decrypt(2, 1, new byte[0], new byte[0], new byte[0]);
+    }
+    
+    @Test
+    public void testDoubleRatchetEdgeCaseDecryptFromCurrentRatchetAfterRotatingSenderKeys() throws OtrCryptoException, RotationLimitationException {
+        final ECDHKeyPair bobECDH0 = ECDHKeyPair.generate(RANDOM);
+        final DHKeyPair bobDH0 = DHKeyPair.generate(RANDOM);
+        final ECDHKeyPair aliceECDH0 = ECDHKeyPair.generate(RANDOM);
+        final DHKeyPair aliceDH0 = DHKeyPair.generate(RANDOM);
+        final byte[] rootkey = SecureRandoms.randomBytes(RANDOM, new byte[ROOT_KEY_LENGTH_BYTES]);
+        // Set up Double Ratchets for initial interactions.
+        final byte[] m = "Hello world!".getBytes(UTF_8);
+        final byte[] a = "fakeauthn".getBytes(UTF_8);
+        DoubleRatchet bobDR = DoubleRatchet.initialize(RECEIVING, new MixedSharedSecret(RANDOM, bobECDH0, bobDH0, aliceECDH0.publicKey(), aliceDH0.publicKey()), rootkey.clone());
+        bobDR = bobDR.rotateSenderKeys();
+        DoubleRatchet aliceDR = DoubleRatchet.initialize(SENDING, new MixedSharedSecret(RANDOM, aliceECDH0, aliceDH0, bobECDH0.publicKey(), bobDH0.publicKey()), rootkey.clone());
+        // Encrypt two messages, both to be sent, one to be delayed.
+        final byte[] enc1m = bobDR.encrypt(m);
+        final byte[] enc1auth = bobDR.authenticate(a);
+        final int enc1I = Math.max(0, bobDR.getI()-1);
+        final int enc1J = bobDR.getJ();
+        bobDR.rotateSendingChainKey();
+        final byte[] enc2m = bobDR.encrypt(m);
+        final byte[] enc2auth = bobDR.authenticate(a);
+        final int enc2I = Math.max(0, bobDR.getI()-1);
+        final int enc2J = bobDR.getJ();
+        bobDR.rotateSendingChainKey();
+        // Decrypt first message (successfully), then send reply.
+        aliceDR = aliceDR.rotateReceiverKeys(bobDR.getECDHPublicKey(), bobDR.getDHPublicKey(), 0);
+        final byte[] dec1 = aliceDR.decrypt(enc1I, enc1J, a, enc1auth, enc1m);
+        assertArrayEquals(dec1, m);
+        aliceDR = aliceDR.rotateSenderKeys();
+        final byte[] enc3m = aliceDR.encrypt(m);
+        final byte[] enc3auth = aliceDR.authenticate(a);
+        final int enc3I = Math.max(0, aliceDR.getI()-1);
+        final int enc3J = aliceDR.getJ();
+        aliceDR.rotateSendingChainKey();
+        // Now decrypt delayed message. (after having rotated sender keys)
+        // Note: this fails unless Double Ratchet takes into account `i-2` instead of `i-1` to acquire `i` for current
+        // receiver ratchet, due to having already rotated sender keys and `i-1` now representing the sender keys.
+        final byte[] dec2 = aliceDR.decrypt(enc2I, enc2J, a, enc2auth, enc2m);
+        assertArrayEquals(dec2, m);
+        // For completeness, check decryption of alice's response.
+        bobDR = bobDR.rotateReceiverKeys(aliceDR.getECDHPublicKey(), null, 2);
+        final byte[] dec3 = bobDR.decrypt(enc3I, enc3J, a, enc3auth, enc3m);
+        assertArrayEquals(dec3, m);
     }
 
     // TODO are there tests that intentionally trigger the failure case where the nextDH key is provided inappropriately?

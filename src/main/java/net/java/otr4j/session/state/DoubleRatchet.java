@@ -123,6 +123,7 @@ final class DoubleRatchet implements AutoCloseable {
     // TODO fine-tuning revealing of MAC keys: (OTRv4) "A MAC key is added to `mac_keys_to_reveal` list after a participant has verified the message associated with that MAC key. They are also added if the session is expired or when the storage of message keys gets deleted, and the MAC keys for messages that have not arrived are derived."
     private final ByteArrayOutputStream reveals = new ByteArrayOutputStream();
 
+    // TODO `firstRootKey` is being cleared in the initialization code and this has surprised me more than once during coding. Consider if this is what we want, or whether to leave it to the caller to do proper clean-up.
     static DoubleRatchet initialize(final Purpose purpose, final MixedSharedSecret sharedSecret,
             final byte[] firstRootKey) {
         requireLengthExactly(ROOT_KEY_LENGTH_BYTES, firstRootKey);
@@ -330,6 +331,8 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     private MessageKeys generateSendingMessageKeys() {
         final byte[] chainkey = this.senderRatchet.getChainKey();
+        // FIXME should we do an assertion to check if `nextRotation` is receiver? (i.e. don't allow generating new keys unless rotation protocol is properly followed.)
+        assert this.nextRotation == Purpose.RECEIVING;
         try {
             return MessageKeys.fromChainkey(chainkey);
         } finally {
@@ -416,7 +419,10 @@ final class DoubleRatchet implements AutoCloseable {
         // NOTE: generateReceivingMessageKeys should not make any (persistent) changes, due to the need to have message
         // keys used first to confirm that the message upon which current actions are based, is authentic.
         requireNotClosed();
-        final int currentRatchet = Math.max(0, this.i - 1);
+        // Note: if the _Receiver_ keys are up for rotation, but received message is still in the current ratchet, then
+        // we _now_ need to subtract `2` from the ratchet-ID because we already rotated the _Sender_ keys, therefore we
+        // need to skip past the ratchet-ID dedicated to our sending-keys (which are their receiving-keys).
+        final int currentRatchet = Math.max(0, this.i - (this.nextRotation == Purpose.SENDING ? 1 : 2));
         if (ratchetId > currentRatchet) {
             // We should rotate receiving ratchet receiving (public) keys. 
             throw new IllegalArgumentException("BUG: cannot fast-forward receiving message keys into a new ratchet.");
@@ -507,7 +513,7 @@ final class DoubleRatchet implements AutoCloseable {
         }
         final boolean dhratchet = this.i % 3 == 0;
         if (dhratchet == (nextDH == null)) {
-            throw new IllegalArgumentException("BUG: nextDH must be provided for 'third brace key' rotations");
+            throw new IllegalArgumentException("BUG: nextDH must be provided for 'third brace key' rotations, or absent otherwise.");
         }
         LOGGER.log(FINE, "Rotating root key and receiving chain key for ratchet {0} (nextDH = {1})",
                 new Object[]{this.i, nextDH != null});
