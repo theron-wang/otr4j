@@ -29,7 +29,7 @@ import static net.java.otr4j.util.Objects.requireNotEquals;
 /**
  * The validated representation of the ClientProfile.
  */
-// TODO consider that this client profile has no expiration date, therefore we cannot determine if it is still reliable for profiles from our remote contacts
+// TODO consider that this client profile has no expiration date, therefore we cannot determine if it is still reliable for profiles from our known contacts. Would need management: storing, comparing, updating, purging. (There is little risk for the established session as we would get a client profile sent which must be valid.)
 public final class ClientProfile {
 
     private static final Set<Integer> MANDATORY_VERSIONS = Set.of(Version.FOUR);

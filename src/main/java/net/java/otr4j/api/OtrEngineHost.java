@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
  * @author Danny van Heumen
  */
 // TODO consider default implementations for methods similar to <https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpClient.html#newWebSocketBuilder()> to prevent having to implement methods that should execute as expected.
+// TODO callback to feed client-profiles back to host for management, but would also require ability to request for comparison on each session.
 public interface OtrEngineHost {
 
     /**

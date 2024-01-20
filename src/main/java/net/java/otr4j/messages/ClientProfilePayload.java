@@ -95,6 +95,9 @@ public final class ClientProfilePayload implements OtrEncodable {
     public static ClientProfilePayload signClientProfile(final ClientProfile profile,
             final long expirationUnixTimeSeconds, @Nullable final DSAKeyPair dsaKeyPair,
             final EdDSAKeyPair eddsaKeyPair) {
+        if (profile.getVersions().contains(Version.THREE) && profile.getDsaPublicKey() == null) {
+            throw new IllegalArgumentException("If version 3 is supported, then client-profile must contain a DSA public key.");
+        }
         final ArrayList<Field> fields = new ArrayList<>(List.of(
                 new InstanceTagField(profile.getInstanceTag().getValue()),
                 new ED448IdentityKeyField(profile.getLongTermPublicKey()),
@@ -110,6 +113,9 @@ public final class ClientProfilePayload implements OtrEncodable {
         if (dsaPublicKey != null) {
             if (dsaKeyPair == null) {
                 throw new IllegalArgumentException("BUG: legacy (DSA) public key is present in profile, but DSA keypair is not available for signing.");
+            }
+            if (!dsaPublicKey.getY().equals(dsaKeyPair.getPublic().getY())) {
+                throw new IllegalArgumentException("BUG: provided DSA keypair does not correspond to DSA public key in field.");
             }
             final DSASignature transitionalSignature = dsaKeyPair.signRS(payload.toByteArray());
             final TransitionalSignatureField transSigField = new TransitionalSignatureField(transitionalSignature);
