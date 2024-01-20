@@ -412,6 +412,7 @@ final class DoubleRatchet implements AutoCloseable {
      * rotations for the right message keys to be generated, or retrieve message keys previously stored. This is a
      * limitation of the Double Ratchet. (Or due to a malicious message.) Matching message keys cannot be generated.
      */
+    // TODO otrr did not have the `i-1`/`i-2` problem because it simply provides the current set of keys. Consider if we want to move the lookup `(ratchetId, messageId)` outside the `generateReceivingMessageKeys` logic. It's probably not as trivial as it sounds because there is complexity in determining current vs stored message-keys.
     @SuppressWarnings("MustBeClosedChecker")
     @MustBeClosed
     private MessageKeys generateReceivingMessageKeys(final int ratchetId, final int messageId)
