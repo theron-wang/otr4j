@@ -37,7 +37,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.FINGERPRINT;
 import static net.java.otr4j.crypto.ed448.Ed448.basePoint;
 import static net.java.otr4j.crypto.ed448.Ed448.containsPoint;
 import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
-import static net.java.otr4j.crypto.ed448.Ed448.primeOrder;
+import static net.java.otr4j.crypto.ed448.Ed448.order;
 import static net.java.otr4j.crypto.ed448.Scalar.SCALAR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
 import static net.java.otr4j.crypto.ed448.Scalars.clamp;
@@ -536,7 +536,7 @@ public final class OtrCryptoEngine4 {
         final Point T3 = multiplyByBase(t.multiply(eq3)).add(
                 multiplyByBase(rk.multiply(1 - eq3)).add(A3.multiply(ck.multiply(1 - eq3))));
         // "Compute c = HashToScalar(0x1D || G || q || A1 || A2 || A3 || T1 || T2 || T3 || m)."
-        final Scalar q = primeOrder();
+        final Scalar q = order();
         final Scalar c;
         try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
             final OtrOutputStream encoder = new OtrOutputStream(buffer);
@@ -583,7 +583,7 @@ public final class OtrCryptoEngine4 {
         if (!containsPoint(A1) || !containsPoint(A2) || !containsPoint(A3)) {
             throw new OtrCryptoException("One of the public keys is invalid.");
         }
-        final Scalar q = primeOrder();
+        final Scalar q = order();
         // "Parse sigma to retrieve components (c1, r1, c2, r2, c3, r3)."
         // Parsing happened outside of this method already. We expect a "sigma" instance to be provided.
         // "Compute T1 = G * r1 + A1 * c1"

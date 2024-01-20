@@ -59,12 +59,12 @@ public final class Ed448 {
     }
 
     /**
-     * Access prime order of Ed448-Goldilocks curve.
+     * Access (prime) order of Ed448-Goldilocks curve.
      *
      * @return Returns prime order.
      */
     @Nonnull
-    public static Scalar primeOrder() {
+    public static Scalar order() {
         return new Scalar(Q.clone());
     }
 
@@ -127,7 +127,7 @@ public final class Ed448 {
         } catch (final Points.InvalidDataException e) {
             return false;
         }
-        return checkIdentity(point.multiply(primeOrder()));
+        return checkIdentity(point.multiply(order()));
     }
 
     /**

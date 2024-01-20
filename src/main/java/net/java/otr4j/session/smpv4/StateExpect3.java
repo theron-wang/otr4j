@@ -27,7 +27,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.generateRandomValueInZq;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.hashToScalar;
 import static net.java.otr4j.crypto.ed448.Ed448.containsPoint;
 import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
-import static net.java.otr4j.crypto.ed448.Ed448.primeOrder;
+import static net.java.otr4j.crypto.ed448.Ed448.order;
 import static net.java.otr4j.crypto.ed448.Ed448.requireValidPoint;
 import static net.java.otr4j.session.api.SMPStatus.FAILED;
 import static net.java.otr4j.session.api.SMPStatus.INPROGRESS;
@@ -115,7 +115,7 @@ final class StateExpect3 implements SMPState {
         final Scalar r7 = generateRandomValueInZq(this.random);
         final Scalar cr = hashToScalar(SMP_VALUE_0X08, multiplyByBase(r7).encode(),
                 smp3.qa.add(this.qb.negate()).multiply(r7).encode());
-        final Scalar d7 = r7.subtract(this.b3.multiply(cr)).mod(primeOrder());
+        final Scalar d7 = r7.subtract(this.b3.multiply(cr)).mod(order());
         return new SMPMessage4(rb, cr, d7);
     }
 }

@@ -29,7 +29,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.generateRandomValueInZq;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.hashToScalar;
 import static net.java.otr4j.crypto.ed448.Ed448.containsPoint;
 import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
-import static net.java.otr4j.crypto.ed448.Ed448.primeOrder;
+import static net.java.otr4j.crypto.ed448.Ed448.order;
 import static net.java.otr4j.crypto.ed448.Ed448.requireValidPoint;
 import static net.java.otr4j.session.api.SMPStatus.INPROGRESS;
 import static net.java.otr4j.session.api.SMPStatus.UNDECIDED;
@@ -103,7 +103,7 @@ final class StateExpect2 implements SMPState {
         final Scalar r6 = generateRandomValueInZq(this.random);
         final Scalar r7 = generateRandomValueInZq(this.random);
         final Point pa = requireValidPoint(g3.multiply(r4));
-        final Scalar q = primeOrder();
+        final Scalar q = order();
         final Scalar secretModQ = this.secret.mod(q);
         final Point qa = requireValidPoint(multiplyByBase(r4).add(g2.multiply(secretModQ)));
         final Scalar cp = hashToScalar(SMP_VALUE_0X06, g3.multiply(r5).encode(),

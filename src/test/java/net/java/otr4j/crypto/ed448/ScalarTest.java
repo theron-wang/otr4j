@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
-import static net.java.otr4j.crypto.ed448.Ed448.primeOrder;
+import static net.java.otr4j.crypto.ed448.Ed448.order;
 import static net.java.otr4j.crypto.ed448.Scalar.SCALAR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
 import static net.java.otr4j.crypto.ed448.Scalar.fromBigInteger;
@@ -37,7 +37,7 @@ public final class ScalarTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private static final Scalar Q_SCALAR = primeOrder();
+    private static final Scalar Q_SCALAR = order();
 
     private static final BigInteger Q_BIGINT = Q_SCALAR.toBigInteger();
 

@@ -29,7 +29,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.generateRandomValueInZq;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.hashToScalar;
 import static net.java.otr4j.crypto.ed448.Ed448.containsPoint;
 import static net.java.otr4j.crypto.ed448.Ed448.multiplyByBase;
-import static net.java.otr4j.crypto.ed448.Ed448.primeOrder;
+import static net.java.otr4j.crypto.ed448.Ed448.order;
 import static net.java.otr4j.crypto.ed448.Ed448.requireValidPoint;
 
 /**
@@ -93,7 +93,7 @@ final class StateExpect1 implements SMPState {
         final Scalar r3 = generateRandomValueInZq(this.random);
         final Point g2a = requireValidPoint(multiplyByBase(a2));
         final Point g3a = requireValidPoint(multiplyByBase(a3));
-        final Scalar q = primeOrder();
+        final Scalar q = order();
         final Scalar c2 = hashToScalar(SMP_VALUE_0X01, multiplyByBase(r2).encode());
         final Scalar d2 = r2.subtract(a2.multiply(c2)).mod(q);
         final Scalar c3 = hashToScalar(SMP_VALUE_0X02, multiplyByBase(r3).encode());
@@ -123,7 +123,7 @@ final class StateExpect1 implements SMPState {
         final Scalar r6 = generateRandomValueInZq(this.random);
         final Point g2b = requireValidPoint(multiplyByBase(b2));
         final Point g3b = requireValidPoint(multiplyByBase(b3));
-        final Scalar q = primeOrder();
+        final Scalar q = order();
         final Scalar c2 = hashToScalar(SMP_VALUE_0X03, multiplyByBase(r2).encode());
         final Scalar d2 = r2.subtract(b2.multiply(c2)).mod(q);
         final Scalar c3 = hashToScalar(SMP_VALUE_0X04, multiplyByBase(r3).encode());

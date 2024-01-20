@@ -30,7 +30,7 @@ import static net.java.otr4j.api.InstanceTag.isValidInstanceTag;
 import static net.java.otr4j.crypto.DHKeyPairOTR3.verifyDHPublicKey;
 import static net.java.otr4j.crypto.DSAKeyPair.createDSAPublicKey;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.decodePoint;
-import static net.java.otr4j.crypto.ed448.Ed448.primeOrder;
+import static net.java.otr4j.crypto.ed448.Ed448.order;
 import static net.java.otr4j.crypto.ed448.Scalar.SCALAR_LENGTH_BYTES;
 import static net.java.otr4j.crypto.ed448.Scalar.decodeScalar;
 import static net.java.otr4j.io.EncodingConstants.DATA_LEN;
@@ -337,7 +337,7 @@ public final class OtrInputStream {
     @Nonnull
     public Scalar readScalar() throws ProtocolException {
         // TODO `mod(primeOrder)` is probably redundant
-        return decodeScalar(checkedRead(SCALAR_LENGTH_BYTES)).mod(primeOrder());
+        return decodeScalar(checkedRead(SCALAR_LENGTH_BYTES)).mod(order());
     }
 
     /**
