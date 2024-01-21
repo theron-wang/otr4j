@@ -461,7 +461,7 @@ final class DoubleRatchet implements AutoCloseable {
      */
     @SuppressWarnings("MustBeClosedChecker")
     void confirmReceivingChainKey(final int ratchetId, final int messageId) {
-        final int currentRatchet = Math.max(0, this.i - 1);
+        final int currentRatchet = Math.max(0, this.i - (this.nextRotation == Purpose.SENDING ? 1 : 2));
         if (ratchetId > currentRatchet) {
             throw new IllegalArgumentException("BUG: Ratcheting is necessary. This should not happen if message keys were previously generated successfully.");
         }
