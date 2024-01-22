@@ -16,8 +16,6 @@ import javax.annotation.Nonnull;
 import java.net.ProtocolException;
 import java.security.interfaces.DSAPublicKey;
 
-import static net.java.otr4j.crypto.DSAKeyPair.DSA_SIGNATURE_LENGTH_BYTES;
-
 /**
  * Utilities for SignatureX.
  */
@@ -44,10 +42,7 @@ public final class SignatureXs {
         if (dhKeyID == 0) {
             throw new ProtocolException("Illegal DH key ID encountered. Must be > 0, but was " + dhKeyID);
         }
-        final byte[] sig = in.readSignature(pubKey);
-        if (sig.length != DSA_SIGNATURE_LENGTH_BYTES) {
-            throw new ProtocolException("Read DSA signature of invalid length. Expecting only 40 bytes signatures. (Based on 1024 bits DSA keypair.)");
-        }
+        final byte[] sig = in.readSignature();
         return new SignatureX(pubKey, dhKeyID, sig);
     }
 }

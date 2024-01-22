@@ -21,6 +21,7 @@ import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrInputStream.UnsupportedLengthException;
 import net.java.otr4j.io.OtrOutputStream;
+import org.bouncycastle.util.BigIntegers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -191,8 +192,9 @@ public final class ClientProfilePayload implements OtrEncodable {
                 fields.add(new ExpirationField(in.readLong()));
                 break;
             case TRANSITIONAL_SIGNATURE:
-                final BigInteger r = in.readBigInt();
-                final BigInteger s = in.readBigInt();
+                final byte[] sigbytes = in.readSignature();
+                final BigInteger r = new BigInteger(1, sigbytes, 0, 20);
+                final BigInteger s = new BigInteger(1, sigbytes, 20, 20);
                 fields.add(new TransitionalSignatureField(new DSASignature(r, s)));
                 break;
             case TRANSITIONAL_DSA_PUBLIC_KEY:
@@ -708,8 +710,10 @@ public final class ClientProfilePayload implements OtrEncodable {
         @Override
         public void writeTo(final OtrOutputStream out) {
             out.writeShort(TYPE.type);
-            out.writeBigInt(this.signature.r);
-            out.writeBigInt(this.signature.s);
+            final byte[] sig = new byte[40];
+            BigIntegers.asUnsignedByteArray(this.signature.r, sig, 0, 20);
+            BigIntegers.asUnsignedByteArray(this.signature.s, sig, 20, 20);
+            out.writeDSASignature(sig);
         }
 
         @Override

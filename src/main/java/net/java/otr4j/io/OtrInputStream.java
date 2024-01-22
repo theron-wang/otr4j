@@ -14,6 +14,7 @@ import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
+import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.crypto.ed448.Scalar;
@@ -23,7 +24,6 @@ import javax.crypto.interfaces.DHPublicKey;
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.net.ProtocolException;
-import java.security.interfaces.DSAParams;
 import java.security.interfaces.DSAPublicKey;
 
 import static net.java.otr4j.api.InstanceTag.isValidInstanceTag;
@@ -268,14 +268,12 @@ public final class OtrInputStream {
     /**
      * Read signature from message stream.
      *
-     * @param pubKey The DSA public key.
      * @return Returns the read signature.
      * @throws ProtocolException In case of unexpected content in the message stream.
      */
     @Nonnull
-    public byte[] readSignature(final DSAPublicKey pubKey) throws ProtocolException {
-        final DSAParams dsaParams = pubKey.getParams();
-        return checkedRead(dsaParams.getQ().bitLength() / 4);
+    public byte[] readSignature() throws ProtocolException {
+        return checkedRead(DSAKeyPair.DSA_SIGNATURE_LENGTH_BYTES);
     }
 
     /**

@@ -198,7 +198,7 @@ public class OtrInputStreamTest {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         };
         final OtrInputStream ois = new OtrInputStream(data);
-        assertArrayEquals(data, ois.readSignature((DSAPublicKey) keypair.getPublic()));
+        assertArrayEquals(data, ois.readSignature());
     }
 
     @Test
