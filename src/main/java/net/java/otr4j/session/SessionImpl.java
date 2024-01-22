@@ -27,6 +27,7 @@ import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.OtrCryptoException;
+import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
 import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.ErrorMessage;
@@ -351,15 +352,19 @@ final class SessionImpl implements Session, Context {
                     "Failed to load client profile from OTR Engine Host. Generating new client profile… (Problem: {0})",
                     e.getMessage());
             final OtrPolicy policy = this.host.getSessionPolicy(sessionID);
-            final Point longTermPublicKey = this.host.getLongTermKeyPair(sessionID).getPublicKey();
+            final EdDSAKeyPair longTermKeyPair = this.host.getLongTermKeyPair(sessionID);
+            final Point longTermPublicKey = longTermKeyPair.getPublicKey();
             final Point forgingPublicKey = this.host.getForgingKeyPair(sessionID).getPublicKey();
             final List<Integer> versions;
+            final DSAKeyPair legacyKeyPair;
             final DSAPublicKey legacyPublicKey;
             if (policy.isAllowV3()) {
                 versions = List.of(THREE, FOUR);
-                legacyPublicKey = this.host.getLocalKeyPair(sessionID).getPublic();
+                legacyKeyPair = this.host.getLocalKeyPair(sessionID);
+                legacyPublicKey = legacyKeyPair.getPublic();
             } else {
                 versions = List.of(FOUR);
+                legacyKeyPair = null;
                 legacyPublicKey = null;
             }
             profile = new ClientProfile(InstanceTag.random(secureRandom), longTermPublicKey, forgingPublicKey, versions,
@@ -369,7 +374,7 @@ final class SessionImpl implements Session, Context {
             final Calendar expirationDate = Calendar.getInstance();
             expirationDate.add(Calendar.DAY_OF_YEAR, 14);
             payload = signClientProfile(profile, expirationDate.getTimeInMillis() / 1000,
-                    this.host.getLocalKeyPair(sessionID), this.host.getLongTermKeyPair(sessionID));
+                    legacyKeyPair, longTermKeyPair);
             this.host.updateClientProfilePayload(OtrEncodables.encode(payload));
         }
         this.profile = profile;

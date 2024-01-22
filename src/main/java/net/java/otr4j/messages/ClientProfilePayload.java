@@ -107,15 +107,15 @@ public final class ClientProfilePayload implements OtrEncodable {
                 new ExpirationField(expirationUnixTimeSeconds)));
         final DSAPublicKey dsaPublicKey = profile.getDsaPublicKey();
         if (dsaPublicKey != null) {
+            if (dsaKeyPair == null) {
+                throw new IllegalArgumentException("BUG: legacy (DSA) public key is present in profile, but DSA keypair is not available for signing.");
+            }
             fields.add(new DSAPublicKeyField(dsaPublicKey));
         }
         final OtrOutputStream payload = new OtrOutputStream();
         fields.forEach(payload::write);
-        if (dsaPublicKey != null) {
-            if (dsaKeyPair == null) {
-                throw new IllegalArgumentException("BUG: legacy (DSA) public key is present in profile, but DSA keypair is not available for signing.");
-            }
-            if (!dsaPublicKey.getY().equals(dsaKeyPair.getPublic().getY())) {
+        if (dsaKeyPair != null) {
+            if (dsaPublicKey != null && !dsaPublicKey.getY().equals(dsaKeyPair.getPublic().getY())) {
                 throw new IllegalArgumentException("BUG: provided DSA keypair does not correspond to DSA public key in field.");
             }
             final DSASignature transitionalSignature = dsaKeyPair.signRS(payload.toByteArray());
@@ -355,7 +355,6 @@ public final class ClientProfilePayload implements OtrEncodable {
         }
         if (transitionalSignatureField != null) {
             if (legacyKeyField == null) {
-                // TODO this is dubious: strictly speaking the DSA public key is not necessary, but it does mean we cannot validate the transitional signature until we receive the DSA public key during OTR3 session. (Clients only store the DSA public key's _fingerprint_.)
                 throw new ValidationException("Legacy public key and transitional signature should both be present or both absent.");
             }
             // Verify the transitional signature with the legacy public key.

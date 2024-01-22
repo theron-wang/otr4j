@@ -231,6 +231,8 @@ __Developmental__
   Message sizes in OTR are defined as 4-byte _unsigned_. Due to Java's signed integer types, this implementation currently uses a signed integer. Therefore, the highest bit of the message length is interpreted as sign bit. Lengths over 2^31 are unsupported.
 - _otr4j assumes message injections onto the (chat) network always succeed._  
   It is expected that message injection always succeeds. There is no way to signal that it failed and otr4j does not have any countermeasures in case it fails. (This may be added as a feature, but is currently not under consideration.)
+- _otr4j will not support client-profiles with transitional signatures but without DSA public key present._
+  The OTRv4 spec defines that it is possible to officially support protocol version 3 and include transitional signature without including corresponding (legacy) DSA public key. This means that we received a profile and signature that we cannot validate until first OTR3 session is established. This makes things overly complicated. Therefore, _otr4j_ will require the DSA public key to be present, such that the transitional signature can be validated immediately.
 
 ## Contributing / Help needed
 
