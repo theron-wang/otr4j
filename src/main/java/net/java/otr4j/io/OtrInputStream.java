@@ -71,6 +71,17 @@ public final class OtrInputStream {
     }
 
     /**
+     * Construct OtrInputStream based on existing, provided source input stream.
+     *
+     * @param in the source input data
+     * @param offset the offset in the data
+     * @param length the length of data
+     */
+    public OtrInputStream(final byte[] in, final int offset, final int length) {
+        this.in = new ByteArrayInputStream(in, offset, length);
+    }
+
+    /**
      * Available number of bytes of content.
      *
      * @return Returns number of available bytes.

@@ -133,6 +133,7 @@ final class Assembler {
     /**
      * Out-of-order assembler, following OTRv4 specification.
      */
+    // TODO the out-of-order assembler can be abused to fill memory with bogus messages. We can only verify the message completely once the complete message is reconstructed. Before that, we can keep fragments and hope we don't waste memory and that remaining fragments arrive soon, and that the fragments lead to a valid, legitimate message.
     private static final class OutOfOrderAssembler {
 
         private static final Logger LOGGER = Logger.getLogger(OutOfOrderAssembler.class.getName());

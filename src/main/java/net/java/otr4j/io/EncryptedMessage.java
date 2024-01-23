@@ -60,9 +60,7 @@ public final class EncryptedMessage {
         final ArrayList<TLV> tlvs = new ArrayList<>();
         tlvIndex++; // to ignore the null value that separates message from TLVs
         if (tlvIndex < messageBytes.length) {
-            final byte[] tlvsb = new byte[messageBytes.length - tlvIndex];
-            System.arraycopy(messageBytes, tlvIndex, tlvsb, 0, tlvsb.length);
-            final OtrInputStream in = new OtrInputStream(tlvsb);
+            final OtrInputStream in = new OtrInputStream(messageBytes, tlvIndex, messageBytes.length - tlvIndex);
             while (in.available() > 0) {
                 tlvs.add(in.readTLV());
             }
