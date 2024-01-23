@@ -9,8 +9,7 @@
 
 package net.java.otr4j.messages;
 
-import net.java.otr4j.api.Session;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import org.junit.Test;
 
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
@@ -19,7 +18,7 @@ public final class DHCommitMessageTest {
 
     @Test
     public void testDHCommitMessageProtocolVersionValid() {
-        new DHCommitMessage(Session.Version.THREE, new byte[0], new byte[0], SMALLEST_TAG, SMALLEST_TAG);
+        new DHCommitMessage(Version.THREE, new byte[0], new byte[0], SMALLEST_TAG, SMALLEST_TAG);
     }
 
     @Test(expected = IllegalArgumentException.class)

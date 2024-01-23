@@ -9,6 +9,7 @@
 
 package net.java.otr4j.session.ake;
 
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.SharedSecret;
 import net.java.otr4j.crypto.SharedSecretTestUtil;
@@ -36,13 +37,13 @@ public class SecurityParametersTest {
         final DHKeyPairOTR3 localDHKeyPair = generateDHKeyPair(RANDOM);
         final DHKeyPairOTR3 remoteDHKeyPair = generateDHKeyPair(RANDOM);
         final DSAPublicKey remoteLongTermPublicKey = mock(DSAPublicKey.class);
-        final SecurityParameters params = new SecurityParameters(3, localDHKeyPair, remoteLongTermPublicKey,
+        final SecurityParameters params = new SecurityParameters(Version.THREE, localDHKeyPair, remoteLongTermPublicKey,
                 remoteDHKeyPair.getPublic(), s);
         assertSame(s, params.getS());
         assertSame(localDHKeyPair, params.getLocalDHKeyPair());
         assertSame(remoteDHKeyPair.getPublic(), params.getRemoteDHPublicKey());
         assertSame(remoteLongTermPublicKey, params.getRemoteLongTermPublicKey());
-        assertEquals(3, params.getVersion());
+        assertEquals(Version.THREE, params.getVersion());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -51,7 +52,7 @@ public class SecurityParametersTest {
         final DHKeyPairOTR3 localDHKeyPair = generateDHKeyPair(RANDOM);
         final DHKeyPairOTR3 remoteDHKeyPair = generateDHKeyPair(RANDOM);
         final DSAPublicKey remoteLongTermPublicKey = mock(DSAPublicKey.class);
-        new SecurityParameters(1, localDHKeyPair, remoteLongTermPublicKey, remoteDHKeyPair.getPublic(), s);
+        new SecurityParameters(Version.ONE, localDHKeyPair, remoteLongTermPublicKey, remoteDHKeyPair.getPublic(), s);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -60,7 +61,7 @@ public class SecurityParametersTest {
         final DHKeyPairOTR3 localDHKeyPair = generateDHKeyPair(RANDOM);
         final DHKeyPairOTR3 remoteDHKeyPair = generateDHKeyPair(RANDOM);
         final DSAPublicKey remoteLongTermPublicKey = mock(DSAPublicKey.class);
-        new SecurityParameters(-1, localDHKeyPair, remoteLongTermPublicKey, remoteDHKeyPair.getPublic(), s);
+        new SecurityParameters(Version.NONE, localDHKeyPair, remoteLongTermPublicKey, remoteDHKeyPair.getPublic(), s);
     }
 
     @Test(expected = NullPointerException.class)
@@ -68,7 +69,7 @@ public class SecurityParametersTest {
         final SharedSecret s = SharedSecretTestUtil.createTestSecret();
         final DHKeyPairOTR3 remoteDHKeyPair = generateDHKeyPair(RANDOM);
         final DSAPublicKey remoteLongTermPublicKey = mock(DSAPublicKey.class);
-        new SecurityParameters(3, null, remoteLongTermPublicKey, remoteDHKeyPair.getPublic(), s);
+        new SecurityParameters(Version.THREE, null, remoteLongTermPublicKey, remoteDHKeyPair.getPublic(), s);
     }
 
     @Test(expected = NullPointerException.class)
@@ -76,7 +77,7 @@ public class SecurityParametersTest {
         final SharedSecret s = SharedSecretTestUtil.createTestSecret();
         final DHKeyPairOTR3 localDHKeyPair = generateDHKeyPair(RANDOM);
         final DHKeyPairOTR3 remoteDHKeyPair = generateDHKeyPair(RANDOM);
-        new SecurityParameters(3, localDHKeyPair, null, remoteDHKeyPair.getPublic(), s);
+        new SecurityParameters(Version.THREE, localDHKeyPair, null, remoteDHKeyPair.getPublic(), s);
     }
 
     @Test(expected = NullPointerException.class)
@@ -84,7 +85,7 @@ public class SecurityParametersTest {
         final SharedSecret s = SharedSecretTestUtil.createTestSecret();
         final DHKeyPairOTR3 localDHKeyPair = generateDHKeyPair(RANDOM);
         final DSAPublicKey remoteLongTermPublicKey = mock(DSAPublicKey.class);
-        new SecurityParameters(3, localDHKeyPair, remoteLongTermPublicKey, null, s);
+        new SecurityParameters(Version.THREE, localDHKeyPair, remoteLongTermPublicKey, null, s);
     }
 
     @Test(expected = NullPointerException.class)
@@ -92,6 +93,6 @@ public class SecurityParametersTest {
         final DHKeyPairOTR3 localDHKeyPair = generateDHKeyPair(RANDOM);
         final DSAPublicKey remoteLongTermPublicKey = mock(DSAPublicKey.class);
         final DHKeyPairOTR3 remoteDHKeyPair = generateDHKeyPair(RANDOM);
-        new SecurityParameters(3, localDHKeyPair, remoteLongTermPublicKey, remoteDHKeyPair.getPublic(), null);
+        new SecurityParameters(Version.THREE, localDHKeyPair, remoteLongTermPublicKey, remoteDHKeyPair.getPublic(), null);
     }
 }

@@ -9,7 +9,7 @@
 
 package net.java.otr4j.io;
 
-import net.java.otr4j.api.Session;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.DHKeyMessage;
@@ -91,7 +91,7 @@ public class IOTest {
     @Test
     public void testIODHKeyMessage() throws Exception {
         DHKeyPairOTR3 pair = generateDHKeyPair(this.secureRandom);
-        DHKeyMessage source = new DHKeyMessage(Session.Version.THREE, pair.getPublic(), ZERO_TAG, ZERO_TAG);
+        DHKeyMessage source = new DHKeyMessage(Version.THREE, pair.getPublic(), ZERO_TAG, ZERO_TAG);
         String base64 = writeMessage(source);
         EncodedMessage message = (EncodedMessage) MessageProcessor.parseMessage(base64);
         final AbstractEncodedMessage result = EncodedMessageParser.parseEncodedMessage(message);
@@ -100,7 +100,7 @@ public class IOTest {
 
     @Test
     public void testIORevealSignature() throws Exception {
-        int protocolVersion = 2;
+        Version protocolVersion = Version.TWO;
         byte[] xEncrypted = new byte[] {1, 2, 3, 4};
         byte[] xEncryptedMAC = new byte[EncodingConstants.TYPE_LEN_MAC];
         for (int i = 0; i < xEncryptedMAC.length; i++) {

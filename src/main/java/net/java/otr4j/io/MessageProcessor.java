@@ -11,7 +11,7 @@ package net.java.otr4j.io;
 
 import com.google.errorprone.annotations.CheckReturnValue;
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.DecoderException;
 
@@ -20,16 +20,14 @@ import java.io.StringWriter;
 import java.net.ProtocolException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Collections.sort;
-import static net.java.otr4j.api.Session.Version.SUPPORTED;
 import static net.java.otr4j.io.EncodingConstants.ERROR_PREFIX;
 import static net.java.otr4j.io.EncodingConstants.HEAD;
 import static net.java.otr4j.io.EncodingConstants.HEAD_ENCODED;
@@ -124,7 +122,7 @@ public final class MessageProcessor {
                     // Illegal OTR query string. Return as plaintext message instead and do not do further processing.
                     return new PlainTextMessage(Collections.emptySet(), content);
                 }
-                final Set<Integer> versions = parseVersionString(versionString);
+                final Set<Version> versions = parseVersionString(versionString);
                 return new QueryMessage(versions);
             } else if (otrFragmented(text)) {
                 return parseFragment(text);
@@ -138,8 +136,8 @@ public final class MessageProcessor {
                             + e.getMessage() + ")");
                 }
                 final OtrInputStream input = new OtrInputStream(contentBytes);
-                final int protocolVersion = input.readShort();
-                if (!SUPPORTED.contains(protocolVersion)) {
+                final Version protocolVersion = Version.match(input.readShort());
+                if (protocolVersion == null || !Version.SUPPORTED.contains(protocolVersion)) {
                     throw new ProtocolException("Unsupported protocol version " + protocolVersion);
                 }
                 final byte messageType = input.readByte();
@@ -158,7 +156,7 @@ public final class MessageProcessor {
 
         // Try to detect whitespace tag.
         final Matcher matcher = PATTERN_WHITESPACE.matcher(text);
-        final HashSet<Integer> versions = new HashSet<>();
+        final EnumSet<Version> versions = EnumSet.noneOf(Version.class);
         if (matcher.find()) {
             // Ignore group 1 (OTRv1 tag) as version 1 is not supported anymore.
             String tags = matcher.group(2);
@@ -208,7 +206,7 @@ public final class MessageProcessor {
             if (query.getVersions().size() == 1 && query.getVersions().contains(Version.ONE)) {
                 throw new UnsupportedOperationException("OTR v1 is no longer supported. Support in the library has been removed, so the query message should not contain a version 1 entry.");
             }
-            final ArrayList<Integer> versions = new ArrayList<>(query.getVersions());
+            final ArrayList<Version> versions = new ArrayList<>(query.getVersions());
             sort(versions);
             writer.write(generateQueryTag(versions));
         } else if (m instanceof OtrEncodable) {
@@ -223,9 +221,9 @@ public final class MessageProcessor {
     }
 
     @Nonnull
-    private static String generateWhitespaceTag(final Iterable<Integer> versions) {
+    private static String generateWhitespaceTag(final Iterable<Version> versions) {
         final StringBuilder builder = new StringBuilder(40);
-        for (final int version : versions) {
+        for (final Version version : versions) {
             if (version == Version.TWO) {
                 builder.append("  \t\t  \t ");
             }
@@ -240,7 +238,7 @@ public final class MessageProcessor {
     }
 
     @Nonnull
-    private static String generateQueryTag(final Iterable<Integer> versions) {
+    private static String generateQueryTag(final Iterable<Version> versions) {
         final String versionsString = encodeVersionString(versions);
         return versionsString.length() == 0 ? "" : HEAD + HEAD_QUERY_V + versionsString + HEAD_QUERY_Q;
     }
@@ -252,13 +250,13 @@ public final class MessageProcessor {
      * @return Returns ASCII string representation.
      */
     @Nonnull
-    public static String encodeVersionString(final Iterable<Integer> versions) {
+    public static String encodeVersionString(final Iterable<Version> versions) {
         final StringBuilder versionsString = new StringBuilder();
-        for (final int version : versions) {
-            if (version < 0 || version > 9) {
-                throw new IllegalArgumentException("Negative and multi-digit version numbers are not supported.");
+        for (final Version version : versions) {
+            if (version == Version.NONE) {
+                throw new IllegalArgumentException("Illegal version");
             }
-            versionsString.append(version);
+            versionsString.append(version.ordinal());
         }
         return versionsString.toString();
     }
@@ -270,13 +268,18 @@ public final class MessageProcessor {
      * @return Returns set containing version ints.
      */
     @Nonnull
-    public static Set<Integer> parseVersionString(final String versionString) {
-        final TreeSet<Integer> versions = new TreeSet<>();
+    public static Set<Version> parseVersionString(final String versionString) {
+        final EnumSet<Version> versions = EnumSet.noneOf(Version.class);
         for (int i = 0; i < versionString.length(); i++) {
             final int idx = NUMBERINDEX.indexOf(versionString.charAt(i));
-            if (idx > 0) {
-                versions.add(idx);
+            if (idx == 0) {
+                continue;
             }
+            final Version v = Version.match(idx);
+            if (v == null) {
+                continue;
+            }
+            versions.add(v);
         }
         return versions;
     }

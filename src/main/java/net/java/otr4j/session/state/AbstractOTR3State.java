@@ -14,6 +14,7 @@ import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.SessionID;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
@@ -35,11 +36,8 @@ import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
-import static net.java.otr4j.api.Session.Version.THREE;
-import static net.java.otr4j.api.Session.Version.TWO;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static net.java.otr4j.messages.EncodedMessageParser.parseEncodedMessage;
-import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
  * Abstract base implementation for session state implementations.
@@ -77,7 +75,9 @@ abstract class AbstractOTR3State implements State {
 
     @Nonnull
     Result handleEncodedMessage3(final Context context, final EncodedMessage message) throws OtrException, ProtocolException {
-        requireInRange(TWO, THREE, message.version);
+        if (message.version != Version.TWO && message.version != Version.THREE) {
+            throw new IllegalArgumentException("Illegal version");
+        }
         final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
         assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof DHCommitMessage
                 : "BUG: receiver instance should be set for anything other than the first AKE message.";
@@ -110,11 +110,11 @@ abstract class AbstractOTR3State implements State {
 
         // Verify that policy allows handling message according to protocol version.
         final OtrPolicy policy = context.getSessionPolicy();
-        if (message.protocolVersion == TWO && !policy.isAllowV2()) {
+        if (message.protocolVersion == Version.TWO && !policy.isAllowV2()) {
             LOGGER.finest("ALLOW_V2 is not set, ignore this message.");
             return null;
         }
-        if (message.protocolVersion == THREE && !policy.isAllowV3()) {
+        if (message.protocolVersion == Version.THREE && !policy.isAllowV3()) {
             LOGGER.finest("ALLOW_V3 is not set, ignore this message.");
             return null;
         }
@@ -157,7 +157,7 @@ abstract class AbstractOTR3State implements State {
     }
 
     @Override
-    public void initiateAKE(final Context context, final int version, final InstanceTag receiverTag) throws OtrException {
+    public void initiateAKE(final Context context, final Version version, final InstanceTag receiverTag) throws OtrException {
         LOGGER.log(Level.FINE, "Initiating AKE…");
         context.injectMessage(this.authState.initiate(context, version, receiverTag));
     }

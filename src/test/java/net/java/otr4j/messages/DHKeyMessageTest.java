@@ -9,7 +9,7 @@
 
 package net.java.otr4j.messages;
 
-import net.java.otr4j.api.Session;
+import net.java.otr4j.api.Version;
 import org.junit.Test;
 
 import javax.crypto.interfaces.DHPublicKey;
@@ -26,11 +26,11 @@ public final class DHKeyMessageTest {
 
     @Test
     public void testDHKeyMessageProtocolVersionValid() {
-        new DHKeyMessage(Session.Version.THREE, publicKey, SMALLEST_TAG, SMALLEST_TAG);
+        new DHKeyMessage(Version.THREE, publicKey, SMALLEST_TAG, SMALLEST_TAG);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testDHKeyMessageProtocolVersionIllegalValue() {
-        new DHKeyMessage(Session.Version.FOUR, publicKey, SMALLEST_TAG, SMALLEST_TAG);
+        new DHKeyMessage(Version.FOUR, publicKey, SMALLEST_TAG, SMALLEST_TAG);
     }
 }

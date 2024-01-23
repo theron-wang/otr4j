@@ -13,8 +13,8 @@ import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
-import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.MixedSharedSecret;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
@@ -37,7 +37,6 @@ import static java.util.Collections.singletonList;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.session.state.DoubleRatchet.Purpose.SENDING;
 import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
-import static net.java.otr4j.util.Classes.readField;
 import static net.java.otr4j.util.SecureRandoms.randomBytes;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -73,7 +72,7 @@ public final class StateEncrypted4Test {
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(InstanceTag.random(RANDOM), theirPublicKey,
-                theirForgingKey, singletonList(Session.Version.FOUR), null);
+                theirForgingKey, singletonList(Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
@@ -92,7 +91,7 @@ public final class StateEncrypted4Test {
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(InstanceTag.random(RANDOM), theirPublicKey,
-                theirForgingKey, singletonList(Session.Version.FOUR), null);
+                theirForgingKey, singletonList(Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
@@ -112,7 +111,7 @@ public final class StateEncrypted4Test {
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(InstanceTag.random(RANDOM), theirPublicKey,
-                theirForgingKey, singletonList(Session.Version.FOUR), null);
+                theirForgingKey, singletonList(Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
@@ -132,7 +131,7 @@ public final class StateEncrypted4Test {
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(InstanceTag.random(RANDOM), theirPublicKey,
-                theirForgingKey, singletonList(Session.Version.FOUR), null);
+                theirForgingKey, singletonList(Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
@@ -170,7 +169,7 @@ public final class StateEncrypted4Test {
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(InstanceTag.random(RANDOM), theirPublicKey,
-                theirForgingKey, singletonList(Session.Version.FOUR), null);
+                theirForgingKey, singletonList(Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
@@ -191,7 +190,7 @@ public final class StateEncrypted4Test {
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(InstanceTag.random(RANDOM), theirPublicKey,
-                theirForgingKey, singletonList(Session.Version.FOUR), null);
+                theirForgingKey, singletonList(Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
@@ -213,7 +212,7 @@ public final class StateEncrypted4Test {
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(InstanceTag.random(RANDOM), theirPublicKey,
-                theirForgingKey, singletonList(Session.Version.FOUR), null);
+                theirForgingKey, singletonList(Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
@@ -244,7 +243,7 @@ public final class StateEncrypted4Test {
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(InstanceTag.random(RANDOM), theirPublicKey,
-                theirForgingKey, singletonList(Session.Version.FOUR), null);
+                theirForgingKey, singletonList(Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
@@ -287,7 +286,7 @@ public final class StateEncrypted4Test {
         final Point theirPublicKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(InstanceTag.random(RANDOM), theirPublicKey,
-                theirForgingKey, singletonList(Session.Version.FOUR), null);
+                theirForgingKey, singletonList(Version.FOUR), null);
         final ECDHKeyPair ecdhKeyPair = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dhKeyPair = DHKeyPair.generate(RANDOM);
         final BigInteger theirDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();

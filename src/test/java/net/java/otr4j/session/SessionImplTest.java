@@ -13,8 +13,8 @@ import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrEngineListener;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
-import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.api.SessionID;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.io.QueryMessage;
@@ -23,12 +23,11 @@ import net.java.otr4j.util.Classes;
 import org.junit.Test;
 
 import java.security.SecureRandom;
-import java.util.HashSet;
+import java.util.EnumSet;
 
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.api.OtrPolicy.OPPORTUNISTIC;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
-import static net.java.otr4j.util.Classes.readField;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -124,9 +123,7 @@ public final class SessionImplTest {
         when(host.getMaxFragmentSize(sessionID)).thenReturn(51);
         when(host.restoreClientProfilePayload()).thenReturn(new byte[0]);
         final SessionImpl session = new SessionImpl(sessionID, host);
-        final HashSet<Integer> versions = new HashSet<>();
-        versions.add(Version.THREE);
-        versions.add(Version.FOUR);
+        final EnumSet<Version> versions = EnumSet.of(Version.THREE, Version.FOUR);
         session.injectMessage(new QueryMessage(versions));
         verify(host).injectMessage(sessionID, "?OTRv34? This is a super-long message that does not");
     }

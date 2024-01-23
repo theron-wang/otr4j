@@ -10,7 +10,7 @@
 package net.java.otr4j.messages;
 
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrOutputStream;
@@ -30,7 +30,7 @@ public abstract class AbstractEncodedMessage implements Message, OtrEncodable {
     /**
      * Protocol version.
      */
-    public final int protocolVersion;
+    public final Version protocolVersion;
 
     /**
      * Sender instance tag.
@@ -42,8 +42,8 @@ public abstract class AbstractEncodedMessage implements Message, OtrEncodable {
      */
     public final InstanceTag receiverTag;
 
-    AbstractEncodedMessage(final int protocolVersion, final InstanceTag senderTag, final InstanceTag receiverTag) {
-        this.protocolVersion = protocolVersion;
+    AbstractEncodedMessage(final Version protocolVersion, final InstanceTag senderTag, final InstanceTag receiverTag) {
+        this.protocolVersion = requireNonNull(protocolVersion);
         this.senderTag = requireNonNull(senderTag);
         this.receiverTag = requireNonNull(receiverTag);
     }
@@ -51,7 +51,7 @@ public abstract class AbstractEncodedMessage implements Message, OtrEncodable {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 97 * hash + this.protocolVersion;
+        hash = 97 * hash + this.protocolVersion.hashCode();
         hash = 97 * hash + this.senderTag.hashCode();
         hash = 97 * hash + this.receiverTag.hashCode();
         return hash;
@@ -79,14 +79,14 @@ public abstract class AbstractEncodedMessage implements Message, OtrEncodable {
     @Override
     public void writeTo(final OtrOutputStream writer) {
         // Start writing common header of encoded messages.
-        writer.writeShort(this.protocolVersion);
+        writer.writeShort(this.protocolVersion.ordinal());
         writer.writeByte(getType());
         switch (this.protocolVersion) {
-        case Version.TWO:
+        case TWO:
             // skipping serializing instance tags
             break;
-        case Version.THREE: // fall-through intended
-        case Version.FOUR:
+        case THREE: // fall-through intended
+        case FOUR:
             writer.writeInstanceTag(this.senderTag);
             writer.writeInstanceTag(this.receiverTag);
             break;

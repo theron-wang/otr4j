@@ -11,7 +11,7 @@ package net.java.otr4j.messages;
 
 import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.DSAKeyPair.DSASignature;
 import net.java.otr4j.crypto.OtrCryptoException;
@@ -211,14 +211,18 @@ public final class ClientProfilePayload implements OtrEncodable {
 
     // TODO consider moving out of ClientProfilePayload. Is really just a utility doing encoding/decoding.
     @Nonnull
-    private static ArrayList<Integer> parseVersions(@Nonnull final byte[] versiondata) throws ProtocolException {
-        final ArrayList<Integer> versions = new ArrayList<>();
+    private static ArrayList<Version> parseVersions(@Nonnull final byte[] versiondata) throws ProtocolException {
+        final ArrayList<Version> versions = new ArrayList<>();
         for (final byte b : versiondata) {
             final int idx = NUMBERINDEX.indexOf(b);
-            if (idx < 0) {
+            if (idx == 0) {
+                continue;
+            }
+            final Version v = Version.match(idx);
+            if (v == null) {
                 throw new ProtocolException("Unknown or illegal version specifier found.");
             }
-            versions.add(idx);
+            versions.add(v);
         }
         return versions;
     }
@@ -386,7 +390,7 @@ public final class ClientProfilePayload implements OtrEncodable {
         final InstanceTag instanceTag = new InstanceTag(findByType(this.fields, InstanceTagField.class).instanceTag);
         final Point longTermPublicKey = findByType(this.fields, ED448IdentityKeyField.class).publicKey;
         final Point forgingKey = findByType(this.fields, ED448ForgingKeyField.class).publicKey;
-        final List<Integer> versions = findByType(this.fields, VersionsField.class).versions;
+        final List<Version> versions = findByType(this.fields, VersionsField.class).versions;
         final DSAPublicKeyField dsaPublicKeyField = findByType(this.fields, DSAPublicKeyField.class, null);
         return new ClientProfile(instanceTag, longTermPublicKey, forgingKey, versions,
                 dsaPublicKeyField == null ? null : dsaPublicKeyField.publicKey);
@@ -584,9 +588,9 @@ public final class ClientProfilePayload implements OtrEncodable {
 
         private static final FieldType TYPE = FieldType.VERSIONS;
 
-        private final List<Integer> versions;
+        private final List<Version> versions;
 
-        private VersionsField(final List<Integer> versions) {
+        private VersionsField(final List<Version> versions) {
             this.versions = requireNonNull(versions);
         }
 

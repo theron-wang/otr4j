@@ -10,7 +10,7 @@
 package net.java.otr4j.io;
 
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session;
+import net.java.otr4j.api.Version;
 
 import javax.annotation.Nonnull;
 import java.net.ProtocolException;
@@ -70,17 +70,21 @@ public final class Fragment implements Message {
 
     private static final int ZERO_IDENTIFIER = 0;
 
-    private final int version;
+    @Nonnull
+    private final Version version;
     private final int identifier;
+    @Nonnull
     private final InstanceTag senderTag;
+    @Nonnull
     private final InstanceTag receiverTag;
     private final int index;
     private final int total;
+    @Nonnull
     private final String content;
 
-    private Fragment(final int version, final int identifier, final InstanceTag senderTag, final InstanceTag receiverTag,
+    private Fragment(final Version version, final int identifier, final InstanceTag senderTag, final InstanceTag receiverTag,
             final int index, final int total, final String content) {
-        this.version = version;
+        this.version = requireNonNull(version);
         this.identifier = identifier;
         this.senderTag = requireNonNull(senderTag);
         this.receiverTag = requireNonNull(receiverTag);
@@ -99,7 +103,7 @@ public final class Fragment implements Message {
     @SuppressWarnings({"PMD.AssignmentInOperand"})
     @Nonnull
     public static Fragment parseFragment(final String message) throws ProtocolException {
-        final int version;
+        final Version version;
         final int identifier;
         final int sendertagValue;
         final int receivertagValue;
@@ -109,7 +113,7 @@ public final class Fragment implements Message {
         // Acquire data from fragment message.
         Matcher matcher;
         if ((matcher = PATTERN_V4.matcher(message)).matches()) {
-            version = Session.Version.FOUR;
+            version = Version.FOUR;
             identifier = parseUnsignedInt(matcher.group(1), HEXADECIMAL_SYSTEM);
             sendertagValue = parseUnsignedInt(matcher.group(2), HEXADECIMAL_SYSTEM);
             receivertagValue = parseUnsignedInt(matcher.group(3), HEXADECIMAL_SYSTEM);
@@ -117,7 +121,7 @@ public final class Fragment implements Message {
             total = parseInt(matcher.group(5), DECIMAL_SYSTEM);
             content = matcher.group(6);
         } else if ((matcher = PATTERN_V3.matcher(message)).matches()) {
-            version = Session.Version.THREE;
+            version = Version.THREE;
             identifier = ZERO_IDENTIFIER;
             sendertagValue = parseUnsignedInt(matcher.group(1), HEXADECIMAL_SYSTEM);
             receivertagValue = parseUnsignedInt(matcher.group(2), HEXADECIMAL_SYSTEM);
@@ -125,7 +129,7 @@ public final class Fragment implements Message {
             total = parseInt(matcher.group(4), DECIMAL_SYSTEM);
             content = matcher.group(5);
         } else if ((matcher = PATTERN_V2.matcher(message)).matches()) {
-            version = Session.Version.TWO;
+            version = Version.TWO;
             identifier = ZERO_IDENTIFIER;
             sendertagValue = ZERO_VALUE;
             receivertagValue = ZERO_VALUE;
@@ -157,7 +161,8 @@ public final class Fragment implements Message {
      *
      * @return Returns the version.
      */
-    public int getVersion() {
+    @Nonnull
+    public Version getVersion() {
         return this.version;
     }
 

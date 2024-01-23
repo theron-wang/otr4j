@@ -10,7 +10,7 @@
 package net.java.otr4j.messages;
 
 import com.google.errorprone.annotations.CheckReturnValue;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.OtrCryptoEngine4.Sigma;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
@@ -65,12 +65,12 @@ public final class EncodedMessageParser {
         switch (message.type) {
         case MESSAGE_DATA: {
             switch (message.version) {
-            case 0:
+            case NONE:
                 throw new IllegalStateException("BUG: Unexpected protocol version found. Zero is not valid as a protocol version. It is used in other parts of otr4j as indicator that OTR is not active.");
-            case Version.ONE:
+            case ONE:
                 throw new UnsupportedOperationException("Illegal protocol version: version 1 is no longer supported.");
-            case Version.TWO: // intentional fall-through
-            case Version.THREE: {
+            case TWO: // intentional fall-through
+            case THREE: {
                 final byte flags = message.payload.readByte();
                 final int senderKeyID = message.payload.readInt();
                 final int recipientKeyID = message.payload.readInt();
@@ -84,7 +84,7 @@ public final class EncodedMessageParser {
                 return new DataMessage(message.version, flags, senderKeyID, recipientKeyID, nextDH, ctr, encryptedMessage, mac,
                         oldMacKeys, message.senderTag, message.receiverTag);
             }
-            case Version.FOUR: {
+            case FOUR: {
                 final byte flags = message.payload.readByte();
                 final int pn = message.payload.readInt();
                 final int i = message.payload.readInt();
@@ -161,13 +161,13 @@ public final class EncodedMessageParser {
         }
     }
 
-    private static void requireOTR23(final int version) throws ProtocolException {
+    private static void requireOTR23(final Version version) throws ProtocolException {
         if (version != Version.TWO && version != Version.THREE) {
             throw new ProtocolException("The protocol version is illegal for this type of message. Expected protocol version 2 or 3.");
         }
     }
 
-    private static void requireOTR4(final int version) throws ProtocolException {
+    private static void requireOTR4(final Version version) throws ProtocolException {
         if (version != Version.FOUR) {
             throw new ProtocolException("The protocol version is illegal for this type of message. Expected protocol version 4.");
         }

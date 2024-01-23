@@ -9,8 +9,11 @@
 
 package net.java.otr4j.api;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.security.interfaces.DSAPublicKey;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * RemoteInfo contains information on the remote party of the OTR connection.
@@ -21,7 +24,8 @@ public final class RemoteInfo {
     /**
      * version is the active OTR protocol version.
      */
-    public final int version;
+    @Nonnull
+    public final Version version;
 
     /**
      * publicKeyV3 contains the long-term public key (DSA) if OTR version 3 is active, or contains the legacy long-term
@@ -44,9 +48,9 @@ public final class RemoteInfo {
      * @param publicKeyV3  the protocol version 3 long-term public key (or OTRv4 legacy public key)
      * @param clientProfile the protocol version 4 client profile
      */
-    public RemoteInfo(final int version, @Nullable final DSAPublicKey publicKeyV3,
+    public RemoteInfo(final Version version, @Nullable final DSAPublicKey publicKeyV3,
             @Nullable final ClientProfile clientProfile) {
-        this.version = version;
+        this.version = requireNonNull(version);
         this.publicKeyV3 = publicKeyV3;
         this.clientProfile = clientProfile;
     }

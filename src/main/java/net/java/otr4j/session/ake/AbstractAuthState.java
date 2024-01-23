@@ -10,7 +10,7 @@
 package net.java.otr4j.session.ake;
 
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.OtrCryptoEngine;
 import net.java.otr4j.crypto.OtrCryptoException;
@@ -48,7 +48,7 @@ abstract class AbstractAuthState implements AuthState {
 
     @Nonnull
     @Override
-    public AbstractEncodedMessage initiate(final AuthContext context, final int version, final InstanceTag receiverTag) {
+    public AbstractEncodedMessage initiate(final AuthContext context, final Version version, final InstanceTag receiverTag) {
         if (version == Version.TWO || version == Version.THREE) {
             return initiateVersion3(context, version, receiverTag);
         }
@@ -59,7 +59,7 @@ abstract class AbstractAuthState implements AuthState {
     }
 
     @Nonnull
-    private static DHCommitMessage initiateVersion3(final AuthContext context, final int version, final InstanceTag receiverTag) {
+    private static DHCommitMessage initiateVersion3(final AuthContext context, final Version version, final InstanceTag receiverTag) {
         // OTR: "Choose a random value x (at least 320 bits)"
         final DHKeyPairOTR3 keypair = generateDHKeyPair(context.secureRandom());
         LOGGER.finest("Generated local D-H key pair.");

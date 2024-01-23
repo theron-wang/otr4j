@@ -13,9 +13,9 @@ import net.java.otr4j.api.Event;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.RemoteInfo;
-import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.io.PlainTextMessage;
@@ -64,9 +64,10 @@ public final class StatePlaintext extends AbstractCommonState {
         super(authState);
     }
 
+    @Nonnull
     @Override
-    public int getVersion() {
-        return 0;
+    public Version getVersion() {
+        return Version.NONE;
     }
 
     @Override
@@ -103,13 +104,13 @@ public final class StatePlaintext extends AbstractCommonState {
     @Override
     public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         switch (message.version) {
-        case Session.Version.ONE:
+        case ONE:
             LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
             return new Result(STATUS, true, false, null);
-        case Session.Version.TWO:
-        case Session.Version.THREE:
+        case TWO:
+        case THREE:
             return handleEncodedMessage3(context, message);
-        case Session.Version.FOUR:
+        case FOUR:
             return handleEncodedMessage4(context, message);
         default:
             throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
@@ -171,7 +172,7 @@ public final class StatePlaintext extends AbstractCommonState {
             return new PlainTextMessage(Collections.emptySet(), msgText);
         }
         // Continue with crafting a special whitespace message tag and embedding it into the original message.
-        final Set<Integer> versions = allowedVersions(otrPolicy);
+        final Set<Version> versions = allowedVersions(otrPolicy);
         if (versions.isEmpty()) {
             // Catch situation where we do not actually offer any versions.
             // At this point, reaching this state is considered a bug.

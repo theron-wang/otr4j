@@ -10,10 +10,11 @@
 package net.java.otr4j.messages;
 
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.io.OtrEncodable;
 import net.java.otr4j.io.OtrOutputStream;
 
+import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
 import java.util.Arrays;
 
@@ -30,14 +31,17 @@ public final class MysteriousT implements OtrEncodable {
     /**
      * The protocol version.
      */
-    public final int protocolVersion;
+    @Nonnull
+    public final Version protocolVersion;
     /**
      * The sender instance tag.
      */
+    @Nonnull
     public final InstanceTag senderInstanceTag;
     /**
      * The receiver instance tag.
      */
+    @Nonnull
     public final InstanceTag receiverInstanceTag;
     /**
      * The message type.
@@ -58,6 +62,7 @@ public final class MysteriousT implements OtrEncodable {
     /**
      * The next DH public key.
      */
+    @Nonnull
     public final DHPublicKey nextDH;
     /**
      * The counter value used in the message.
@@ -82,13 +87,13 @@ public final class MysteriousT implements OtrEncodable {
      * @param encryptedMessage    the encrypted message content
      */
     @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    public MysteriousT(final int protocolVersion, final InstanceTag senderInstanceTag,
+    public MysteriousT(final Version protocolVersion, final InstanceTag senderInstanceTag,
             final InstanceTag receiverInstanceTag, final byte flags, final int senderKeyID, final int recipientKeyID,
             final DHPublicKey nextDH, final byte[] ctr, final byte[] encryptedMessage) {
-        if (protocolVersion < Version.TWO || protocolVersion > Version.THREE) {
+        if (protocolVersion != Version.TWO && protocolVersion != Version.THREE) {
             throw new IllegalArgumentException("Illegal protocol version specified.");
         }
-        this.protocolVersion = protocolVersion;
+        this.protocolVersion = requireNonNull(protocolVersion);
         this.senderInstanceTag = requireNonNull(senderInstanceTag);
         this.receiverInstanceTag = requireNonNull(receiverInstanceTag);
         this.messageType = MESSAGE_DATA;
@@ -110,7 +115,7 @@ public final class MysteriousT implements OtrEncodable {
         result = prime * result + this.flags;
         result = prime * result + this.messageType;
         result = prime * result + this.nextDH.hashCode();
-        result = prime * result + this.protocolVersion;
+        result = prime * result + this.protocolVersion.hashCode();
         result = prime * result + this.recipientKeyID;
         result = prime * result + this.senderKeyID;
         result = prime * result + this.senderInstanceTag.hashCode();
@@ -159,7 +164,7 @@ public final class MysteriousT implements OtrEncodable {
 
     @Override
     public void writeTo(final OtrOutputStream out) {
-        out.writeShort(this.protocolVersion);
+        out.writeShort(this.protocolVersion.ordinal());
         out.writeByte(this.messageType);
         if (this.protocolVersion == Version.THREE) {
             out.writeInstanceTag(this.senderInstanceTag);

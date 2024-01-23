@@ -53,13 +53,13 @@ public final class ClientProfileTestUtils {
 
     public ClientProfilePayload createClientProfile() {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(),
-                this.forgingKeyPair.getPublicKey(), singletonList(Session.Version.FOUR), null);
+                this.forgingKeyPair.getPublicKey(), singletonList(Version.FOUR), null);
         return signClientProfile(profile, this.expirationTime, null, this.longTermKeyPair);
     }
 
     public ClientProfilePayload createTransitionalClientProfile() {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(),
-                this.forgingKeyPair.getPublicKey(), List.of(Session.Version.THREE, Session.Version.FOUR),
+                this.forgingKeyPair.getPublicKey(), List.of(Version.THREE, Version.FOUR),
                 this.dsaKeyPair.getPublic());
         return signClientProfile(profile, this.expirationTime, this.dsaKeyPair, this.longTermKeyPair);
     }

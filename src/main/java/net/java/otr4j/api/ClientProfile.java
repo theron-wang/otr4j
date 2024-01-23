@@ -9,15 +9,14 @@
 
 package net.java.otr4j.api;
 
-import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.crypto.ed448.Point;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.security.interfaces.DSAPublicKey;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
@@ -32,9 +31,9 @@ import static net.java.otr4j.util.Objects.requireNotEquals;
 // TODO consider that this client profile has no expiration date, therefore we cannot determine if it is still reliable for profiles from our known contacts. Would need management: storing, comparing, updating, purging. (There is little risk for the established session as we would get a client profile sent which must be valid.)
 public final class ClientProfile {
 
-    private static final Set<Integer> MANDATORY_VERSIONS = Set.of(Version.FOUR);
+    private static final EnumSet<Version> MANDATORY_VERSIONS = EnumSet.of(Version.FOUR);
 
-    private static final Set<Integer> FORBIDDEN_VERSIONS = Set.of(Version.ONE, Version.TWO);
+    private static final EnumSet<Version> FORBIDDEN_VERSIONS = EnumSet.of(Version.ONE, Version.TWO);
 
     /**
      * Owner's instance tag.
@@ -58,7 +57,7 @@ public final class ClientProfile {
      * List of supported versions.
      */
     @Nonnull
-    private final List<Integer> versions;
+    private final List<Version> versions;
 
     /**
      * DSA public key.
@@ -81,7 +80,7 @@ public final class ClientProfile {
      *                          {@link OtrEngineHost#getLocalKeyPair(SessionID)}.
      */
     public ClientProfile(final InstanceTag instanceTag, final Point longTermPublicKey, final Point forgingKey,
-            final List<Integer> versions, @Nullable final DSAPublicKey dsaPublicKey) {
+            final List<Version> versions, @Nullable final DSAPublicKey dsaPublicKey) {
         requireNotEquals(0, instanceTag.getValue(), "Zero-value instance tag is not allowed in OTRv4.");
         this.instanceTag = requireNonNull(instanceTag);
         this.longTermPublicKey = requireNonNull(longTermPublicKey);
@@ -130,7 +129,7 @@ public final class ClientProfile {
      * @return Returns the versions.
      */
     @Nonnull
-    public List<Integer> getVersions() {
+    public List<Version> getVersions() {
         return this.versions;
     }
 

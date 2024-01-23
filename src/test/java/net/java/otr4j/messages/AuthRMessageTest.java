@@ -10,7 +10,7 @@
 package net.java.otr4j.messages;
 
 import net.java.otr4j.api.ClientProfile;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.OtrCryptoEngine4.Sigma;

@@ -9,12 +9,13 @@
 
 package net.java.otr4j.io;
 
-import net.java.otr4j.api.Session;
+import net.java.otr4j.api.Version;
 import org.junit.Test;
 
 import java.net.ProtocolException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -54,7 +55,7 @@ public final class MessageProcessorTest {
     public void testCorrectIdentificationOfWhitespaceTagV2() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t    \t\t  \t ");
         assertEquals(1, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.TWO));
+        assertTrue(msg.getVersions().contains(Version.TWO));
         assertEquals("", msg.getCleanText());
     }
 
@@ -62,7 +63,7 @@ public final class MessageProcessorTest {
     public void testCorrectIdentificationOfWhitespaceTagV3() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t    \t\t  \t\t");
         assertEquals(1, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.THREE));
+        assertTrue(msg.getVersions().contains(Version.THREE));
         assertEquals("", msg.getCleanText());
     }
 
@@ -70,7 +71,7 @@ public final class MessageProcessorTest {
     public void testCorrectIdentificationOfWhitespaceTagV4() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t    \t\t \t  ");
         assertEquals(1, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.FOUR));
+        assertTrue(msg.getVersions().contains(Version.FOUR));
         assertEquals("", msg.getCleanText());
     }
 
@@ -78,9 +79,9 @@ public final class MessageProcessorTest {
     public void testCorrectIdentificationOfWhitespaceTagV2V3V4() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t    \t\t  \t   \t\t  \t\t  \t\t \t  ");
         assertEquals(3, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.TWO));
-        assertTrue(msg.getVersions().contains(Session.Version.THREE));
-        assertTrue(msg.getVersions().contains(Session.Version.FOUR));
+        assertTrue(msg.getVersions().contains(Version.TWO));
+        assertTrue(msg.getVersions().contains(Version.THREE));
+        assertTrue(msg.getVersions().contains(Version.FOUR));
         assertEquals("", msg.getCleanText());
     }
 
@@ -88,8 +89,8 @@ public final class MessageProcessorTest {
     public void testCorrectIdentificationOfWhitespaceTagV2AndV3() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t    \t\t  \t   \t\t  \t\t");
         assertEquals(2, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.TWO));
-        assertTrue(msg.getVersions().contains(Session.Version.THREE));
+        assertTrue(msg.getVersions().contains(Version.TWO));
+        assertTrue(msg.getVersions().contains(Version.THREE));
         assertEquals("", msg.getCleanText());
     }
 
@@ -97,8 +98,8 @@ public final class MessageProcessorTest {
     public void testCorrectIdentificationOfWhitespaceTagV1V2V4() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t  \t   \t\t \t  ");
         assertEquals(2, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.TWO));
-        assertTrue(msg.getVersions().contains(Session.Version.FOUR));
+        assertTrue(msg.getVersions().contains(Version.TWO));
+        assertTrue(msg.getVersions().contains(Version.FOUR));
         assertEquals("", msg.getCleanText());
     }
 
@@ -106,7 +107,7 @@ public final class MessageProcessorTest {
     public void testCorrectIdentificationOfWhitespaceTagV1AndV2() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t  \t ");
         assertEquals(1, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.TWO));
+        assertTrue(msg.getVersions().contains(Version.TWO));
         assertEquals("", msg.getCleanText());
     }
 
@@ -114,8 +115,8 @@ public final class MessageProcessorTest {
     public void testCorrectIdentificationOfWhitespaceTagV1V3V4() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t  \t\t  \t\t \t  ");
         assertEquals(2, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.THREE));
-        assertTrue(msg.getVersions().contains(Session.Version.FOUR));
+        assertTrue(msg.getVersions().contains(Version.THREE));
+        assertTrue(msg.getVersions().contains(Version.FOUR));
         assertEquals("", msg.getCleanText());
     }
 
@@ -123,7 +124,7 @@ public final class MessageProcessorTest {
     public void testCorrectIdentificationOfWhitespaceTagV1AndV3() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t  \t\t");
         assertEquals(1, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.THREE));
+        assertTrue(msg.getVersions().contains(Version.THREE));
         assertEquals("", msg.getCleanText());
     }
 
@@ -131,9 +132,9 @@ public final class MessageProcessorTest {
     public void testCorrectIdentificationOfWhitespaceTagV1V2V3V4() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t  \t   \t\t  \t\t  \t\t \t  ");
         assertEquals(3, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.TWO));
-        assertTrue(msg.getVersions().contains(Session.Version.THREE));
-        assertTrue(msg.getVersions().contains(Session.Version.FOUR));
+        assertTrue(msg.getVersions().contains(Version.TWO));
+        assertTrue(msg.getVersions().contains(Version.THREE));
+        assertTrue(msg.getVersions().contains(Version.FOUR));
         assertEquals("", msg.getCleanText());
     }
 
@@ -141,9 +142,9 @@ public final class MessageProcessorTest {
     public void testCorrectIdentificationOfWhitespaceTagV1V4V3V2() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage(" \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t \t    \t\t  \t\t  \t\t  \t ");
         assertEquals(3, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.TWO));
-        assertTrue(msg.getVersions().contains(Session.Version.THREE));
-        assertTrue(msg.getVersions().contains(Session.Version.FOUR));
+        assertTrue(msg.getVersions().contains(Version.TWO));
+        assertTrue(msg.getVersions().contains(Version.THREE));
+        assertTrue(msg.getVersions().contains(Version.FOUR));
         assertEquals("", msg.getCleanText());
     }
 
@@ -151,7 +152,7 @@ public final class MessageProcessorTest {
     public void testCorrectWhitespaceErasure() throws ProtocolException {
         PlainTextMessage msg = (PlainTextMessage) parseMessage("Hello \t  \t\t\t\t \t \t \t   \t \t  \t   \t\t  \t\t world!");
         assertEquals(1, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.THREE));
+        assertTrue(msg.getVersions().contains(Version.THREE));
         assertEquals("Hello world!", msg.getCleanText());
     }
 
@@ -159,7 +160,7 @@ public final class MessageProcessorTest {
     public void testCorrectDeduplicationOfVersionsWhileParsingQueryMessage() throws ProtocolException {
         final QueryMessage msg = (QueryMessage) parseMessage("?OTRv2222222?");
         assertEquals(1, msg.getVersions().size());
-        assertTrue(msg.getVersions().contains(Session.Version.TWO));
+        assertTrue(msg.getVersions().contains(Version.TWO));
     }
 
     @Test
@@ -290,32 +291,27 @@ public final class MessageProcessorTest {
 
     @Test
     public void testEncodeVersionsStringEmptyVersionsSet() {
-        assertEquals("", encodeVersionString(Collections.<Integer>emptySet()));
+        assertEquals("", encodeVersionString(Collections.emptySet()));
     }
 
     @Test
     public void testEncodeVersionsStringSingletonSet() {
-        assertEquals("4", encodeVersionString(Collections.singleton(4)));
+        assertEquals("4", encodeVersionString(Collections.singleton(Version.FOUR)));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testEncodeVersionsStringDoubleDigitVersion() {
-        encodeVersionString(Collections.singleton(10));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testEncodeVersionsStringNegativeVersion() {
-        encodeVersionString(Collections.singleton(-3));
+        encodeVersionString(Collections.singleton(Version.NONE));
     }
 
     @Test
     public void testEncodeVersionsStringMultipleVersions() {
-        assertEquals("3456", encodeVersionString(Arrays.asList(3, 4, 5, 6)));
+        assertEquals("342", encodeVersionString(Arrays.asList(Version.THREE, Version.FOUR, Version.TWO)));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testEncodeVersionsStringMultipleVersionsSomeIllegal() {
-        encodeVersionString(Arrays.asList(3, 4, -5, 6));
+        encodeVersionString(Arrays.asList(Version.THREE, Version.FOUR, Version.NONE, Version.TWO));
     }
 
     @Test(expected = NullPointerException.class)
@@ -330,24 +326,18 @@ public final class MessageProcessorTest {
 
     @Test
     public void testParseVersionsStringSingleton() {
-        assertEquals(Collections.singleton(1), parseVersionString("1"));
+        assertEquals(Collections.singleton(Version.ONE), parseVersionString("1"));
     }
 
     @Test
     public void testParseVersionsStringMultiple() {
-        final HashSet<Integer> expected = new HashSet<>();
-        expected.add(1);
-        expected.add(3);
-        expected.add(4);
-        expected.add(5);
-        assertEquals(expected, parseVersionString("1345"));
+        final EnumSet<Version> expected = EnumSet.of(Version.ONE, Version.THREE, Version.FOUR);
+        assertEquals(expected, parseVersionString("134"));
     }
 
     @Test
     public void testParseVersionsStringDuplicates() {
-        final HashSet<Integer> expected = new HashSet<>();
-        expected.add(3);
-        expected.add(1);
+        final EnumSet<Version> expected = EnumSet.of(Version.THREE, Version.ONE);
         assertEquals(expected, parseVersionString("131113"));
     }
 
@@ -379,7 +369,7 @@ public final class MessageProcessorTest {
     public void testParseCorrectOTRv4Header() throws ProtocolException {
         final EncodedMessage encoded = (EncodedMessage) parseMessage("?OTR:" + toBase64String(
                 new byte[] {0x00, 0x04, (byte) 0xff, 0x1, 0x2, 0x3, 0x4, 0x4, 0x3, 0x2, 0x1}) + ".");
-        assertEquals(4, encoded.version);
+        assertEquals(Version.FOUR, encoded.version);
         assertEquals((byte) 0xff, encoded.type);
         assertEquals(0x01020304, encoded.senderTag.getValue());
         assertEquals(0x04030201, encoded.receiverTag.getValue());
@@ -389,7 +379,7 @@ public final class MessageProcessorTest {
     public void testParseCorrectOTRv3Header() throws ProtocolException {
         final EncodedMessage encoded = (EncodedMessage) parseMessage("?OTR:" + toBase64String(
                 new byte[] {0x00, 0x03, (byte) 0xff, 0x1, 0x2, 0x3, 0x4, 0x4, 0x3, 0x2, 0x1}) + ".");
-        assertEquals(3, encoded.version);
+        assertEquals(Version.THREE, encoded.version);
         assertEquals((byte) 0xff, encoded.type);
         assertEquals(0x01020304, encoded.senderTag.getValue());
         assertEquals(0x04030201, encoded.receiverTag.getValue());
@@ -399,7 +389,7 @@ public final class MessageProcessorTest {
     public void testParseCorrectOTRv2Header() throws ProtocolException {
         final EncodedMessage encoded = (EncodedMessage) parseMessage("?OTR:" + toBase64String(
                 new byte[] {0x00, 0x02, (byte) 0xff, 0x1, 0x2, 0x3, 0x4, 0x4, 0x3, 0x2, 0x1}) + ".");
-        assertEquals(2, encoded.version);
+        assertEquals(Version.TWO, encoded.version);
         assertEquals((byte) 0xff, encoded.type);
         assertEquals(0, encoded.senderTag.getValue());
         assertEquals(0, encoded.receiverTag.getValue());
@@ -411,72 +401,69 @@ public final class MessageProcessorTest {
     @Test
     public void testPlaintextMessageNoNullMangling() {
         final String data = "This is a test with \0 null \0 values.";
-        final PlainTextMessage m = new PlainTextMessage(new HashSet<>(Arrays.asList(Session.Version.TWO, Session.Version.THREE)), data);
+        final PlainTextMessage m = new PlainTextMessage(new HashSet<>(Arrays.asList(Version.TWO, Version.THREE)), data);
         assertTrue(writeMessage(m).startsWith("This is a test with \0 null \0 values."));
     }
 
     @Test
     public void testQueryHeaderEmpty() {
         // Verify that we do not send the "bizarre claim" (as documented by otr spec) of willingness to speak otr but we accept not a single version.
-        final QueryMessage msg = new QueryMessage(Collections.<Integer>emptySet());
+        final QueryMessage msg = new QueryMessage(Collections.emptySet());
         assertEquals("", writeMessage(msg));
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void testCorrectQueryHeaderV1() {
-        final QueryMessage msg = new QueryMessage(Collections.singleton(1));
+        final QueryMessage msg = new QueryMessage(Collections.singleton(Version.ONE));
         assertEquals("", writeMessage(msg));
     }
 
     @Test
     public void testCorrectQueryHeaderV2() {
-        final QueryMessage msg = new QueryMessage(Collections.singleton(Session.Version.TWO));
+        final QueryMessage msg = new QueryMessage(Collections.singleton(Version.TWO));
         assertEquals("?OTRv2?", writeMessage(msg));
     }
 
     @Test
     public void testCorrectQueryHeaderV3() {
-        final QueryMessage msg = new QueryMessage(Collections.singleton(Session.Version.THREE));
+        final QueryMessage msg = new QueryMessage(Collections.singleton(Version.THREE));
         assertEquals("?OTRv3?", writeMessage(msg));
     }
 
     @Test
     public void testCorrectQueryHeaderV2AndV3() {
-        final QueryMessage msg = new QueryMessage(new HashSet<>(Arrays.asList(Session.Version.TWO, Session.Version.THREE)));
+        final QueryMessage msg = new QueryMessage(new HashSet<>(Arrays.asList(Version.TWO, Version.THREE)));
         assertEquals("?OTRv23?", writeMessage(msg));
     }
 
     @Test
     public void testWhitespaceTagsNoVersions() {
-        final PlainTextMessage m = new PlainTextMessage(Collections.<Integer>emptySet(), "Hello");
+        final PlainTextMessage m = new PlainTextMessage(Collections.emptySet(), "Hello");
         assertEquals("Hello", writeMessage(m));
     }
 
     @Test
     public void testWhitespaceTagsAllVersions() {
-        final HashSet<Integer> versions = new HashSet<>();
-        versions.add(Session.Version.TWO);
-        versions.add(Session.Version.THREE);
-        versions.add(Session.Version.FOUR);
+        final EnumSet<Version> versions = EnumSet.of(Version.TWO, Version.THREE, Version.FOUR);
         final PlainTextMessage m = new PlainTextMessage(versions, "Hello");
         assertEquals("Hello \t  \t\t\t\t \t \t \t    \t\t  \t   \t\t  \t\t  \t\t \t  ", writeMessage(m));
     }
 
     @Test
     public void testWhitespaceTagsVersion2Only() {
-        final PlainTextMessage m = new PlainTextMessage(Collections.singleton(Session.Version.TWO), "Hello");
+        final PlainTextMessage m = new PlainTextMessage(Collections.singleton(Version.TWO), "Hello");
         assertEquals("Hello \t  \t\t\t\t \t \t \t    \t\t  \t ", writeMessage(m));
     }
 
     @Test
     public void testWhitespaceTagsVersion3Only() {
-        final PlainTextMessage m = new PlainTextMessage(Collections.singleton(Session.Version.THREE), "Hello");
+        final PlainTextMessage m = new PlainTextMessage(Collections.singleton(Version.THREE), "Hello");
         assertEquals("Hello \t  \t\t\t\t \t \t \t    \t\t  \t\t", writeMessage(m));
     }
 
     @Test
     public void testWhitespaceTagsVersion4Only() {
-        final PlainTextMessage m = new PlainTextMessage(Collections.singleton(Session.Version.FOUR), "Hello");
+        final PlainTextMessage m = new PlainTextMessage(Collections.singleton(Version.FOUR), "Hello");
         assertEquals("Hello \t  \t\t\t\t \t \t \t    \t\t \t  ", writeMessage(m));
     }
 
@@ -484,7 +471,7 @@ public final class MessageProcessorTest {
     public void testMultipleWhitespaceTagsRespectFirstOccurrenceOnly() throws ProtocolException {
         final PlainTextMessage m = (PlainTextMessage) parseMessage("Hello \t  \t\t\t\t \t \t \t    \t\t \t  world \t  \t\t\t\t \t \t \t    \t\t  \t\t!");
         assertEquals(1, m.getVersions().size());
-        assertTrue(m.getVersions().contains(Session.Version.FOUR));
+        assertTrue(m.getVersions().contains(Version.FOUR));
     }
 
     @Test

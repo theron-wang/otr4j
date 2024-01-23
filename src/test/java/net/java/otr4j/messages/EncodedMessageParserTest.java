@@ -11,8 +11,7 @@ package net.java.otr4j.messages;
 
 import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.DSAKeyPair;
@@ -77,19 +76,20 @@ public class EncodedMessageParserTest {
 
     @Test(expected = IllegalStateException.class)
     public void testParsingUnsupportedVersion0() throws IOException, OtrCryptoException, UnsupportedLengthException, ValidationException {
-        parseEncodedMessage(new EncodedMessage(0, DataMessage.MESSAGE_DATA, ZERO_TAG, ZERO_TAG,
+        parseEncodedMessage(new EncodedMessage(Version.NONE, DataMessage.MESSAGE_DATA, ZERO_TAG, ZERO_TAG,
                 new OtrInputStream(new byte[0])));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testParsingUnsupportedFutureVersion() throws IOException, OtrCryptoException, UnsupportedLengthException, ValidationException {
-        parseEncodedMessage(new EncodedMessage(99, DataMessage.MESSAGE_DATA, ZERO_TAG, ZERO_TAG,
+    @SuppressWarnings("DataFlowIssue")
+    @Test(expected = NullPointerException.class)
+    public void testParsingUnsupportedNullVersion() throws IOException, OtrCryptoException, UnsupportedLengthException, ValidationException {
+        parseEncodedMessage(new EncodedMessage(null, DataMessage.MESSAGE_DATA, ZERO_TAG, ZERO_TAG,
                 new OtrInputStream(new byte[0])));
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void testParsingUnsupportedOTRv1() throws IOException, OtrCryptoException, UnsupportedLengthException, ValidationException {
-        parseEncodedMessage(new EncodedMessage(1, DataMessage.MESSAGE_DATA, ZERO_TAG, ZERO_TAG,
+        parseEncodedMessage(new EncodedMessage(Version.ONE, DataMessage.MESSAGE_DATA, ZERO_TAG, ZERO_TAG,
                 new OtrInputStream(new byte[0])));
     }
 
@@ -121,7 +121,7 @@ public class EncodedMessageParserTest {
     public void testConstructAndParsePartialDHKeyMessage() throws UnsupportedLengthException, ProtocolException, OtrCryptoException, ValidationException {
         final DHKeyPairOTR3 keypair = generateDHKeyPair(RANDOM);
         // Prepare output message to parse.
-        final DHKeyMessage m = new DHKeyMessage(Session.Version.THREE, keypair.getPublic(), new InstanceTag(12345),
+        final DHKeyMessage m = new DHKeyMessage(Version.THREE, keypair.getPublic(), new InstanceTag(12345),
                 new InstanceTag(9876543));
         final OtrOutputStream output = new OtrOutputStream();
         m.writeTo(output);
@@ -191,7 +191,7 @@ public class EncodedMessageParserTest {
         final byte[] message = randomBytes(RANDOM, new byte[RANDOM.nextInt(1000)]);
         final byte[] mac = randomBytes(RANDOM, new byte[20]);
         final byte[] oldMacKeys = randomBytes(RANDOM, new byte[40]);
-        final DataMessage input = new DataMessage(3, (byte) 0, senderKeyID, receiverKeyID,
+        final DataMessage input = new DataMessage(Version.THREE, (byte) 0, senderKeyID, receiverKeyID,
                 dhKeyPair.getPublic(), ctr, message, mac, oldMacKeys, SMALLEST_TAG, HIGHEST_TAG);
         final byte[] fullPayload = new OtrOutputStream().write(input).toByteArray();
         final byte[] payload = copyOfRange(fullPayload, 11, fullPayload.length);
@@ -271,7 +271,7 @@ public class EncodedMessageParserTest {
         final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
-                theirForgingKey, singletonList(Session.Version.FOUR), theirDSAKeyPair.getPublic());
+                theirForgingKey, singletonList(Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirProfilePayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
         final Point theirY = ECDHKeyPair.generate(RANDOM).publicKey();
@@ -314,7 +314,7 @@ public class EncodedMessageParserTest {
         final DSAKeyPair theirDSAKeyPair = DSAKeyPair.generateDSAKeyPair(RANDOM);
         final Point theirForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile theirProfile = new ClientProfile(SMALLEST_TAG, theirLongTermKeyPair.getPublicKey(),
-                theirForgingKey, singletonList(Session.Version.FOUR), theirDSAKeyPair.getPublic());
+                theirForgingKey, singletonList(Version.FOUR), theirDSAKeyPair.getPublic());
         final ClientProfilePayload theirProfilePayload = signClientProfile(theirProfile, Long.MAX_VALUE / 1000,
                 theirDSAKeyPair, theirLongTermKeyPair);
         final Point theirY = ECDHKeyPair.generate(RANDOM).publicKey();

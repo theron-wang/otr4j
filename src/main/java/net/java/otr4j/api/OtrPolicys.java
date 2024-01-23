@@ -9,9 +9,9 @@
 
 package net.java.otr4j.api;
 
-import java.util.HashSet;
-import java.util.Set;
 import javax.annotation.Nonnull;
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Utilities for OtrPolicy.
@@ -31,16 +31,16 @@ public final class OtrPolicys {
      * @return Returns list of allowed OTR versions.
      */
     @Nonnull
-    public static Set<Integer> allowedVersions(final OtrPolicy policy) {
-        final HashSet<Integer> versions = new HashSet<>();
+    public static Set<Version> allowedVersions(final OtrPolicy policy) {
+        final EnumSet<Version> versions = EnumSet.noneOf(Version.class);
         if (policy.isAllowV2()) {
-            versions.add(Session.Version.TWO);
+            versions.add(Version.TWO);
         }
         if (policy.isAllowV3()) {
-            versions.add(Session.Version.THREE);
+            versions.add(Version.THREE);
         }
         if (policy.isAllowV4()) {
-            versions.add(Session.Version.FOUR);
+            versions.add(Version.FOUR);
         }
         return versions;
     }

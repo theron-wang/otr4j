@@ -9,7 +9,7 @@
 
 package net.java.otr4j.io;
 
-import net.java.otr4j.api.Session;
+import net.java.otr4j.api.Version;
 import org.junit.Test;
 
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
@@ -19,16 +19,16 @@ public final class EncodedMessageTest {
 
     @Test(expected = NullPointerException.class)
     public void testParsingNullSenderTag() {
-        new EncodedMessage(Session.Version.FOUR, 0x35, null, ZERO_TAG, new OtrInputStream(new byte[0]));
+        new EncodedMessage(Version.FOUR, 0x35, null, ZERO_TAG, new OtrInputStream(new byte[0]));
     }
 
     @Test(expected = NullPointerException.class)
     public void testParsingNullReceiverTag() {
-        new EncodedMessage(Session.Version.FOUR, 0x35, ZERO_TAG, null, new OtrInputStream(new byte[0]));
+        new EncodedMessage(Version.FOUR, 0x35, ZERO_TAG, null, new OtrInputStream(new byte[0]));
     }
 
     @Test(expected = NullPointerException.class)
     public void testParsingNullInputStream() {
-        new EncodedMessage(Session.Version.FOUR, 0x35, ZERO_TAG, ZERO_TAG, null);
+        new EncodedMessage(Version.FOUR, 0x35, ZERO_TAG, ZERO_TAG, null);
     }
 }

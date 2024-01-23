@@ -10,14 +10,13 @@
 package net.java.otr4j.messages;
 
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.io.OtrOutputStream;
 
 import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
 
 import static java.util.Objects.requireNonNull;
-import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
  * OTRv2/OTRv3 AKE DH-Key message.
@@ -46,9 +45,12 @@ public final class DHKeyMessage extends AbstractEncodedMessage {
      * @param senderInstance   the sender instance tag
      * @param receiverInstance the receiver instance tag
      */
-    public DHKeyMessage(final int protocolVersion, final DHPublicKey dhPublicKey, final InstanceTag senderInstance,
+    public DHKeyMessage(final Version protocolVersion, final DHPublicKey dhPublicKey, final InstanceTag senderInstance,
             final InstanceTag receiverInstance) {
-        super(requireInRange(Version.TWO, Version.THREE, protocolVersion), senderInstance, receiverInstance);
+        super(protocolVersion, senderInstance, receiverInstance);
+        if (protocolVersion != Version.TWO && protocolVersion != Version.THREE) {
+            throw new IllegalArgumentException("unsupported version");
+        }
         this.dhPublicKey = requireNonNull(dhPublicKey);
     }
 

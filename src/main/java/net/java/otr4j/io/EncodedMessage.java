@@ -10,6 +10,9 @@
 package net.java.otr4j.io;
 
 import net.java.otr4j.api.InstanceTag;
+import net.java.otr4j.api.Version;
+
+import javax.annotation.Nonnull;
 
 import static java.util.Objects.requireNonNull;
 
@@ -21,7 +24,8 @@ public final class EncodedMessage implements Message {
     /**
      * Protocol version.
      */
-    public final int version;
+    @Nonnull
+    public final Version version;
 
     /**
      * Message type identifier.
@@ -52,9 +56,9 @@ public final class EncodedMessage implements Message {
      * @param receiverTag the receiver instance tag
      * @param payload     the OTR-encoded payload
      */
-    public EncodedMessage(final int version, final int type, final InstanceTag senderTag, final InstanceTag receiverTag,
+    public EncodedMessage(final Version version, final int type, final InstanceTag senderTag, final InstanceTag receiverTag,
             final OtrInputStream payload) {
-        this.version = version;
+        this.version = requireNonNull(version);
         this.type = type;
         this.senderTag = requireNonNull(senderTag);
         this.receiverTag = requireNonNull(receiverTag);

@@ -14,6 +14,7 @@ import net.java.otr4j.api.Event;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.SessionID;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
@@ -37,8 +38,8 @@ import java.util.Collections;
 import static net.java.otr4j.api.InstanceTag.HIGHEST_TAG;
 import static net.java.otr4j.api.InstanceTag.SMALLEST_TAG;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
-import static net.java.otr4j.api.Session.Version.THREE;
 import static net.java.otr4j.api.SessionStatus.FINISHED;
+import static net.java.otr4j.api.Version.NONE;
 import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -71,7 +72,7 @@ public class StateFinishedTest {
     @Test
     public void testExpectProtocolVersionIsZero() {
         final StateFinished state = new StateFinished(StateInitial.instance());
-        assertEquals(0, state.getVersion());
+        assertEquals(NONE, state.getVersion());
         assertEquals(FINISHED, state.getStatus());
     }
 
@@ -183,7 +184,7 @@ public class StateFinishedTest {
 
         final DHKeyPairOTR3 keypair = DHKeyPairOTR3.generateDHKeyPair(RANDOM);
         final StateFinished state = new StateFinished(StateInitial.instance());
-        final DataMessage message = new DataMessage(THREE, (byte) 0, 1, 1, keypair.getPublic(),
+        final DataMessage message = new DataMessage(Version.THREE, (byte) 0, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
         assertNull(state.handleDataMessage(context, message).content);
         verify(host, never()).handleEvent(eq(sessionID), eq(SMALLEST_TAG), eq(Event.UNREADABLE_MESSAGE_RECEIVED), eq(Unit.UNIT));
@@ -201,7 +202,7 @@ public class StateFinishedTest {
 
         final DHKeyPairOTR3 keypair = DHKeyPairOTR3.generateDHKeyPair(RANDOM);
         final StateFinished state = new StateFinished(StateInitial.instance());
-        final DataMessage message = new DataMessage(THREE, FLAG_IGNORE_UNREADABLE, 1, 1, keypair.getPublic(),
+        final DataMessage message = new DataMessage(Version.THREE, FLAG_IGNORE_UNREADABLE, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
         assertNull(state.handleDataMessage(context, message).content);
         verify(host, never()).handleEvent(eq(sessionID), eq(SMALLEST_TAG), eq(Event.UNREADABLE_MESSAGE_RECEIVED), eq(Unit.UNIT));
@@ -216,7 +217,7 @@ public class StateFinishedTest {
 
         final DHKeyPairOTR3 keypair = DHKeyPairOTR3.generateDHKeyPair(RANDOM);
         final StateFinished state = new StateFinished(StateInitial.instance());
-        final DataMessage message = new DataMessage(THREE, (byte) 0, 1, 1, keypair.getPublic(),
+        final DataMessage message = new DataMessage(Version.THREE, (byte) 0, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
         state.handleDataMessage(null, message);
     }
@@ -308,7 +309,7 @@ public class StateFinishedTest {
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
         final StateFinished state = new StateFinished(StateInitial.instance());
-        state.handleAKEMessage(context, new RevealSignatureMessage(THREE, new byte[0], new byte[0], new byte[0], SMALLEST_TAG, HIGHEST_TAG));
+        state.handleAKEMessage(context, new RevealSignatureMessage(Version.THREE, new byte[0], new byte[0], new byte[0], SMALLEST_TAG, HIGHEST_TAG));
     }
 
     @SuppressWarnings("resource")

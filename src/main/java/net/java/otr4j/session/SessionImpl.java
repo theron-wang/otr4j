@@ -25,6 +25,7 @@ import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
@@ -77,11 +78,11 @@ import static net.java.otr4j.api.OtrEngineListeners.duplicate;
 import static net.java.otr4j.api.OtrEngineListeners.outgoingSessionChanged;
 import static net.java.otr4j.api.OtrEngineListeners.sessionStatusChanged;
 import static net.java.otr4j.api.OtrPolicys.allowedVersions;
-import static net.java.otr4j.api.Session.Version.FOUR;
-import static net.java.otr4j.api.Session.Version.THREE;
-import static net.java.otr4j.api.Session.Version.TWO;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
+import static net.java.otr4j.api.Version.FOUR;
+import static net.java.otr4j.api.Version.THREE;
+import static net.java.otr4j.api.Version.TWO;
 import static net.java.otr4j.io.MessageProcessor.parseMessage;
 import static net.java.otr4j.io.MessageProcessor.writeMessage;
 import static net.java.otr4j.messages.ClientProfilePayload.signClientProfile;
@@ -355,7 +356,7 @@ final class SessionImpl implements Session, Context {
             final EdDSAKeyPair longTermKeyPair = this.host.getLongTermKeyPair(sessionID);
             final Point longTermPublicKey = longTermKeyPair.getPublicKey();
             final Point forgingPublicKey = this.host.getForgingKeyPair(sessionID).getPublicKey();
-            final List<Integer> versions;
+            final List<Version> versions;
             final DSAKeyPair legacyKeyPair;
             final DSAPublicKey legacyPublicKey;
             if (policy.isAllowV3()) {
@@ -880,7 +881,7 @@ final class SessionImpl implements Session, Context {
             }
             this.logger.finest("Enquiring to start Authenticated Key Exchange, sending query message");
             final OtrPolicy policy = this.getSessionPolicy();
-            final Set<Integer> allowedVersions = allowedVersions(policy);
+            final Set<Version> allowedVersions = allowedVersions(policy);
             if (allowedVersions.isEmpty()) {
                 throw new OtrException("Current OTR policy declines all supported versions of OTR. There is no way to start an OTR session that complies with the policy.");
             }
@@ -926,9 +927,9 @@ final class SessionImpl implements Session, Context {
                 this.outgoingSession.refreshSession();
                 return;
             }
-            final int version = this.sessionState.getVersion();
+            final Version version = this.sessionState.getVersion();
             this.sessionState.end(this);
-            if (version == 0) {
+            if (version == Version.NONE) {
                 startSession();
             } else {
                 respondAuth(version, this.receiverTag);
@@ -981,8 +982,9 @@ final class SessionImpl implements Session, Context {
      * @return Returns 0 for no session, or protocol version in case of
      * established OTR session.
      */
+    @Nonnull
     @Override
-    public int getProtocolVersion() {
+    public Version getProtocolVersion() {
         synchronized (this.masterSession) {
             return this.sessionState.getVersion();
         }
@@ -1118,7 +1120,7 @@ final class SessionImpl implements Session, Context {
      * @throws OtrException In case of invalid/unsupported OTR protocol version.
      */
     @GuardedBy("masterSession")
-    private void respondAuth(final int version, final InstanceTag receiverTag) throws OtrException {
+    private void respondAuth(final Version version, final InstanceTag receiverTag) throws OtrException {
         if (!Version.SUPPORTED.contains(version)) {
             throw new OtrException("Unsupported OTR version encountered.");
         }

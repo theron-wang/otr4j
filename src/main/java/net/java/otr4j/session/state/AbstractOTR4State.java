@@ -14,6 +14,7 @@ import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.SessionID;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.MixedSharedSecret;
 import net.java.otr4j.crypto.OtrCryptoEngine4.Sigma;
@@ -37,14 +38,13 @@ import java.util.logging.Logger;
 
 import static java.util.logging.Level.FINEST;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
-import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.AUTH_R_PHI;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ringSign;
 import static net.java.otr4j.messages.EncodedMessageParser.parseEncodedMessage;
 import static net.java.otr4j.messages.IdentityMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
-import static net.java.otr4j.util.Integers.requireEquals;
+import static net.java.otr4j.util.Objects.requireEquals;
 
 // REMARK probably possible to break hierarchy between `AbstractOTR4State` and `AbstractOTR3State`. Given recent changes to the control-flow, it is likely that these can be separated, as now only the Plaintext and Finish states really have need of both.
 abstract class AbstractOTR4State extends AbstractOTR3State {
@@ -57,7 +57,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
 
     @Nonnull
     Result handleEncodedMessage4(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
-        requireEquals(FOUR, message.version, "Encoded message must be part of protocol 4.");
+        requireEquals(Version.FOUR, message.version, "Encoded message must be part of protocol 4.");
         final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
         assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof IdentityMessage
                 : "BUG: receiver instance should be set for anything other than the first AKE message.";
@@ -128,9 +128,9 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
     }
 
     @Override
-    public void initiateAKE(final Context context, final int version, final InstanceTag receiverInstanceTag)
+    public void initiateAKE(final Context context, final Version version, final InstanceTag receiverInstanceTag)
             throws OtrException {
-        if (version != FOUR) {
+        if (version != Version.FOUR) {
             super.initiateAKE(context, version, receiverInstanceTag);
             return;
         }

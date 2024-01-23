@@ -11,6 +11,7 @@ package net.java.otr4j.session.ake;
 
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 
 import javax.annotation.Nonnull;
@@ -49,7 +50,7 @@ public interface AuthState {
      * @return Returns DHCommitMessage with which we can initiate an AKE.
      */
     @Nonnull
-    AbstractEncodedMessage initiate(AuthContext context, int version, InstanceTag receiverTag);
+    AbstractEncodedMessage initiate(AuthContext context, Version version, InstanceTag receiverTag);
 
     /**
      * Handle AKE message.
@@ -101,5 +102,5 @@ public interface AuthState {
      *
      * @return Returns active protocol version in AKE negotiation. (Or 0 if not in progress.)
      */
-    int getVersion();
+    Version getVersion();
 }

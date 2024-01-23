@@ -14,6 +14,7 @@ import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.Message;
@@ -49,7 +50,8 @@ public interface State {
      * @return Returns protocol version that is active in this session state.
      * (0 for plaintext/finished, OTR version for ENCRYPTED message state.)
      */
-    int getVersion();
+    @Nonnull
+    Version getVersion();
 
     /**
      * Get session status for currently active session.
@@ -178,7 +180,7 @@ public interface State {
      * @param receiverTag the receiver instance tag to be targeted, or {@link InstanceTag#ZERO_TAG} if unknown.
      * @throws OtrException In case of failure to inject message into network.
      */
-    void initiateAKE(Context context, int version, InstanceTag receiverTag) throws OtrException;
+    void initiateAKE(Context context, Version version, InstanceTag receiverTag) throws OtrException;
 
     /**
      * Handle the received error message.

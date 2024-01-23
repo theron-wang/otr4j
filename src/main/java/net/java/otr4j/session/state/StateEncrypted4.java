@@ -14,10 +14,10 @@ import net.java.otr4j.api.Event;
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
-import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
@@ -96,7 +96,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         this.smp = new SMP(context.secureRandom(), context.getHost(), sessionID, ssid, ourLongTermPublicKey,
                 ourForgingKey, theirProfile.getLongTermPublicKey(), theirProfile.getForgingKey(),
                 context.getReceiverInstanceTag());
-        this.remoteinfo = new RemoteInfo(Session.Version.FOUR, theirProfile.getDsaPublicKey(), theirProfile);
+        this.remoteinfo = new RemoteInfo(Version.FOUR, theirProfile.getDsaPublicKey(), theirProfile);
     }
 
     @Nonnull
@@ -109,9 +109,10 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         return new Result(STATUS, false, false, message.getCleanText());
     }
 
+    @Nonnull
     @Override
-    public int getVersion() {
-        return Session.Version.FOUR;
+    public Version getVersion() {
+        return Version.FOUR;
     }
 
     @Nonnull
@@ -201,15 +202,15 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
     @Override
     public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         switch (message.version) {
-        case Session.Version.ONE:
+        case ONE:
             this.logger.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
             return new Result(STATUS, true, false, null);
-        case Session.Version.TWO:
-        case Session.Version.THREE:
+        case TWO:
+        case THREE:
             this.logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
                     new Object[]{message.version});
             return new Result(STATUS, true, false, null);
-        case Session.Version.FOUR:
+        case FOUR:
             return handleEncodedMessage4(context, message);
         default:
             throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);

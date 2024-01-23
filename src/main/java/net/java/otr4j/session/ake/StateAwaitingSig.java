@@ -10,7 +10,7 @@
 package net.java.otr4j.session.ake;
 
 import net.java.otr4j.api.OtrException;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SharedSecret;
@@ -49,7 +49,7 @@ final class StateAwaitingSig extends AbstractAuthState {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingSig.class.getName());
 
-    private final int version;
+    private final Version version;
     private final DHKeyPairOTR3 localDHKeyPair;
     private final DHPublicKey remoteDHPublicKey;
     private final SharedSecret s;
@@ -60,10 +60,10 @@ final class StateAwaitingSig extends AbstractAuthState {
      */
     private final RevealSignatureMessage previousRevealSigMessage;
 
-    StateAwaitingSig(final int version, final DHKeyPairOTR3 localDHKeyPair, final DHPublicKey remoteDHPublicKey,
+    StateAwaitingSig(final Version version, final DHKeyPairOTR3 localDHKeyPair, final DHPublicKey remoteDHPublicKey,
             final SharedSecret s, final RevealSignatureMessage previousRevealSigMessage) {
         super();
-        if (version < Version.TWO || version > Version.THREE) {
+        if (version != Version.TWO && version != Version.THREE) {
             throw new IllegalArgumentException("unsupported version specified");
         }
         this.version = version;
@@ -97,8 +97,9 @@ final class StateAwaitingSig extends AbstractAuthState {
         return new Result(null, null);
     }
 
+    @Nonnull
     @Override
-    public int getVersion() {
+    public Version getVersion() {
         return this.version;
     }
 

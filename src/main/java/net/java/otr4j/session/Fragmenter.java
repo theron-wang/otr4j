@@ -11,8 +11,8 @@ package net.java.otr4j.session;
 
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
-import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.api.SessionID;
+import net.java.otr4j.api.Version;
 
 import javax.annotation.Nonnull;
 import java.security.SecureRandom;
@@ -82,8 +82,8 @@ final class Fragmenter {
      * @throws OtrException In case fragment size is too small to store any content or when the provided policy does not
      *                      support fragmentation, for example if only OTRv1 is allowed.
      */
-    int numberOfFragments(final int version, final String message) throws OtrException {
-        if (version < Version.TWO) {
+    int numberOfFragments(final Version version, final String message) throws OtrException {
+        if (!Version.SUPPORTED.contains(version)) {
             return 1;
         }
         final int fragmentSize = this.host.getMaxFragmentSize(this.sessionID);
@@ -109,7 +109,7 @@ final class Fragmenter {
      * @throws OtrException if the fragment size is too small or if the maximum number of fragments is exceeded.
      */
     @Nonnull
-    String[] fragment(final int version, final int sender, final int receiver, final String message) throws OtrException {
+    String[] fragment(final Version version, final int sender, final int receiver, final String message) throws OtrException {
         final int fragmentSize = this.host.getMaxFragmentSize(this.sessionID);
         return fragment(version, sender, receiver, message, fragmentSize);
     }
@@ -128,7 +128,7 @@ final class Fragmenter {
      *                      instructions.
      */
     @Nonnull
-    private String[] fragment(final int version, final int sendertag, final int receivertag,
+    private String[] fragment(final Version version, final int sendertag, final int receivertag,
             final String message, final int fragmentSize) throws OtrException {
         if (fragmentSize >= message.length()) {
             return new String[]{message};
@@ -168,14 +168,14 @@ final class Fragmenter {
      * @throws UnsupportedOperationException in case v1 is only allowed in policy
      */
     @Nonnull
-    private static String createMessageFragment(final int version, final int id, final int sendertag,
+    private static String createMessageFragment(final Version version, final int id, final int sendertag,
             final int receivertag, final int count, final int total, final String partialContent) {
         switch (version) {
-        case Version.TWO:
+        case TWO:
             return createV2MessageFragment(count, total, partialContent);
-        case Version.THREE:
+        case THREE:
             return createV3MessageFragment(sendertag, receivertag, count, total, partialContent);
-        case Version.FOUR:
+        case FOUR:
             return createV4MessageFragment(id, sendertag, receivertag, count, total, partialContent);
         default:
             throw new IllegalArgumentException("Unsupported protocol version: " + version);
@@ -224,7 +224,7 @@ final class Fragmenter {
         return String.format("?OTR,%d,%d,%s,", count + 1, total, partialContent);
     }
 
-    private static int computeFragmentNumber(final int version, final String message, final int fragmentSize)
+    private static int computeFragmentNumber(final Version version, final String message, final int fragmentSize)
             throws OtrException {
         final int overhead = computeHeaderSize(version);
         final int payloadSize = fragmentSize - overhead;
@@ -238,13 +238,13 @@ final class Fragmenter {
         return messages;
     }
 
-    private static int computeHeaderSize(final int version) {
+    private static int computeHeaderSize(final Version version) {
         switch (version) {
-        case Version.TWO:
+        case TWO:
             return OTRV2_HEADER_SIZE;
-        case Version.THREE:
+        case THREE:
             return OTRV3_HEADER_SIZE;
-        case Version.FOUR:
+        case FOUR:
             return OTRV4_HEADER_SIZE;
         default:
             throw new UnsupportedOperationException("Unsupported protocol version: " + version);

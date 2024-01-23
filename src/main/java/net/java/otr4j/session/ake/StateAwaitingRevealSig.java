@@ -10,7 +10,7 @@
 package net.java.otr4j.session.ake;
 
 import net.java.otr4j.api.OtrException;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.OtrCryptoException;
@@ -46,7 +46,6 @@ import static net.java.otr4j.io.OtrEncodables.encode;
 import static net.java.otr4j.messages.SignatureXs.readSignatureX;
 import static net.java.otr4j.util.ByteArrays.requireLengthAtLeast;
 import static net.java.otr4j.util.ByteArrays.requireLengthExactly;
-import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
  * AKE state Awaiting Reveal Signature message, a.k.a. AUTHSTATE_AWAITING_REVEALSIG.
@@ -59,15 +58,18 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
 
     private static final int LOCAL_DH_PRIVATE_KEY_ID = 1;
 
-    private final int version;
+    private final Version version;
     private final DHKeyPairOTR3 keypair;
     private final byte[] remotePublicKeyHash;
     private final byte[] remotePublicKeyEncrypted;
 
-    StateAwaitingRevealSig(final int version, final DHKeyPairOTR3 keypair, final byte[] remotePublicKeyHash,
+    StateAwaitingRevealSig(final Version version, final DHKeyPairOTR3 keypair, final byte[] remotePublicKeyHash,
             final byte[] remotePublicKeyEncrypted) {
         super();
-        this.version = requireInRange(Version.TWO, Version.THREE, version);
+        if (version != Version.TWO && version != Version.THREE) {
+            throw new IllegalArgumentException("Illegal version");
+        }
+        this.version = requireNonNull(version);
         this.keypair = requireNonNull(keypair);
         this.remotePublicKeyHash = requireLengthExactly(SHA256_DIGEST_LENGTH_BYTES, remotePublicKeyHash);
         this.remotePublicKeyEncrypted = requireLengthAtLeast(1, remotePublicKeyEncrypted);
@@ -96,7 +98,7 @@ final class StateAwaitingRevealSig extends AbstractAuthState {
     }
 
     @Override
-    public int getVersion() {
+    public Version getVersion() {
         return this.version;
     }
 

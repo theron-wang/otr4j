@@ -11,8 +11,7 @@ package net.java.otr4j.messages;
 
 import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.OtrCryptoEngine4.Sigma;
@@ -60,7 +59,7 @@ public final class AuthIMessagesTest {
         final BigInteger aliceFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final Point aliceForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile aliceProfile = new ClientProfile(SMALLEST_TAG, aliceLongTermKeyPair.getPublicKey(),
-                aliceForgingKey, singletonList(Session.Version.FOUR), aliceDSAKeyPair.getPublic());
+                aliceForgingKey, singletonList(Version.FOUR), aliceDSAKeyPair.getPublic());
         final ClientProfilePayload aliceProfilePayload = signClientProfile(aliceProfile, Long.MAX_VALUE / 1000,
                 aliceDSAKeyPair, aliceLongTermKeyPair);
         final Point aliceX = ECDHKeyPair.generate(RANDOM).publicKey();
@@ -99,7 +98,7 @@ public final class AuthIMessagesTest {
         final BigInteger aliceFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final Point aliceForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile aliceProfile = new ClientProfile(SMALLEST_TAG, aliceLongTermKeyPair.getPublicKey(),
-                aliceForgingKey, singletonList(Session.Version.FOUR), aliceDSAKeyPair.getPublic());
+                aliceForgingKey, singletonList(Version.FOUR), aliceDSAKeyPair.getPublic());
         final ClientProfilePayload aliceProfilePayload = signClientProfile(aliceProfile, Long.MAX_VALUE / 1000,
                 aliceDSAKeyPair, aliceLongTermKeyPair);
         final Point aliceX = ECDHKeyPair.generate(RANDOM).publicKey();
@@ -138,7 +137,7 @@ public final class AuthIMessagesTest {
         final BigInteger aliceFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
         final Point aliceForgingKey = EdDSAKeyPair.generate(RANDOM).getPublicKey();
         final ClientProfile aliceProfile = new ClientProfile(SMALLEST_TAG, aliceLongTermKeyPair.getPublicKey(),
-                aliceForgingKey, singletonList(Session.Version.FOUR), aliceDSAKeyPair.getPublic());
+                aliceForgingKey, singletonList(Version.FOUR), aliceDSAKeyPair.getPublic());
         final ClientProfilePayload aliceProfilePayload = signClientProfile(aliceProfile, Long.MAX_VALUE / 1000,
                 aliceDSAKeyPair, aliceLongTermKeyPair);
         final Point aliceX = ECDHKeyPair.generate(RANDOM).publicKey();

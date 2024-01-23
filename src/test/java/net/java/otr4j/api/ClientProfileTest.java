@@ -9,7 +9,6 @@
 
 package net.java.otr4j.api;
 
-import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
@@ -36,7 +35,7 @@ public final class ClientProfileTest {
 
     @Test
     public void testConstructWithoutDSAPublicKey() {
-        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey, singletonList(Session.Version.FOUR),
+        new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey, singletonList(Version.FOUR),
                 null);
     }
 
@@ -48,13 +47,13 @@ public final class ClientProfileTest {
 
     @Test(expected = NullPointerException.class)
     public void testConsructNullInstanceTag() {
-        new ClientProfile(null, this.longTermKeyPair.getPublicKey(), forgingPublicKey, singletonList(Session.Version.FOUR),
+        new ClientProfile(null, this.longTermKeyPair.getPublicKey(), forgingPublicKey, singletonList(Version.FOUR),
                 null);
     }
 
     @Test(expected = NullPointerException.class)
     public void testConsructNullPublicKey() {
-        new ClientProfile(SMALLEST_TAG, null, forgingPublicKey, singletonList(Session.Version.FOUR),
+        new ClientProfile(SMALLEST_TAG, null, forgingPublicKey, singletonList(Version.FOUR),
                 null);
     }
 
@@ -78,6 +77,6 @@ public final class ClientProfileTest {
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalVersionsList() {
         new ClientProfile(SMALLEST_TAG, this.longTermKeyPair.getPublicKey(), forgingPublicKey,
-                singletonList(Session.Version.THREE), null);
+                singletonList(Version.THREE), null);
     }
 }

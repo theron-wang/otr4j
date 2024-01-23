@@ -14,7 +14,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
-import java.util.Set;
 
 import static net.java.otr4j.util.Objects.requireNonNull;
 
@@ -29,35 +28,6 @@ import static net.java.otr4j.util.Objects.requireNonNull;
 @ThreadSafe
 @SuppressWarnings("PMD.ConstantsInInterface")
 public interface Session {
-
-    /**
-     * Constants for OTR versions.
-     */
-    @SuppressWarnings("InterfaceWithOnlyStatics")
-    interface Version {
-
-        /**
-         * OTR protocol version 1. (Not supported anymore.)
-         */
-        int ONE = 1;
-        /**
-         * OTR protocol version 2.
-         */
-        int TWO = 2;
-        /**
-         * OTR protocol version 3.
-         */
-        int THREE = 3;
-        /**
-         * OTR protocol version 4.
-         */
-        int FOUR = 4;
-
-        /**
-         * Set of all supported OTR protocol versions.
-         */
-        Set<Integer> SUPPORTED = Set.of(TWO, THREE, FOUR);
-    }
 
     /* Methods that provide session information. */
 
@@ -109,7 +79,8 @@ public interface Session {
      *
      * @return Returns protocol version or 0 in case of no session active.
      */
-    int getProtocolVersion();
+    @Nonnull
+    Version getProtocolVersion();
 
     /**
      * Get sender instance tag.

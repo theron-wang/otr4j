@@ -34,34 +34,34 @@ public class OtrPolicysTest {
     @Test
     public void testAllowedVersionsDefaultPolicy() {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.OTRL_POLICY_DEFAULT);
-        final Set<Integer> versions = OtrPolicys.allowedVersions(policy);
+        final Set<Version> versions = OtrPolicys.allowedVersions(policy);
         assertEquals(3, versions.size());
-        assertTrue(versions.contains(Session.Version.TWO));
-        assertTrue(versions.contains(Session.Version.THREE));
-        assertTrue(versions.contains(Session.Version.FOUR));
+        assertTrue(versions.contains(Version.TWO));
+        assertTrue(versions.contains(Version.THREE));
+        assertTrue(versions.contains(Version.FOUR));
     }
 
     @Test
     public void testAllowedVersionsNoVersionPolicy() {
         final OtrPolicy policy = new OtrPolicy(0);
-        final Set<Integer> versions = OtrPolicys.allowedVersions(policy);
+        final Set<Version> versions = OtrPolicys.allowedVersions(policy);
         assertEquals(0, versions.size());
     }
 
     @Test
     public void testAllowedVersionsMinimalPolicy() {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V3);
-        final Set<Integer> versions = OtrPolicys.allowedVersions(policy);
+        final Set<Version> versions = OtrPolicys.allowedVersions(policy);
         assertEquals(1, versions.size());
-        assertTrue(versions.contains(Session.Version.THREE));
+        assertTrue(versions.contains(Version.THREE));
     }
 
     @Test
     public void testAllowedVersionsCustomPolicy() {
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V2 | OtrPolicy.ALLOW_V3 | OtrPolicy.WHITESPACE_START_AKE);
-        final Set<Integer> versions = OtrPolicys.allowedVersions(policy);
+        final Set<Version> versions = OtrPolicys.allowedVersions(policy);
         assertEquals(2, versions.size());
-        assertTrue(versions.contains(Session.Version.TWO));
-        assertTrue(versions.contains(Session.Version.THREE));
+        assertTrue(versions.contains(Version.TWO));
+        assertTrue(versions.contains(Version.THREE));
     }
 }

@@ -10,6 +10,7 @@
 package net.java.otr4j.messages;
 
 import net.java.otr4j.api.ClientProfile;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
@@ -38,14 +39,14 @@ public final class IdentityMessagesTest {
     @Test(expected = NullPointerException.class)
     public void testValidateNullMessage() throws ValidationException {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), this.forgingPublicKey,
-                Collections.singletonList(4), null);
+                Collections.singletonList(Version.FOUR), null);
         validate(null, profile);
     }
 
     @Test(expected = NullPointerException.class)
     public void testValidateNullProfile() throws ValidationException {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), this.forgingPublicKey,
-                Collections.singletonList(4), null);
+                Collections.singletonList(Version.FOUR), null);
         final ClientProfilePayload profilePayload = signClientProfile(profile,
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
@@ -58,7 +59,7 @@ public final class IdentityMessagesTest {
     @Test
     public void testValidateIdentity() throws ValidationException {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), this.forgingPublicKey,
-                Collections.singletonList(4), null);
+                Collections.singletonList(Version.FOUR), null);
         final ClientProfilePayload profilePayload = signClientProfile(profile,
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
@@ -80,7 +81,7 @@ public final class IdentityMessagesTest {
     @Test(expected = NullPointerException.class)
     public void testValidateIdentityNullEcdhPublicKey() throws ValidationException {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), this.forgingPublicKey,
-                Collections.singletonList(4), null);
+                Collections.singletonList(Version.FOUR), null);
         final ClientProfilePayload profilePayload = signClientProfile(profile,
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
@@ -93,7 +94,7 @@ public final class IdentityMessagesTest {
     @Test(expected = NullPointerException.class)
     public void testValidateIdentityNullDhPublicKey() throws ValidationException {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), this.forgingPublicKey,
-                Collections.singletonList(4), null);
+                Collections.singletonList(Version.FOUR), null);
         final ClientProfilePayload profilePayload = signClientProfile(profile,
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
@@ -106,7 +107,7 @@ public final class IdentityMessagesTest {
     @Test(expected = ValidationException.class)
     public void testValidateIdentityInconsistentInstanceTag() throws ValidationException {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), this.forgingPublicKey,
-                Collections.singletonList(4), null);
+                Collections.singletonList(Version.FOUR), null);
         final ClientProfilePayload profilePayload = signClientProfile(profile,
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();
@@ -119,7 +120,7 @@ public final class IdentityMessagesTest {
     @Test(expected = NullPointerException.class)
     public void testValidateIdentityNullFirstECDHPublicKey() throws ValidationException {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), this.forgingPublicKey,
-                Collections.singletonList(4), null);
+                Collections.singletonList(Version.FOUR), null);
         final ClientProfilePayload profilePayload = signClientProfile(profile,
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final BigInteger ourFirstDHPublicKey = DHKeyPair.generate(RANDOM).publicKey();
@@ -131,7 +132,7 @@ public final class IdentityMessagesTest {
     @Test(expected = NullPointerException.class)
     public void testValidateIdentityNullFirstDHPublicKey() throws ValidationException {
         final ClientProfile profile = new ClientProfile(SMALLEST_TAG, longTermKeyPair.getPublicKey(), this.forgingPublicKey,
-                Collections.singletonList(4), null);
+                Collections.singletonList(Version.FOUR), null);
         final ClientProfilePayload profilePayload = signClientProfile(profile,
                 System.currentTimeMillis() / 1000 + 86400, null, longTermKeyPair);
         final Point ourFirstECDHPublicKey = ECDHKeyPair.generate(RANDOM).publicKey();

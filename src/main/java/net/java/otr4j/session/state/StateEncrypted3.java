@@ -13,11 +13,10 @@ import net.java.otr4j.api.Event;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.RemoteInfo;
-import net.java.otr4j.api.Session;
-import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.EncryptedMessage.Content;
@@ -94,7 +93,8 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     /**
      * Active version of the protocol in use in this encrypted session.
      */
-    private final int protocolVersion;
+    @Nonnull
+    private final Version protocolVersion;
 
     @SuppressWarnings("PMD.LoggerIsNotStaticFinal")
     private final Logger logger;
@@ -142,8 +142,9 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         return new Result(STATUS, false, false, message.getCleanText());
     }
 
+    @Nonnull
     @Override
-    public int getVersion() {
+    public Version getVersion() {
         return this.protocolVersion;
     }
 
@@ -178,13 +179,13 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     @Override
     public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         switch (message.version) {
-        case Session.Version.ONE:
+        case ONE:
             this.logger.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
             return new Result(STATUS, true, false, null);
-        case Session.Version.TWO:
-        case Session.Version.THREE:
+        case TWO:
+        case THREE:
             return handleEncodedMessage3(context, message);
-        case Session.Version.FOUR:
+        case FOUR:
             this.logger.log(INFO, "Encountered message for protocol version 4. Ignoring because OTRv3 in-progress.",
                     new Object[]{message.version});
             return new Result(STATUS, true, false, null);
@@ -309,7 +310,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         }
         // Re-negotiate if we got an error and we are in ENCRYPTED message state
         this.logger.finest("Error message starts AKE.");
-        final Set<Integer> versions = allowedVersions(policy);
+        final Set<Version> versions = allowedVersions(policy);
         this.logger.finest("Sending Query");
         context.injectMessage(new QueryMessage(versions));
     }

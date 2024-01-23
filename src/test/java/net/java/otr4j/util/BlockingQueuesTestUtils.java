@@ -9,7 +9,7 @@
 
 package net.java.otr4j.util;
 
-import net.java.otr4j.api.Session;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.io.Fragment;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.io.MessageProcessor;
@@ -64,7 +64,7 @@ public final class BlockingQueuesTestUtils {
         for (int i = 0; i < messages.size(); i++) {
             final String msg = messages.get(i);
             final Message m = MessageProcessor.parseMessage(msg);
-            if (m instanceof Fragment && ((Fragment) m).getVersion() == Session.Version.THREE) {
+            if (m instanceof Fragment && ((Fragment) m).getVersion() == Version.THREE) {
                 fragments.add(new FragmentEntry(i, ((Fragment) m).getIndex(), msg));
             }
         }

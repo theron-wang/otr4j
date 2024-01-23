@@ -9,7 +9,6 @@
 
 package net.java.otr4j.api;
 
-import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DSAKeyPair;
 import net.java.otr4j.crypto.OtrCryptoEngine4;
@@ -53,7 +52,6 @@ import static net.java.otr4j.api.OtrPolicy.OPPORTUNISTIC;
 import static net.java.otr4j.api.OtrPolicy.OTRL_POLICY_MANUAL;
 import static net.java.otr4j.api.OtrPolicy.OTRV4_INTERACTIVE_ONLY;
 import static net.java.otr4j.api.OtrPolicy.WHITESPACE_START_AKE;
-import static net.java.otr4j.api.Session.Version.FOUR;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static net.java.otr4j.api.SessionStatus.FINISHED;
 import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
@@ -177,7 +175,7 @@ public class SessionTest {
         // Expecting Auth-R message, DH-Key message from Alice.
         assertNull(c.clientBob.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
-        assertEquals(FOUR, c.clientBob.session.getOutgoingSession().getProtocolVersion());
+        assertEquals(Version.FOUR, c.clientBob.session.getOutgoingSession().getProtocolVersion());
         assertNull(c.clientBob.receiveMessage().content);
         assertNull(bob2.receiveMessage().content);
         assertNull(bob2.receiveMessage().content);
@@ -241,7 +239,7 @@ public class SessionTest {
         rearrangeFragments(c.clientBob.receiptChannel, random);
         assertArrayEquals(new String[0], c.clientBob.receiveAllMessages(true));
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
-        assertEquals(FOUR, c.clientBob.session.getOutgoingSession().getProtocolVersion());
+        assertEquals(Version.FOUR, c.clientBob.session.getOutgoingSession().getProtocolVersion());
         rearrangeFragments(bob2.receiptChannel, random);
         assertArrayEquals(new String[0], bob2.receiveAllMessages(true));
         // Expecting Auth-I message from Bob, Signature message from Bob 2.
@@ -255,7 +253,7 @@ public class SessionTest {
         rearrangeFragments(bob2.receiptChannel, random);
         assertArrayEquals(new String[0], bob2.receiveAllMessages(true));
         assertEquals(ENCRYPTED, bob2.session.getSessionStatus());
-        assertEquals(Session.Version.THREE, bob2.session.getOutgoingSession().getProtocolVersion());
+        assertEquals(Version.THREE, bob2.session.getOutgoingSession().getProtocolVersion());
 
         // Due to 2 sessions being set up at the same time, either one can be established first. The first session is
         // automatically chosen to be the default session, so we need to manually set our chosen session as default
@@ -313,7 +311,7 @@ public class SessionTest {
         assertNull(bob2.receiveMessage().content);
         assertNull(bob2.receiveMessage().content);
         assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
-        assertEquals(Session.Version.THREE, c.clientBob.session.getOutgoingSession().getProtocolVersion());
+        assertEquals(Version.THREE, c.clientBob.session.getOutgoingSession().getProtocolVersion());
         assertEquals(ENCRYPTED, bob2.session.getSessionStatus());
         // TODO there is an issue with the OTR protocol such that acting on a received DH-Commit message skips the check of whether higher versions of the OTR protocol are available. (Consider not responding unless a query tag was previously sent.)
         assertEquals(Version.THREE, bob2.session.getOutgoingSession().getProtocolVersion());

@@ -14,8 +14,8 @@ import net.java.otr4j.api.Event;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
-import net.java.otr4j.api.Session.Version;
 import net.java.otr4j.api.SessionID;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
@@ -52,9 +52,9 @@ import static net.java.otr4j.api.OtrPolicy.ALLOW_V4;
 import static net.java.otr4j.api.OtrPolicy.OPPORTUNISTIC;
 import static net.java.otr4j.api.OtrPolicy.REQUIRE_ENCRYPTION;
 import static net.java.otr4j.api.OtrPolicy.SEND_WHITESPACE_TAG;
-import static net.java.otr4j.api.Session.Version.FOUR;
-import static net.java.otr4j.api.Session.Version.THREE;
 import static net.java.otr4j.api.SessionStatus.PLAINTEXT;
+import static net.java.otr4j.api.Version.FOUR;
+import static net.java.otr4j.api.Version.THREE;
 import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
 import static net.java.otr4j.session.state.State.FLAG_NONE;
 import static org.junit.Assert.assertEquals;
@@ -200,7 +200,7 @@ public class StatePlaintextTest {
     @Test
     public void testConstruct() {
         final StatePlaintext state = new StatePlaintext(StateInitial.instance());
-        assertEquals(0, state.getVersion());
+        assertEquals(Version.NONE, state.getVersion());
         assertEquals(PLAINTEXT, state.getStatus());
     }
 

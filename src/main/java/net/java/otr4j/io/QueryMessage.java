@@ -9,6 +9,8 @@
 
 package net.java.otr4j.io;
 
+import net.java.otr4j.api.Version;
+
 import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Set;
@@ -23,14 +25,14 @@ import static java.util.Objects.requireNonNull;
  */
 public class QueryMessage implements Message {
 
-    private final Set<Integer> versions;
+    private final Set<Version> versions;
 
     /**
      * Constructor for query message.
      *
      * @param versions the set of versions
      */
-    public QueryMessage(final Set<Integer> versions) {
+    public QueryMessage(final Set<Version> versions) {
         this.versions = requireNonNull(versions);
     }
 
@@ -40,7 +42,7 @@ public class QueryMessage implements Message {
      * @return Returns versions.
      */
     @Nonnull
-    public Set<Integer> getVersions() {
+    public Set<Version> getVersions() {
         return this.versions;
     }
 

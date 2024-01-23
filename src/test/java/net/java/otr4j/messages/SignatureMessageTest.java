@@ -9,8 +9,7 @@
 
 package net.java.otr4j.messages;
 
-import net.java.otr4j.api.Session;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.util.ByteArrays;
 import org.junit.Test;
 
@@ -67,7 +66,7 @@ public class SignatureMessageTest {
             byte[] fakeEncrypted = new byte[100];
             fill(fakeEncrypted, (byte) i);
             fill(fakeEncryptedMAC, (byte) i);
-            current = new SignatureMessage(Session.Version.THREE, fakeEncrypted, fakeEncryptedMAC.clone(), ZERO_TAG, ZERO_TAG);
+            current = new SignatureMessage(Version.THREE, fakeEncrypted, fakeEncryptedMAC.clone(), ZERO_TAG, ZERO_TAG);
             assertNotNull(current);
             assertNotEquals(current.hashCode(), previous.hashCode());
             previous = current;
@@ -89,7 +88,7 @@ public class SignatureMessageTest {
             System.arraycopy(fakeEncrypted, 0, fakeEncrypted2, 0, fakeEncrypted.length);
             final byte[] fakeEncryptedMAC2 = randomBytes(RANDOM, new byte[MAC_LENGTH_BYTES]);
             System.arraycopy(fakeEncryptedMAC, 0, fakeEncryptedMAC2, 0, fakeEncryptedMAC.length);
-            SignatureMessage sm2 = new SignatureMessage(Session.Version.THREE, fakeEncrypted2, fakeEncryptedMAC2, ZERO_TAG, ZERO_TAG);
+            SignatureMessage sm2 = new SignatureMessage(Version.THREE, fakeEncrypted2, fakeEncryptedMAC2, ZERO_TAG, ZERO_TAG);
             assertNotNull(sm2);
             assertEquals(sm, sm2);
             assertNotEquals(sm, previous);
@@ -103,7 +102,7 @@ public class SignatureMessageTest {
             byte[] fakeEncrypted = new byte[1000];
             fill(fakeEncrypted, (byte) i);
             fill(fakeEncryptedMAC, (byte) i);
-            SignatureMessage current = new SignatureMessage(Session.Version.THREE, fakeEncrypted,
+            SignatureMessage current = new SignatureMessage(Version.THREE, fakeEncrypted,
                     fakeEncryptedMAC.clone(), ZERO_TAG, ZERO_TAG);
             assertNotNull(current);
             assertNotEquals(current, previous);

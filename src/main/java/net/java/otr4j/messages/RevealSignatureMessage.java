@@ -10,7 +10,7 @@
 package net.java.otr4j.messages;
 
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.io.OtrOutputStream;
 
 import javax.annotation.Nonnull;
@@ -18,7 +18,6 @@ import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
-import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
  * OTRv2/OTRv3 AKE Reveal Signature message.
@@ -56,9 +55,12 @@ public final class RevealSignatureMessage extends AbstractEncodedMessage {
      * @param senderInstance   the sender instance tag
      * @param receiverInstance the receiver instance tag
      */
-    public RevealSignatureMessage(final int protocolVersion, final byte[] xEncrypted, final byte[] xEncryptedMAC,
+    public RevealSignatureMessage(final Version protocolVersion, final byte[] xEncrypted, final byte[] xEncryptedMAC,
             final byte[] revealedKey, final InstanceTag senderInstance, final InstanceTag receiverInstance) {
-        super(requireInRange(Version.TWO, Version.THREE, protocolVersion), senderInstance, receiverInstance);
+        super(protocolVersion, senderInstance, receiverInstance);
+        if (protocolVersion != Version.TWO && protocolVersion != Version.THREE) {
+            throw new IllegalArgumentException("Illegal version");
+        }
         this.xEncrypted = requireNonNull(xEncrypted);
         this.xEncryptedMAC = requireNonNull(xEncryptedMAC);
         this.revealedKey = requireNonNull(revealedKey);

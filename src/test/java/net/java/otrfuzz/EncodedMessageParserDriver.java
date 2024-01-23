@@ -12,6 +12,7 @@ package net.java.otrfuzz;
 import edu.berkeley.cs.jqf.fuzz.Fuzz;
 import edu.berkeley.cs.jqf.fuzz.JQF;
 import net.java.otr4j.api.InstanceTag;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.OtrInputStream;
@@ -36,12 +37,13 @@ public class EncodedMessageParserDriver {
     public void fuzzMessage(final InputStream input) throws IOException, OtrCryptoException, ValidationException {
         final int length = input.read(this.data);
         final OtrInputStream otrinput = new OtrInputStream(copyOf(this.data, length));
-        final int version = otrinput.readShort();
+        final Version version = Version.match(otrinput.readShort());
         final byte type = otrinput.readByte();
         final InstanceTag senderTag = otrinput.readInstanceTag();
         final InstanceTag receiverTag = otrinput.readInstanceTag();
         try {
-            final EncodedMessage message = new EncodedMessage(version, type, senderTag, receiverTag, otrinput);
+            final EncodedMessage message = new EncodedMessage(version == null ? Version.NONE : version, type, senderTag,
+                    receiverTag, otrinput);
             assertNotNull(parseEncodedMessage(message));
         } catch (final ProtocolException | OtrInputStream.UnsupportedLengthException | AssertionError e) {
             assumeNoException(e);

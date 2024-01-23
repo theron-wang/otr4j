@@ -10,7 +10,7 @@
 package net.java.otr4j.messages;
 
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.io.OtrOutputStream;
 
 import javax.annotation.Nonnull;
@@ -18,7 +18,6 @@ import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
 import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
-import static net.java.otr4j.util.Integers.requireInRange;
 
 /**
  * OTRv2/OTRv3 AKE Signature message.
@@ -50,9 +49,12 @@ public final class SignatureMessage extends AbstractEncodedMessage {
      * @param senderInstance   sender instance tag
      * @param receiverInstance receiver instance tag
      */
-    public SignatureMessage(final int protocolVersion, final byte[] xEncrypted, final byte[] xEncryptedMAC,
+    public SignatureMessage(final Version protocolVersion, final byte[] xEncrypted, final byte[] xEncryptedMAC,
             final InstanceTag senderInstance, final InstanceTag receiverInstance) {
-        super(requireInRange(Version.TWO, Version.THREE, protocolVersion), senderInstance, receiverInstance);
+        super(protocolVersion, senderInstance, receiverInstance);
+        if (protocolVersion != Version.TWO && protocolVersion != Version.THREE) {
+            throw new IllegalArgumentException("Illegal version");
+        }
         this.xEncrypted = requireNonNull(xEncrypted);
         this.xEncryptedMAC = requireNonNull(xEncryptedMAC);
     }

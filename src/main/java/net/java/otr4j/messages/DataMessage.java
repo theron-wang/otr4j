@@ -10,6 +10,7 @@
 package net.java.otr4j.messages;
 
 import net.java.otr4j.api.InstanceTag;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.io.OtrOutputStream;
 
 import javax.annotation.Nonnull;
@@ -97,7 +98,7 @@ public final class DataMessage extends AbstractEncodedMessage {
      * @param senderInstanceTag   the sender instance tag
      * @param receiverInstanceTag the receiver instance tag
      */
-    public DataMessage(final int protocolVersion, final byte flags, final int senderKeyID,
+    public DataMessage(final Version protocolVersion, final byte flags, final int senderKeyID,
             final int recipientKeyID, final DHPublicKey nextDH, final byte[] ctr, final byte[] encryptedMessage,
             final byte[] mac, final byte[] oldMACKeys, final InstanceTag senderInstanceTag,
             final InstanceTag receiverInstanceTag) {

@@ -13,9 +13,9 @@ import net.java.otr4j.api.ClientProfile;
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
-import net.java.otr4j.api.Session;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.MixedSharedSecret;
 import net.java.otr4j.crypto.OtrCryptoEngine4;
@@ -103,9 +103,10 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         this.previousMessage = requireNonNull(previousMessage);
     }
 
+    @Nonnull
     @Override
-    public int getVersion() {
-        return Session.Version.FOUR;
+    public Version getVersion() {
+        return Version.FOUR;
     }
 
     @Nonnull
@@ -142,15 +143,15 @@ final class StateAwaitingAuthR extends AbstractCommonState {
     @Override
     public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         switch (message.version) {
-        case Session.Version.ONE:
+        case ONE:
             LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
             return new Result(STATUS, true, false, null);
-        case Session.Version.TWO:
-        case Session.Version.THREE:
+        case TWO:
+        case THREE:
             LOGGER.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
                     new Object[]{message.version});
             return new Result(STATUS, true, false, null);
-        case Session.Version.FOUR:
+        case FOUR:
             return handleEncodedMessage4(context, message);
         default:
             throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);

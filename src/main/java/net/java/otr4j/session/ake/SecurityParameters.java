@@ -9,7 +9,7 @@
 
 package net.java.otr4j.session.ake;
 
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.SharedSecret;
@@ -29,18 +29,18 @@ import static net.java.otr4j.crypto.DHKeyPairOTR3.verifyDHPublicKey;
  */
 public final class SecurityParameters {
 
-    private final int version;
+    private final Version version;
     private final DHKeyPairOTR3 localDHKeyPair;
     private final DSAPublicKey remoteLongTermPublicKey;
     private final DHPublicKey remoteDHPublicKey;
     private final SharedSecret s;
 
-    SecurityParameters(final int version, final DHKeyPairOTR3 localDHKeyPair, final DSAPublicKey remoteLongTermPublicKey,
+    SecurityParameters(final Version version, final DHKeyPairOTR3 localDHKeyPair, final DSAPublicKey remoteLongTermPublicKey,
             final DHPublicKey remoteDHPublicKey, final SharedSecret s) {
-        if (version < Version.TWO || version > Version.THREE) {
+        if (version != Version.TWO && version != Version.THREE) {
             throw new IllegalArgumentException("Illegal version value specified.");
         }
-        this.version = version;
+        this.version = requireNonNull(version);
         this.localDHKeyPair = requireNonNull(localDHKeyPair);
         this.remoteLongTermPublicKey = requireNonNull(remoteLongTermPublicKey);
         try {
@@ -56,7 +56,8 @@ public final class SecurityParameters {
      *
      * @return Returns protocol version.
      */
-    public int getVersion() {
+    @Nonnull
+    public Version getVersion() {
         return this.version;
     }
 

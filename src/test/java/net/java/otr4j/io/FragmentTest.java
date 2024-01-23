@@ -10,7 +10,7 @@
 package net.java.otr4j.io;
 
 import net.java.otr4j.api.InstanceTag;
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import org.junit.Test;
 
 import java.net.ProtocolException;
@@ -66,7 +66,7 @@ public final class FragmentTest {
     @Test
     public void testParseSingleFragmentOTRv4() throws ProtocolException {
         final Fragment fragment = parseFragment(String.format(formatVersion4, helloWorldBase64));
-        assertEquals(4, fragment.getVersion());
+        assertEquals(Version.FOUR, fragment.getVersion());
         assertEquals(0x3c5b5f03, fragment.getIdentifier());
         assertEquals(new InstanceTag(0x5a73a599), fragment.getSenderTag());
         assertEquals(new InstanceTag(0x27e31597), fragment.getReceiverTag());
@@ -78,7 +78,7 @@ public final class FragmentTest {
     @Test
     public void testParseSingleFragmentOTRv3() throws ProtocolException {
         final Fragment fragment = parseFragment(String.format("?OTR|5a73a599|27e31597,00001,00001,%s,", helloWorldBase64));
-        assertEquals(3, fragment.getVersion());
+        assertEquals(Version.THREE, fragment.getVersion());
         assertEquals(0, fragment.getIdentifier());
         assertEquals(new InstanceTag(0x5a73a599), fragment.getSenderTag());
         assertEquals(new InstanceTag(0x27e31597), fragment.getReceiverTag());
@@ -90,7 +90,7 @@ public final class FragmentTest {
     @Test
     public void testParseSingleFragmentOTRv2() throws ProtocolException {
         final Fragment fragment = parseFragment("?OTR,1,3,?OTR:AAEDAAAAAQAAAAEAAADAVf3Ei72ZgFeKqWvLMnuVPVCwxktsOZ1QdjeLp6jn62mCVtlY9nS6sRkecpjuLYHRxyTdRu2iEVtSsjZqK55ovZ35SfkOPHeFYa9BIuxWi9djHMVKQ8KOVGAVLibjZ6P8LreDSKtWDv9YQjIEnkwFVGCPfpBq2SX4VTQfJAQXHggR8izKxPvluXUdG9rIPh4cac98++VLdIuFMiEXjUIoTX2rEzunaCLMy0VIfowlRsgsKGrwhCCv7hBWyglbzwz+AAAAAAAAAAQAAAF2SOr,");
-        assertEquals(2, fragment.getVersion());
+        assertEquals(Version.TWO, fragment.getVersion());
         assertEquals(0, fragment.getIdentifier());
         assertEquals(ZERO_TAG, fragment.getSenderTag());
         assertEquals(ZERO_TAG, fragment.getReceiverTag());

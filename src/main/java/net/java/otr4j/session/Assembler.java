@@ -9,12 +9,12 @@
 
 package net.java.otr4j.session;
 
-import net.java.otr4j.api.Session;
 import net.java.otr4j.io.Fragment;
 
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,12 +41,11 @@ final class Assembler {
      */
     @Nullable
     String accumulate(final Fragment fragment) throws ProtocolException {
-        final int version = fragment.getVersion();
-        switch (version) {
-        case Session.Version.TWO:
-        case Session.Version.THREE:
+        switch (fragment.getVersion()) {
+        case TWO:
+        case THREE:
             return this.inOrder.accumulate(fragment);
-        case Session.Version.FOUR:
+        case FOUR:
             return this.outOfOrder.accumulate(fragment);
         default:
             throw new UnsupportedOperationException("Unsupported protocol version.");
@@ -138,7 +137,8 @@ final class Assembler {
 
         private static final Logger LOGGER = Logger.getLogger(OutOfOrderAssembler.class.getName());
 
-        private final HashMap<Integer, String[]> fragments = new HashMap<>();
+        // FIXME consider overriding 'removeEldestEntry' for automatic clean-up to maintain a healthy threshold.
+        private final LinkedHashMap<Integer, String[]> fragments = new LinkedHashMap<>();
 
         /**
          * Accumulate fragments.

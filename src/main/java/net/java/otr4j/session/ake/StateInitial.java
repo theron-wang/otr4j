@@ -9,7 +9,7 @@
 
 package net.java.otr4j.session.ake;
 
-import net.java.otr4j.api.Session.Version;
+import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.DHCommitMessage;
@@ -50,7 +50,7 @@ public final class StateInitial extends AbstractAuthState {
     @Nonnull
     @Override
     public Result handle(final AuthContext context, final AbstractEncodedMessage message) {
-        if (message.protocolVersion < Version.TWO || message.protocolVersion > Version.THREE) {
+        if (message.protocolVersion != Version.TWO && message.protocolVersion != Version.THREE) {
             throw new IllegalArgumentException("unsupported protocol version");
         }
         if (message instanceof DHCommitMessage) {
@@ -72,7 +72,7 @@ public final class StateInitial extends AbstractAuthState {
     }
 
     @Override
-    public int getVersion() {
-        return 0;
+    public Version getVersion() {
+        return Version.NONE;
     }
 }
