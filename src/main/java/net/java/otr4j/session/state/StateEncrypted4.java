@@ -293,6 +293,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
         }
         this.ratchet.confirmReceivingChainKey(message.i, message.j);
         // Process decrypted message contents. Extract and process TLVs. Possibly reply, e.g. SMP, disconnect.
+        final byte[] currentESK = extraSymmetricKey.clone();
         final Content content = extractContents(decrypted);
         for (int i = 0; i < content.tlvs.size(); i++) {
             final TLV tlv = content.tlvs.get(i);
@@ -330,18 +331,21 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
                 context.transition(this, new StateFinished(getAuthState()));
                 break;
             case EXTRA_SYMMETRIC_KEY:
-                final byte[] eskContext;
+                // TODO consider how to limit/warn that only 10 extra symmetric keys should be derived to preserve security properties.
+                // REMARK we currently only call back to host with derived extra symmetric keys, i.e. derivation for each TLV. The "extra symmetric key" base-key is never reported back. Consider if this is the intended behavior, because spec is not clear on this.
+                final byte[] eskContext = new byte[4];
                 final byte[] eskValue;
                 if (tlv.value.length < EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES) {
-                    eskContext = new byte[4];
+                    System.arraycopy(tlv.value, 0, eskContext, 0, tlv.value.length);
                     eskValue = new byte[0];
                 } else {
-                    eskContext = ByteArrays.cloneRange(tlv.value, 0, 4);
+                    System.arraycopy(tlv.value, 0, eskContext, 0, 4);
                     eskValue = ByteArrays.cloneRange(tlv.value, 4, tlv.value.length - 4);
                 }
-                final byte[] symmkey = OtrCryptoEngine4.deriveExtraSymmetricKey((byte) i, eskContext, extraSymmetricKey);
+                OtrCryptoEngine4.deriveExtraSymmetricKey(currentESK, (byte) i, eskContext, currentESK);
                 handleEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
-                        Event.EXTRA_SYMMETRIC_KEY_DISCOVERED, new Event.ExtraSymmetricKey(symmkey, eskContext, eskValue));
+                        Event.EXTRA_SYMMETRIC_KEY_DISCOVERED,
+                        new Event.ExtraSymmetricKey(currentESK.clone(), eskContext, eskValue));
                 break;
             default:
                 this.logger.log(INFO, "Unsupported TLV #{0} received. Ignoring.", tlv.type);

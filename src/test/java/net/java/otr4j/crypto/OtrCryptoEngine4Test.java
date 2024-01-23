@@ -22,6 +22,7 @@ import java.util.Arrays;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static net.java.otr4j.crypto.OtrCryptoEngine4.EXTRA_SYMMETRIC_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.FINGERPRINT;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.decodePoint;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.decrypt;
@@ -446,7 +447,8 @@ public class OtrCryptoEngine4Test {
     public void testDeriveExtraSymmetricKeys() {
         final byte[] baseKey = randomBytes(RANDOM, new byte[64]);
         final byte[] context = randomBytes(RANDOM, new byte[4]);
-        final byte[] derived = deriveExtraSymmetricKey(1, context, baseKey);
+        final byte[] derived = new byte[EXTRA_SYMMETRIC_KEY_LENGTH_BYTES];
+        deriveExtraSymmetricKey(derived, (byte) 1, context, baseKey);
         assertNotNull(derived);
         assertFalse(allZeroBytes(derived));
         assertFalse(Arrays.equals(baseKey, derived));
@@ -456,9 +458,12 @@ public class OtrCryptoEngine4Test {
     public void testDeriveExtraSymmetricKeysRepeatedly() {
         final byte[] baseKey = randomBytes(RANDOM, new byte[64]);
         final byte[] context = randomBytes(RANDOM, new byte[4]);
-        final byte[] derived1 = deriveExtraSymmetricKey(1, context, baseKey);
-        final byte[] derived2 = deriveExtraSymmetricKey(1, context, baseKey);
-        final byte[] derived3 = deriveExtraSymmetricKey(1, context, baseKey);
+        final byte[] derived1 = new byte[EXTRA_SYMMETRIC_KEY_LENGTH_BYTES];
+        deriveExtraSymmetricKey(derived1, (byte) 1, context, baseKey);
+        final byte[] derived2 = new byte[EXTRA_SYMMETRIC_KEY_LENGTH_BYTES];
+        deriveExtraSymmetricKey(derived2, (byte) 1, context, baseKey);
+        final byte[] derived3 = new byte[EXTRA_SYMMETRIC_KEY_LENGTH_BYTES];
+        deriveExtraSymmetricKey(derived3, (byte) 1, context, baseKey);
         assertArrayEquals(derived1, derived2);
         assertArrayEquals(derived2, derived3);
     }
@@ -467,9 +472,12 @@ public class OtrCryptoEngine4Test {
     public void testDeriveExtraSymmetricKeysIncrementally() {
         final byte[] baseKey = randomBytes(RANDOM, new byte[64]);
         final byte[] context = randomBytes(RANDOM, new byte[4]);
-        final byte[] derived1 = deriveExtraSymmetricKey(1, context, baseKey);
-        final byte[] derived2 = deriveExtraSymmetricKey(2, context, baseKey);
-        final byte[] derived3 = deriveExtraSymmetricKey(3, context, baseKey);
+        final byte[] derived1 = new byte[EXTRA_SYMMETRIC_KEY_LENGTH_BYTES];
+        deriveExtraSymmetricKey(derived1, (byte) 1, context, baseKey);
+        final byte[] derived2 = new byte[EXTRA_SYMMETRIC_KEY_LENGTH_BYTES];
+        deriveExtraSymmetricKey(derived2, (byte) 2, context, derived1);
+        final byte[] derived3 = new byte[EXTRA_SYMMETRIC_KEY_LENGTH_BYTES];
+        deriveExtraSymmetricKey(derived3, (byte) 3, context, derived2);
         assertFalse(Arrays.equals(derived1, derived2));
         assertFalse(Arrays.equals(derived2, derived3));
     }
@@ -477,12 +485,14 @@ public class OtrCryptoEngine4Test {
     @Test(expected = NullPointerException.class)
     public void testDeriveExtraSymmetricKeysNullContext() {
         final byte[] baseKey = randomBytes(RANDOM, new byte[64]);
-        deriveExtraSymmetricKey(1, null, baseKey);
+        final byte[] derived = new byte[EXTRA_SYMMETRIC_KEY_LENGTH_BYTES];
+        deriveExtraSymmetricKey(derived, (byte) 1, null, baseKey);
     }
 
     @Test(expected = NullPointerException.class)
     public void testDeriveExtraSymmetricKeysNullBaseKey() {
         final byte[] context = randomBytes(RANDOM, new byte[4]);
-        deriveExtraSymmetricKey(1, context, null);
+        final byte[] derived = new byte[EXTRA_SYMMETRIC_KEY_LENGTH_BYTES];
+        deriveExtraSymmetricKey(derived, (byte) 1, context, null);
     }
 }

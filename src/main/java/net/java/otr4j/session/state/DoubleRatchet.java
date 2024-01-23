@@ -83,6 +83,7 @@ final class DoubleRatchet implements AutoCloseable {
      */
     private final int pn;
 
+    @Nonnull
     private final MixedSharedSecret sharedSecret;
 
     /**
@@ -113,8 +114,14 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     private final Purpose nextRotation;
 
+    /**
+     * storedKeys contains all message-keys that were skipped over in a session.
+     * <p>
+     * key: <code>[4-byte ratchetId]|[4-byte messageId]</code>
+     * </p>
+     */
     // TODO need to eventually perform clean up of `storedKeys` (inject MK_MACs into `macsToReveal`, see spec) to avoid growing indefinitely, even if only a problem for long run-times.
-    // TODO spec dictates to store message keys under composite key (`ECDH public key`, `messageId`) which is not what we currently do. (Do we care if we already authenticate the message before committing changes.)
+    @Nonnull
     private final HashMap<Long, MessageKeys> storedKeys;
 
     /**

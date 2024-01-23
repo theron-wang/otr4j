@@ -420,24 +420,21 @@ public final class OtrCryptoEngine4 {
     /**
      * Derive additional extra symmetric keys from the extra symmetric key, that is used as basis.
      *
-     * @param index   the index, i.e. the counter for which key is derived.
+     * @param index the index, i.e. the counter for which key is derived
      * @param context the context value from the TLV payload. (first 4 bytes of the TLV payload)
-     * @param baseKey the extra symmetric key, acquired through the Double Ratchet algorithm.
-     * @return Returns the derived extra symmetric key.
+     * @param currentKey the extra symmetric key, acquired through the Double Ratchet algorithm
+     * @param dest the destination byte-array for the derived extra symmetric key
      */
-    @Nonnull
-    public static byte[] deriveExtraSymmetricKey(final int index, final byte[] context, final byte[] baseKey) {
-        final byte[] idx = {(byte) (index & 0xff), (byte) ((index >>> 8) & 0xff)};
+    public static void deriveExtraSymmetricKey(final byte[] dest, final byte index, final byte[] context, final byte[] currentKey) {
         requireLengthExactly(EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES, context);
-        requireLengthExactly(EXTRA_SYMMETRIC_KEY_LENGTH_BYTES, baseKey);
-        final byte[] instanceKey = new byte[EXTRA_SYMMETRIC_KEY_LENGTH_BYTES];
+        requireLengthExactly(EXTRA_SYMMETRIC_KEY_LENGTH_BYTES, currentKey);
+        requireLengthExactly(EXTRA_SYMMETRIC_KEY_LENGTH_BYTES, dest);
         final SHAKEDigest digest = new SHAKEDigest(SHAKE_256_LENGTH_BITS);
         digest.update(OTR4_PREFIX, 0, OTR4_PREFIX.length);
-        digest.update(idx, 0, idx.length);
+        digest.update(index);
         digest.update(context, 0, context.length);
-        digest.update(baseKey, 0, baseKey.length);
-        digest.doFinal(instanceKey, 0, EXTRA_SYMMETRIC_KEY_LENGTH_BYTES);
-        return instanceKey;
+        digest.update(currentKey, 0, currentKey.length);
+        digest.doFinal(dest, 0, dest.length);
     }
 
     /**
