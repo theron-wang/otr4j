@@ -96,10 +96,13 @@ __Functionality__
     - ☑ Publishing of generated `ClientProfile` payloads through callback to `OtrEngineHost` (Affects _Deniability_-property.)
     - ☐ Timely refreshing Client Profile payload (due to expiration / updated Client Profile parameters)
   - ☐ Strictly isolate OTRv3 and OTRv4 interactions: only accept OTRv2/3 messages in `START`, but not in any OTRv4 state, and vice versa. Separate `FINISH` states for OTRv2/3 and OTRv4.
-  - ☐ OTRv4 operating modes (OTRv3-compatible, OTRv4-standalone, OTRv4-interactive-only).
+  - ☐ OTRv4 operating modes:
+    - ☑ OTRv3-compatible
+    - ☑ OTRv4-interactive-only
+    - ☐ OTRv4-standalone
 - Cryptographic primitives:
   - Ed448-Goldilocks elliptic curve
-    - ☑ Temporary working solution
+    - ☑ Temporary working solution (`joldilocks`)
     - ☑ Migrate to BouncyCastle `>= 1.60`.
   - 3072-bit Diffie-Hellman
     - ☑ Temporary working solution
@@ -122,8 +125,8 @@ __Functionality__
   - ☑ Calculate _Encryption_, _MAC_ and _Extra Symmetric Key_ keys
   - ☑ Revealing used MAC keys
   - ☑ Revealing queued up MAC keys upon session expiration.
-  - ☐ Revealing MAC keys generated from memorized message keys upon session expiration.
-  - ☐ Periodic clean-up of "old" skipped message keys
+  - ☑ Revealing MAC keys generated from memorized message keys upon session expiration.
+  - ☐ Periodic clean-up of (oldest) skipped message-keys
 - Message encryption/decryption:
   - ☑ In-order messages
   - ☑ In-order messages with some messages missing
@@ -147,7 +150,7 @@ __Functionality__
   - ☐ `OtrKeyManager` was removed. Evaluate whether this is a problem for adopters. (I prefer to leave it out or put it in its own repository.)
 - Interoperability (limited testing):
   - ☑ backwards-compatible with Jitsi's otr4j implementation (for OTR version 3 support)
-  - ☐ testing against other OTRv4 implementations
+  - ☑ testing against other OTRv4 implementations
 - Misc
   - ☑ Set flag `IGNORE_UNREADABLE` also for OTRv3 DISCONNECT and all SMP messages.  
   _Although not explicitly document that this is necessary, it should not break any existing applications. This makes implementations of OTRv3 and OTRv4 more similar and promotes better behavior in general, being: the other party is not needlessly warned for (lost) messages that do not contain valuable content, i.e. they are part of the OTR process, but do not contain user content themselves._
@@ -167,8 +170,8 @@ __Operational__
   - ☑ Ring signatures
 - Cleaning up data:
   - ☑ Clearing byte-arrays containing sensitive material after use.
-  - ☐ Clean up remaining message keys instances when transitioning away from encrypted message states.
-  - ☐ Investigate effectiveness of clearing byte-arrays right before potential GC. (Maybe they are optimized away by JVM?)
+  - ☐ Clean up remaining message-keys instances when transitioning away from encrypted message states.
+  - ☐ Investigate effectiveness of clearing byte-arrays right before potential GC. (Maybe they are optimized away by JVM?, Do we need to care?)
 - Verify OTR-protocol obligations of other party:
   - ☑ Verify that revealed MAC keys are present when expected. (I.e. is list of revealed MAC keys larger than 0 bytes?)
 - In-memory representation of points and scalar values as byte-arrays:  
@@ -185,7 +188,7 @@ __Operational__
   - ☑ otr4j protects itself against `RuntimeException`s caused by callbacks into the host application.
   _Any occurrence of a `RuntimeException` is considered a bug on the host application side, and is caught and logged by otr4j._
 - Concurrency:
-  - ☑ Thread-safety with granularity of single master with its slave sessions.  
+  - ☑ Thread-safety with granularity of single session master-instace with its slave-instances.  
       Messages from different contacts can be processed concurrently. Messages from same contact different clients, are forced to sequential processing.
 - Stability
   - ☐ Library in execution performance profiling.
