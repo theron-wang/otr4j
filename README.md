@@ -191,7 +191,7 @@ __Operational__
   - ☑ Thread-safety with granularity of single session master-instace with its slave-instances.  
       Messages from different contacts can be processed concurrently. Messages from same contact different clients, are forced to sequential processing.
 - Stability
-  - ☐ Library in execution performance profiling.
+  - ☐ Library performance profiling.
   - ☐ Measure memory usage changes under long-term use/heavy load.
 - OTRv3 - catching up:
   - ☐ In-memory representation for OTRv3.

@@ -239,7 +239,11 @@ public final class MessageProcessor {
 
     @Nonnull
     private static String generateQueryTag(final Iterable<Version> versions) {
-        final String versionsString = encodeVersionString(versions);
+        final ArrayList<Integer> values = new ArrayList<>();
+        for (final Version v : versions) {
+            values.add(v.ordinal());
+        }
+        final String versionsString = encodeVersionString(values);
         return versionsString.length() == 0 ? "" : HEAD + HEAD_QUERY_V + versionsString + HEAD_QUERY_Q;
     }
 
@@ -250,13 +254,13 @@ public final class MessageProcessor {
      * @return Returns ASCII string representation.
      */
     @Nonnull
-    public static String encodeVersionString(final Iterable<Version> versions) {
+    public static String encodeVersionString(final Iterable<Integer> versions) {
         final StringBuilder versionsString = new StringBuilder();
-        for (final Version version : versions) {
-            if (version == Version.NONE) {
+        for (final int version : versions) {
+            if (version == 0) {
                 throw new IllegalArgumentException("Illegal version");
             }
-            versionsString.append(version.ordinal());
+            versionsString.append(version);
         }
         return versionsString.toString();
     }
