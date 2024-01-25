@@ -352,6 +352,26 @@ public final class OtrCryptoEngine4 {
     }
 
     /**
+     * SHAKE-256 straight-forward digest of any number of inputs.
+     *
+     * @param outputSize the output-size
+     * @param input1 hash input data
+     * @param inputN any additional inputs
+     * @return Returns a digest sized to the value of the outputSize argument.
+     */
+    public static byte[] shake256(final int outputSize, final byte[] input1, final byte[]... inputN) {
+        requireAtLeast(0, outputSize);
+        final SHAKEDigest digest = new SHAKEDigest(SHAKE_256_LENGTH_BITS);
+        digest.update(input1, 0, input1.length);
+        for (final byte[] in : inputN) {
+            digest.update(in, 0, in.length);
+        }
+        final byte[] output = new byte[outputSize];
+        digest.doFinal(output, 0, outputSize);
+        return output;
+    }
+
+    /**
      * Generate a new random value in Z_q.
      *
      * @param random SecureRandom instance

@@ -338,7 +338,7 @@ final class DoubleRatchet implements AutoCloseable {
     @Nonnull
     private MessageKeys generateSendingMessageKeys() {
         final byte[] chainkey = this.senderRatchet.getChainKey();
-        // FIXME should we do an assertion to check if `nextRotation` is receiver? (i.e. don't allow generating new keys unless rotation protocol is properly followed.)
+        // Sending message-keys are always current. If we need to send again, we must ensure we are properly rotated.
         assert this.nextRotation == Purpose.RECEIVING;
         try {
             return MessageKeys.fromChainkey(chainkey);

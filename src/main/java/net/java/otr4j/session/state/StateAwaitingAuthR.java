@@ -22,6 +22,7 @@ import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.io.EncodedMessage;
+import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.AuthIMessage;
@@ -38,6 +39,7 @@ import net.java.otr4j.session.api.SMPHandler;
 import net.java.otr4j.session.state.DoubleRatchet.Purpose;
 
 import javax.annotation.Nonnull;
+import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.logging.Logger;
@@ -185,9 +187,12 @@ final class StateAwaitingAuthR extends AbstractCommonState {
     void handleIdentityMessage(final Context context, final IdentityMessage message) throws OtrException {
         final ClientProfile theirProfile = message.clientProfile.validate();
         IdentityMessages.validate(message, theirProfile);
-        // FIXME spec: "Compare the hashed `B` you sent in your Identity message with the DH value from the message you received, considered as 32-byte unsigned big-endian values" (there may be gaps in the spec w.r.t. exact comparison details)
-        if (this.previousMessage.b.compareTo(message.b) > 0) {
-            // No state change necessary, we assume that by resending other party will still follow existing protocol
+        final BigInteger ourHashedB = new BigInteger(1, OtrCryptoEngine4.shake256(32,
+                new OtrOutputStream().writeBigInt(this.previousMessage.b).toByteArray()));
+        final BigInteger theirHashedB = new BigInteger(1, OtrCryptoEngine4.shake256(32,
+                new OtrOutputStream().writeBigInt(message.b).toByteArray()));
+        if (ourHashedB.compareTo(theirHashedB) > 0) {
+            // No state change necessary, we assume that, by resending, other party will still follow existing protocol
             // execution.
             context.injectMessage(this.previousMessage);
             return;
@@ -205,7 +210,6 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         // Validate received Auth-R message.
         final ClientProfile ourClientProfile = this.profilePayload.validate();
         final ClientProfile theirClientProfile = message.clientProfile.validate();
-        // FIXME wrong order of fields?
         final byte[] phiR = MysteriousT4.generatePhi(AUTH_R_PHI, message.senderTag, message.receiverTag,
                 message.firstECDHPublicKey, message.firstDHPublicKey, this.firstECDHKeyPair.publicKey(),
                 this.firstDHKeyPair.publicKey(), sessionID.getUserID(), sessionID.getAccountID());
