@@ -111,25 +111,6 @@ final class Fragmenter {
     @Nonnull
     String[] fragment(final Version version, final int sender, final int receiver, final String message) throws OtrException {
         final int fragmentSize = this.host.getMaxFragmentSize(this.sessionID);
-        return fragment(version, sender, receiver, message, fragmentSize);
-    }
-
-    /**
-     * Fragment a message according to the specified instructions.
-     *
-     * @param version      current session's negotiated protocol version
-     * @param sendertag    the sender instance tag
-     * @param receivertag  the receiver instance tag
-     * @param message      the message
-     * @param fragmentSize the maximum fragment size
-     * @return Returns the fragmented message. The array will contain at least 1
-     * message fragment, or more if fragmentation is necessary.
-     * @throws OtrException In the case when it is impossible to fragment the message according to the specified
-     *                      instructions.
-     */
-    @Nonnull
-    private String[] fragment(final Version version, final int sendertag, final int receivertag,
-            final String message, final int fragmentSize) throws OtrException {
         if (fragmentSize >= message.length()) {
             return new String[]{message};
         }
@@ -146,7 +127,7 @@ final class Fragmenter {
             final int end = Math.min(previous + payloadSize, message.length());
 
             final String partialContent = message.substring(previous, end);
-            fragments.add(createMessageFragment(version, id, sendertag, receivertag, fragments.size(), num,
+            fragments.add(createMessageFragment(version, id, sender, receiver, fragments.size(), num,
                     partialContent));
 
             previous = end;

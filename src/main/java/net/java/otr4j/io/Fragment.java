@@ -66,6 +66,7 @@ public final class Fragment implements Message {
      * Group 5: total number of message parts.
      * Group 6: fragment content.
      */
+    // TODO consider enforcing 8-byte hex value for the 4-byte identifier of OTRv4 fragments (spec is explicit about there being 4 bytes)
     private static final Pattern PATTERN_V4 = Pattern.compile("^\\?OTR\\|([0-9abcdefABCDEF]{1,8})\\|([0-9abcdefABCDEF]{1,8})\\|([0-9abcdefABCDEF]{1,8}),(\\d{1,5}),(\\d{1,5}),([a-zA-Z0-9+/=?:.]*),$");
 
     private static final int ZERO_IDENTIFIER = 0;

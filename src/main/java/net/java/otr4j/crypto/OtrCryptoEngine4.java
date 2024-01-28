@@ -401,7 +401,7 @@ public final class OtrCryptoEngine4 {
         // "Compute h = KDF_1(d, 64) as an unsigned value, little-endian."
         final byte[] h = hwc(HASH_TO_SCALAR_LENGTH_BYTES, usageID, d);
         try {
-            // FIXME spec says: interpret as little-endian scalar value, but nowhere it says that `mod q` is necessary?
+            // TODO spec says: spec was likely changed to drop 'mod q' requirement. Given that it is intended for use as a scalar, mod q will happen eventually. This is essentially a matter of efficiency.
             // "Return h (mod q)"
             return decodeScalar(h);
         } finally {
