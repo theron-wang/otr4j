@@ -14,6 +14,8 @@ import net.java.otr4j.api.Version;
 
 import javax.annotation.Nonnull;
 import java.net.ProtocolException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +29,8 @@ import static net.java.otr4j.util.Integers.parseUnsignedInt;
  * An OTR message that represents a fragment of an OTR-encoded message.
  */
 public final class Fragment implements Message {
+
+    private static final Logger LOGGER = Logger.getLogger(Fragment.class.getName());
 
     /**
      * Maximum supported number of fragments.
@@ -115,6 +119,9 @@ public final class Fragment implements Message {
         Matcher matcher;
         if ((matcher = PATTERN_V4.matcher(message)).matches()) {
             version = Version.FOUR;
+            if (matcher.group(1).length() < 8) {
+                LOGGER.log(Level.WARNING, "Other party sent identifier of less than 8 hex-characters. OTRv4 spec is explicit about the 4-byte identifier.");
+            }
             identifier = parseUnsignedInt(matcher.group(1), HEXADECIMAL_SYSTEM);
             sendertagValue = parseUnsignedInt(matcher.group(2), HEXADECIMAL_SYSTEM);
             receivertagValue = parseUnsignedInt(matcher.group(3), HEXADECIMAL_SYSTEM);
