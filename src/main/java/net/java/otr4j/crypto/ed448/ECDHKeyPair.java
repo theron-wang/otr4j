@@ -90,7 +90,7 @@ public final class ECDHKeyPair implements AutoCloseable {
         //    generating the public key.
         final byte[] h;
         {
-            final byte[] buffer = shake256(r, 2 * SECRET_KEY_LENGTH_BYTES);
+            final byte[] buffer = shake256(2 * SECRET_KEY_LENGTH_BYTES, r);
             h = copyOfRange(buffer, 0, SECRET_KEY_LENGTH_BYTES);
             clear(buffer);
         }

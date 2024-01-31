@@ -140,9 +140,12 @@ public final class EdDSAKeyPair implements AutoCloseable {
     @Nonnull
     public Scalar getSecretKey() {
         requireNotCleared();
-        final byte[] h = shake256(this.symmetricKey, 2 * SECRET_KEY_LENGTH_BYTES);
-        final byte[] secretKey = copyOfRange(h, 0, SECRET_KEY_LENGTH_BYTES);
-        clear(h);
+        final byte[] secretKey;
+        {
+            final byte[] h = shake256(2 * SECRET_KEY_LENGTH_BYTES, this.symmetricKey);
+            secretKey = copyOfRange(h, 0, SECRET_KEY_LENGTH_BYTES);
+            clear(h);
+        }
         clamp(secretKey);
         try {
             return decodeScalar(secretKey);
