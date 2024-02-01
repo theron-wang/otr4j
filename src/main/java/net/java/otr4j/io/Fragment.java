@@ -105,7 +105,7 @@ public final class Fragment implements Message {
      * @return Returns a fragment.
      * @throws ProtocolException In case of invalid fragment format, or in case of bad data in the fragment.
      */
-    @SuppressWarnings({"PMD.AssignmentInOperand"})
+    @SuppressWarnings({"PMD.AssignmentInOperand", "PMD.AvoidLiteralsInIfCondition"})
     @Nonnull
     public static Fragment parseFragment(final String message) throws ProtocolException {
         final Version version;

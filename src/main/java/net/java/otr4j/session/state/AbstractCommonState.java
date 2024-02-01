@@ -50,6 +50,7 @@ abstract class AbstractCommonState extends AbstractOTR4State {
     void handleUnreadableMessage(final Context context, final DataMessage4 message, final String identifier,
             final String error) throws OtrException {
         if ((message.flags & FLAG_IGNORE_UNREADABLE) == FLAG_IGNORE_UNREADABLE) {
+            // TODO consider detecting (and logging) whether revealed MAC-keys are non-empty. This concerns the issue with OTRv4 (also v3?) spec which mentions that when the other party receives a DISCONNECT-TLV, they end the session, but this means that they do not reveal present MAC keys to be revealed of our previous messages. Logging this allows us to check that the other party acts properly. That is, if we accept that as part of the spec.
             LOGGER.fine("Unreadable message received with IGNORE_UNREADABLE flag set. Ignoring silently.");
             return;
         }

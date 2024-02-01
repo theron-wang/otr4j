@@ -53,6 +53,10 @@ public final class DataMessage4s {
             LOGGER.warning("Revealed MAC keys do not have the expected length.");
             throw new ProtocolException("Revealed MACs do not have proper length.");
         }
+        if (message.i > 0 && message.j == 0 && message.revealedMacs.length / MK_MAC_LENGTH_BYTES == 0) {
+            LOGGER.warning("No revealed MAC keys for first message of the ratchet. Rejecting message. (This is a problem for our deniability-guarantee.)");
+            throw new ProtocolException("Every first message of a ratchet should reveal previously used MAC keys. This message contains no MAC keys.");
+        }
     }
 
     /**
