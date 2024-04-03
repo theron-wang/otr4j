@@ -166,8 +166,7 @@
                     <execution>
                         <phase>validate</phase>
                         <goals>
-                            <!-- FIXME temporarily disabled; need to update keys-list. -->
-                            <!--<goal>check</goal>-->
+                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>
