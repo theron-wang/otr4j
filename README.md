@@ -35,8 +35,7 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
   - ✔ EdDSA (the long-term keypair)
   - ❓ ECDH operations
   - ❓ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
-- ✔ Process OTRv4 data-messages provisionally: until a message is successfully authenticated (and decrypted) changes cannot be permanent.  
-  ⚠️ _OTRv4 requires processing_ ratchet ID, message ID, _next_ ECDH public key, _next_ DH public key _of the data message before authenticity can be established._ ⚠️
+- ✔ Process OTRv4 data-messages provisionally: until a message is successfully authenticated (and decrypted) changes cannot be permanent.
 - ✔ Support for skipped messages and store skipped message keys.
 - ⏳ OTRv4 maintenance tasks (✔<s>session expiration timer</s>, ✔<s>heartbeat timer</s>, refreshing client profile)  
     - TODO consider actual requirements: long-running application that needs to refresh as periodic action in its execution seems far-fetched with 2-week valid profiles. 
@@ -169,6 +168,7 @@ __Operational__
   - ☐ Investigate effectiveness of clearing byte-arrays right before potential GC. (Maybe they are optimized away by JVM?, Do we need to care?)
 - Verify OTR-protocol obligations of other party:
   - ☑ Verify that revealed MAC keys are present when expected. (I.e. is list of revealed MAC keys larger than 0 bytes?)
+- ☑ Proper care when handling incoming data-message: OTRv4 requires that _ratchet ID_, _message ID_, _next ECDH public key_, and _next DH public key_ are processed as part of authenticating the incoming data-message. When a message is corrupt, these provisional changes are dropped instead of preserved.
 - In-memory representation of points and scalar values as byte-arrays:  
   _Note that we specifically refer to how the data is represented in memory. Operations require temporary conversion back and forth into an intermediate type._
   - ☑ Points kept as byte-arrays.
