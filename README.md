@@ -7,25 +7,20 @@ __update__ revoked a GPG subkey on a hardware-token that disappeared under suspi
 ## Status
 
 - __operational__: OTRv4 interactive: confidentiality, authentication (SMP), backwards-compatible with OTR version 3
-- __feature-incomplete__, missing: managing skipped encryption keys for out-of-order message handling, non-interactive session initiation, client-profile renewals during continuous execution, … (see _checklist_ below for details)
-- __in development__: _not reviewed_, _not widely adopted_ yet.
+- __feature-incomplete__, missing: non-interactive session initiation, client-profile renewals during continuous execution, … (see _checklist_ below for details)
+- __in development__: tested, _not reviewed_
 
-_Under consideration_:
-
-- ⁉️ single method introduced for signaling any event that `OtrEngineHost` handles:  
-The method `<T> void onEvent(SessionID sessionID, InstanceTag receiver, Event<T> event, T payload);` as single method that receives all events defined in the `Event<T>` type. This is an experiment with advantages and disadvantages.
+Implementation includes considerations as annotated in [otr4j/otrv4:/otrv4.md](<https://github.com/otr4j/otrv4/blob/review/otrv4.md>). Interoperability is tested using [echonetwork](<https://github.com/otr4j/echonetwork>), with other _otr4j_ instances and [_otrr_](<https://github.com/cobratbq/otrr>) instances.
 
 ## otr4j
 
 This is a fork of the [original otr4j](https://github.com/jitsi/otr4j). The original otr4j started development as an GSoC 2009 project. A few years ago, a attempt was made to create a "community-friendly fork" of otr4j with the intention to lower the barrier for contribution: it is not required to sign a CLA.
 
-This repository contains the community-friendly fork with the addition of significant refactoring effort and recently the addition of [OTRv4][OTRv4] support. [OTRv4][OTRv4] is [still in draft](<https://github.com/otrv4/otrv4/issues/230> "Checking status as there has been a long communication silence ..."). The implementation of this otr4j implementation itself is not stable (or secure).
+This repository contains the community-friendly fork with the addition of significant refactoring effort and recently the addition of [OTRv4][OTRv4] support. [OTRv4][OTRv4] is [still in draft](<https://github.com/otrv4/otrv4/issues/230> "Checking status as there has been a long communication silence ...").
 
-NOTE: another security protocol [MLS] is in development and has overlapping characteristics with OTRv4.
+NOTE: another security protocol, [MLS], has overlapping properties with OTRv4. However, MLS focuses primarily on secure group-chat, as opposed to OTR's focus on one-to-one.
 
 ## Progress
-
-Current work should be considered __at most__ _prototype-quality._ The development follows the _master_ branch of [OTRv4], but may lag behind in areas that currently lack development focus.
 
 __Development stages__:
 
@@ -42,8 +37,8 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
   - ❓ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
 - ✔ Process OTRv4 data-messages provisionally: until a message is successfully authenticated (and decrypted) changes cannot be permanent.  
   ⚠️ _OTRv4 requires processing_ ratchet ID, message ID, _next_ ECDH public key, _next_ DH public key _of the data message before authenticity can be established._ ⚠️
-- ⏳ Support for skipped messages and store skipped message keys.
-- ⏳ OTRv4 maintenance tasks (<s>session expiration timer</s>, <s>heartbeat timer</s>, refreshing client profile)  
+- ✔ Support for skipped messages and store skipped message keys.
+- ⏳ OTRv4 maintenance tasks (✔<s>session expiration timer</s>, ✔<s>heartbeat timer</s>, refreshing client profile)  
     - TODO consider actual requirements: long-running application that needs to refresh as periodic action in its execution seems far-fetched with 2-week valid profiles. 
 - ⏳ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive".
 - ✔ [Reproducible build][maven-reproducible-builds]  
@@ -88,7 +83,7 @@ __Functionality__
   - ☑ 'Interactive DAKE' implemented as Message states i.s.o. AKE states.
   - ☑ OTRv4 extension to OTR error messages
   - ☑ Periodic heartbeat messages
-  - [Queuing up messages](message-queueing.md) while not in `ENCRYPTED_MESSAGES` state.
+  - [Queuing up messages](<docs/message-queueing.md>) while not in `ENCRYPTED_MESSAGES` state.
     - ☑ Basic message queueing implemented. (Cannot fully work until Double Ratchet algorithm is implemented.)
     - ☐ Message queueing configurable.  
         _This may be important as queue is flushed onto instance with first established private messaging. This may not always be desirable._
@@ -96,7 +91,7 @@ __Functionality__
     - ☑ Publishing of generated `ClientProfile` payloads through callback to `OtrEngineHost` (Affects _Deniability_-property.)
     - ☐ Timely refreshing Client Profile payload (due to expiration / updated Client Profile parameters)
   - ☐ Strictly isolate OTRv3 and OTRv4 interactions: only accept OTRv2/3 messages in `START`, but not in any OTRv4 state, and vice versa. Separate `FINISH` states for OTRv2/3 and OTRv4.
-  - ☐ OTRv4 operating modes:
+  - OTRv4 operating modes:
     - ☑ OTRv3-compatible
     - ☑ OTRv4-interactive-only
     - ☐ OTRv4-standalone
