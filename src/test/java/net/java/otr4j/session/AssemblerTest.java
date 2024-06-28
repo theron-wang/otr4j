@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import java.net.ProtocolException;
 import java.security.SecureRandom;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +24,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.shuffle;
 import static net.java.otr4j.io.MessageProcessor.parseMessage;
-import static net.java.otr4j.util.Classes.readField;
 import static org.bouncycastle.util.encoders.Base64.toBase64String;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -201,5 +201,19 @@ public final class AssemblerTest {
             throw new IllegalStateException("Failed!");
         }
         assembler.accumulate(fragment);
+    }
+
+    @Test
+    public void testMaintainMaxMessagesInAssembly() throws ProtocolException {
+        final int expectedLimit = 100;
+        final Assembler assembler = new Assembler();
+        for (int i = 0; i < expectedLimit + 3; i++) {
+            final int msgID = i;
+            final int senderID = -1 - i;
+            final int receiverID = Integer.MAX_VALUE - i;
+            assembler.accumulate((Fragment) parseMessage(String.format("?OTR|%08X|%08X|%08X,00001,00003,He,", msgID, senderID, receiverID)));
+            assembler.accumulate((Fragment) parseMessage(String.format("?OTR|%08X|%08X|%08X,00002,00003,ll,", msgID, senderID, receiverID)));
+            assertEquals(Math.min(expectedLimit, i+1), Classes.readField(LinkedHashMap.class, assembler, "outOfOrder", "fragments").size());
+        }
     }
 }

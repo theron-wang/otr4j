@@ -128,7 +128,7 @@ __Functionality__
 - Fragmentation and re-assembly:
   - ☑ Fragmentation
   - ☑ Re-assembling fragmented messages
-  - ☐ Periodic clean-up of "old" fragments
+  - ☑ Periodic clean-up of "old" fragments
 - Socialist Millionaire's Protocol:
   - ☑ OTRv2/OTRv3
   - ☑ OTRv4

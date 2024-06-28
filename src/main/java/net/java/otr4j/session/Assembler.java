@@ -15,6 +15,7 @@ import javax.annotation.Nullable;
 import java.net.ProtocolException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,6 +26,11 @@ import static net.java.otr4j.util.Strings.concat;
  * Support for re-assembling fragmented OTR-encoded messages.
  */
 final class Assembler {
+
+    /**
+     * Maximum messages in assembly in the out-of-order assembler. (Before clean-up of oldest entries initiates.)
+     */
+    private static final int MAX_MESSAGES_IN_ASSEMBLY = 100;
 
     private final InOrderAssembler inOrder = new InOrderAssembler();
     private final OutOfOrderAssembler outOfOrder = new OutOfOrderAssembler();
@@ -132,13 +138,17 @@ final class Assembler {
     /**
      * Out-of-order assembler, following OTRv4 specification.
      */
-    // TODO the out-of-order assembler can be abused to fill memory with bogus messages. We can only verify the message completely once the complete message is reconstructed. Before that, we can keep fragments and hope we don't waste memory and that remaining fragments arrive soon, and that the fragments lead to a valid, legitimate message.
+    // REMARK now that a maximum of `MAX_MESSAGES_IN_ASSEMBLY` is maintained, one can still interfere by sending bogus messages at such a rate that a valid message is cleaned up, i.e. between first and last fragment of a message, at least 100 bogus messages are sent.
     private static final class OutOfOrderAssembler {
 
         private static final Logger LOGGER = Logger.getLogger(OutOfOrderAssembler.class.getName());
 
-        // FIXME consider overriding 'removeEldestEntry' for automatic clean-up to maintain a healthy threshold.
-        private final LinkedHashMap<Integer, String[]> fragments = new LinkedHashMap<>();
+        private final LinkedHashMap<Integer, String[]> fragments = new LinkedHashMap<>() {
+            @Override
+            protected boolean removeEldestEntry(final Map.Entry<Integer, String[]> eldest) {
+                return this.size() > MAX_MESSAGES_IN_ASSEMBLY;
+            }
+        };
 
         /**
          * Accumulate fragments.
