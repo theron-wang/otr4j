@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -64,6 +64,11 @@ import static org.bouncycastle.util.Arrays.concatenate;
 final class DoubleRatchet implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(DoubleRatchet.class.getName());
+
+    /**
+     * Maximum number of stored messagekeys. (Before eldest get evicted.)
+     */
+    private static final int MAX_STORED_MESSAGEKEYS = 1000;
 
     /**
      * Monotonic timestamp of the last rotation activity. ({@link System#nanoTime()})
@@ -122,7 +127,7 @@ final class DoubleRatchet implements AutoCloseable {
      */
     // TODO need to eventually perform clean up of `storedKeys` (inject MK_MACs into `macsToReveal`, see spec) to avoid growing indefinitely, even if only a problem for long run-times.
     @Nonnull
-    private final HashMap<Long, MessageKeys> storedKeys;
+    private final LinkedHashMap<Long, MessageKeys> storedKeys;
 
     /**
      * MAC keys to be revealed. (in spec `mac_keys_to_reveal`)
@@ -157,12 +162,21 @@ final class DoubleRatchet implements AutoCloseable {
         clear(firstRootKey);
         final byte[] newRootKey = kdf(ROOT_KEY_LENGTH_BYTES, ROOT_KEY, concatPreviousRootKeyNewK);
         clear(concatPreviousRootKeyNewK);
-        return new DoubleRatchet(0, 0, sharedSecret, newRootKey, sender, receiver, next, new HashMap<>());
+        // Create a new message-keys store with an upper bound on the number of entries. This works given that a shallow
+        // copy is made of the store whenever we work with a (provisional) rotation. The "winning" instance contains the
+        // accurate number of (most recent) message-keys.
+        final LinkedHashMap<Long, MessageKeys> newStore = new LinkedHashMap<>() {
+            @Override
+            protected boolean removeEldestEntry(final Map.Entry<Long, MessageKeys> eldest) {
+                return this.size() > MAX_STORED_MESSAGEKEYS;
+            }
+        };
+        return new DoubleRatchet(0, 0, sharedSecret, newRootKey, sender, receiver, next, newStore);
     }
 
     private static DoubleRatchet rotate(final Purpose rotate, final int nextI, final int pn, final MixedSharedSecret newSharedSecret,
             final byte[] prevRootKey, final Ratchet sender, final Ratchet receiver,
-            final HashMap<Long, MessageKeys> storedKeys) {
+            final LinkedHashMap<Long, MessageKeys> storedKeys) {
         requireLengthExactly(ROOT_KEY_LENGTH_BYTES, prevRootKey);
         assert !allZeroBytes(prevRootKey) : "Expecting random data instead of all zero-bytes. There might be something severely wrong.";
         final byte[] newK = newSharedSecret.getK();
@@ -193,7 +207,7 @@ final class DoubleRatchet implements AutoCloseable {
 
     private DoubleRatchet(final int i, final int pn, final MixedSharedSecret sharedSecret, final byte[] newRootKey,
             final Ratchet sender, final Ratchet receiver, final Purpose next,
-            final HashMap<Long, MessageKeys> storedKeys) {
+            final LinkedHashMap<Long, MessageKeys> storedKeys) {
         this.i = i;
         this.pn = pn;
         this.rootKey = requireLengthExactly(ROOT_KEY_LENGTH_BYTES, newRootKey);
@@ -208,6 +222,10 @@ final class DoubleRatchet implements AutoCloseable {
     public void close() {
         clear(this.rootKey);
         this.sharedSecret.close();
+        // NOTE: be careful not to (want to) deep-clear the storedKeys here, because this instance may be a
+        // (provisional) copy, meaning that any storedKeys we clear, are also cleared in the other instance, because the
+        // provisional copy contains a shallow copy of the stored keys. (We don't want to clear stored message-keys
+        // en-masse.)
         // TODO ensure that storedKeys are cleaned up.
         // TODO we need to derive MK_MAC keys from storedKeys and reveal those.
         //if (this.storedKeys.size() > 0) {
@@ -532,13 +550,13 @@ final class DoubleRatchet implements AutoCloseable {
         }
         // Shallow-copy the `storedKeys` map such that we can add possible new message keys as we fast-foward to the
         // last message sent in this ratchet.
-        final HashMap<Long, MessageKeys> newStoredKeys = new HashMap<>(this.storedKeys);
+        final LinkedHashMap<Long, MessageKeys> copyOfStoredKeys = new LinkedHashMap<>(this.storedKeys);
         if (this.receiverRatchet != Ratchet.INITIAL) {
-            this.receiverRatchet.speculate().drainInto(newStoredKeys, Math.max(0, this.i - 1), pn);
+            this.receiverRatchet.speculate().drainInto(copyOfStoredKeys, Math.max(0, this.i - 1), pn);
         }
         final MixedSharedSecret newSharedSecret = this.sharedSecret.rotateTheirKeys(dhratchet, nextECDH, nextDH);
         return rotate(Purpose.RECEIVING, this.i + 1, this.pn, newSharedSecret, this.rootKey, this.senderRatchet,
-                this.receiverRatchet, newStoredKeys);
+                this.receiverRatchet, copyOfStoredKeys);
     }
 
     /**

@@ -391,6 +391,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
 
     @Override
     public void destroy() {
+        // TODO consider distinguishing between "normal" close(), also used for provisionally rotated DoubleRatchet-instances, and a (hypothetical) "destroy()" which is called upon exiting StateEncrypted4 to eradicate any remaining message-keys.
         this.ratchet.close();
         this.smp.close();
     }

@@ -120,7 +120,7 @@ __Functionality__
   - ☑ Revealing used MAC keys
   - ☑ Revealing queued up MAC keys upon session expiration.
   - ☑ Revealing MAC keys generated from memorized message keys upon session expiration.
-  - ☐ Periodic clean-up of (oldest) skipped message-keys
+  - ☑ Periodic clean-up of (oldest) skipped message-keys
 - Message encryption/decryption:
   - ☑ In-order messages
   - ☑ In-order messages with some messages missing
