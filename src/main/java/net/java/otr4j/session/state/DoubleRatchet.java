@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -124,6 +125,8 @@ final class DoubleRatchet implements AutoCloseable {
      * <p>
      * key: <code>[4-byte ratchetId]|[4-byte messageId]</code>
      * </p>
+     * Note: storedKeys must maintain insertion-order to ensure that `evictExcessKeys()` correctly removes oldest
+     * message-keys first.
      */
     // TODO need to eventually perform clean up of `storedKeys` (inject MK_MACs into `macsToReveal`, see spec) to avoid growing indefinitely, even if only a problem for long run-times.
     @Nonnull
@@ -165,13 +168,7 @@ final class DoubleRatchet implements AutoCloseable {
         // Create a new message-keys store with an upper bound on the number of entries. This works given that a shallow
         // copy is made of the store whenever we work with a (provisional) rotation. The "winning" instance contains the
         // accurate number of (most recent) message-keys.
-        final LinkedHashMap<Long, MessageKeys> newStore = new LinkedHashMap<>() {
-            @Override
-            protected boolean removeEldestEntry(final Map.Entry<Long, MessageKeys> eldest) {
-                return this.size() > MAX_STORED_MESSAGEKEYS;
-            }
-        };
-        return new DoubleRatchet(0, 0, sharedSecret, newRootKey, sender, receiver, next, newStore);
+        return new DoubleRatchet(0, 0, sharedSecret, newRootKey, sender, receiver, next, new LinkedHashMap<>());
     }
 
     private static DoubleRatchet rotate(final Purpose rotate, final int nextI, final int pn, final MixedSharedSecret newSharedSecret,
@@ -236,6 +233,21 @@ final class DoubleRatchet implements AutoCloseable {
         }
         this.senderRatchet.close();
         this.receiverRatchet.close();
+    }
+
+    /**
+     * Evict (and clear) excess stored MessageKeys.
+     * <p>
+     * Note: this method must not be called upon a provisional copy of the DoubleRatchet instance as it will clear
+     * stored message-keys. Given that this only concerns message-keys for received messages, a sensible choice is after
+     * message authentication and decryption.
+     */
+    void evictExcessKeys() {
+        final Iterator<MessageKeys> it = this.storedKeys.values().iterator();
+        while (it.hasNext() && this.storedKeys.size() > MAX_STORED_MESSAGEKEYS) {
+            it.next().close();
+            it.remove();
+        }
     }
 
     /**
@@ -705,8 +717,8 @@ final class DoubleRatchet implements AutoCloseable {
         }
 
         /**
-         * Simula simulates a number of chain key rotations. This makes it possible to acquire the right authentication and
-         * decryption keys, resp. MK_MAC and MK_ENC, without changing the state yet.
+         * Simula simulates a number of chain key rotations. This makes it possible to acquire the right authentication
+         * and decryption keys, resp. MK_MAC and MK_ENC, without changing the state yet.
          */
         private final class Simula {
 

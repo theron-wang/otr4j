@@ -293,6 +293,7 @@ final class StateEncrypted4 extends AbstractCommonState implements StateEncrypte
             this.ratchet = provisional;
         }
         this.ratchet.confirmReceivingChainKey(message.i, message.j);
+        this.ratchet.evictExcessKeys();
         // Process decrypted message contents. Extract and process TLVs. Possibly reply, e.g. SMP, disconnect.
         final byte[] currentESK = extraSymmetricKey.clone();
         final Content content = extractContents(decrypted);
