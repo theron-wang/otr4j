@@ -202,12 +202,17 @@ final class SessionImpl implements Session, Context {
 
     /**
      * The Client Profile.
+     * <p>
+     * Note: the container provides shared access to a single instance, shared between master and all its slaves.
      */
     @Nonnull
-    private final ClientProfile profile;
+    private final ClientProfile[] profile;
 
     /**
      * The OTR-encodable, signed payload containing the client profile, ready to be sent.
+     * <p>
+     * Note: the container provides shared access to a single instance, shared between master and all its slaves. This
+     * isn't ideal. A better approach is to define distinct types for master and its slaves.
      */
     // TODO refresh client profile payload after it is expired. (Maybe leave until after initial use, as expiration date is recommended for 2+ weeks.)
     // TODO consider keeping an internal class-level cache of signed payload per client profile, such that we do not keep constructing it again and again
@@ -215,7 +220,7 @@ final class SessionImpl implements Session, Context {
     // TODO ability to identify when a new Client Profile is composed such that we need to refresh and republish the Client Profile payload.
     // TODO is there a risk of filling up memory by spamming unique instance tags just to have the library create sessions and grow the session map?
     @Nonnull
-    private final ClientProfilePayload profilePayload;
+    private final ClientProfilePayload[] profilePayload;
 
     /**
      * Receiver instance tag.
@@ -338,56 +343,56 @@ final class SessionImpl implements Session, Context {
         this.outgoingSession = this;
         this.sessionState = new StatePlaintext(StateInitial.instance());
         // Initialize the Client Profile and payload.
-        ClientProfilePayload payload;
-        ClientProfile profile;
-        try {
-            if (this.masterSession == this) {
+        if (this.masterSession == this) {
+            ClientProfilePayload payload;
+            ClientProfile profile;
+            try {
                 payload = ClientProfilePayload.readFrom(new OtrInputStream(this.host.restoreClientProfilePayload()));
                 profile = payload.validate();
                 this.logger.log(FINE, "Successfully restored client profile from OTR Engine Host.");
-            } else {
-                payload = this.masterSession.profilePayload;
-                profile = this.masterSession.profile;
+            } catch (final OtrCryptoException | ProtocolException | ValidationException e) {
+                this.logger.log(FINE,
+                        "Failed to load client profile from OTR Engine Host. Generating new client profile… (Problem: {0})",
+                        e.getMessage());
+                final OtrPolicy policy = this.host.getSessionPolicy(sessionID);
+                final EdDSAKeyPair longTermKeyPair = this.host.getLongTermKeyPair(sessionID);
+                final Point longTermPublicKey = longTermKeyPair.getPublicKey();
+                final Point forgingPublicKey = this.host.getForgingKeyPair(sessionID).getPublicKey();
+                final List<Version> versions;
+                final DSAKeyPair legacyKeyPair;
+                final DSAPublicKey legacyPublicKey;
+                if (policy.isAllowV3()) {
+                    versions = List.of(THREE, FOUR);
+                    legacyKeyPair = this.host.getLocalKeyPair(sessionID);
+                    legacyPublicKey = legacyKeyPair.getPublic();
+                } else {
+                    versions = List.of(FOUR);
+                    legacyKeyPair = null;
+                    legacyPublicKey = null;
+                }
+                profile = new ClientProfile(InstanceTag.random(secureRandom), longTermPublicKey, forgingPublicKey, versions,
+                        legacyPublicKey);
+                requireNotEquals(ZERO_TAG, profile.getInstanceTag(),
+                        "Only actual instance tags are allowed. The 'zero' tag is not valid.");
+                final Calendar expirationDate = Calendar.getInstance();
+                expirationDate.add(Calendar.DAY_OF_YEAR, 14);
+                payload = signClientProfile(profile, expirationDate.getTimeInMillis() / 1000,
+                        legacyKeyPair, longTermKeyPair);
+                this.host.updateClientProfilePayload(OtrEncodables.encode(payload));
             }
-        } catch (final OtrCryptoException | ProtocolException | ValidationException e) {
-            this.logger.log(FINE,
-                    "Failed to load client profile from OTR Engine Host. Generating new client profile… (Problem: {0})",
-                    e.getMessage());
-            final OtrPolicy policy = this.host.getSessionPolicy(sessionID);
-            final EdDSAKeyPair longTermKeyPair = this.host.getLongTermKeyPair(sessionID);
-            final Point longTermPublicKey = longTermKeyPair.getPublicKey();
-            final Point forgingPublicKey = this.host.getForgingKeyPair(sessionID).getPublicKey();
-            final List<Version> versions;
-            final DSAKeyPair legacyKeyPair;
-            final DSAPublicKey legacyPublicKey;
-            if (policy.isAllowV3()) {
-                versions = List.of(THREE, FOUR);
-                legacyKeyPair = this.host.getLocalKeyPair(sessionID);
-                legacyPublicKey = legacyKeyPair.getPublic();
-            } else {
-                versions = List.of(FOUR);
-                legacyKeyPair = null;
-                legacyPublicKey = null;
+            // Verify consistent use of long-term (identity) keypairs…
+            requireEquals(profile.getLongTermPublicKey(), this.host.getLongTermKeyPair(this.sessionID).getPublicKey(),
+                    "Long-term keypair provided by OtrEngineHost must be same as in the client profile.");
+            final DSAPublicKey profileDSAPublicKey = profile.getDsaPublicKey();
+            if (profileDSAPublicKey != null) {
+                requireEquals(profileDSAPublicKey, this.host.getLocalKeyPair(this.sessionID).getPublic(),
+                        "Local (OTRv3) keypair provided by OtrEngineHost must be same as in the client profile.");
             }
-            profile = new ClientProfile(InstanceTag.random(secureRandom), longTermPublicKey, forgingPublicKey, versions,
-                    legacyPublicKey);
-            requireNotEquals(ZERO_TAG, profile.getInstanceTag(),
-                    "Only actual instance tags are allowed. The 'zero' tag is not valid.");
-            final Calendar expirationDate = Calendar.getInstance();
-            expirationDate.add(Calendar.DAY_OF_YEAR, 14);
-            payload = signClientProfile(profile, expirationDate.getTimeInMillis() / 1000,
-                    legacyKeyPair, longTermKeyPair);
-            this.host.updateClientProfilePayload(OtrEncodables.encode(payload));
-        }
-        this.profile = profile;
-        this.profilePayload = payload;
-        // Verify consistent use of long-term (identity) keypairs…
-        requireEquals(this.profile.getLongTermPublicKey(), this.host.getLongTermKeyPair(this.sessionID).getPublicKey(),
-                "Long-term keypair provided by OtrEngineHost must be same as in the client profile.");
-        final DSAPublicKey profileDSAPublicKey = this.profile.getDsaPublicKey();
-        if (profileDSAPublicKey != null) {
-            requireEquals(profileDSAPublicKey, this.host.getLocalKeyPair(this.sessionID).getPublic(),
-                    "Local (OTRv3) keypair provided by OtrEngineHost must be same as in the client profile.");
+            this.profilePayload = new ClientProfilePayload[]{payload};
+            this.profile = new ClientProfile[]{profile};
+        } else {
+            this.profilePayload = this.masterSession.profilePayload;
+            this.profile = this.masterSession.profile;
         }
     }
 
@@ -406,7 +411,10 @@ final class SessionImpl implements Session, Context {
     @Nonnull
     @Override
     public ClientProfilePayload getClientProfilePayload() {
-        return this.profilePayload;
+        // Note: the profile-payload (and client profile) are only relevant during AKE stage. Afterwards, we take
+        // relevant data from the profile that is maintained locally and we do not need to refer back to the profile
+        // itself.
+        return this.profilePayload[0];
     }
 
     @GuardedBy("masterSession")
@@ -528,7 +536,7 @@ final class SessionImpl implements Session, Context {
                 }
 
                 if (!ZERO_TAG.equals(fragment.getReceiverTag())
-                        && fragment.getReceiverTag().getValue() != this.profile.getInstanceTag().getValue()) {
+                        && fragment.getReceiverTag().getValue() != this.profile[0].getInstanceTag().getValue()) {
                     // The message is not intended for us. Discarding...
                     this.logger.finest("Received a message fragment with receiver instance tag that is different from ours. Ignore this message.");
                     handleEvent(this.host, this.sessionID, fragment.getReceiverTag(), Event.MESSAGE_FOR_ANOTHER_INSTANCE_RECEIVED,
@@ -558,7 +566,7 @@ final class SessionImpl implements Session, Context {
                     return new Result(ZERO_TAG, PLAINTEXT, true, false, null);
                 }
 
-                if (!ZERO_TAG.equals(message.receiverTag) && !message.receiverTag.equals(this.profile.getInstanceTag())) {
+                if (!ZERO_TAG.equals(message.receiverTag) && !message.receiverTag.equals(this.profile[0].getInstanceTag())) {
                     // The message is not intended for us. Discarding...
                     this.logger.finest("Received an encoded message with receiver instance tag that is different from ours. Ignore this message.");
                     handleEvent(this.host, this.sessionID, message.receiverTag, Event.MESSAGE_FOR_ANOTHER_INSTANCE_RECEIVED,
@@ -965,7 +973,7 @@ final class SessionImpl implements Session, Context {
     @Override
     @Nonnull
     public InstanceTag getSenderInstanceTag() {
-        return this.profile.getInstanceTag();
+        return this.profile[0].getInstanceTag();
     }
 
     @Override
