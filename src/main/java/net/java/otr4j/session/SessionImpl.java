@@ -55,6 +55,7 @@ import javax.annotation.Nullable;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.security.interfaces.DSAPublicKey;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -138,6 +139,8 @@ final class SessionImpl implements Session, Context {
 
     private static final String DEFAULT_FALLBACK_MESSAGE = "Your contact is requesting to start an encrypted chat. Please install an app that supports OTR: https://github.com/otr4j/otr4j/wiki/Apps";
 
+    private static final int DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS = 14;
+
     /**
      * Session state contains the currently active message state of the session.
      * <p>
@@ -201,26 +204,26 @@ final class SessionImpl implements Session, Context {
     private OfferStatus offerStatus;
 
     /**
-     * The Client Profile.
-     * <p>
-     * Note: the container provides shared access to a single instance, shared between master and all its slaves.
-     */
-    @Nonnull
-    private final ClientProfile[] profile;
-
-    /**
      * The OTR-encodable, signed payload containing the client profile, ready to be sent.
+     * <p>
+     * The client-profile, when it expires, gets noticed with calls to {@link #getClientProfilePayload()} and refreshed
+     * before returning the payload to the caller.
      * <p>
      * Note: the container provides shared access to a single instance, shared between master and all its slaves. This
      * isn't ideal. A better approach is to define distinct types for master and its slaves.
      */
-    // TODO refresh client profile payload after it is expired. (Maybe leave until after initial use, as expiration date is recommended for 2+ weeks.)
-    // TODO consider keeping an internal class-level cache of signed payload per client profile, such that we do not keep constructing it again and again
     // TODO ability for user to specify amount of expiration time on a profile
     // TODO ability to identify when a new Client Profile is composed such that we need to refresh and republish the Client Profile payload.
     // TODO is there a risk of filling up memory by spamming unique instance tags just to have the library create sessions and grow the session map?
     @Nonnull
     private final ClientProfilePayload[] profilePayload;
+
+    /**
+     * The sender-tag is the instance-tag from the client-profile.
+     * Note: this sender instance-tag must be same as instance-tag in ClientProfile. (`profilePayload`)
+     */
+    @Nonnull
+    private final InstanceTag senderTag;
 
     /**
      * Receiver instance tag.
@@ -375,7 +378,7 @@ final class SessionImpl implements Session, Context {
                 requireNotEquals(ZERO_TAG, profile.getInstanceTag(),
                         "Only actual instance tags are allowed. The 'zero' tag is not valid.");
                 final Calendar expirationDate = Calendar.getInstance();
-                expirationDate.add(Calendar.DAY_OF_YEAR, 14);
+                expirationDate.add(Calendar.DAY_OF_YEAR, DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS);
                 payload = signClientProfile(profile, expirationDate.getTimeInMillis() / 1000,
                         legacyKeyPair, longTermKeyPair);
                 this.host.updateClientProfilePayload(OtrEncodables.encode(payload));
@@ -389,10 +392,10 @@ final class SessionImpl implements Session, Context {
                         "Local (OTRv3) keypair provided by OtrEngineHost must be same as in the client profile.");
             }
             this.profilePayload = new ClientProfilePayload[]{payload};
-            this.profile = new ClientProfile[]{profile};
+            this.senderTag = profile.getInstanceTag();
         } else {
             this.profilePayload = this.masterSession.profilePayload;
-            this.profile = this.masterSession.profile;
+            this.senderTag = this.masterSession.senderTag;
         }
     }
 
@@ -408,12 +411,40 @@ final class SessionImpl implements Session, Context {
         return this.host.getLocalKeyPair(this.sessionID);
     }
 
+    // FIXME needs renaming, Context.getClientProfilePayload is no longer a constant-time "getter", as it may update the client-profile payload.
     @Nonnull
     @Override
     public ClientProfilePayload getClientProfilePayload() {
         // Note: the profile-payload (and client profile) are only relevant during AKE stage. Afterwards, we take
         // relevant data from the profile that is maintained locally and we do not need to refer back to the profile
         // itself.
+        // FIXME Needs testing! refresh client-profile (payload) and send updated client-profile payload to host?
+        if (this.profilePayload[0].expired(Instant.now())) {
+            final OtrPolicy policy = this.host.getSessionPolicy(this.sessionID);
+            final EdDSAKeyPair longTermKeyPair = this.host.getLongTermKeyPair(this.sessionID);
+            final List<Version> versions;
+            final DSAKeyPair legacyKeyPair;
+            final DSAPublicKey legacyPublicKey;
+            if (policy.isAllowV3()) {
+                versions = List.of(THREE, FOUR);
+                legacyKeyPair = this.host.getLocalKeyPair(this.sessionID);
+                legacyPublicKey = legacyKeyPair.getPublic();
+            } else {
+                versions = List.of(FOUR);
+                legacyKeyPair = null;
+                legacyPublicKey = null;
+            }
+            // Note: refreshing client-profile maintains current sender instance-tag.
+            final ClientProfile profile = new ClientProfile(this.senderTag, longTermKeyPair.getPublicKey(),
+                    this.host.getForgingKeyPair(this.sessionID).getPublicKey(), versions, legacyPublicKey);
+            requireNotEquals(ZERO_TAG, profile.getInstanceTag(),
+                    "Only actual instance tags are allowed. The 'zero' tag is not valid.");
+            final Calendar expirationDate = Calendar.getInstance();
+            expirationDate.add(Calendar.DAY_OF_YEAR, DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS);
+            this.profilePayload[0] = signClientProfile(profile, expirationDate.getTimeInMillis() / 1000,
+                    legacyKeyPair, longTermKeyPair);
+            this.host.updateClientProfilePayload(OtrEncodables.encode(this.profilePayload[0]));
+        }
         return this.profilePayload[0];
     }
 
@@ -536,7 +567,7 @@ final class SessionImpl implements Session, Context {
                 }
 
                 if (!ZERO_TAG.equals(fragment.getReceiverTag())
-                        && fragment.getReceiverTag().getValue() != this.profile[0].getInstanceTag().getValue()) {
+                        && fragment.getReceiverTag().getValue() != this.senderTag.getValue()) {
                     // The message is not intended for us. Discarding...
                     this.logger.finest("Received a message fragment with receiver instance tag that is different from ours. Ignore this message.");
                     handleEvent(this.host, this.sessionID, fragment.getReceiverTag(), Event.MESSAGE_FOR_ANOTHER_INSTANCE_RECEIVED,
@@ -566,7 +597,7 @@ final class SessionImpl implements Session, Context {
                     return new Result(ZERO_TAG, PLAINTEXT, true, false, null);
                 }
 
-                if (!ZERO_TAG.equals(message.receiverTag) && !message.receiverTag.equals(this.profile[0].getInstanceTag())) {
+                if (!ZERO_TAG.equals(message.receiverTag) && !message.receiverTag.equals(this.senderTag)) {
                     // The message is not intended for us. Discarding...
                     this.logger.finest("Received an encoded message with receiver instance tag that is different from ours. Ignore this message.");
                     handleEvent(this.host, this.sessionID, message.receiverTag, Event.MESSAGE_FOR_ANOTHER_INSTANCE_RECEIVED,
@@ -973,7 +1004,7 @@ final class SessionImpl implements Session, Context {
     @Override
     @Nonnull
     public InstanceTag getSenderInstanceTag() {
-        return this.profile[0].getInstanceTag();
+        return this.senderTag;
     }
 
     @Override

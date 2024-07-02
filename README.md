@@ -88,7 +88,7 @@ __Functionality__
         _This may be important as queue is flushed onto instance with first established private messaging. This may not always be desirable._
   - Client profiles:
     - ☑ Publishing of generated `ClientProfile` payloads through callback to `OtrEngineHost` (Affects _Deniability_-property.)
-    - ☐ Timely refreshing Client Profile payload (due to expiration / updated Client Profile parameters)
+    - ☑ Timely refreshing Client Profile payload (due to expiration / updated Client Profile parameters)
   - ☐ Strictly isolate OTRv3 and OTRv4 interactions: only accept OTRv2/3 messages in `START`, but not in any OTRv4 state, and vice versa. Separate `FINISH` states for OTRv2/3 and OTRv4.
   - OTRv4 operating modes:
     - ☑ OTRv3-compatible

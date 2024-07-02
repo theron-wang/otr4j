@@ -262,6 +262,25 @@ public final class ClientProfilePayload implements OtrEncodable {
     }
 
     /**
+     * Expired looks for the expiration-field and checks whether the client-profile is expired based on that field.
+     * Note that it does not perform any (further) validation of the client-profile.
+     *
+     * @param now the current moment to compare the expiration-date to
+     * @return Returns true iff expiration-date is in the past (compared to `now`)
+     * @throws IllegalStateException in case no ExpirationField exists in this (apparently incomplete) client-profile
+     * payload.
+     */
+    // FIXME needs testing
+    public boolean expired(final Instant now) {
+        for (final Field f : this.fields) {
+            if (f instanceof ExpirationField) {
+                return now.isAfter(Instant.ofEpochSecond(((ExpirationField) f).timestamp));
+            }
+        }
+        throw new IllegalStateException("BUG: expiration field missing in client-profile payload.");
+    }
+
+    /**
      * Validate the Client Profile payload and return a corresponding Client Profile instance iff validation succeeds.
      *
      * @return Returns ClientProfile iff validation succeeds.
