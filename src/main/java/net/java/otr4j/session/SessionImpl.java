@@ -56,6 +56,8 @@ import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.security.interfaces.DSAPublicKey;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -377,9 +379,8 @@ final class SessionImpl implements Session, Context {
                         legacyPublicKey);
                 requireNotEquals(ZERO_TAG, profile.getInstanceTag(),
                         "Only actual instance tags are allowed. The 'zero' tag is not valid.");
-                final Calendar expirationDate = Calendar.getInstance();
-                expirationDate.add(Calendar.DAY_OF_YEAR, DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS);
-                payload = signClientProfile(profile, expirationDate.getTimeInMillis() / 1000,
+                payload = signClientProfile(profile,
+                        Instant.now().plus(DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS, ChronoUnit.DAYS).getEpochSecond(),
                         legacyKeyPair, longTermKeyPair);
                 this.host.updateClientProfilePayload(OtrEncodables.encode(payload));
             }

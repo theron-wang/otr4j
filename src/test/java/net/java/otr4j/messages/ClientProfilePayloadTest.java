@@ -22,6 +22,7 @@ import org.junit.Test;
 
 import java.net.ProtocolException;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -33,6 +34,8 @@ import static net.java.otr4j.messages.ClientProfilePayload.readFrom;
 import static net.java.otr4j.messages.ClientProfilePayload.signClientProfile;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
 /*
@@ -76,6 +79,20 @@ public final class ClientProfilePayloadTest {
                 singletonList(Version.FOUR), this.dsaKeyPair.getPublic());
         // NOTE: now expecting this to fail during "testValidate" as assertions are active.
         signClientProfile(profile, Long.MAX_VALUE / 1000, null, keypair);
+    }
+
+    @SuppressWarnings("AssertWithSideEffects")
+    @Test
+    public void testConstructedExpiredPayloadTestExpired() {
+        boolean assertions = false;
+        assert assertions = true;
+        assumeFalse(assertions);
+        final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
+                singletonList(Version.FOUR), null);
+        final ClientProfilePayload expiredPayload = signClientProfile(profile, 0, null, keypair);
+        assertTrue(expiredPayload.expired(Instant.now()));
+        final ClientProfilePayload nonexpiredPayload = signClientProfile(profile, Long.MAX_VALUE/1000, null, keypair);
+        assertFalse(nonexpiredPayload.expired(Instant.now()));
     }
 
     @Test(expected = AssertionError.class)
