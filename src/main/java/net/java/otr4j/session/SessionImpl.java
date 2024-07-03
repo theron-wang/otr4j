@@ -58,7 +58,6 @@ import java.security.interfaces.DSAPublicKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -67,6 +66,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
@@ -141,6 +142,8 @@ final class SessionImpl implements Session, Context {
     private static final String DEFAULT_FALLBACK_MESSAGE = "Your contact is requesting to start an encrypted chat. Please install an app that supports OTR: https://github.com/otr4j/otr4j/wiki/Apps";
 
     private static final int DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS = 14;
+    
+    private static final int CLIENTPROFILE_EXPIRATION_POJECTION_HOURS = 12;
 
     /**
      * Session state contains the currently active message state of the session.
@@ -418,8 +421,10 @@ final class SessionImpl implements Session, Context {
         // Note: the profile-payload (and client profile) are only relevant during AKE stage. Afterwards, we take
         // relevant data from the profile that is maintained locally and we do not need to refer back to the profile
         // itself.
-        // FIXME Needs testing! refresh client-profile (payload) and send updated client-profile payload to host?
-        if (this.profilePayload[0].expired(Instant.now())) {
+        // Project expiration some hours into the future to anticipate and account for delays on remote client. Some
+        // messaging networks do not have a notion of "off-line", so there can be significant delays in response without
+        // an OTR-session being considered aborted/abandoned.
+        if (this.profilePayload[0].expired(Instant.now().plus(CLIENTPROFILE_EXPIRATION_POJECTION_HOURS, HOURS))) {
             final OtrPolicy policy = this.host.getSessionPolicy(this.sessionID);
             final EdDSAKeyPair longTermKeyPair = this.host.getLongTermKeyPair(this.sessionID);
             final List<Version> versions;
@@ -439,9 +444,8 @@ final class SessionImpl implements Session, Context {
                     this.host.getForgingKeyPair(this.sessionID).getPublicKey(), versions, legacyPublicKey);
             requireNotEquals(ZERO_TAG, profile.getInstanceTag(),
                     "Only actual instance tags are allowed. The 'zero' tag is not valid.");
-            final Calendar expirationDate = Calendar.getInstance();
-            expirationDate.add(Calendar.DAY_OF_YEAR, DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS);
-            this.profilePayload[0] = signClientProfile(profile, expirationDate.getTimeInMillis() / 1000,
+            this.profilePayload[0] = signClientProfile(profile,
+                    Instant.now().plus(DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS, DAYS).getEpochSecond(),
                     legacyKeyPair, longTermKeyPair);
             this.host.updateClientProfilePayload(OtrEncodables.encode(this.profilePayload[0]));
         }
@@ -463,7 +467,7 @@ final class SessionImpl implements Session, Context {
         requireEquals(this.sessionState, fromState,
                 "BUG: provided \"from\" state is not the current state. Expected " + this.sessionState + ", but got " + fromState);
         if (toState instanceof StateEncrypted) {
-            // REMARK evaluate what to do with situation where multiple instances establish private messaging session concurrently. One will be first, it will receive the queued messages. These might not go to the client instance that we want to.
+            // TODO evaluate what to do with situation where multiple instances establish private messaging session concurrently. One will be first, it will receive the queued messages. These might not go to the client instance that we want to.
             sendQueuedMessages((StateEncrypted) toState);
         }
         this.logger.log(FINE, "Transitioning to message state: " + toState);

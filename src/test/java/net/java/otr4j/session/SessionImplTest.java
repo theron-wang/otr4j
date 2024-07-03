@@ -23,7 +23,6 @@ import net.java.otr4j.io.OtrInputStream;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.QueryMessage;
 import net.java.otr4j.messages.ClientProfilePayload;
-import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.state.State;
 import net.java.otr4j.util.Classes;
 import org.junit.Test;
@@ -35,12 +34,12 @@ import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
 
+import static java.time.temporal.ChronoUnit.DAYS;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.api.OtrPolicy.OPPORTUNISTIC;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -154,29 +153,21 @@ public final class SessionImplTest {
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
         when(host.getForgingKeyPair(eq(sessionID))).thenReturn(forgingKey);
         when(host.getLocalKeyPair(eq(sessionID))).thenReturn(legacyKeyPair);
-        final long delay = 3000;
         final ClientProfilePayload expiringPayload = ClientProfilePayload.signClientProfile(profile,
-                Instant.now().plusSeconds(delay/1000).getEpochSecond(), null, longTermKeyPair);
+                Instant.now().plusSeconds(60).getEpochSecond(), null, longTermKeyPair);
         final OtrOutputStream serialized = new OtrOutputStream();
         expiringPayload.writeTo(serialized);
         when(host.restoreClientProfilePayload()).thenReturn(serialized.toByteArray());
         final SessionImpl session = new SessionImpl(sessionID, host);
-        Thread.sleep(delay);
-        final ClientProfilePayload[] container = Classes.readField(ClientProfilePayload[].class, session, "profilePayload");
-        try {
-            container[0].validate();
-            fail("Stored profile-payload is expected to be expired.");
-        } catch (final ValidationException e) {
-            // Expect validation failure.
-        }
-        // Sleeping to ensure that the profile expires.
         assertNotNull(session.getClientProfilePayload().validate());
         // Now acquire the refreshed client-profile bytes and ensure that it is valid.
         final ArgumentCaptor<byte[]> payloadCaptor = ArgumentCaptor.forClass(byte[].class);
         verify(host, times(1)).updateClientProfilePayload(payloadCaptor.capture());
         final byte[] payloadbytes = payloadCaptor.getValue();
         final ClientProfilePayload payload = ClientProfilePayload.readFrom(new OtrInputStream(payloadbytes));
-        assertFalse(payload.expired(Instant.now()));
+        // Ensure that this is the refreshed profile that is valid, and does not expire for next 14 days (default
+        // expiration)
+        assertFalse(payload.expired(Instant.now().plus(13, DAYS)));
         assertNotNull(payload.validate());
     }
 }
