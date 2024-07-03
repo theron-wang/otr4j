@@ -541,13 +541,13 @@ final class SessionImpl implements Session, Context {
                     || ((Fragment) m).getVersion() == FOUR)) {
                 final Fragment fragment = (Fragment) m;
 
-                if (ZERO_TAG.equals(fragment.getSenderTag())) {
+                if (fragment.getSenderTag().equals(ZERO_TAG)) {
                     this.logger.log(INFO, "Message fragment contains 0 sender tag. Ignoring message. (Message ID: {0}, index: {1}, total: {2})",
                             new Object[] {fragment.getIdentifier(), fragment.getIndex(), fragment.getTotal()});
                     return new Result(ZERO_TAG, PLAINTEXT, true, false, null);
                 }
 
-                if (!ZERO_TAG.equals(fragment.getReceiverTag())
+                if (!fragment.getReceiverTag().equals(ZERO_TAG)
                         && fragment.getReceiverTag().getValue() != this.senderTag.getValue()) {
                     // The message is not intended for us. Discarding...
                     this.logger.finest("Received a message fragment with receiver instance tag that is different from ours. Ignore this message.");
@@ -572,13 +572,13 @@ final class SessionImpl implements Session, Context {
                     && (((EncodedMessage) m).version == THREE || ((EncodedMessage) m).version == FOUR)) {
                 final EncodedMessage message = (EncodedMessage) m;
 
-                if (ZERO_TAG.equals(message.senderTag)) {
+                if (message.senderTag.equals(ZERO_TAG)) {
                     // An encoded message without a sender instance tag is always bad.
                     this.logger.warning("Encoded message is missing sender instance tag. Ignoring message.");
                     return new Result(ZERO_TAG, PLAINTEXT, true, false, null);
                 }
 
-                if (!ZERO_TAG.equals(message.receiverTag) && !message.receiverTag.equals(this.senderTag)) {
+                if (!message.receiverTag.equals(ZERO_TAG) && !message.receiverTag.equals(this.senderTag)) {
                     // The message is not intended for us. Discarding...
                     this.logger.finest("Received an encoded message with receiver instance tag that is different from ours. Ignore this message.");
                     handleEvent(this.host, this.sessionID, message.receiverTag, Event.MESSAGE_FOR_ANOTHER_INSTANCE_RECEIVED,
@@ -683,7 +683,7 @@ final class SessionImpl implements Session, Context {
     @Nonnull
     private Result handleEncodedMessage(final EncodedMessage message) throws OtrException {
         assert this.masterSession != this || message.version == TWO : "BUG: We should not process encoded message in master session for protocol version 3 or higher.";
-        assert !ZERO_TAG.equals(message.senderTag) : "BUG: No encoded message without sender instance tag should reach this point.";
+        assert !message.senderTag.equals(ZERO_TAG) : "BUG: No encoded message without sender instance tag should reach this point.";
         if (message.version == THREE && checkDHKeyMessage(message)) {
             // NOTE to myself: we check for DH-Key messages, because we would have sent a DH-Commit message with a 0
             // receiver tag, therefore the AKE-context is not yet part of a dedicated session instance. Therefore, the

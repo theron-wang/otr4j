@@ -49,7 +49,7 @@ final class SessionKeyManager implements AutoCloseable {
     /**
      * List of old MAC keys for this session. (Synchronized)
      */
-    private final List<byte[]> oldMacKeys = synchronizedList(new ArrayList<byte[]>(0));
+    private final List<byte[]> oldMacKeys = synchronizedList(new ArrayList<>(0));
 
     SessionKeyManager(final SecureRandom secureRandom, final DHKeyPairOTR3 localKeyPair,
             final DHPublicKey remotePublicKey) throws OtrCryptoException {

@@ -79,7 +79,7 @@ abstract class AbstractOTR3State implements State {
             throw new IllegalArgumentException("Illegal version");
         }
         final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
-        assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof DHCommitMessage
+        assert !encodedM.receiverTag.equals(ZERO_TAG) || encodedM instanceof DHCommitMessage
                 : "BUG: receiver instance should be set for anything other than the first AKE message.";
         // TODO We've started replicating current authState in *all* cases where a new slave session is created. Is this indeed correct? Probably is, but needs focused verification.
         final SessionID sessionID = context.getSessionID();

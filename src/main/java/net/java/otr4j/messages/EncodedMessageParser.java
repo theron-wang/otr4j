@@ -97,7 +97,7 @@ public final class EncodedMessageParser {
                 // We only verify the format of the data message, but do not perform the validation actions yet.
                 // Validation is delayed until a later point as we are missing context information for full validation.
                 return new DataMessage4(message.senderTag, message.receiverTag, flags, pn, i, j,
-                        ecdhPublicKey, ZERO.equals(dhPublicKey) ? null : dhPublicKey, ciphertext, authenticator,
+                        ecdhPublicKey, dhPublicKey.equals(ZERO) ? null : dhPublicKey, ciphertext, authenticator,
                         revealedMacs);
             }
             default:

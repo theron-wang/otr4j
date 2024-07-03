@@ -159,7 +159,7 @@ final class Assembler {
          */
         @Nullable
         String accumulate(final Fragment fragment) throws ProtocolException {
-            String[] parts = this.fragments.computeIfAbsent(fragment.getIdentifier(), k -> new String[fragment.getTotal()]);
+            final String[] parts = this.fragments.computeIfAbsent(fragment.getIdentifier(), k -> new String[fragment.getTotal()]);
             if (fragment.getTotal() != parts.length) {
                 LOGGER.log(Level.FINEST, "OTRv4 fragmentation of other party may be broken. Initial total is different from this message. Ignoring this fragment. (Original: {0}, current fragment: {1})",
                         new Object[]{parts.length, fragment.getTotal()});

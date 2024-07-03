@@ -150,7 +150,7 @@ public final class DHKeyPair implements AutoCloseable {
     @CheckReturnValue
     public static boolean checkPublicKey(final BigInteger publicKey) {
         return publicKey.compareTo(G3) >= 0 && publicKey.compareTo(MODULUS_MINUS_GEN) <= 0
-            && ONE.equals(publicKey.modPow(Q, MODULUS));
+            && publicKey.modPow(Q, MODULUS).equals(ONE);
     }
 
     // TODO clearing secret key does not guarantee secret key material is lost. Just that reference is gone.

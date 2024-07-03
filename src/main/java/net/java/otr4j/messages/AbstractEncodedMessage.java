@@ -75,6 +75,7 @@ public abstract class AbstractEncodedMessage implements Message, OtrEncodable {
         return this.receiverTag.equals(other.receiverTag);
     }
 
+    @SuppressWarnings("EnumOrdinal")
     @OverridingMethodsMustInvokeSuper
     @Override
     public void writeTo(final OtrOutputStream writer) {

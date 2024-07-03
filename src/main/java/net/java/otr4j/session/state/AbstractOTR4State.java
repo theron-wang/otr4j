@@ -59,7 +59,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
     Result handleEncodedMessage4(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
         requireEquals(Version.FOUR, message.version, "Encoded message must be part of protocol 4.");
         final AbstractEncodedMessage encodedM = parseEncodedMessage(message);
-        assert !ZERO_TAG.equals(encodedM.receiverTag) || encodedM instanceof IdentityMessage
+        assert !encodedM.receiverTag.equals(ZERO_TAG) || encodedM instanceof IdentityMessage
                 : "BUG: receiver instance should be set for anything other than the first AKE message.";
         final SessionID sessionID = context.getSessionID();
         if (encodedM instanceof DataMessage4) {

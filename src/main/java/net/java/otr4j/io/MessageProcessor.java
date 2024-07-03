@@ -237,6 +237,7 @@ public final class MessageProcessor {
         return builder.length() == 0 ? "" : " \t  \t\t\t\t \t \t \t  " + builder;
     }
 
+    @SuppressWarnings("EnumOrdinal")
     @Nonnull
     private static String generateQueryTag(final Iterable<Version> versions) {
         final ArrayList<Integer> values = new ArrayList<>();

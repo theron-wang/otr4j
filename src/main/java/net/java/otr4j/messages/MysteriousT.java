@@ -162,6 +162,7 @@ public final class MysteriousT implements OtrEncodable {
         return this.receiverInstanceTag.equals(other.receiverInstanceTag);
     }
 
+    @SuppressWarnings("EnumOrdinal")
     @Override
     public void writeTo(final OtrOutputStream out) {
         out.writeShort(this.protocolVersion.ordinal());

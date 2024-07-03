@@ -206,8 +206,7 @@ public final class ByteArrays {
     public static String toHexString(final byte[] in) {
         final StringBuilder out = new StringBuilder(in.length * 2);
         for (final byte b : in) {
-            out.append(HEX_ENCODER[(b >>> 4) & 0x0F]);
-            out.append(HEX_ENCODER[b & 0x0F]);
+            out.append(HEX_ENCODER[(b >>> 4) & 0x0F]).append(HEX_ENCODER[b & 0x0F]);
         }
         return out.toString();
     }
