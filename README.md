@@ -7,7 +7,7 @@ __update__ revoked a GPG subkey on a hardware-token that disappeared under suspi
 ## Status
 
 - __operational__: OTRv4 interactive: confidentiality, authentication (SMP), backwards-compatible with OTR version 3
-- __feature-incomplete__, missing: non-interactive session initiation, client-profile renewals during continuous execution, … (see _checklist_ below for details)
+- __feature-incomplete__, missing: non-interactive session initiation, … (see _checklist_ below for details)
 - __in development__: tested, _not reviewed_
 
 Implementation includes considerations as annotated in [otr4j/otrv4:/otrv4.md](<https://github.com/otr4j/otrv4/blob/review/otrv4.md>). Interoperability is tested using [echonetwork](<https://github.com/otr4j/echonetwork>), with other _otr4j_ instances and [_otrr_](<https://github.com/cobratbq/otrr>) instances.
