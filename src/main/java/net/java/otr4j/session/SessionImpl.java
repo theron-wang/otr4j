@@ -384,6 +384,8 @@ final class SessionImpl implements Session, Context {
                 payload = signClientProfile(profile,
                         Instant.now().plus(DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS, ChronoUnit.DAYS).getEpochSecond(),
                         legacyKeyPair, longTermKeyPair);
+                // FIXME handle exceptions?
+                // FIXME do we need to propagate the updated client profile to other master session instances?
                 this.host.updateClientProfilePayload(OtrEncodables.encode(payload));
             }
             // Verify consistent use of long-term (identity) keypairs…
@@ -447,6 +449,8 @@ final class SessionImpl implements Session, Context {
             this.profilePayload[0] = signClientProfile(profile,
                     Instant.now().plus(DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS, DAYS).getEpochSecond(),
                     legacyKeyPair, longTermKeyPair);
+            // FIXME handle exceptions?
+            // FIXME do we need to propagate the updated client profile to other master session instances?
             this.host.updateClientProfilePayload(OtrEncodables.encode(this.profilePayload[0]));
         }
         return this.profilePayload[0];
