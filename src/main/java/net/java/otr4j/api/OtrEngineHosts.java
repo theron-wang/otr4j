@@ -93,6 +93,36 @@ public final class OtrEngineHosts {
     }
 
     /**
+     * Request client-profile payload for restoring in session. Upon failure, returns empty payload.
+     *
+     * @param host the instance
+     * @return Returns the OTR-encoded client-profile payload.
+     */
+    @Nonnull
+    public static byte[] restoreClientProfilePayload(final OtrEngineHost host) {
+        try {
+            return host.restoreClientProfilePayload();
+        } catch (final RuntimeException e) {
+            LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while requesting client-profile payload from OtrEngineHost (host-application).", e);
+        }
+        return new byte[0];
+    }
+
+    /**
+     * Send updated client-profile payload to OtrEngineHost, i.e. the host-application.
+     *
+     * @param host the instance
+     * @param payload the OTR-encoded client-profile
+     */
+    public static void updateClientProfilePayload(final OtrEngineHost host, final byte[] payload) {
+        try {
+            host.updateClientProfilePayload(payload);
+        } catch (final RuntimeException e) {
+            LOGGER.log(WARNING, "Faulty OtrEngineHost! Runtime exception thrown while sending updated client-profile payload to OtrEngineHost (host-application) for persistence.", e);
+        }
+    }
+
+    /**
      * Signal an event to the OTR Engine Host with context. This utility offers a safety net in that it mitigates
      * unchecked exceptions that may occur as a result of a bad OTR Engine Host implementation.
      *

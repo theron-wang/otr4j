@@ -77,6 +77,8 @@ import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.api.OtrEngineHosts.handleEvent;
+import static net.java.otr4j.api.OtrEngineHosts.restoreClientProfilePayload;
+import static net.java.otr4j.api.OtrEngineHosts.updateClientProfilePayload;
 import static net.java.otr4j.api.OtrEngineListeners.duplicate;
 import static net.java.otr4j.api.OtrEngineListeners.outgoingSessionChanged;
 import static net.java.otr4j.api.OtrEngineListeners.sessionStatusChanged;
@@ -354,7 +356,7 @@ final class SessionImpl implements Session, Context {
             ClientProfilePayload payload;
             ClientProfile profile;
             try {
-                payload = ClientProfilePayload.readFrom(new OtrInputStream(this.host.restoreClientProfilePayload()));
+                payload = ClientProfilePayload.readFrom(new OtrInputStream(restoreClientProfilePayload(this.host)));
                 profile = payload.validate();
                 this.logger.log(FINE, "Successfully restored client profile from OTR Engine Host.");
             } catch (final OtrCryptoException | ProtocolException | ValidationException e) {
@@ -384,9 +386,8 @@ final class SessionImpl implements Session, Context {
                 payload = signClientProfile(profile,
                         Instant.now().plus(DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS, ChronoUnit.DAYS).getEpochSecond(),
                         legacyKeyPair, longTermKeyPair);
-                // FIXME handle exceptions?
                 // FIXME do we need to propagate the updated client profile to other master session instances?
-                this.host.updateClientProfilePayload(OtrEncodables.encode(payload));
+                updateClientProfilePayload(this.host, OtrEncodables.encode(payload));
             }
             // Verify consistent use of long-term (identity) keypairs…
             requireEquals(profile.getLongTermPublicKey(), this.host.getLongTermKeyPair(this.sessionID).getPublicKey(),
@@ -449,9 +450,8 @@ final class SessionImpl implements Session, Context {
             this.profilePayload[0] = signClientProfile(profile,
                     Instant.now().plus(DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS, DAYS).getEpochSecond(),
                     legacyKeyPair, longTermKeyPair);
-            // FIXME handle exceptions?
             // FIXME do we need to propagate the updated client profile to other master session instances?
-            this.host.updateClientProfilePayload(OtrEncodables.encode(this.profilePayload[0]));
+            updateClientProfilePayload(this.host, OtrEncodables.encode(this.profilePayload[0]));
         }
         return this.profilePayload[0];
     }
