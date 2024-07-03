@@ -37,8 +37,7 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
   - ❓ Basic Scalar-based and Point-based arithmetic operations: addition, subtraction, multiplication. (ring signatures, SMP)
 - ✔ Process OTRv4 data-messages provisionally: until a message is successfully authenticated (and decrypted) changes cannot be permanent.
 - ✔ Support for skipped messages and store skipped message keys.
-- ⏳ OTRv4 maintenance tasks (✔<s>session expiration timer</s>, ✔<s>heartbeat timer</s>, refreshing client profile)  
-    - TODO consider actual requirements: long-running application that needs to refresh as periodic action in its execution seems far-fetched with 2-week valid profiles. 
+- ✔ OTRv4 maintenance tasks (✔<s>session expiration timer</s>, ✔<s>heartbeat timer</s>, ✔<s>refreshing client profile</s>)
 - ⏳ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive".
 - ✔ [Reproducible build][maven-reproducible-builds]  
   (`mvn -o clean install && mvn -o clean verify artifact:compare -DskipTests`)
