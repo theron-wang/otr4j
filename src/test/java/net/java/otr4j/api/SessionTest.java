@@ -1279,55 +1279,6 @@ public class SessionTest {
     }
 
     @Test
-    public void testOTR4MessageQueuing() throws OtrException {
-        final Conversation c = new Conversation(3);
-        c.clientBob.sendMessage("Hi Alice");
-        assertEquals("Hi Alice", c.clientAlice.receiveMessage().content);
-
-        // Initiate OTR by sending query message.
-        c.clientAlice.session.startSession();
-        assertEquals(1, c.clientAlice.session.getInstances().size());
-        assertEquals(1, c.clientBob.session.getInstances().size());
-        assertNull(c.clientBob.receiveMessage().content);
-        assertEquals(1, c.clientAlice.session.getInstances().size());
-        assertEquals(1, c.clientBob.session.getInstances().size());
-        c.clientBob.sendMessage("Bob queued message 1");
-        assertEquals(1, c.clientAlice.receiptChannel.size());
-
-        // Expecting Identity message from Bob.
-        assertNull(c.clientAlice.receiveMessage().content);
-        assertEquals(2, c.clientAlice.session.getInstances().size());
-        assertEquals(1, c.clientBob.session.getInstances().size());
-        c.clientAlice.sendMessage("Alice queued encrypted message 1", 1);
-        c.clientAlice.sendMessage("Alice queued encrypted message 2", 1);
-        // We expect the messages to be queued, so no new messages should appear on the other party's receipt queue.
-        assertEquals(1, c.clientBob.receiptChannel.size());
-
-        // Expecting AUTH_R message from Alice.
-        assertNull(c.clientBob.receiveMessage().content);
-        assertEquals(2, c.clientAlice.session.getInstances().size());
-        assertEquals(2, c.clientBob.session.getInstances().size());
-        c.clientBob.sendMessage("Bob encrypted message 1", 1);
-        assertEquals(0, c.clientBob.receiptChannel.size());
-        assertEquals(ENCRYPTED, c.clientBob.session.getSessionStatus());
-        assertEquals(3, c.clientAlice.receiptChannel.size());
-
-        // Expecting AUTH_I message from Bob.
-        assertEquals(0, c.clientBob.receiptChannel.size());
-        assertNull(c.clientAlice.receiveMessage().content);
-        assertEquals(ENCRYPTED, c.clientAlice.session.getSessionStatus());
-        assertEquals(2, c.clientBob.receiptChannel.size());
-
-        assertEquals("Alice queued encrypted message 1", c.clientBob.receiveMessage().content);
-        assertEquals("Alice queued encrypted message 2", c.clientBob.receiveMessage().content);
-        assertEquals(0, c.clientBob.receiptChannel.size());
-
-        assertEquals("Bob queued message 1", c.clientAlice.receiveMessage().content);
-        assertEquals("Bob encrypted message 1", c.clientAlice.receiveMessage().content);
-        assertEquals(0, c.clientAlice.receiptChannel.size());
-    }
-
-    @Test
     public void testFragmentWithIllegalMetadataMismatchedSenderTag() throws OtrException {
         final SessionID sessionID = new SessionID("bob", "alice", "network");
         final OtrEngineHost host = mock(OtrEngineHost.class);

@@ -39,6 +39,8 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
 - ✔ Support for skipped messages and store skipped message keys.
 - ✔ OTRv4 maintenance tasks (✔<s>session expiration timer</s>, ✔<s>heartbeat timer</s>, ✔<s>refreshing client profile</s>)
 - ⏳ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive".
+- ⚡ Message-queuing is not supported.  
+  _It is not guaranteed that messages are sent to the right (expected) secure session. Multiple clients may be active, and the first established session is not necessarily the right session and is likely the weaker session._
 - ✔ [Reproducible build][maven-reproducible-builds]  
   (`mvn -o clean install && mvn -o clean verify artifact:compare -DskipTests`)
 - Clean up OTRv2 support.
@@ -81,10 +83,8 @@ __Functionality__
   - ☑ 'Interactive DAKE' implemented as Message states i.s.o. AKE states.
   - ☑ OTRv4 extension to OTR error messages
   - ☑ Periodic heartbeat messages
-  - [Queuing up messages](<docs/message-queueing.md>) while not in `ENCRYPTED_MESSAGES` state.
-    - ☑ Basic message queueing implemented. (Cannot fully work until Double Ratchet algorithm is implemented.)
-    - ☐ Message queueing configurable.  
-        _This may be important as queue is flushed onto instance with first established private messaging. This may not always be desirable._
+  - [Queuing up messages](<docs/message-queueing.md>) while not in `ENCRYPTED_MESSAGES` state.  
+    _Support was removed. There is no guarantee that queued message will be sent to the right session in case multiple sessions get established simultaneously._
   - Client profiles:
     - ☑ Publishing of generated `ClientProfile` payloads through callback to `OtrEngineHost` (Affects _Deniability_-property.)
     - ☑ Timely refreshing Client Profile payload (due to expiration / updated Client Profile parameters)

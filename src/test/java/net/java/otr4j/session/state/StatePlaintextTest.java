@@ -180,7 +180,6 @@ public class StatePlaintextTest {
         when(context.getSessionID()).thenReturn(new SessionID("bob", "alice", "network"));
         assertNull(state.transformSending(context, "Hello world!", Collections.emptyList(), FLAG_NONE));
         verify(context).startSession();
-        verify(context).queueMessage(eq("Hello world!"));
     }
 
     @Test

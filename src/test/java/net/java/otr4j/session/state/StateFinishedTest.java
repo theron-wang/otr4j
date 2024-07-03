@@ -151,14 +151,12 @@ public class StateFinishedTest {
         when(context.getReceiverInstanceTag()).thenReturn(ZERO_TAG);
         final StateFinished state = new StateFinished(StateInitial.instance());
         assertNull(state.transformSending(context, "Hello world!", Collections.emptySet(), (byte) 0));
-        verify(context).queueMessage(eq("Hello world!"));
         verify(host).handleEvent(eq(sessionID), eq(ZERO_TAG), eq(Event.SESSION_FINISHED), eq(Unit.UNIT));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testTransformSendingNullMessage() {
         final Context context = mock(Context.class);
-        doThrow(NullPointerException.class).when(context).queueMessage(null);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(context.getHost()).thenReturn(host);
         final SessionID sessionID = new SessionID("alice", "bob", "network");

@@ -297,14 +297,6 @@ final class SessionImpl implements Session, Context {
     };
 
     /**
-     * Message queue for messages queued until private messaging session is established.
-     * <p>
-     * The message queue is shared between master and slave sessions.
-     */
-    @GuardedBy("masterSession")
-    private final ArrayList<String> messageQueue;
-
-    /**
      * Constructor for setting up a master session.
      * <p>
      * Package-private constructor for creating new sessions. To create a sessions without using the OTR session
@@ -317,7 +309,7 @@ final class SessionImpl implements Session, Context {
      * @param host      The OTR engine host listener.
      */
     SessionImpl(final SessionID sessionID, final OtrEngineHost host) {
-        this(null, sessionID, host, ZERO_TAG, new SecureRandom(), new ArrayList<>());
+        this(null, sessionID, host, ZERO_TAG, new SecureRandom());
     }
 
     /**
@@ -332,7 +324,7 @@ final class SessionImpl implements Session, Context {
      * @param secureRandom  The secure random instance.
      */
     private SessionImpl(@Nullable final SessionImpl masterSession, final SessionID sessionID, final OtrEngineHost host,
-            final InstanceTag receiverTag, final SecureRandom secureRandom, final ArrayList<String> messageQueue) {
+            final InstanceTag receiverTag, final SecureRandom secureRandom) {
         this.masterSession = masterSession == null ? this : masterSession;
         assert this.masterSession.masterSession == this.masterSession : "BUG: expected master session to be its own master session. This is likely an illegal state.";
         this.secureRandom = requireNonNull(secureRandom);
@@ -340,7 +332,6 @@ final class SessionImpl implements Session, Context {
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.host = requireNonNull(host);
         this.receiverTag = requireNonNull(receiverTag);
-        this.messageQueue = requireNonNull(messageQueue);
         this.fragmenter = new Fragmenter(this.secureRandom, this.host, this.sessionID);
         this.offerStatus = OfferStatus.IDLE;
         // Master session uses the map to manage slave sessions. Slave sessions do not use the map.
@@ -470,10 +461,6 @@ final class SessionImpl implements Session, Context {
     public void transition(final State fromState, final State toState) {
         requireEquals(this.sessionState, fromState,
                 "BUG: provided \"from\" state is not the current state. Expected " + this.sessionState + ", but got " + fromState);
-        if (toState instanceof StateEncrypted) {
-            // TODO evaluate what to do with situation where multiple instances establish private messaging session concurrently. One will be first, it will receive the queued messages. These might not go to the client instance that we want to.
-            sendQueuedMessages((StateEncrypted) toState);
-        }
         this.logger.log(FINE, "Transitioning to message state: " + toState);
         this.sessionState = requireNonNull(toState);
         if (fromState.getStatus() != ENCRYPTED && toState.getStatus() == ENCRYPTED
@@ -488,20 +475,6 @@ final class SessionImpl implements Session, Context {
         }
         fromState.destroy();
         sessionStatusChanged(duplicate(this.listeners), this.sessionID, this.receiverTag);
-    }
-
-    @GuardedBy("masterSession")
-    private void sendQueuedMessages(final StateEncrypted toState) {
-        while (!this.messageQueue.isEmpty()) {
-            final String message = this.messageQueue.remove(0);
-            try {
-                final AbstractEncodedMessage encrypted = toState.transformSending(this, message,
-                        Collections.emptyList(), (byte) 0);
-                injectMessage(encrypted);
-            } catch (final OtrException e) {
-                this.logger.log(WARNING, "Failed to send queued message due to network failure.", e);
-            }
-        }
     }
 
     @Override
@@ -586,7 +559,7 @@ final class SessionImpl implements Session, Context {
                 if (!this.slaveSessions.containsKey(fragment.getSenderTag())) {
                     // TODO be more selective before creating new session instances, to avoid creating instances for bad messages.
                     final SessionImpl newSlaveSession = new SessionImpl(this, this.sessionID, this.host,
-                            fragment.getSenderTag(), this.secureRandom, this.messageQueue);
+                            fragment.getSenderTag(), this.secureRandom);
                     newSlaveSession.addOtrEngineListener(this.slaveSessionsListener);
                     this.slaveSessions.put(fragment.getSenderTag(), newSlaveSession);
                 }
@@ -616,7 +589,7 @@ final class SessionImpl implements Session, Context {
                 if (!this.slaveSessions.containsKey(message.senderTag)) {
                     // TODO be more selective before creating new session instances, to avoid creating instances for bad messages.
                     final SessionImpl newSlaveSession = new SessionImpl(this, this.sessionID, this.host,
-                            message.senderTag, this.secureRandom, this.messageQueue);
+                            message.senderTag, this.secureRandom);
                     newSlaveSession.addOtrEngineListener(this.slaveSessionsListener);
                     this.slaveSessions.put(message.senderTag, newSlaveSession);
                 }
@@ -1392,13 +1365,6 @@ final class SessionImpl implements Session, Context {
             final AbstractEncodedMessage heartbeat = ((StateEncrypted) state).transformSending(this, "",
                     Collections.emptyList(), FLAG_IGNORE_UNREADABLE);
             injectMessage(heartbeat);
-        }
-    }
-
-    @Override
-    public void queueMessage(final String message) {
-        synchronized (this.masterSession) {
-            this.messageQueue.add(message);
         }
     }
 }

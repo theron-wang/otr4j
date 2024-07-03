@@ -72,7 +72,6 @@ abstract class AbstractCommonState extends AbstractOTR4State {
     @Override
     public Message transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
             final byte flags) throws OtrException {
-        context.queueMessage(msgText);
         handleEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
                 Event.ENCRYPTED_MESSAGES_REQUIRED, msgText);
         return null;
