@@ -210,21 +210,6 @@ final class SessionImpl implements Session, Context {
     private OfferStatus offerStatus;
 
     /**
-     * The OTR-encodable, signed payload containing the client profile, ready to be sent.
-     * <p>
-     * The client-profile, when it expires, gets noticed with calls to {@link #getClientProfilePayload()} and refreshed
-     * before returning the payload to the caller.
-     * <p>
-     * Note: the container provides shared access to a single instance, shared between master and all its slaves. This
-     * isn't ideal. A better approach is to define distinct types for master and its slaves.
-     */
-    // TODO ability for user to specify amount of expiration time on a profile
-    // TODO ability to identify when a new Client Profile is composed such that we need to refresh and republish the Client Profile payload.
-    // TODO is there a risk of filling up memory by spamming unique instance tags just to have the library create sessions and grow the session map?
-    @Nonnull
-    private final ClientProfilePayload[] profilePayload;
-
-    /**
      * The sender-tag is the instance-tag from the client-profile.
      * Note: this sender instance-tag must be same as instance-tag in ClientProfile. (`profilePayload`)
      */
@@ -348,12 +333,18 @@ final class SessionImpl implements Session, Context {
             ClientProfile profile;
             try {
                 payload = ClientProfilePayload.readFrom(new OtrInputStream(restoreClientProfilePayload(this.host)));
-                profile = payload.validate();
+                // Validate the client-profile against far future, because constructing the master session is not
+                // concerned with the current validity of our own client-profile, but instead with ensuring that a
+                // consistent profile is provided. In case of errors, construct a new client-profile from scratch.
+                // An expired profile will be discovered upon the next request for our client-profile for OTRv4 session
+                // initialization.
+                profile = payload.validate(Instant.ofEpochMilli(0));
                 this.logger.log(FINE, "Successfully restored client profile from OTR Engine Host.");
             } catch (final OtrCryptoException | ProtocolException | ValidationException e) {
                 this.logger.log(FINE,
                         "Failed to load client profile from OTR Engine Host. Generating new client profile… (Problem: {0})",
                         e.getMessage());
+                // REMARK the host is expected to behave correctly, such that these callbacks do not cause runtime-exceptions. If this is the case, the account's master session will fail to construct. (Go with OtrException?)
                 final OtrPolicy policy = this.host.getSessionPolicy(sessionID);
                 final EdDSAKeyPair longTermKeyPair = this.host.getLongTermKeyPair(sessionID);
                 final Point longTermPublicKey = longTermKeyPair.getPublicKey();
@@ -370,14 +361,11 @@ final class SessionImpl implements Session, Context {
                     legacyKeyPair = null;
                     legacyPublicKey = null;
                 }
-                profile = new ClientProfile(InstanceTag.random(secureRandom), longTermPublicKey, forgingPublicKey, versions,
-                        legacyPublicKey);
-                requireNotEquals(ZERO_TAG, profile.getInstanceTag(),
-                        "Only actual instance tags are allowed. The 'zero' tag is not valid.");
+                profile = new ClientProfile(InstanceTag.random(secureRandom), longTermPublicKey, forgingPublicKey,
+                        versions, legacyPublicKey);
                 payload = signClientProfile(profile,
                         Instant.now().plus(DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS, ChronoUnit.DAYS).getEpochSecond(),
                         legacyKeyPair, longTermKeyPair);
-                // FIXME do we need to propagate the updated client profile to other master session instances?
                 updateClientProfilePayload(this.host, OtrEncodables.encode(payload));
             }
             // Verify consistent use of long-term (identity) keypairs…
@@ -388,10 +376,11 @@ final class SessionImpl implements Session, Context {
                 requireEquals(profileDSAPublicKey, this.host.getLocalKeyPair(this.sessionID).getPublic(),
                         "Local (OTRv3) keypair provided by OtrEngineHost must be same as in the client profile.");
             }
-            this.profilePayload = new ClientProfilePayload[]{payload};
+            // Note: the client-profile payload is not stored in SessionImpl such that the host-application
+            // (OtrEngineHost) can function as synchronization hub for all (master) sessions that share the same
+            // client-profile.
             this.senderTag = profile.getInstanceTag();
         } else {
-            this.profilePayload = this.masterSession.profilePayload;
             this.senderTag = this.masterSession.senderTag;
         }
     }
@@ -418,7 +407,20 @@ final class SessionImpl implements Session, Context {
         // Project expiration some hours into the future to anticipate and account for delays on remote client. Some
         // messaging networks do not have a notion of "off-line", so there can be significant delays in response without
         // an OTR-session being considered aborted/abandoned.
-        if (this.profilePayload[0].expired(Instant.now().plus(CLIENTPROFILE_EXPIRATION_POJECTION_HOURS, HOURS))) {
+        ClientProfilePayload payload;
+        try {
+            final byte[] data = restoreClientProfilePayload(this.host);
+            // Allow zero-length client-profile payload, such that host-application is ultimately in control of whether
+            // and when to force a profile refresh. This also allows host-application to influence when policy and
+            // keypairs are re-acquired from the host-application.
+            payload = data.length == 0 ? null : ClientProfilePayload.readFrom(new OtrInputStream(data));
+        } catch (final OtrCryptoException | ProtocolException | ValidationException e) {
+            // The host-application manages the client-profile payload as an opaque blob. In case no profile exists, an
+            // empty byte-array can be returned to reflect this. The host-application should not return a corrupted,
+            // incomplete or incorrect client-profile payload.
+            throw new IllegalStateException("Host-application provided illegal client-profile payload.", e);
+        }
+        if (payload == null || payload.expired(Instant.now().plus(CLIENTPROFILE_EXPIRATION_POJECTION_HOURS, HOURS))) {
             final OtrPolicy policy = this.host.getSessionPolicy(this.sessionID);
             final EdDSAKeyPair longTermKeyPair = this.host.getLongTermKeyPair(this.sessionID);
             final List<Version> versions;
@@ -438,13 +440,12 @@ final class SessionImpl implements Session, Context {
                     this.host.getForgingKeyPair(this.sessionID).getPublicKey(), versions, legacyPublicKey);
             requireNotEquals(ZERO_TAG, profile.getInstanceTag(),
                     "Only actual instance tags are allowed. The 'zero' tag is not valid.");
-            this.profilePayload[0] = signClientProfile(profile,
+            payload = signClientProfile(profile,
                     Instant.now().plus(DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS, DAYS).getEpochSecond(),
                     legacyKeyPair, longTermKeyPair);
-            // FIXME do we need to propagate the updated client profile to other master session instances?
-            updateClientProfilePayload(this.host, OtrEncodables.encode(this.profilePayload[0]));
+            updateClientProfilePayload(this.host, OtrEncodables.encode(payload));
         }
-        return this.profilePayload[0];
+        return payload;
     }
 
     @GuardedBy("masterSession")

@@ -42,6 +42,7 @@ import javax.annotation.Nonnull;
 import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
@@ -185,7 +186,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
 
     @Override
     void handleIdentityMessage(final Context context, final IdentityMessage message) throws OtrException {
-        final ClientProfile theirProfile = message.clientProfile.validate();
+        final ClientProfile theirProfile = message.clientProfile.validate(Instant.now());
         IdentityMessages.validate(message, theirProfile);
         final BigInteger ourHashedB = new BigInteger(1, OtrCryptoEngine4.shake256(32,
                 new OtrOutputStream().writeBigInt(this.previousMessage.b).toByteArray()));
@@ -208,8 +209,8 @@ final class StateAwaitingAuthR extends AbstractCommonState {
         final SessionID sessionID = context.getSessionID();
         final EdDSAKeyPair ourLongTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
         // Validate received Auth-R message.
-        final ClientProfile ourClientProfile = this.profilePayload.validate();
-        final ClientProfile theirClientProfile = message.clientProfile.validate();
+        final ClientProfile ourClientProfile = this.profilePayload.validate(Instant.now());
+        final ClientProfile theirClientProfile = message.clientProfile.validate(Instant.now());
         final byte[] phiR = MysteriousT4.generatePhi(AUTH_R_PHI, message.senderTag, message.receiverTag,
                 message.firstECDHPublicKey, message.firstDHPublicKey, this.firstECDHKeyPair.publicKey(),
                 this.firstDHKeyPair.publicKey(), sessionID.getUserID(), sessionID.getAccountID());

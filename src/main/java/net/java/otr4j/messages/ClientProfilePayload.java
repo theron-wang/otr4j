@@ -55,7 +55,7 @@ import static net.java.otr4j.util.Iterables.findByType;
  * This is the client profile in a representation that is easily serializable and that is able to carry the signatures
  * corresponding to the client profile.
  * <p>
- * The client profile payload is the unverified container for the data received from other parties. {@link #validate()}
+ * The client profile payload is the unverified container for the data received from other parties. {@link #validate(Instant now)}
  * will validate on success convert the type to the actual {@link ClientProfile} data-type. This split ensures that
  * client profiles are validated before trusted use.
  */
@@ -276,18 +276,19 @@ public final class ClientProfilePayload implements OtrEncodable {
                 return now.isAfter(Instant.ofEpochSecond(((ExpirationField) f).timestamp));
             }
         }
-        throw new IllegalStateException("BUG: expiration field missing in client-profile payload.");
+        throw new IllegalStateException("Expiration field missing in client-profile payload.");
     }
 
     /**
      * Validate the Client Profile payload and return a corresponding Client Profile instance iff validation succeeds.
      *
+     * @param now the instant in time to use for validation of the expiration time.
      * @return Returns ClientProfile iff validation succeeds.
      * @throws ValidationException In case of validation failure.
      */
     @Nonnull
-    public ClientProfile validate() throws ValidationException {
-        validate(this.fields, this.signature, Instant.now());
+    public ClientProfile validate(final Instant now) throws ValidationException {
+        validate(this.fields, this.signature, now);
         return reconstructClientProfile();
     }
 

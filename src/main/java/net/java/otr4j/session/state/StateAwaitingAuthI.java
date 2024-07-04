@@ -41,6 +41,7 @@ import javax.annotation.Nonnull;
 import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
@@ -212,7 +213,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
     // TODO eventually write a test case that demonstrates responses by multiple sessions, such that correct handling of ephemeral keys is mandatory or it will expose the bug.
     @Override
     void handleIdentityMessage(final Context context, final IdentityMessage message) throws OtrException {
-        final ClientProfile theirNewClientProfile = message.clientProfile.validate();
+        final ClientProfile theirNewClientProfile = message.clientProfile.validate(Instant.now());
         IdentityMessages.validate(message, theirNewClientProfile);
         final SessionID sessionID = context.getSessionID();
         final SecureRandom secureRandom = context.secureRandom();
@@ -255,8 +256,8 @@ final class StateAwaitingAuthI extends AbstractCommonState {
 
     private void handleAuthIMessage(final Context context, final AuthIMessage message) throws ValidationException {
         // Validate message.
-        final ClientProfile profileBobValidated = this.profileBob.validate();
-        final ClientProfile ourProfileValidated = this.ourProfile.validate();
+        final ClientProfile profileBobValidated = this.profileBob.validate(Instant.now());
+        final ClientProfile ourProfileValidated = this.ourProfile.validate(Instant.now());
         final byte[] phi = MysteriousT4.generatePhi(AUTH_I_PHI, message.senderTag, message.receiverTag,
                 this.theirFirstECDHPublicKey, this.theirFirstDHPublicKey, this.firstECDHKeyPair.publicKey(),
                 this.firstDHKeyPair.publicKey(), context.getSessionID().getUserID(),

@@ -14,6 +14,7 @@ import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.io.OtrInputStream;
 
 import java.net.ProtocolException;
+import java.time.Instant;
 import java.util.logging.Logger;
 
 import static java.util.logging.Level.FINE;
@@ -38,7 +39,7 @@ public final class ClientProfilePayloads {
     @CheckReturnValue
     public static boolean check(final byte[] payload) {
         try {
-            ClientProfilePayload.readFrom(new OtrInputStream(payload)).validate();
+            ClientProfilePayload.readFrom(new OtrInputStream(payload)).validate(Instant.now());
             return true;
         } catch (final ValidationException | ProtocolException | OtrCryptoException e) {
             LOGGER.log(FINE, "Failed client profile payload validation.", e);

@@ -159,7 +159,7 @@ public final class SessionImplTest {
         expiringPayload.writeTo(serialized);
         when(host.restoreClientProfilePayload()).thenReturn(serialized.toByteArray());
         final SessionImpl session = new SessionImpl(sessionID, host);
-        assertNotNull(session.getClientProfilePayload().validate());
+        assertNotNull(session.getClientProfilePayload().validate(Instant.now()));
         // Now acquire the refreshed client-profile bytes and ensure that it is valid.
         final ArgumentCaptor<byte[]> payloadCaptor = ArgumentCaptor.forClass(byte[].class);
         verify(host, times(1)).updateClientProfilePayload(payloadCaptor.capture());
@@ -168,6 +168,6 @@ public final class SessionImplTest {
         // Ensure that this is the refreshed profile that is valid, and does not expire for next 14 days (default
         // expiration)
         assertFalse(payload.expired(Instant.now().plus(13, DAYS)));
-        assertNotNull(payload.validate());
+        assertNotNull(payload.validate(Instant.now()));
     }
 }

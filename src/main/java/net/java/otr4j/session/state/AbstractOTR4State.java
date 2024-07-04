@@ -33,6 +33,7 @@ import net.java.otr4j.session.ake.AuthState;
 import javax.annotation.Nonnull;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,7 +92,7 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
      * @throws net.java.otr4j.messages.ValidationException In case of failure to validate received Identity message.
      */
     void handleIdentityMessage(final Context context, final IdentityMessage message) throws OtrException {
-        final ClientProfile theirClientProfile = message.clientProfile.validate();
+        final ClientProfile theirClientProfile = message.clientProfile.validate(Instant.now());
         validate(message, theirClientProfile);
         final SecureRandom secureRandom = context.secureRandom();
         final ECDHKeyPair x = ECDHKeyPair.generate(secureRandom);

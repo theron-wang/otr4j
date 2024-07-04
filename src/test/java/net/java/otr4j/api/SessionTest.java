@@ -32,6 +32,7 @@ import javax.annotation.Nonnull;
 import java.math.BigInteger;
 import java.net.ProtocolException;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
@@ -1286,7 +1287,7 @@ public class SessionTest {
         when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OTRV4_INTERACTIVE_ONLY));
         final ClientProfileTestUtils utils = new ClientProfileTestUtils();
         final ClientProfilePayload clientProfilePayload = utils.createClientProfile();
-        final ClientProfile clientProfile = clientProfilePayload.validate();
+        final ClientProfile clientProfile = clientProfilePayload.validate(Instant.now());
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getLongTermKeyPair());
         when(host.getForgingKeyPair(eq(sessionID))).thenReturn(utils.getForgingKeyPair());
         when(host.getLocalKeyPair(eq(sessionID))).thenReturn(utils.getLegacyKeyPair());
@@ -1312,7 +1313,7 @@ public class SessionTest {
         when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OTRV4_INTERACTIVE_ONLY));
         final ClientProfileTestUtils utils = new ClientProfileTestUtils();
         final ClientProfilePayload clientProfilePayload = utils.createClientProfile();
-        final ClientProfile clientProfile = clientProfilePayload.validate();
+        final ClientProfile clientProfile = clientProfilePayload.validate(Instant.now());
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getLongTermKeyPair());
         when(host.getForgingKeyPair(eq(sessionID))).thenReturn(utils.getForgingKeyPair());
         final Session session = createSession(sessionID, host);
@@ -1336,7 +1337,7 @@ public class SessionTest {
         when(host.getSessionPolicy(eq(sessionID))).thenReturn(new OtrPolicy(OTRV4_INTERACTIVE_ONLY));
         final ClientProfileTestUtils utils = new ClientProfileTestUtils();
         final ClientProfilePayload clientProfilePayload = utils.createClientProfile();
-        final ClientProfile clientProfile = clientProfilePayload.validate();
+        final ClientProfile clientProfile = clientProfilePayload.validate(Instant.now());
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(utils.getLongTermKeyPair());
         when(host.getForgingKeyPair(eq(sessionID))).thenReturn(utils.getForgingKeyPair());
         final Session session = createSession(sessionID, host);
@@ -1452,6 +1453,7 @@ public class SessionTest {
         return randomMessage(random, 1, maxLength);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static String randomMessage(final Random random, final int minLength, final int maxLength) {
         final byte[] arbitraryContent = new byte[minLength + random.nextInt(maxLength - minLength)];
         random.nextBytes(arbitraryContent);
@@ -1566,6 +1568,8 @@ public class SessionTest {
         private final BlockingQueue<String> receiptChannel;
 
         private final Session session;
+        
+        private byte[] payload = new byte[0];
 
         private OtrPolicy policy;
 
@@ -1658,12 +1662,12 @@ public class SessionTest {
         @Nonnull
         @Override
         public byte[] restoreClientProfilePayload() {
-            return new byte[0];
+            return this.payload;
         }
 
         @Override
         public void updateClientProfilePayload(final byte[] payload) {
-            // No need to do anything as we don't publish in this test dummy.
+            this.payload = payload;
         }
 
         @Nonnull

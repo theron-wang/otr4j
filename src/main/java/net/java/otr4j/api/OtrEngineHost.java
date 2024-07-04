@@ -116,11 +116,11 @@ public interface OtrEngineHost {
      * without having to actually be in contact with the owner of the Client Profile.
      * <p>
      * Once a Client Profile payload is successfully published, otr4j expects to be able to re-acquire this payload
-     * on construction. otr4j will call {@code updateClientProfilePayload(byte[])} to try and acquire the payload.
+     * on construction. otr4j will call {@link #restoreClientProfilePayload()} to try and acquire the payload.
      *
      * @param payload the encoded Client Profile payload.
      */
-    // TODO how should client profile refreshes be aligned for multiple concurrent sessions?
+    // TODO how to handle the case where multiple Session-instances all want to update the same expired profile, so we create and sign a number of profiles that are subsequently overwritten by the next session that beat the race-condition with the earliest update to be issued?
     void updateClientProfilePayload(byte[] payload);
 
     /**
@@ -137,6 +137,7 @@ public interface OtrEngineHost {
      *
      * @return Returns bytes of Client Profile payload, or zero-length array if unavailable.
      */
+    // FIXME does the javadoc need to be updated to correctly reflect importance of the callback?
     @Nonnull
     byte[] restoreClientProfilePayload();
 

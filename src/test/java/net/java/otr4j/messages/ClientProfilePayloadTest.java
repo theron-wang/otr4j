@@ -63,14 +63,14 @@ public final class ClientProfilePayloadTest {
     public void testConstructedPayloadIsReversible() throws ValidationException {
         final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
                 singletonList(Version.FOUR), null);
-        assertEquals(profile, signClientProfile(profile, Long.MAX_VALUE / 1000, null, keypair).validate());
+        assertEquals(profile, signClientProfile(profile, Long.MAX_VALUE / 1000, null, keypair).validate(Instant.now()));
     }
 
     @Test
     public void testConstructedPayloadWithDSAIsReversible() throws ValidationException {
         final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
                 singletonList(Version.FOUR), this.dsaKeyPair.getPublic());
-        assertEquals(profile, signClientProfile(profile, Long.MAX_VALUE / 1000, dsaKeyPair, keypair).validate());
+        assertEquals(profile, signClientProfile(profile, Long.MAX_VALUE / 1000, dsaKeyPair, keypair).validate(Instant.now()));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -101,7 +101,7 @@ public final class ClientProfilePayloadTest {
         // DSA public key is not present. It makes that the client-profile is no longer self-contained.
         final ClientProfile profile = new ClientProfile(tag, keypair.getPublicKey(), forgingKey,
                 singletonList(Version.FOUR), null);
-        assertEquals(profile, signClientProfile(profile, Long.MAX_VALUE / 1000, this.dsaKeyPair, this.keypair).validate());
+        assertEquals(profile, signClientProfile(profile, Long.MAX_VALUE / 1000, this.dsaKeyPair, this.keypair).validate(Instant.now()));
     }
 
     @Test(expected = NullPointerException.class)
