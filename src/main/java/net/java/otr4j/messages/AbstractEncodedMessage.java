@@ -75,12 +75,11 @@ public abstract class AbstractEncodedMessage implements Message, OtrEncodable {
         return this.receiverTag.equals(other.receiverTag);
     }
 
-    @SuppressWarnings("EnumOrdinal")
     @OverridingMethodsMustInvokeSuper
     @Override
     public void writeTo(final OtrOutputStream writer) {
         // Start writing common header of encoded messages.
-        writer.writeShort(this.protocolVersion.ordinal());
+        writer.writeShort(this.protocolVersion.value);
         writer.writeByte(getType());
         switch (this.protocolVersion) {
         case TWO:

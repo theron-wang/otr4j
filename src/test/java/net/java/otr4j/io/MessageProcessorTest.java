@@ -296,24 +296,24 @@ public final class MessageProcessorTest {
 
     @Test
     public void testEncodeVersionsStringSingletonSet() {
-        assertEquals("4", encodeVersionString(Collections.singleton(Version.FOUR.ordinal())));
+        assertEquals("4", encodeVersionString(Collections.singleton(Version.FOUR.value)));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testEncodeVersionsStringDoubleDigitVersion() {
-        encodeVersionString(Collections.singleton(Version.NONE.ordinal()));
+        encodeVersionString(Collections.singleton(Version.NONE.value));
     }
 
     @Test
     public void testEncodeVersionsStringMultipleVersions() {
-        assertEquals("342", encodeVersionString(Arrays.asList(Version.THREE.ordinal(), Version.FOUR.ordinal(),
-                Version.TWO.ordinal())));
+        assertEquals("342", encodeVersionString(Arrays.asList(Version.THREE.value, Version.FOUR.value,
+                Version.TWO.value)));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testEncodeVersionsStringMultipleVersionsSomeIllegal() {
-        encodeVersionString(Arrays.asList(Version.THREE.ordinal(), Version.FOUR.ordinal(), Version.NONE.ordinal(),
-                Version.TWO.ordinal()));
+        encodeVersionString(Arrays.asList(Version.THREE.value, Version.FOUR.value, Version.NONE.value,
+                Version.TWO.value));
     }
 
     @Test(expected = NullPointerException.class)

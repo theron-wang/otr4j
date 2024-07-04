@@ -237,12 +237,11 @@ public final class MessageProcessor {
         return builder.length() == 0 ? "" : " \t  \t\t\t\t \t \t \t  " + builder;
     }
 
-    @SuppressWarnings("EnumOrdinal")
     @Nonnull
     private static String generateQueryTag(final Iterable<Version> versions) {
         final ArrayList<Integer> values = new ArrayList<>();
         for (final Version v : versions) {
-            values.add(v.ordinal());
+            values.add(v.value);
         }
         final String versionsString = encodeVersionString(values);
         return versionsString.length() == 0 ? "" : HEAD + HEAD_QUERY_V + versionsString + HEAD_QUERY_Q;

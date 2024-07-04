@@ -299,7 +299,7 @@ public final class ClientProfilePayload implements OtrEncodable {
      * @param signature The OTRv4 signature for the fields contained in the client profile.
      * @throws ValidationException In case ClientProfilePayload contents are not inconsistent or signature is invalid.
      */
-    @SuppressWarnings({"EnumOrdinal", "PMD.CognitiveComplexity"})
+    @SuppressWarnings("PMD.CognitiveComplexity")
     private static void validate(final Iterable<Field> fields, final byte[] signature, final Instant now)
             throws ValidationException {
         InstanceTagField instanceTagField = null;
@@ -358,10 +358,10 @@ public final class ClientProfilePayload implements OtrEncodable {
         }
         out.write(forgingKeyField);
         validateNotNull(versionsField, "Incorrect number of versions fields. Expected exactly 1.");
-        if (!versionsField.versions.contains(Version.FOUR.ordinal())) {
+        if (!versionsField.versions.contains(Version.FOUR.value)) {
             throw new ValidationException("Expected at least OTR version 4 to be supported.");
         }
-        if (versionsField.versions.contains(Version.THREE.ordinal())) {
+        if (versionsField.versions.contains(Version.THREE.value)) {
             validateNotNull(transitionalSignatureField, "Version 3 is present in versions field. A transitional signature is required, but not provided.");
         }
         out.write(versionsField);

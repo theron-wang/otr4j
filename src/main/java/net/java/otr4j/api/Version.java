@@ -17,28 +17,27 @@ import java.util.logging.Logger;
 /**
  * Versions of the protocol that the code-base is aware of.
  */
-// TODO (EnumOrdinal) ErrorProne complains about the use of `.ordinal()`. ErrorProne is a PITA, but there is some truth to it. It works fine, that's not the point. However, strictly speaking, any introduction of an early entry screws with the hidden assumption that the ordinal value is in sync with the protocol version. I don't feel like fixing this now though, because nothing is actually broken.
 public enum Version {
     /**
      * NONE, the indicator in case no protocol version is applicable.
      */
-    NONE,
+    NONE(0),
     /**
      * Protocol version 1.
      */
-    ONE,
+    ONE(1),
     /**
      * Protocol version 2.
      */
-    TWO,
+    TWO(2),
     /**
      * Protocol version 3.
      */
-    THREE,
+    THREE(3),
     /**
      * Protocol version 4.
      */
-    FOUR;
+    FOUR(4);
 
     private static final Logger LOGGER = Logger.getLogger(Version.class.getName());
 
@@ -48,16 +47,24 @@ public enum Version {
     public static final EnumSet<Version> SUPPORTED = EnumSet.of(TWO, THREE, FOUR);
 
     /**
+     * The value that represents this protocol version.
+     */
+    public final int value;
+
+    Version(final int value) {
+        this.value = value;
+    }
+
+    /**
      * Match any protocol version on the corresponding ordinal, also the integer value for the protocol version.
      *
      * @param version protocol version
      * @return Returns the version instance corresponding to the integer value for the version.
      */
-    @SuppressWarnings("EnumOrdinal")
     @Nullable
     public static Version match(final int version) {
         for (final Version v : values()) {
-            if (v.ordinal() == version) {
+            if (v.value == version) {
                 return v;
             }
         }
