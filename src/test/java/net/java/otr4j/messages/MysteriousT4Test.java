@@ -9,7 +9,6 @@
 
 package net.java.otr4j.messages;
 
-import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
@@ -21,8 +20,6 @@ import java.net.ProtocolException;
 
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.messages.MysteriousT4.generatePhi;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("ConstantConditions")
 public class MysteriousT4Test {

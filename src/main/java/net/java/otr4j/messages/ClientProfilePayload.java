@@ -270,7 +270,6 @@ public final class ClientProfilePayload implements OtrEncodable {
      * @throws IllegalStateException in case no ExpirationField exists in this (apparently incomplete) client-profile
      * payload.
      */
-    // FIXME needs testing
     public boolean expired(final Instant now) {
         for (final Field f : this.fields) {
             if (f instanceof ExpirationField) {

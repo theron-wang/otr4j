@@ -408,7 +408,7 @@ final class SessionImpl implements Session, Context {
         return this.host.getLocalKeyPair(this.sessionID);
     }
 
-    // FIXME needs renaming, Context.getClientProfilePayload is no longer a constant-time "getter", as it may update the client-profile payload.
+    // TODO needs renaming, Context.getClientProfilePayload is no longer a constant-time "getter", as it may update the client-profile payload.
     @Nonnull
     @Override
     public ClientProfilePayload getClientProfilePayload() {
