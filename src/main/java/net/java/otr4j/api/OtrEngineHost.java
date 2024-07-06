@@ -120,7 +120,7 @@ public interface OtrEngineHost {
      *
      * @param payload the encoded Client Profile payload.
      */
-    // TODO how to handle the case where multiple Session-instances all want to update the same expired profile, so we create and sign a number of profiles that are subsequently overwritten by the next session that beat the race-condition with the earliest update to be issued?
+    // TODO how to handle the case where multiple Session-instances all want to update the same expired profile, so we create and sign a number of profiles that are subsequently overwritten by the next session that beat the race-condition with the earliest update to be issued? (There is an obvious solution that is providing previous payload, allowing for a atomic compare-and-swap. However, that makes things more complicated again, for a use-case that might never even arise depending on how the client is implemented. Leaving this for now. This can be implemented later, and the adjustment both in otr4j and in the host-application are fairly minor.)
     void updateClientProfilePayload(byte[] payload);
 
     /**
@@ -130,14 +130,19 @@ public interface OtrEngineHost {
      * Client Profile changes, we will need to refresh the payload and the refreshed payload would need to be published.
      * <p>
      * The client profile "payload" is the encoded (bytes) representation of the Client Profile data-structure. This
-     * payload contains public information, so is not considered sensitive information.
+     * payload contains public information, so is not considered sensitive information. The host-application should
+     * treat the payload as an opaque blob. Either the blob is returned as is, or an empty array to indicate either
+     * no payload is present or the host-application purged the payload.
+     * <p>
+     * The returned payload must correspond with long-term keypair, forging keypair, and optional legacy keypair. In
+     * case an expired/purged payload is refreshed by otr4j, these individual components will be queried and a new
+     * client-profile payload is generated based on those components. Returning data inconsistently will cause errors.
      * <p>
      * Note: only payloads that are successfully published ({@link #updateClientProfilePayload(byte[])}) should be
      * restored. otr4j assumes that the payload acquired through this method is already made public.
      *
-     * @return Returns bytes of Client Profile payload, or zero-length array if unavailable.
+     * @return Returns bytes of Client Profile payload, or zero-length array.
      */
-    // FIXME does the javadoc need to be updated to correctly reflect importance of the callback?
     @Nonnull
     byte[] restoreClientProfilePayload();
 

@@ -97,7 +97,6 @@ import static net.java.otr4j.session.api.SMPStatus.INPROGRESS;
 import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
 import static net.java.otr4j.session.state.State.FLAG_NONE;
 import static net.java.otr4j.util.Objects.requireEquals;
-import static net.java.otr4j.util.Objects.requireNotEquals;
 
 /**
  * Implementation of the OTR session.
@@ -416,35 +415,37 @@ final class SessionImpl implements Session, Context {
             payload = data.length == 0 ? null : ClientProfilePayload.readFrom(new OtrInputStream(data));
         } catch (final OtrCryptoException | ProtocolException | ValidationException e) {
             // The host-application manages the client-profile payload as an opaque blob. In case no profile exists, an
-            // empty byte-array can be returned to reflect this. The host-application should not return a corrupted,
+            // empty byte-array can be returned to reflect this. The host-application must not return a corrupted,
             // incomplete or incorrect client-profile payload.
             throw new IllegalStateException("Host-application provided illegal client-profile payload.", e);
         }
-        if (payload == null || payload.expired(Instant.now().plus(CLIENTPROFILE_EXPIRATION_POJECTION_HOURS, HOURS))) {
-            final OtrPolicy policy = this.host.getSessionPolicy(this.sessionID);
-            final EdDSAKeyPair longTermKeyPair = this.host.getLongTermKeyPair(this.sessionID);
-            final List<Version> versions;
-            final DSAKeyPair legacyKeyPair;
-            final DSAPublicKey legacyPublicKey;
-            if (policy.isAllowV3()) {
-                versions = List.of(THREE, FOUR);
-                legacyKeyPair = this.host.getLocalKeyPair(this.sessionID);
-                legacyPublicKey = legacyKeyPair.getPublic();
-            } else {
-                versions = List.of(FOUR);
-                legacyKeyPair = null;
-                legacyPublicKey = null;
-            }
-            // Note: refreshing client-profile maintains current sender instance-tag.
-            final ClientProfile profile = new ClientProfile(this.senderTag, longTermKeyPair.getPublicKey(),
-                    this.host.getForgingKeyPair(this.sessionID).getPublicKey(), versions, legacyPublicKey);
-            requireNotEquals(ZERO_TAG, profile.getInstanceTag(),
-                    "Only actual instance tags are allowed. The 'zero' tag is not valid.");
-            payload = signClientProfile(profile,
-                    Instant.now().plus(DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS, DAYS).getEpochSecond(),
-                    legacyKeyPair, longTermKeyPair);
-            updateClientProfilePayload(this.host, OtrEncodables.encode(payload));
+        if (payload != null && !payload.expired(Instant.now().plus(CLIENTPROFILE_EXPIRATION_POJECTION_HOURS, HOURS))) {
+            // REMARK we do not currently check the payload against host-returned policy and keypairs. The host is expected to return consistent, correct data.
+            return payload;
         }
+        // Payload was either purged by host-application, or present but expired, or the host call-back failed due to a
+        // bad implementation. Create a new profile.
+        final OtrPolicy policy = this.host.getSessionPolicy(this.sessionID);
+        final EdDSAKeyPair longTermKeyPair = this.host.getLongTermKeyPair(this.sessionID);
+        final List<Version> versions;
+        final DSAKeyPair legacyKeyPair;
+        final DSAPublicKey legacyPublicKey;
+        if (policy.isAllowV3()) {
+            versions = List.of(THREE, FOUR);
+            legacyKeyPair = this.host.getLocalKeyPair(this.sessionID);
+            legacyPublicKey = legacyKeyPair.getPublic();
+        } else {
+            versions = List.of(FOUR);
+            legacyKeyPair = null;
+            legacyPublicKey = null;
+        }
+        // Note: refreshing client-profile maintains current sender instance-tag.
+        final ClientProfile profile = new ClientProfile(this.senderTag, longTermKeyPair.getPublicKey(),
+                this.host.getForgingKeyPair(this.sessionID).getPublicKey(), versions, legacyPublicKey);
+        payload = signClientProfile(profile,
+                Instant.now().plus(DEFAULT_CLIENTPROFILE_EXPIRATION_DAYS, DAYS).getEpochSecond(),
+                legacyKeyPair, longTermKeyPair);
+        updateClientProfilePayload(this.host, OtrEncodables.encode(payload));
         return payload;
     }
 
