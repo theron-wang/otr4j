@@ -11,7 +11,6 @@ package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.Event;
 import net.java.otr4j.api.OtrException;
-import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.SessionStatus;
@@ -23,7 +22,6 @@ import net.java.otr4j.io.EncryptedMessage.Content;
 import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.PlainTextMessage;
-import net.java.otr4j.io.QueryMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
@@ -39,7 +37,6 @@ import javax.annotation.Nonnull;
 import javax.crypto.interfaces.DHPublicKey;
 import java.net.ProtocolException;
 import java.security.interfaces.DSAPublicKey;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,7 +46,6 @@ import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
 import static net.java.otr4j.api.OtrEngineHosts.handleEvent;
-import static net.java.otr4j.api.OtrPolicys.allowedVersions;
 import static net.java.otr4j.crypto.OtrCryptoEngine.aesDecrypt;
 import static net.java.otr4j.crypto.OtrCryptoEngine.aesEncrypt;
 import static net.java.otr4j.crypto.OtrCryptoEngine.sha1Hmac;
@@ -70,7 +66,7 @@ import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
  * @author Danny van Heumen
  */
 // TODO write additional unit tests for StateEncrypted3
-final class StateEncrypted3 extends AbstractCommonState implements StateEncrypted {
+final class StateEncrypted3 extends AbstractOTR4State implements StateEncrypted {
 
     private static final SessionStatus STATUS = SessionStatus.ENCRYPTED;
 
@@ -210,7 +206,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
             matchingKeys = this.sessionKeyManager.get(message.recipientKeyID, message.senderKeyID);
         } catch (final SessionKeyUnavailableException ex) {
             this.logger.finest("No matching keys found.");
-            handleUnreadableMessage(context, message, "", ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
+            handleUnreadableMessage(context, message, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return new Result(STATUS, true, false, null);
         }
 
@@ -220,7 +216,7 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
         final byte[] computedMAC = sha1Hmac(encode(message.getT()), matchingKeys.receivingMAC());
         if (!constantTimeEquals(computedMAC, message.mac)) {
             this.logger.finest("MAC verification failed, ignoring message.");
-            handleUnreadableMessage(context, message, "", ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
+            handleUnreadableMessage(context, message, ERROR_1_MESSAGE_UNREADABLE_MESSAGE);
             return new Result(STATUS, true, false, null);
         }
 
@@ -299,20 +295,6 @@ final class StateEncrypted3 extends AbstractCommonState implements StateEncrypte
     @Override
     Result handleDataMessage(final Context context, final DataMessage4 message) {
         throw new IllegalStateException("BUG: OTRv2/OTRv3 encrypted message state does not handle OTRv4 data messages.");
-    }
-
-    @Override
-    public void handleErrorMessage(final Context context, final ErrorMessage errorMessage) throws OtrException {
-        super.handleErrorMessage(context, errorMessage);
-        final OtrPolicy policy = context.getSessionPolicy();
-        if (!policy.viable() || !policy.isErrorStartAKE()) {
-            return;
-        }
-        // Re-negotiate if we got an error and we are in ENCRYPTED message state
-        this.logger.finest("Error message starts AKE.");
-        final Set<Version> versions = allowedVersions(policy);
-        this.logger.finest("Sending Query");
-        context.injectMessage(new QueryMessage(versions));
     }
 
     @Override

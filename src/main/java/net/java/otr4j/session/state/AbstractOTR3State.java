@@ -38,6 +38,7 @@ import static java.util.logging.Level.INFO;
 import static net.java.otr4j.api.InstanceTag.ZERO_TAG;
 import static net.java.otr4j.api.SessionStatus.ENCRYPTED;
 import static net.java.otr4j.messages.EncodedMessageParser.parseEncodedMessage;
+import static net.java.otr4j.session.state.Contexts.signalUnreadableMessage;
 
 /**
  * Abstract base implementation for session state implementations.
@@ -160,6 +161,23 @@ abstract class AbstractOTR3State implements State {
     public void initiateAKE(final Context context, final Version version, final InstanceTag receiverTag) throws OtrException {
         LOGGER.log(Level.FINE, "Initiating AKE…");
         context.injectMessage(this.authState.initiate(context, version, receiverTag));
+    }
+
+    /**
+     * Handle any OTR2/3 unreadable data-message.
+     *
+     * @param context the context
+     * @param message the unreadable data-message
+     * @param error the error message to feed back to the user
+     * @throws OtrException in case of failure to signal about the unreadable message
+     */
+    void handleUnreadableMessage(final Context context, final DataMessage message, final String error)
+            throws OtrException {
+        if ((message.flags & FLAG_IGNORE_UNREADABLE) == FLAG_IGNORE_UNREADABLE) {
+            LOGGER.fine("Unreadable message received with IGNORE_UNREADABLE flag set. Ignoring silently.");
+            return;
+        }
+        signalUnreadableMessage(context, "", error);
     }
 
     /**

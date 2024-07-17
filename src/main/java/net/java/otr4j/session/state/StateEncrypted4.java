@@ -66,7 +66,7 @@ import static net.java.otr4j.util.ByteArrays.concatenate;
  */
 // TODO write additional unit tests for StateEncrypted4
 // TODO decide whether or not we can drop the AuthState instance. Relies on fact that we need to know up to what point we should handle OTRv2/3 AKE messages.
-final class StateEncrypted4 extends AbstractCommonState implements StateEncrypted {
+final class StateEncrypted4 extends AbstractOTR4State implements StateEncrypted {
 
     private static final SessionStatus STATUS = SessionStatus.ENCRYPTED;
 

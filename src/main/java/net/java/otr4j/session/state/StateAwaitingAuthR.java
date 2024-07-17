@@ -63,7 +63,7 @@ import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_I;
 /**
  * OTRv4 AKE state AWAITING_AUTH_R.
  */
-final class StateAwaitingAuthR extends AbstractCommonState {
+final class StateAwaitingAuthR extends AbstractOTR4State {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingAuthR.class.getName());
 
@@ -250,7 +250,7 @@ final class StateAwaitingAuthR extends AbstractCommonState {
     @Override
     Result handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv3 data message in state WAITING_AUTH_I. Message cannot be read.");
-        handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
+        handleUnreadableMessage(context, message, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return new Result(STATUS, true, false, null);
     }
 

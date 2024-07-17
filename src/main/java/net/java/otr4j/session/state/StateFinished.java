@@ -44,7 +44,7 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
  *
  * @author Danny van Heumen
  */
-final class StateFinished extends AbstractCommonState {
+final class StateFinished extends AbstractOTR4State {
 
     private static final Logger LOGGER = Logger.getLogger(StateFinished.class.getName());
 
@@ -129,7 +129,7 @@ final class StateFinished extends AbstractCommonState {
     @Nonnull
     Result handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(Level.FINEST, "Received OTRv2/3 data message in FINISHED state. Message cannot be read.");
-        handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
+        handleUnreadableMessage(context, message, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return new Result(STATUS, true, false, null);
     }
 

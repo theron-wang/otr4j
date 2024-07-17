@@ -45,6 +45,7 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.ringSign;
 import static net.java.otr4j.messages.EncodedMessageParser.parseEncodedMessage;
 import static net.java.otr4j.messages.IdentityMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
+import static net.java.otr4j.session.state.Contexts.signalUnreadableMessage;
 import static net.java.otr4j.util.Objects.requireEquals;
 
 // REMARK probably possible to break hierarchy between `AbstractOTR4State` and `AbstractOTR3State`. Given recent changes to the control-flow, it is likely that these can be separated, as now only the Plaintext and Finish states really have need of both.
@@ -170,6 +171,16 @@ abstract class AbstractOTR4State extends AbstractOTR3State {
             throw new IllegalStateException("Session failed to transition to ENCRYPTED (OTRv4).");
         }
         LOGGER.info("Session secured. Message state transitioned to ENCRYPTED. (OTRv4)");
+    }
+
+    void handleUnreadableMessage(final Context context, final DataMessage4 message, final String identifier,
+            final String error) throws OtrException {
+        if ((message.flags & FLAG_IGNORE_UNREADABLE) == FLAG_IGNORE_UNREADABLE) {
+            // TODO consider detecting (and logging) whether revealed MAC-keys are non-empty. This concerns the issue with OTRv4 (also v3?) spec which mentions that when the other party receives a DISCONNECT-TLV, they end the session, but this means that they do not reveal present MAC keys to be revealed of our previous messages. Logging this allows us to check that the other party acts properly. That is, if we accept that as part of the spec.
+            LOGGER.fine("Unreadable message received with IGNORE_UNREADABLE flag set. Ignoring silently.");
+            return;
+        }
+        signalUnreadableMessage(context, identifier, error);
     }
 
     /**

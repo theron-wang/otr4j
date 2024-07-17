@@ -65,7 +65,7 @@ import static net.java.otr4j.util.ByteArrays.clear;
  * <p>
  * This is a state in which Alice will be while awaiting Bob's final message.
  */
-final class StateAwaitingAuthI extends AbstractCommonState {
+final class StateAwaitingAuthI extends AbstractOTR4State {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingAuthI.class.getName());
 
@@ -276,7 +276,7 @@ final class StateAwaitingAuthI extends AbstractCommonState {
     @Override
     Result handleDataMessage(final Context context, final DataMessage message) throws OtrException {
         LOGGER.log(FINEST, "Received OTRv3 data message in state WAITING_AUTH_I. Message cannot be read.");
-        handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
+        handleUnreadableMessage(context, message, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return new Result(STATUS, true, false, null);
     }
 

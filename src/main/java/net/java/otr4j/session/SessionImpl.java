@@ -745,7 +745,17 @@ final class SessionImpl implements Session, Context {
         assert this.masterSession == this : "BUG: handleErrorMessage should only ever be called from the master session, as no instance tags are known.";
         this.logger.log(FINEST, "{0} received an error message from {1} through {2}.",
                 new Object[] {this.sessionID.getAccountID(), this.sessionID.getUserID(), this.sessionID.getProtocolName()});
-        this.sessionState.handleErrorMessage(this, errorMessage);
+        handleEvent(this.host, this.sessionID, this.receiverTag, Event.ERROR, "OTR error: " + errorMessage.error);
+        final OtrPolicy policy = this.getSessionPolicy();
+        if (!policy.viable() || !policy.isErrorStartAKE()) {
+            return;
+        }
+        // TODO should we really start re-negotiation if we are in encrypted message state, because unauthenticated stray/malicious error messages can interfere with messaging state.
+        // Re-negotiate if we got an error and we are in ENCRYPTED message state
+        this.logger.finest("Error message starts AKE.");
+        final Set<Version> versions = allowedVersions(policy);
+        this.logger.finest("Sending Query");
+        this.injectMessage(new QueryMessage(versions));
     }
 
     @Override

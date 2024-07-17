@@ -9,6 +9,7 @@
 
 package net.java.otr4j.session.state;
 
+import net.java.otr4j.api.Event;
 import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.RemoteInfo;
@@ -16,7 +17,6 @@ import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.api.Version;
 import net.java.otr4j.io.EncodedMessage;
-import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.session.ake.AuthState;
@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.ProtocolException;
 
+import static net.java.otr4j.api.OtrEngineHosts.handleEvent;
 import static net.java.otr4j.util.Objects.requireNonNull;
 
 /**
@@ -94,7 +95,12 @@ public interface State {
      * @throws OtrException In case an exception occurs.
      */
     @Nullable
-    Message transformSending(Context context, String msgText, Iterable<TLV> tlvs, byte flags) throws OtrException;
+    default Message transformSending(final Context context, final String msgText, final Iterable<TLV> tlvs,
+            final byte flags) throws OtrException {
+        handleEvent(context.getHost(), context.getSessionID(), context.getReceiverInstanceTag(),
+                Event.ENCRYPTED_MESSAGES_REQUIRED, msgText);
+        return null;
+    }
 
     /**
      * Handle the received plaintext message.
@@ -183,16 +189,6 @@ public interface State {
     void initiateAKE(Context context, Version version, InstanceTag receiverTag) throws OtrException;
 
     /**
-     * Handle the received error message.
-     *
-     * @param context The message state context.
-     * @param errorMessage The error message.
-     * @throws OtrException In case an exception occurs.
-     */
-    // TODO allow translation of pre-defined error identifiers?
-    void handleErrorMessage(Context context, ErrorMessage errorMessage) throws OtrException;
-
-    /**
      * Call to end encrypted session, if any.
      * <p>
      * In case an encrypted session is established, this is the moment where the final MAC codes are revealed as part of
@@ -214,7 +210,9 @@ public interface State {
      * {@link IncorrectStateException} is thrown to indicate expiration is not applicable to this
      * state.
      */
-    void expire(Context context) throws OtrException;
+    default void expire(final Context context) throws OtrException {
+        throw new IncorrectStateException("State " + this.getClass().getName() + " does not expire.");
+    }
 
     /**
      * Get SMP TLV handler for use in SMP negotiations.
@@ -248,7 +246,9 @@ public interface State {
      * @return Returns monotonic timestamp of last activity. ({@linkplain System#nanoTime()})
      * @throws IncorrectStateException Thrown in case the current state does not have a notion of relevant activity.
      */
-    long getLastActivityTimestamp() throws IncorrectStateException;
+    default long getLastActivityTimestamp() throws IncorrectStateException {
+        throw new IncorrectStateException("State " + this.getClass().getName() + " does not expire.");
+    }
 
     /**
      * Get the timestamp of the most recently sent data message of this state. (The 'last message sent timestamp' is
@@ -260,5 +260,7 @@ public interface State {
      * @return Returns the monotonic timestamp of most recently sent message. ({@link System#nanoTime()})
      * @throws IncorrectStateException Thrown in case the current state does not do private messaging.
      */
-    long getLastMessageSentTimestamp() throws IncorrectStateException;
+    default long getLastMessageSentTimestamp() throws IncorrectStateException {
+        throw new IncorrectStateException("State " + this.getClass().getName() + " is not an encrypted state.");
+    }
 }
