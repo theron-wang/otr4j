@@ -65,7 +65,6 @@ import static net.java.otr4j.util.ByteArrays.clear;
  * <p>
  * This is a state in which Alice will be while awaiting Bob's final message.
  */
-// TODO check OTRv4 spec for instructions on temporarily storing recently received messages while negotiating.
 final class StateAwaitingAuthI extends AbstractCommonState {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingAuthI.class.getName());

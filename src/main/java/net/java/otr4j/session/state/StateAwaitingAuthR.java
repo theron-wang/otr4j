@@ -63,7 +63,6 @@ import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_I;
 /**
  * OTRv4 AKE state AWAITING_AUTH_R.
  */
-// TODO check OTRv4 spec for instructions on temporarily storing recently received messages while negotiating.
 final class StateAwaitingAuthR extends AbstractCommonState {
 
     private static final Logger LOGGER = Logger.getLogger(StateAwaitingAuthR.class.getName());
