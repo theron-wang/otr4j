@@ -59,10 +59,8 @@ import static org.bouncycastle.util.Arrays.concatenate;
  * <p>
  * DoubleRatchet is NOT thread-safe.
  */
-// TODO current idempotent rotation procedure (to start DoubleRatchet changes provisional) require a lot of copying/cloning data. Can we do this in a more efficient way?
 // TODO set-up clean up, revealed MAC keys, ...
-// TODO carefully inspect that this way of working with "provisional" ratchet instance, does indeed not leave any changes/traces. (public key handling .. closing keypairs when rotating receiver keys?)
-final class DoubleRatchet implements AutoCloseable {
+public final class DoubleRatchet implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(DoubleRatchet.class.getName());
 
@@ -128,7 +126,6 @@ final class DoubleRatchet implements AutoCloseable {
      * Note: storedKeys must maintain insertion-order to ensure that `evictExcessKeys()` correctly removes oldest
      * message-keys first.
      */
-    // TODO need to eventually perform clean up of `storedKeys` (inject MK_MACs into `macsToReveal`, see spec) to avoid growing indefinitely, even if only a problem for long run-times.
     @Nonnull
     private final LinkedHashMap<Long, MessageKeys> storedKeys;
 
@@ -138,8 +135,16 @@ final class DoubleRatchet implements AutoCloseable {
     // TODO fine-tuning revealing of MAC keys: (OTRv4) "A MAC key is added to `mac_keys_to_reveal` list after a participant has verified the message associated with that MAC key. They are also added if the session is expired or when the storage of message keys gets deleted, and the MAC keys for messages that have not arrived are derived."
     private final ByteArrayOutputStream reveals = new ByteArrayOutputStream();
 
+    /**
+     * initialize initializes the Double Ratchet for a specific purpose with established shared secret and first rootkey.
+     *
+     * @param purpose its initial keys purpose
+     * @param sharedSecret the shared secret
+     * @param firstRootKey the first root-key
+     * @return Returns an initialized Double Ratchet instance.
+     */
     // TODO `firstRootKey` is being cleared in the initialization code and this has surprised me more than once during coding. Consider if this is what we want, or whether to leave it to the caller to do proper clean-up.
-    static DoubleRatchet initialize(final Purpose purpose, final MixedSharedSecret sharedSecret,
+    public static DoubleRatchet initialize(final Purpose purpose, final MixedSharedSecret sharedSecret,
             final byte[] firstRootKey) {
         requireLengthExactly(ROOT_KEY_LENGTH_BYTES, firstRootKey);
         assert !allZeroBytes(firstRootKey) : "Expecting random data instead of all zero-bytes. There might be something severely wrong.";
@@ -245,6 +250,7 @@ final class DoubleRatchet implements AutoCloseable {
     void evictExcessKeys() {
         final Iterator<MessageKeys> it = this.storedKeys.values().iterator();
         while (it.hasNext() && this.storedKeys.size() > MAX_STORED_MESSAGEKEYS) {
+            // FIXME we should generate and reveal MK_mac keys when clearing excess stored keys.
             it.next().close();
             it.remove();
         }
@@ -593,7 +599,7 @@ final class DoubleRatchet implements AutoCloseable {
      *
      * @param dst the destination instance
      */
-    void transferReveals(final DoubleRatchet dst) {
+    public void transferReveals(final DoubleRatchet dst) {
         requireNotClosed();
         requireEquals(0, this.reveals.size() % MK_MAC_LENGTH_BYTES);
         final byte[] data = this.reveals.toByteArray();
@@ -607,8 +613,18 @@ final class DoubleRatchet implements AutoCloseable {
         }
     }
 
-    enum Purpose {
-        SENDING, RECEIVING
+    /**
+     * The purpose for a specific ratchet, either used for sending or receiving messages.
+     */
+    public enum Purpose {
+        /**
+         * Sending messages.
+         */
+        SENDING,
+        /**
+         * Receiving messages.
+         */
+        RECEIVING
     }
 
     /**

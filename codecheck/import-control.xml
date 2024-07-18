@@ -85,6 +85,11 @@
         <subpackage name="ake">
             <allow local-only="true" pkg="net.java.otr4j.session.ake"/>
         </subpackage>
+        <subpackage name="dake">
+            <allow local-only="true" pkg="net.java.otr4j.session.ake"/>
+            <!-- FIXME this isn't very nice. We should move DoubleRatchet either inside `dake` or to `crypto`. -->
+            <allow pkg="net.java.otr4j.session.state"/>
+        </subpackage>
         <subpackage name="smp">
             <allow local-only="true" pkg="net.java.otr4j.session.smp"/>
         </subpackage>
@@ -93,6 +98,7 @@
         </subpackage>
         <subpackage name="state">
             <allow pkg="net.java.otr4j.session.ake"/>
+            <allow pkg="net.java.otr4j.session.dake"/>
             <allow pkg="net.java.otr4j.session.smp"/>
             <allow pkg="net.java.otr4j.session.smpv4"/>
             <allow local-only="true" pkg="net.java.otr4j.session.state"/>

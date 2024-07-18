@@ -16,16 +16,14 @@ import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.api.Version;
-import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
-import net.java.otr4j.messages.IdentityMessage;
-import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.api.SMPHandler;
+import net.java.otr4j.session.dake.DAKEState;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,7 +32,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static net.java.otr4j.api.OfferStatus.REJECTED;
@@ -49,7 +46,7 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
  *
  * @author Danny van Heumen
  */
-public final class StatePlaintext extends AbstractOTR4State {
+public final class StatePlaintext extends AbstractOTRState {
 
     private static final Logger LOGGER = Logger.getLogger(StatePlaintext.class.getName());
 
@@ -58,10 +55,11 @@ public final class StatePlaintext extends AbstractOTR4State {
     /**
      * Constructor for the Plaintext message state.
      *
-     * @param authState the initial authentication (AKE) state instance.
+     * @param authState the current authentication (AKE) state instance.
+     * @param dakeState the current authentication (DAKE) state instance.
      */
-    public StatePlaintext(final AuthState authState) {
-        super(authState);
+    public StatePlaintext(final AuthState authState, final DAKEState dakeState) {
+        super(authState, dakeState);
     }
 
     @Nonnull
@@ -100,40 +98,6 @@ public final class StatePlaintext extends AbstractOTR4State {
         return new Result(STATUS, false, false, message.getCleanText());
     }
 
-    @Nonnull
-    @Override
-    public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
-        switch (message.version) {
-        case ONE:
-            LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
-            return new Result(STATUS, true, false, null);
-        case TWO:
-        case THREE:
-            return handleEncodedMessage3(context, message);
-        case FOUR:
-            return handleEncodedMessage4(context, message);
-        default:
-            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
-        }
-    }
-
-    @Override
-    void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException {
-        if (!context.getSessionPolicy().isAllowV4()) {
-            LOGGER.finest("ALLOW_V4 is not set, ignore this message.");
-            return;
-        }
-        if (!(message instanceof IdentityMessage)) {
-            LOGGER.log(FINE, "Ignoring unexpected DAKE message type: " + message.getType());
-            return;
-        }
-        try {
-            handleIdentityMessage(context, (IdentityMessage) message);
-        } catch (final ValidationException e) {
-            LOGGER.log(INFO, "Failed to process Identity message.", e);
-        }
-    }
-
     @Override
     @Nonnull
     Result handleDataMessage(final Context context, final DataMessage message) throws OtrException {
@@ -148,6 +112,23 @@ public final class StatePlaintext extends AbstractOTR4State {
         LOGGER.log(FINEST, "Received OTRv4 data message in PLAINTEXT state. Message cannot be read.");
         handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
         return new Result(STATUS, true, false, null);
+    }
+
+    @Nonnull
+    @Override
+    public Result handleEncodedMessage(final Context context, final AbstractEncodedMessage message) throws ProtocolException, OtrException {
+        switch (message.protocolVersion) {
+        case ONE:
+            LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
+            return new Result(getStatus(), true, false, null);
+        case TWO:
+        case THREE:
+            return handleEncodedMessage3(context, message);
+        case FOUR:
+            return handleEncodedMessage4(context, message);
+        default:
+            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.protocolVersion);
+        }
     }
 
     @Override

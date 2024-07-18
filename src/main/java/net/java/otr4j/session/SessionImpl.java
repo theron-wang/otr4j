@@ -43,6 +43,8 @@ import net.java.otr4j.messages.ClientProfilePayload;
 import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.ake.StateInitial;
+import net.java.otr4j.session.dake.DAKEInitial;
+import net.java.otr4j.session.dake.DAKEState;
 import net.java.otr4j.session.state.Context;
 import net.java.otr4j.session.state.IncorrectStateException;
 import net.java.otr4j.session.state.State;
@@ -93,6 +95,7 @@ import static net.java.otr4j.io.MessageProcessor.writeMessage;
 import static net.java.otr4j.messages.ClientProfilePayload.signClientProfile;
 import static net.java.otr4j.messages.EncodedMessageParser.checkAuthRMessage;
 import static net.java.otr4j.messages.EncodedMessageParser.checkDHKeyMessage;
+import static net.java.otr4j.messages.EncodedMessageParser.parseEncodedMessage;
 import static net.java.otr4j.session.api.SMPStatus.INPROGRESS;
 import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
 import static net.java.otr4j.session.state.State.FLAG_NONE;
@@ -325,7 +328,7 @@ final class SessionImpl implements Session, Context {
             this.slaveSessions = emptyMap();
         }
         this.outgoingSession = this;
-        this.sessionState = new StatePlaintext(StateInitial.instance());
+        this.sessionState = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         // Initialize the Client Profile and payload.
         if (this.masterSession == this) {
             ClientProfilePayload payload;
@@ -396,6 +399,11 @@ final class SessionImpl implements Session, Context {
         return this.host.getLocalKeyPair(this.sessionID);
     }
 
+    @Override
+    public EdDSAKeyPair getLongTermKeyPair() {
+        return this.host.getLongTermKeyPair(this.sessionID);
+    }
+
     // TODO needs renaming, Context.getClientProfilePayload is no longer a constant-time "getter", as it may update the client-profile payload.
     @Nonnull
     @Override
@@ -456,6 +464,12 @@ final class SessionImpl implements Session, Context {
             throw new IllegalArgumentException("BUG: we always expect to replace a state instance with a more recent state.");
         }
         this.sessionState.setAuthState(state);
+    }
+
+    @Override
+    public void setDAKEState(final DAKEState state) {
+        // FIXME need to check timestamp, see #setAuthState().
+        this.sessionState.setDAKEState(state);
     }
 
     @GuardedBy("masterSession")
@@ -710,7 +724,7 @@ final class SessionImpl implements Session, Context {
             }
         }
         try {
-            final State.Result result = this.sessionState.handleEncodedMessage(this, message);
+            final State.Result result = this.sessionState.handleEncodedMessage(this, parseEncodedMessage(message));
             return new Result(this.receiverTag, result.status, result.rejected, result.confidential, result.content);
         } catch (final ProtocolException e) {
             this.logger.log(FINE, "An illegal message was received. Processing was aborted.", e);

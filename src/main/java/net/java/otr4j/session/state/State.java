@@ -16,11 +16,12 @@ import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.api.Version;
-import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.io.PlainTextMessage;
+import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.api.SMPHandler;
+import net.java.otr4j.session.dake.DAKEState;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -115,6 +116,10 @@ public interface State {
 
     /**
      * Handle the received encoded message.
+     * <p>
+     * Note: avoid implementing this in any abstract state. Leave this main entry-point to the concrete implementations,
+     * such that they have full control over which messages are allowed processing and which are dropped. For example,
+     * drop OTRv3 (AKE) messages in {@link StateEncrypted4}.
      *
      * @param context The message state context.
      * @param message the encoded message
@@ -123,7 +128,7 @@ public interface State {
      * @throws ProtocolException In case of bad input data resulting in an unsound message.
      */
     @Nonnull
-    Result handleEncodedMessage(Context context, EncodedMessage message) throws ProtocolException, OtrException;
+    Result handleEncodedMessage(Context context, AbstractEncodedMessage message) throws ProtocolException, OtrException;
 
     /**
      * Result contains the multi-field result of message processing in the state instance.
@@ -177,6 +182,21 @@ public interface State {
      * @param state the new authentication state
      */
     void setAuthState(AuthState state);
+
+    /**
+     * Get the current interactive DAKE state.
+     *
+     * @return the DAKE state instance
+     */
+    @Nonnull
+    DAKEState getDAKEState();
+
+    /**
+     * Set the new interactive DAKE state.
+     *
+     * @param state the new DAKE state
+     */
+    void setDAKEState(DAKEState state);
 
     /**
      * Initiate AKE.

@@ -19,6 +19,7 @@ import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.messages.ClientProfilePayload;
 import net.java.otr4j.session.ake.AuthContext;
+import net.java.otr4j.session.dake.DAKEContext;
 
 import javax.annotation.Nonnull;
 import java.security.SecureRandom;
@@ -30,7 +31,8 @@ import java.security.SecureRandom;
  *
  * @author Danny van Heumen
  */
-public interface Context extends AuthContext {
+// TODO we expect Context to also implement DAKEContext. This is a slightly round-about way, because there is an extra hop between SessionImpl and the current state that houses the instance of DAKEState.
+public interface Context extends AuthContext, DAKEContext {
 
     /**
      * Get engine host instance.
@@ -54,6 +56,7 @@ public interface Context extends AuthContext {
      * @return Returns session ID.
      */
     @Nonnull
+    @Override
     SessionID getSessionID();
 
     /**
@@ -112,6 +115,7 @@ public interface Context extends AuthContext {
      * @return Returns the OTR-encodable payload.
      */
     @Nonnull
+    @Override
     ClientProfilePayload getClientProfilePayload();
 
     /**

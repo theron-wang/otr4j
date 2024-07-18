@@ -17,7 +17,6 @@ import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.OtrCryptoException;
-import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.EncryptedMessage.Content;
 import net.java.otr4j.io.ErrorMessage;
 import net.java.otr4j.io.OtrOutputStream;
@@ -28,6 +27,7 @@ import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.MysteriousT;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.ake.SecurityParameters;
+import net.java.otr4j.session.dake.DAKEState;
 import net.java.otr4j.session.smp.SMException;
 import net.java.otr4j.session.smp.SmpTlvHandler;
 import net.java.otr4j.session.state.SessionKeyManager.SessionKeyUnavailableException;
@@ -66,7 +66,7 @@ import static net.java.otr4j.util.ByteArrays.constantTimeEquals;
  * @author Danny van Heumen
  */
 // TODO write additional unit tests for StateEncrypted3
-final class StateEncrypted3 extends AbstractOTR4State implements StateEncrypted {
+final class StateEncrypted3 extends AbstractOTRState implements StateEncrypted {
 
     private static final SessionStatus STATUS = SessionStatus.ENCRYPTED;
 
@@ -114,9 +114,9 @@ final class StateEncrypted3 extends AbstractOTR4State implements StateEncrypted 
 
     private long lastMessageSentTimestamp = System.nanoTime();
 
-    StateEncrypted3(final Context context, final AuthState state, final SecurityParameters params)
-            throws OtrCryptoException {
-        super(state);
+    StateEncrypted3(final Context context, final AuthState authState, final DAKEState dakeState,
+            final SecurityParameters params) throws OtrCryptoException {
+        super(authState, dakeState);
         final SessionID sessionID = context.getSessionID();
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.protocolVersion = params.getVersion();
@@ -173,8 +173,9 @@ final class StateEncrypted3 extends AbstractOTR4State implements StateEncrypted 
 
     @Nonnull
     @Override
-    public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
-        switch (message.version) {
+    public Result handleEncodedMessage(final Context context, final AbstractEncodedMessage message)
+            throws ProtocolException, OtrException {
+        switch (message.protocolVersion) {
         case ONE:
             this.logger.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
             return new Result(STATUS, true, false, null);
@@ -182,17 +183,13 @@ final class StateEncrypted3 extends AbstractOTR4State implements StateEncrypted 
         case THREE:
             return handleEncodedMessage3(context, message);
         case FOUR:
+            // TODO this would block all OTRv4 messages, including DAKE messages. Do we not allow OTRv4 negotiation as a way of making session "upgrading" possible?
             this.logger.log(INFO, "Encountered message for protocol version 4. Ignoring because OTRv3 in-progress.",
-                    new Object[]{message.version});
+                    new Object[]{message.protocolVersion});
             return new Result(STATUS, true, false, null);
         default:
-            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
+            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.protocolVersion);
         }
-    }
-
-    @Override
-    void handleAKEMessage(final Context context, final AbstractEncodedMessage message) {
-        this.logger.log(FINE, "Ignoring OTRv4 DAKE message as we are in OTRv3 encrypted message state.");
     }
 
     @Override
@@ -268,7 +265,7 @@ final class StateEncrypted3 extends AbstractOTR4State implements StateEncrypted 
                 if (!content.message.isEmpty()) {
                     this.logger.warning("Expected other party to send TLV type 1 with empty human-readable message.");
                 }
-                context.transition(this, new StateFinished(getAuthState()));
+                context.transition(this, new StateFinished(getAuthState(), getDAKEState()));
                 break;
             case USE_EXTRA_SYMMETRIC_KEY:
                 if (tlv.value.length < EXTRA_SYMMETRIC_KEY_CONTEXT_LENGTH_BYTES) {
@@ -354,7 +351,7 @@ final class StateEncrypted3 extends AbstractOTR4State implements StateEncrypted 
         } finally {
             // Transitioning to PLAINTEXT state should not depend on host. Ensure we transition to PLAINTEXT even if we
             // have problems injecting the message into the transport.
-            context.transition(this, new StatePlaintext(getAuthState()));
+            context.transition(this, new StatePlaintext(getAuthState(), getDAKEState()));
         }
     }
 

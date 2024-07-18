@@ -21,16 +21,14 @@ import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.OtrCryptoException;
 import net.java.otr4j.crypto.ed448.Point;
-import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.EncryptedMessage.Content;
 import net.java.otr4j.io.OtrOutputStream;
 import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
-import net.java.otr4j.messages.IdentityMessage;
-import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
+import net.java.otr4j.session.dake.DAKEState;
 import net.java.otr4j.session.smpv4.SMP;
 import net.java.otr4j.session.state.DoubleRatchet.RotationLimitationException;
 import net.java.otr4j.util.ByteArrays;
@@ -66,7 +64,8 @@ import static net.java.otr4j.util.ByteArrays.concatenate;
  */
 // TODO write additional unit tests for StateEncrypted4
 // TODO decide whether or not we can drop the AuthState instance. Relies on fact that we need to know up to what point we should handle OTRv2/3 AKE messages.
-final class StateEncrypted4 extends AbstractOTR4State implements StateEncrypted {
+// FIXME need to ensure that transitioning to StateEncrypted3/OTR3-AKE is prohibited/prevented. (Maybe in `secure`.)
+final class StateEncrypted4 extends AbstractOTRState implements StateEncrypted {
 
     private static final SessionStatus STATUS = SessionStatus.ENCRYPTED;
 
@@ -88,8 +87,8 @@ final class StateEncrypted4 extends AbstractOTR4State implements StateEncrypted 
 
     StateEncrypted4(final Context context, final byte[] ssid, final DoubleRatchet ratchet,
             final Point ourLongTermPublicKey, final Point ourForgingKey, final ClientProfile theirProfile,
-             final AuthState authState) {
-        super(authState);
+             final AuthState authState, final DAKEState dakeState) {
+        super(authState, dakeState);
         final SessionID sessionID = context.getSessionID();
         this.logger = Logger.getLogger(sessionID.getAccountID() + "-->" + sessionID.getUserID());
         this.ratchet = requireNonNull(ratchet);
@@ -200,35 +199,21 @@ final class StateEncrypted4 extends AbstractOTR4State implements StateEncrypted 
 
     @Nonnull
     @Override
-    public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
-        switch (message.version) {
+    public Result handleEncodedMessage(final Context context, final AbstractEncodedMessage message) throws ProtocolException, OtrException {
+        switch (message.protocolVersion) {
         case ONE:
             this.logger.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
             return new Result(STATUS, true, false, null);
         case TWO:
         case THREE:
             this.logger.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
-                    new Object[]{message.version});
+                    new Object[]{message.protocolVersion});
             return new Result(STATUS, true, false, null);
         case FOUR:
             return handleEncodedMessage4(context, message);
         default:
-            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
+            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.protocolVersion);
         }
-    }
-
-    @Override
-    void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException {
-        if (message instanceof IdentityMessage) {
-            try {
-                handleIdentityMessage(context, (IdentityMessage) message);
-            } catch (final ValidationException e) {
-                this.logger.log(INFO, "Failed to process Identity message.", e);
-            }
-            return;
-        }
-        this.logger.log(INFO, "We only expect to receive an Identity message. Ignoring message with messagetype: {0}",
-                message.getType());
     }
 
     @Nonnull
@@ -330,7 +315,7 @@ final class StateEncrypted4 extends AbstractOTR4State implements StateEncrypted 
                 final byte[] unused = this.ratchet.collectReveals();
                 // TODO we need to reveal any remaining MK_MACs in the reveals list. (This use case is not covered in the specification. Basically, the other party reveals in the same message as TLV 1, but the receiving party doesn't. They could do this in a "dummy" data message with IGNORE_UNREADABLE flag set, because revealed MK_MACs are exposed anyways.
                 clear(unused);
-                context.transition(this, new StateFinished(getAuthState()));
+                context.transition(this, new StateFinished(getAuthState(), getDAKEState()));
                 break;
             case EXTRA_SYMMETRIC_KEY:
                 // TODO consider how to limit/warn that only 10 extra symmetric keys should be derived to preserve security properties.
@@ -374,7 +359,7 @@ final class StateEncrypted4 extends AbstractOTR4State implements StateEncrypted 
         } finally {
             // Transitioning to PLAINTEXT state should not depend on host. Ensure we transition to PLAINTEXT even if we
             // have problems injecting the message into the transport.
-            context.transition(this, new StatePlaintext(getAuthState()));
+            context.transition(this, new StatePlaintext(getAuthState(), getDAKEState()));
         }
     }
 
@@ -386,7 +371,7 @@ final class StateEncrypted4 extends AbstractOTR4State implements StateEncrypted 
         try {
             context.injectMessage(m);
         } finally {
-            context.transition(this, new StateFinished(getAuthState()));
+            context.transition(this, new StateFinished(getAuthState(), getDAKEState()));
         }
     }
 

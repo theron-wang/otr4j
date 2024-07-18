@@ -7,45 +7,34 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  */
 
-package net.java.otr4j.session.state;
+package net.java.otr4j.session.dake;
 
 import net.java.otr4j.api.ClientProfile;
-import net.java.otr4j.api.OtrException;
-import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionID;
-import net.java.otr4j.api.SessionStatus;
-import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.MixedSharedSecret;
 import net.java.otr4j.crypto.OtrCryptoEngine4;
 import net.java.otr4j.crypto.ed448.ECDHKeyPair;
 import net.java.otr4j.crypto.ed448.EdDSAKeyPair;
 import net.java.otr4j.crypto.ed448.Point;
-import net.java.otr4j.io.EncodedMessage;
-import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.AuthIMessage;
 import net.java.otr4j.messages.AuthRMessage;
 import net.java.otr4j.messages.ClientProfilePayload;
-import net.java.otr4j.messages.DataMessage;
-import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.messages.IdentityMessages;
 import net.java.otr4j.messages.MysteriousT4;
 import net.java.otr4j.messages.ValidationException;
-import net.java.otr4j.session.ake.AuthState;
-import net.java.otr4j.session.api.SMPHandler;
+import net.java.otr4j.session.state.DoubleRatchet;
 import net.java.otr4j.session.state.DoubleRatchet.Purpose;
 
 import javax.annotation.Nonnull;
 import java.math.BigInteger;
-import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.AUTH_I_PHI;
@@ -54,22 +43,17 @@ import static net.java.otr4j.crypto.OtrCryptoEngine4.KDFUsage.FIRST_ROOT_KEY;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ROOT_KEY_LENGTH_BYTES;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.kdf;
 import static net.java.otr4j.crypto.OtrCryptoEngine4.ringSign;
-import static net.java.otr4j.io.ErrorMessage.ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE;
-import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
 import static net.java.otr4j.messages.AuthIMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
-import static net.java.otr4j.util.ByteArrays.clear;
 
 /**
  * The state AWAITING_AUTH_I.
  * <p>
  * This is a state in which Alice will be while awaiting Bob's final message.
  */
-final class StateAwaitingAuthI extends AbstractOTR4State {
+final class DAKEAwaitingAuthI extends AbstractState implements DAKEState {
 
-    private static final Logger LOGGER = Logger.getLogger(StateAwaitingAuthI.class.getName());
-
-    private static final SessionStatus STATUS = SessionStatus.PLAINTEXT;
+    private static final Logger LOGGER = Logger.getLogger(DAKEAwaitingAuthI.class.getName());
 
     /**
      * Our ECDH key pair. (Its public key is also known as X.)
@@ -102,11 +86,11 @@ final class StateAwaitingAuthI extends AbstractOTR4State {
     private final byte[] k;
 
     // TODO we don't need the full keypairs anymore. Only pass on the public keys?
-    StateAwaitingAuthI(final AuthState authState, final byte[] k, final byte[] ssid, final ECDHKeyPair x,
+    DAKEAwaitingAuthI(final byte[] k, final byte[] ssid, final ECDHKeyPair x,
             final DHKeyPair a, final ECDHKeyPair ourFirstECDHKeyPair, final DHKeyPair ourFirstDHKeyPair, final Point y,
             final BigInteger b, final Point theirFirstECDHPublicKey, final BigInteger theirFirstDHPublicKey,
             final ClientProfilePayload ourProfile, final ClientProfilePayload profileBob) {
-        super(authState);
+        super();
         // TODO add requireNotEquals checks for y, b, ourFirst, etc.
         this.x = requireNonNull(x);
         this.a = requireNonNull(a);
@@ -124,80 +108,27 @@ final class StateAwaitingAuthI extends AbstractOTR4State {
 
     @Nonnull
     @Override
-    public Version getVersion() {
-        return Version.FOUR;
-    }
-
-    @Nonnull
-    @Override
-    public SessionStatus getStatus() {
-        return STATUS;
-    }
-
-    @Nonnull
-    @Override
-    public RemoteInfo getRemoteInfo() throws IncorrectStateException {
-        throw new IncorrectStateException("No OTR session is established yet.");
-    }
-
-    @Nonnull
-    @Override
-    public byte[] getExtraSymmetricKey() throws IncorrectStateException {
-        throw new IncorrectStateException("Extra symmetric key is not available until encrypted session is fully established.");
-    }
-
-    @Override
-    @Nonnull
-    public SMPHandler getSmpHandler() throws IncorrectStateException {
-        throw new IncorrectStateException("SMP negotiation is not available until encrypted session is fully established.");
-    }
-
-    @Nonnull
-    @Override
-    public Result handlePlainTextMessage(final Context context, final PlainTextMessage message) {
-        return new Result(STATUS, false, false, message.getCleanText());
-    }
-
-    @Nonnull
-    @Override
-    public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
-        switch (message.version) {
-        case ONE:
-            LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
-            return new Result(STATUS, true, false, null);
-        case TWO:
-        case THREE:
-            LOGGER.log(INFO, "Encountered message for lower protocol version: {0}. Ignoring message.",
-                    new Object[]{message.version});
-            return new Result(STATUS, true, false, null);
-        case FOUR:
-            return handleEncodedMessage4(context, message);
-        default:
-            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
-        }
-    }
-
-    @Override
-    void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException {
+    public Result handle(final DAKEContext context, final AbstractEncodedMessage message) {
         if (message instanceof IdentityMessage) {
             try {
-                handleIdentityMessage(context, (IdentityMessage) message);
+                return handleIdentityMessage(context, (IdentityMessage) message);
             } catch (final ValidationException e) {
                 LOGGER.log(INFO, "Failed to process Identity message.", e);
+                return new Result();
             }
-            return;
         }
         if (message instanceof AuthIMessage) {
             try {
-                handleAuthIMessage(context, (AuthIMessage) message);
+                return handleAuthIMessage(context, (AuthIMessage) message);
             } catch (final ValidationException e) {
                 LOGGER.log(WARNING, "Failed to process Auth-I message.", e);
+                return new Result();
             }
-            return;
         }
         // OTR: "Ignore the message."
         LOGGER.log(INFO, "We only expect to receive an Identity message or an Auth-I message or its protocol version does not match expectations. Ignoring message with messagetype: {0}",
                 message.getType());
+        return new Result();
     }
 
     /**
@@ -210,8 +141,10 @@ final class StateAwaitingAuthI extends AbstractOTR4State {
      * @throws ValidationException In case of failure to validate other party's identity message or client profile.
      */
     // TODO eventually write a test case that demonstrates responses by multiple sessions, such that correct handling of ephemeral keys is mandatory or it will expose the bug.
+    // FIXME this is (seems to be) the exact implementation as the first `handleIdentityMessage`. We can probably drop this and use the one in AbstractState, and the only thing we lose is the additional commentary that makes explicit that we start with a blank slate.
+    @Nonnull
     @Override
-    void handleIdentityMessage(final Context context, final IdentityMessage message) throws OtrException {
+    Result handleIdentityMessage(final DAKEContext context, final IdentityMessage message) throws ValidationException {
         final ClientProfile theirNewClientProfile = message.clientProfile.validate(Instant.now());
         IdentityMessages.validate(message, theirNewClientProfile);
         final SessionID sessionID = context.getSessionID();
@@ -236,7 +169,7 @@ final class StateAwaitingAuthI extends AbstractOTR4State {
         newX.close();
         // Generate t value and calculate sigma based on known facts and generated t value.
         final ClientProfilePayload profilePayload = context.getClientProfilePayload();
-        final EdDSAKeyPair longTermKeyPair = context.getHost().getLongTermKeyPair(sessionID);
+        final EdDSAKeyPair longTermKeyPair = context.getLongTermKeyPair();
         final byte[] phi = MysteriousT4.generatePhi(AUTH_R_PHI, context.getSenderInstanceTag(),
                 context.getReceiverInstanceTag(), newFirstECDHKeyPair.publicKey(), newFirstDHKeyPair.publicKey(),
                 message.firstECDHPublicKey, message.firstDHPublicKey, sessionID.getAccountID(), sessionID.getUserID());
@@ -245,15 +178,17 @@ final class StateAwaitingAuthI extends AbstractOTR4State {
         final OtrCryptoEngine4.Sigma sigma = ringSign(context.secureRandom(), longTermKeyPair,
                 theirNewClientProfile.getForgingKey(), longTermKeyPair.getPublicKey(), message.y, t);
         // Generate response message and transition into next state.
-        context.injectMessage(new AuthRMessage(context.getSenderInstanceTag(), context.getReceiverInstanceTag(),
+        final AuthRMessage response = new AuthRMessage(context.getSenderInstanceTag(), context.getReceiverInstanceTag(),
                 profilePayload, newX.publicKey(), newA.publicKey(), sigma, newFirstECDHKeyPair.publicKey(),
-                newFirstDHKeyPair.publicKey()));
-        context.transition(this, new StateAwaitingAuthI(getAuthState(), newK, newSSID, newX, newA, newFirstECDHKeyPair,
+                newFirstDHKeyPair.publicKey());
+        context.setDAKEState(new DAKEAwaitingAuthI(newK, newSSID, newX, newA, newFirstECDHKeyPair,
                 newFirstDHKeyPair, message.y, message.b, message.firstECDHPublicKey, message.firstDHPublicKey,
                 this.ourProfile, message.clientProfile));
+        return new Result(response, null);
     }
 
-    private void handleAuthIMessage(final Context context, final AuthIMessage message) throws ValidationException {
+    @Nonnull
+    private Result handleAuthIMessage(final DAKEContext context, final AuthIMessage message) throws ValidationException {
         // Validate message.
         final ClientProfile profileBobValidated = this.profileBob.validate(Instant.now());
         final ClientProfile ourProfileValidated = this.ourProfile.validate(Instant.now());
@@ -268,39 +203,8 @@ final class StateAwaitingAuthI extends AbstractOTR4State {
                 this.firstECDHKeyPair, this.firstDHKeyPair, this.theirFirstECDHPublicKey, this.theirFirstDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(Purpose.SENDING, sharedSecret,
                 kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY, this.k));
-        secure(context, this.ssid, ratchet, ourProfileValidated.getLongTermPublicKey(),
-                ourProfileValidated.getForgingKey(), profileBobValidated);
-    }
-
-    @Nonnull
-    @Override
-    Result handleDataMessage(final Context context, final DataMessage message) throws OtrException {
-        LOGGER.log(FINEST, "Received OTRv3 data message in state WAITING_AUTH_I. Message cannot be read.");
-        handleUnreadableMessage(context, message, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return new Result(STATUS, true, false, null);
-    }
-
-    @Nonnull
-    @Override
-    Result handleDataMessage(final Context context, final DataMessage4 message) throws OtrException {
-        LOGGER.log(FINEST, "Received OTRv4 data message in state WAITING_AUTH_I. Message cannot be read.");
-        handleUnreadableMessage(context, message, ERROR_ID_NOT_IN_PRIVATE_STATE, ERROR_2_NOT_IN_PRIVATE_STATE_MESSAGE);
-        return new Result(STATUS, true, false, null);
-    }
-
-    @Override
-    public void end(final Context context) {
-        this.a.close();
-        this.x.close();
-        this.firstDHKeyPair.close();
-        this.firstECDHKeyPair.close();
-        clear(this.k);
-        clear(this.ssid);
-        context.transition(this, new StatePlaintext(getAuthState()));
-    }
-
-    @Override
-    public void destroy() {
-        // no sensitive material to destroy (i.e. we need to destroy different material for different transitions)
+        context.setDAKEState(DAKEInitial.instance());
+        return new Result(null, new SecurityParameters4(this.ssid, ratchet,
+                ourProfileValidated.getLongTermPublicKey(), ourProfileValidated.getForgingKey(), profileBobValidated));
     }
 }

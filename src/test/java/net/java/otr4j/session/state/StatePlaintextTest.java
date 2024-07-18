@@ -11,6 +11,7 @@ package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.ClientProfileTestUtils;
 import net.java.otr4j.api.Event;
+import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
@@ -26,14 +27,17 @@ import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.AuthRMessage;
 import net.java.otr4j.messages.ClientProfilePayload;
+import net.java.otr4j.messages.DHCommitMessage;
 import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.session.ake.StateInitial;
+import net.java.otr4j.session.dake.DAKEInitial;
 import net.java.otr4j.util.Unit;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
@@ -81,7 +85,7 @@ public class StatePlaintextTest {
         final PlainTextMessage expected = new PlainTextMessage(new HashSet<>(Arrays.asList(Version.TWO, Version.THREE, Version.FOUR)),
                 "Hello world!");
         final Context context = mock(Context.class);
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final OtrPolicy policy = new OtrPolicy(OPPORTUNISTIC);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(IDLE);
@@ -94,7 +98,7 @@ public class StatePlaintextTest {
     public void testTransformSendingEmbedWhitespaceTagWithOTRv2OnlyPolicy() throws OtrException {
         final PlainTextMessage expected = new PlainTextMessage(Collections.singleton(Version.TWO), "Hello world!");
         final Context context = mock(Context.class);
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final OtrPolicy policy = new OtrPolicy(OtrPolicy.ALLOW_V2 | SEND_WHITESPACE_TAG);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(IDLE);
@@ -107,7 +111,7 @@ public class StatePlaintextTest {
     public void testTransformSendingEmbedWhitespaceTagWithOTRv3OnlyPolicy() throws OtrException {
         final PlainTextMessage expected = new PlainTextMessage(Collections.singleton(Version.THREE), "Hello world!");
         final Context context = mock(Context.class);
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final OtrPolicy policy = new OtrPolicy(ALLOW_V3 | SEND_WHITESPACE_TAG);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(IDLE);
@@ -123,7 +127,7 @@ public class StatePlaintextTest {
         try {
             logger.setLevel(OFF);
             final Context context = mock(Context.class);
-            final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+            final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
             final OtrPolicy policy = new OtrPolicy(SEND_WHITESPACE_TAG);
             when(context.getSessionPolicy()).thenReturn(policy);
             when(context.getOfferStatus()).thenReturn(IDLE);
@@ -137,7 +141,7 @@ public class StatePlaintextTest {
     public void testTransformDoNotSendWhitespaceTag() throws OtrException {
         final PlainTextMessage expected = new PlainTextMessage(Collections.emptySet(), "Hello world!");
         final Context context = mock(Context.class);
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final OtrPolicy policy = new OtrPolicy(ALLOW_V3);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(IDLE);
@@ -150,7 +154,7 @@ public class StatePlaintextTest {
     public void testTransformAlreadySentWhitespaceTag() throws OtrException {
         final PlainTextMessage expected = new PlainTextMessage(Collections.emptySet(), "Hello world!");
         final Context context = mock(Context.class);
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final OtrPolicy policy = new OtrPolicy(OPPORTUNISTIC);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(REJECTED);
@@ -162,7 +166,7 @@ public class StatePlaintextTest {
     @Test(expected = OtrException.class)
     public void testTransformRequireEncryptionNoVersionSupported() throws OtrException {
         final Context context = mock(Context.class);
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final OtrPolicy policy = new OtrPolicy(REQUIRE_ENCRYPTION);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(REJECTED);
@@ -172,7 +176,7 @@ public class StatePlaintextTest {
     @Test
     public void testTransformRequireEncryption() throws OtrException {
         final Context context = mock(Context.class);
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final OtrPolicy policy = new OtrPolicy(OPPORTUNISTIC | REQUIRE_ENCRYPTION);
         when(context.getSessionPolicy()).thenReturn(policy);
         when(context.getOfferStatus()).thenReturn(REJECTED);
@@ -185,37 +189,37 @@ public class StatePlaintextTest {
     @Test
     public void testEnd() {
         final Context context = mock(Context.class);
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         state.end(context);
         verify(context, never()).transition(isA(State.class), isA(State.class));
     }
 
     @Test
     public void testDestroy() {
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         state.destroy();
     }
 
     @Test
     public void testConstruct() {
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         assertEquals(Version.NONE, state.getVersion());
         assertEquals(PLAINTEXT, state.getStatus());
     }
 
     @Test(expected = IncorrectStateException.class)
     public void testGetSmpHandler() throws IncorrectStateException {
-        new StatePlaintext(StateInitial.instance()).getSmpHandler();
+        new StatePlaintext(StateInitial.instance(), DAKEInitial.instance()).getSmpHandler();
     }
 
     @Test(expected = IncorrectStateException.class)
     public void testGetRemotePublicKey() throws IncorrectStateException {
-        new StatePlaintext(StateInitial.instance()).getRemoteInfo();
+        new StatePlaintext(StateInitial.instance(), DAKEInitial.instance()).getRemoteInfo();
     }
 
     @Test(expected = IncorrectStateException.class)
     public void testGetExtraSymmetricKey() throws IncorrectStateException {
-        new StatePlaintext(StateInitial.instance()).getExtraSymmetricKey();
+        new StatePlaintext(StateInitial.instance(), DAKEInitial.instance()).getExtraSymmetricKey();
     }
 
     @Test
@@ -229,7 +233,7 @@ public class StatePlaintextTest {
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
         final DHKeyPairOTR3 keypair = DHKeyPairOTR3.generateDHKeyPair(RANDOM);
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final DataMessage message = new DataMessage(THREE, (byte) 0, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
         assertNull(state.handleDataMessage(context, message).content);
@@ -247,7 +251,7 @@ public class StatePlaintextTest {
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
         final DHKeyPairOTR3 keypair = DHKeyPairOTR3.generateDHKeyPair(RANDOM);
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final DataMessage message = new DataMessage(THREE, FLAG_IGNORE_UNREADABLE, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
         assertNull(state.handleDataMessage(context, message).content);
@@ -262,7 +266,7 @@ public class StatePlaintextTest {
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
         final DHKeyPairOTR3 keypair = DHKeyPairOTR3.generateDHKeyPair(RANDOM);
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final DataMessage message = new DataMessage(THREE, (byte) 0, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
         state.handleDataMessage(null, message);
@@ -277,7 +281,7 @@ public class StatePlaintextTest {
         when(context.getSessionID()).thenReturn(sessionID);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         state.handleDataMessage(context, (DataMessage) null);
     }
 
@@ -292,7 +296,7 @@ public class StatePlaintextTest {
         when(context.getReceiverInstanceTag()).thenReturn(SMALLEST_TAG);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
@@ -312,7 +316,7 @@ public class StatePlaintextTest {
         when(context.getSessionID()).thenReturn(sessionID);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, FLAG_IGNORE_UNREADABLE, 0, 0, 0,
@@ -331,14 +335,14 @@ public class StatePlaintextTest {
         when(context.getSessionID()).thenReturn(sessionID);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         state.handleDataMessage(context, (DataMessage4) null);
     }
 
     @SuppressWarnings("resource")
     @Test(expected = NullPointerException.class)
     public void testHandleDataMessage4NullContext() throws OtrException {
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
@@ -346,35 +350,35 @@ public class StatePlaintextTest {
         state.handleDataMessage(null, message);
     }
 
-    @Test
-    public void testHandleAKEMessageNonOTR4() throws OtrException {
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+    @Test(expected = NullPointerException.class)
+    public void testHandleAKEMessageNonOTR4() throws OtrException, ProtocolException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final Context context = mock(Context.class);
         final OtrPolicy policy = new OtrPolicy(ALLOW_V3);
         when(context.getSessionPolicy()).thenReturn(policy);
-        state.handleAKEMessage(context, null);
+        state.handleEncodedMessage4(context, null);
     }
 
     @Test(expected = NullPointerException.class)
-    public void testHandleAKEMessageNullContext() throws OtrException {
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+    public void testHandleDAKEMessageNullContext() throws OtrException, ProtocolException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final AbstractEncodedMessage message = mock(AbstractEncodedMessage.class);
-        state.handleAKEMessage(null, message);
+        state.handleEncodedMessage4(null, message);
     }
 
     @Test(expected = NullPointerException.class)
-    public void testHandleAKEMessageNullMessage() throws OtrException {
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+    public void testHandleDAKEMessageNullMessage() throws OtrException, ProtocolException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final Context context = mock(Context.class);
         final OtrPolicy policy = new OtrPolicy(ALLOW_V4);
         when(context.getSessionPolicy()).thenReturn(policy);
-        state.handleAKEMessage(context, null);
+        state.handleEncodedMessage4(context, null);
     }
 
     @SuppressWarnings("resource")
     @Test
-    public void testHandleAKEMessageIdentityMessage() throws OtrException {
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+    public void testHandleDAKEMessageIdentityMessage() throws OtrException, ProtocolException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final Context context = mock(Context.class);
         when(context.secureRandom()).thenReturn(RANDOM);
         when(context.getSenderInstanceTag()).thenReturn(HIGHEST_TAG);
@@ -383,7 +387,9 @@ public class StatePlaintextTest {
         when(context.getSessionID()).thenReturn(sessionID);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(context.getHost()).thenReturn(host);
-        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(EdDSAKeyPair.generate(RANDOM));
+        final EdDSAKeyPair longTermKeyPair = EdDSAKeyPair.generate(RANDOM);
+        when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(longTermKeyPair);
+        when(context.getLongTermKeyPair()).thenReturn(longTermKeyPair);
         final ClientProfilePayload hostProfile = PROFILE_UTILS.createClientProfile();
         when(context.getClientProfilePayload()).thenReturn(hostProfile);
         final OtrPolicy policy = new OtrPolicy(ALLOW_V4);
@@ -396,7 +402,8 @@ public class StatePlaintextTest {
         final IdentityMessage message = new IdentityMessage(SMALLEST_TAG, HIGHEST_TAG, profile,
                 dakeECDH.publicKey(), dakeDH.publicKey(), firstECDH.publicKey(), firstDH.publicKey());
 
-        state.handleAKEMessage(context, message);
+        final State.Result result = state.handleEncodedMessage4(context, message);
+        // FIXME test: check result values
 
         // Verify if correct return message was constructed, to a certain extent.
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
@@ -406,13 +413,12 @@ public class StatePlaintextTest {
         assertEquals(HIGHEST_TAG, msg.senderTag);
         assertEquals(SMALLEST_TAG, msg.receiverTag);
         assertEquals(hostProfile, msg.clientProfile);
-        verify(context, times(1)).transition(eq(state), isA(StateAwaitingAuthI.class));
     }
 
     @SuppressWarnings("resource")
     @Test
-    public void testHandleAKEMessageInvalidIdentityMessage() throws OtrException {
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+    public void testHandleDAKEMessageInvalidIdentityMessage() throws OtrException, ProtocolException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final Context context = mock(Context.class);
         final OtrPolicy policy = new OtrPolicy(ALLOW_V4);
         when(context.getSessionPolicy()).thenReturn(policy);
@@ -422,15 +428,15 @@ public class StatePlaintextTest {
         final DHKeyPair firstDH = DHKeyPair.generate(RANDOM);
         final IdentityMessage message = new IdentityMessage(SMALLEST_TAG, HIGHEST_TAG, profile,
                 dakeECDH.publicKey(), ZERO, firstECDH.publicKey(), firstDH.publicKey());
-        state.handleAKEMessage(context, message);
+        state.handleEncodedMessage4(context, message);
     }
 
-    @Test
-    public void testHandleAKEMessageInvalidMessageType() throws OtrException {
-        final StatePlaintext state = new StatePlaintext(StateInitial.instance());
+    @Test(expected = IllegalArgumentException.class)
+    public void testHandleDAKEMessageInvalidMessageType() throws OtrException, ProtocolException {
+        final StatePlaintext state = new StatePlaintext(StateInitial.instance(), DAKEInitial.instance());
         final Context context = mock(Context.class);
         final OtrPolicy policy = new OtrPolicy(ALLOW_V4);
         when(context.getSessionPolicy()).thenReturn(policy);
-        state.handleAKEMessage(context, mock(AbstractEncodedMessage.class));
+        state.handleEncodedMessage4(context, new DHCommitMessage(THREE, new byte[0], new byte[0], SMALLEST_TAG, HIGHEST_TAG));
     }
 }

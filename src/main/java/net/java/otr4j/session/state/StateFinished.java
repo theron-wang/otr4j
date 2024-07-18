@@ -15,16 +15,14 @@ import net.java.otr4j.api.RemoteInfo;
 import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.TLV;
 import net.java.otr4j.api.Version;
-import net.java.otr4j.io.EncodedMessage;
 import net.java.otr4j.io.Message;
 import net.java.otr4j.io.PlainTextMessage;
 import net.java.otr4j.messages.AbstractEncodedMessage;
 import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
-import net.java.otr4j.messages.IdentityMessage;
-import net.java.otr4j.messages.ValidationException;
 import net.java.otr4j.session.ake.AuthState;
 import net.java.otr4j.session.api.SMPHandler;
+import net.java.otr4j.session.dake.DAKEState;
 import net.java.otr4j.util.Unit;
 
 import javax.annotation.Nonnull;
@@ -44,14 +42,14 @@ import static net.java.otr4j.io.ErrorMessage.ERROR_ID_NOT_IN_PRIVATE_STATE;
  *
  * @author Danny van Heumen
  */
-final class StateFinished extends AbstractOTR4State {
+final class StateFinished extends AbstractOTRState {
 
     private static final Logger LOGGER = Logger.getLogger(StateFinished.class.getName());
 
     private static final SessionStatus STATUS = SessionStatus.FINISHED;
 
-    StateFinished(final AuthState authState) {
-        super(authState);
+    StateFinished(final AuthState authState, final DAKEState dakeState) {
+        super(authState, dakeState);
     }
 
     @Nonnull
@@ -96,8 +94,8 @@ final class StateFinished extends AbstractOTR4State {
     // TODO currently `StateFinished` is shared among OTRv2/3/4. In OTRv4 spec, separate `FINISHED` states exist for OTRv3 and OTRv4. Consider separating as well. (Needed to prevent subtle switching from OTR 4 to OTR 3 with intermediate FINISHED.)
     @Nonnull
     @Override
-    public Result handleEncodedMessage(final Context context, final EncodedMessage message) throws ProtocolException, OtrException {
-        switch (message.version) {
+    public Result handleEncodedMessage(final Context context, final AbstractEncodedMessage message) throws ProtocolException, OtrException {
+        switch (message.protocolVersion) {
         case ONE:
             LOGGER.log(INFO, "Encountered message for protocol version 1. Ignoring message.");
             return new Result(STATUS, true, false, null);
@@ -107,22 +105,8 @@ final class StateFinished extends AbstractOTR4State {
         case FOUR:
             return handleEncodedMessage4(context, message);
         default:
-            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.version);
+            throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.protocolVersion);
         }
-    }
-
-    @Override
-    void handleAKEMessage(final Context context, final AbstractEncodedMessage message) throws OtrException {
-        if (message instanceof IdentityMessage) {
-            try {
-                handleIdentityMessage(context, (IdentityMessage) message);
-            } catch (final ValidationException e) {
-                LOGGER.log(INFO, "Failed to process Identity message.", e);
-            }
-            return;
-        }
-        LOGGER.log(INFO, "We only expect to receive an Identity message. Ignoring message with messagetype: {0}",
-                message.getType());
     }
 
     @Override
@@ -152,7 +136,7 @@ final class StateFinished extends AbstractOTR4State {
 
     @Override
     public void end(final Context context) {
-        context.transition(this, new StatePlaintext(getAuthState()));
+        context.transition(this, new StatePlaintext(getAuthState(), getDAKEState()));
     }
 
     @Override

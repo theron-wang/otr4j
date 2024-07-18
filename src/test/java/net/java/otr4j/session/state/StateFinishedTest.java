@@ -29,9 +29,11 @@ import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.messages.IdentityMessage;
 import net.java.otr4j.messages.RevealSignatureMessage;
 import net.java.otr4j.session.ake.StateInitial;
+import net.java.otr4j.session.dake.DAKEInitial;
 import net.java.otr4j.util.Unit;
 import org.junit.Test;
 
+import java.net.ProtocolException;
 import java.security.SecureRandom;
 import java.util.Collections;
 
@@ -46,7 +48,6 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -61,48 +62,53 @@ public class StateFinishedTest {
 
     @Test(expected = NullPointerException.class)
     public void testConstructNullAuthState() {
-        new StateFinished(null);
+        new StateFinished(null, DAKEInitial.instance());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testConstructNullDAKEState() {
+        new StateFinished(StateInitial.instance(), null);
     }
 
     @Test
     public void testConstruct() {
-        new StateFinished(StateInitial.instance());
+        new StateFinished(StateInitial.instance(), DAKEInitial.instance());
     }
 
     @Test
     public void testExpectProtocolVersionIsZero() {
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         assertEquals(NONE, state.getVersion());
         assertEquals(FINISHED, state.getStatus());
     }
 
     @Test(expected = IncorrectStateException.class)
     public void testGetSMPHandlerFails() throws IncorrectStateException {
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         state.getSmpHandler();
     }
 
     @Test(expected = IncorrectStateException.class)
     public void testGetExtraSymmetricKeyFails() throws IncorrectStateException {
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         state.getExtraSymmetricKey();
     }
 
     @Test(expected = IncorrectStateException.class)
     public void testGetRemotePublicKeyFails() throws IncorrectStateException {
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         state.getRemoteInfo();
     }
 
     @Test
     public void testDestroy() {
-        new StateFinished(StateInitial.instance()).destroy();
+        new StateFinished(StateInitial.instance(), DAKEInitial.instance()).destroy();
     }
 
     @Test
     public void testEnd() {
         final Context context = mock(Context.class);
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         state.end(context);
         verify(context).transition(eq(state), isA(StatePlaintext.class));
     }
@@ -116,7 +122,7 @@ public class StateFinishedTest {
         when(context.getSessionID()).thenReturn(sessionID);
         when(context.getReceiverInstanceTag()).thenReturn(ZERO_TAG);
         final PlainTextMessage message = new PlainTextMessage(Collections.emptySet(), "Hello world!");
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         final State.Result result = state.handlePlainTextMessage(context, message);
         assertEquals(FINISHED, result.status);
         assertEquals("Hello world!", result.content);
@@ -130,14 +136,14 @@ public class StateFinishedTest {
         when(context.getHost()).thenReturn(host);
         final SessionID sessionID = new SessionID("alice", "bob", "network");
         when(context.getSessionID()).thenReturn(sessionID);
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         state.handlePlainTextMessage(context, null);
     }
 
     @Test(expected = NullPointerException.class)
     public void testHandlePlaintextMessageNullContext() {
         final PlainTextMessage message = new PlainTextMessage(Collections.emptySet(), "Hello world!");
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         state.handlePlainTextMessage(null, message);
     }
 
@@ -149,7 +155,7 @@ public class StateFinishedTest {
         final SessionID sessionID = new SessionID("alice", "bob", "network");
         when(context.getSessionID()).thenReturn(sessionID);
         when(context.getReceiverInstanceTag()).thenReturn(ZERO_TAG);
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         assertNull(state.transformSending(context, "Hello world!", Collections.emptySet(), (byte) 0));
         verify(host).handleEvent(eq(sessionID), eq(ZERO_TAG), eq(Event.SESSION_FINISHED), eq(Unit.UNIT));
     }
@@ -161,13 +167,13 @@ public class StateFinishedTest {
         when(context.getHost()).thenReturn(host);
         final SessionID sessionID = new SessionID("alice", "bob", "network");
         when(context.getSessionID()).thenReturn(sessionID);
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         assertNull(state.transformSending(context, null, Collections.emptySet(), (byte) 0));
     }
 
     @Test(expected = NullPointerException.class)
     public void testTransformSendingNullContext() {
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         assertNull(state.transformSending(null, "Hello world!", Collections.emptySet(), (byte) 0));
     }
 
@@ -181,7 +187,7 @@ public class StateFinishedTest {
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
         final DHKeyPairOTR3 keypair = DHKeyPairOTR3.generateDHKeyPair(RANDOM);
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         final DataMessage message = new DataMessage(Version.THREE, (byte) 0, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
         assertNull(state.handleDataMessage(context, message).content);
@@ -199,7 +205,7 @@ public class StateFinishedTest {
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
         final DHKeyPairOTR3 keypair = DHKeyPairOTR3.generateDHKeyPair(RANDOM);
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         final DataMessage message = new DataMessage(Version.THREE, FLAG_IGNORE_UNREADABLE, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
         assertNull(state.handleDataMessage(context, message).content);
@@ -214,7 +220,7 @@ public class StateFinishedTest {
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
         final DHKeyPairOTR3 keypair = DHKeyPairOTR3.generateDHKeyPair(RANDOM);
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         final DataMessage message = new DataMessage(Version.THREE, (byte) 0, 1, 1, keypair.getPublic(),
                 new byte[16], new byte[0], new byte[20], new byte[0], SMALLEST_TAG, HIGHEST_TAG);
         state.handleDataMessage(null, message);
@@ -229,7 +235,7 @@ public class StateFinishedTest {
         when(context.getSessionID()).thenReturn(sessionID);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         state.handleDataMessage(context, (DataMessage) null);
     }
 
@@ -243,7 +249,7 @@ public class StateFinishedTest {
         when(context.getSessionID()).thenReturn(sessionID);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
@@ -263,7 +269,7 @@ public class StateFinishedTest {
         when(context.getSessionID()).thenReturn(sessionID);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, FLAG_IGNORE_UNREADABLE, 0, 0, 0,
@@ -282,14 +288,14 @@ public class StateFinishedTest {
         when(context.getSessionID()).thenReturn(sessionID);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         state.handleDataMessage(context, (DataMessage4) null);
     }
 
     @SuppressWarnings("resource")
     @Test(expected = NullPointerException.class)
     public void testHandleDataMessage4NullContext() throws OtrException {
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         final ECDHKeyPair ecdh = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh = DHKeyPair.generate(RANDOM);
         final DataMessage4 message = new DataMessage4(SMALLEST_TAG, HIGHEST_TAG, (byte) 0, 0, 0, 0,
@@ -297,8 +303,8 @@ public class StateFinishedTest {
         state.handleDataMessage(null, message);
     }
 
-    @Test
-    public void testHandleAKEMessageNonIdentityMessage() throws OtrException {
+    @Test(expected = IllegalArgumentException.class)
+    public void testHandleDAKEMessageNonIdentityMessage() throws OtrException, ProtocolException {
         final Context context = mock(Context.class);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(context.getHost()).thenReturn(host);
@@ -306,13 +312,14 @@ public class StateFinishedTest {
         when(context.getSessionID()).thenReturn(sessionID);
         when(host.getReplyForUnreadableMessage(eq(sessionID), anyString())).thenReturn("Cannot read this.");
 
-        final StateFinished state = new StateFinished(StateInitial.instance());
-        state.handleAKEMessage(context, new RevealSignatureMessage(Version.THREE, new byte[0], new byte[0], new byte[0], SMALLEST_TAG, HIGHEST_TAG));
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
+        state.handleEncodedMessage4(context, new RevealSignatureMessage(Version.THREE, new byte[0], new byte[0],
+                new byte[0], SMALLEST_TAG, HIGHEST_TAG));
     }
 
     @SuppressWarnings("resource")
     @Test
-    public void testHandleAKEMessageIdentityMessage() throws OtrException {
+    public void testHandleDAKEMessageIdentityMessage() throws OtrException, ProtocolException {
         final Context context = mock(Context.class);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(context.getHost()).thenReturn(host);
@@ -325,15 +332,13 @@ public class StateFinishedTest {
         when(host.getLongTermKeyPair(eq(sessionID))).thenReturn(EdDSAKeyPair.generate(RANDOM));
         final ClientProfilePayload profile = UTILS.createClientProfile();
         when(context.getClientProfilePayload()).thenReturn(profile);
-        final StateFinished state = new StateFinished(StateInitial.instance());
+        final StateFinished state = new StateFinished(StateInitial.instance(), DAKEInitial.instance());
         final ECDHKeyPair ecdh1 = ECDHKeyPair.generate(RANDOM);
         final DHKeyPair dh1 = DHKeyPair.generate(RANDOM);
         final DHKeyPair dh2 = DHKeyPair.generate(RANDOM);
 
-
-        state.handleAKEMessage(context, new IdentityMessage(SMALLEST_TAG, HIGHEST_TAG, profile,
+        state.handleEncodedMessage4(context, new IdentityMessage(SMALLEST_TAG, HIGHEST_TAG, profile,
                 Ed448.identity(), dh1.publicKey(), ecdh1.publicKey(), dh2.publicKey()));
         verify(context, never()).injectMessage(isA(AuthRMessage.class));
-        verify(context, never()).transition(eq(state), isA(StateAwaitingAuthI.class));
     }
 }

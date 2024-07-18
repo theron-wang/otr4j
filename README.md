@@ -30,7 +30,7 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
 - ✔ Socialist Millionaire's Protocol for OTRv4.
 - ✔ Migrate OTRv4 DAKE state machine into OTRv4 Message state machine.
 - ✔ Redesigned Double Ratchet algorithm.
-- ⏳ Migrate Ed448-Goldilocks and EdDSA implementation to Bouncy Castle.  
+- ⏳ Migrate Ed448-Goldilocks and EdDSA implementation to Bouncy-Castle.  
   _Requires additions to the BouncyCastle API, as certain necessary operations are not currently supplied._
   - ✔ EdDSA (the long-term keypair)
   - ❓ ECDH operations
@@ -39,10 +39,12 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
 - ✔ Support for skipped messages and store skipped message keys.
 - ✔ OTRv4 maintenance tasks (✔<s>session expiration timer</s>, ✔<s>heartbeat timer</s>, ✔<s>refreshing client profile</s>)
 - ⏳ Full implementation of "OTRv3-compatible" + "OTRv4 Interactive".
-- ⚡ Message-queuing is not supported.  
+- ⚡ Message-queuing is not (and will not be) supported.  
   _It is not guaranteed that messages are sent to the right (expected) secure session. Multiple clients may be active, and the first established session is not necessarily the right session and is likely the weaker session._
 - ✔ [Reproducible build][maven-reproducible-builds]  
   (`mvn -o clean install && mvn -o clean verify artifact:compare -DskipTests`)
+- ✔ OTRv4 Interactive DAKE moved to independent state-machine.
+  _This avoids prematurely transitioning away from an "Encrypted Messaging"-state. The idea is to transition only after DAKE has fully, successfully completed. This avoids interrupting secure-messaging capabilities. (This is a deviation from OTRv4 spec; aligns with approach used in OTRv2/v3. See [review comments](<https://github.com/otr4j/otrv4/blob/review/otrv4.md> "A clone of OTRv4 spec repository with review comments added.")._
 - Clean up OTRv2 support.
 - Clean up remaining TODOs
 - Review and clean up logging statements. Ensure that no secret data is exposed through logging.
@@ -52,10 +54,10 @@ _Note: temporary dependency on [gitlab.com/cobratbq/joldilocks][joldilocks]: see
 
 Architectural constraints that are respected in the design.
 
-1. Correctness of protocol (and) implementation.
-1. Encapsulation of cryptographic material to prevent mistakes, misuse, excessive exposure.
-1. Design that prevents or makes obvious programming errors.
-1. Simplicity: restricted implementation to only as much complexity and abstraction as needed.
+1.  Correctness of protocol (and) implementation.
+1.  Encapsulation of cryptographic material to prevent mistakes, misuse, excessive exposure.
+1.  Design that prevents or makes obvious programming errors.
+1.  Simplicity: restricted implementation to only as much complexity and abstraction as needed.
 
 ## Using otr4j
 
@@ -63,10 +65,10 @@ _Note: otr4j with OTRv4 support is not backwards-compatible with older releases.
 
 The easiest way to start adoption of this new version given an earlier implementation of otr4j is already in use:
 
-1. Throw away existing imports and import types as _many of the existing types_ have moved to the `net.java.otr4j.api` package.
-1. Extend your implementation of `net.java.otr4j.api.OtrEngineHost` with the additional methods that are now required.
-1. Fix any other syntactic failures / build failures. The javadoc on the various methods should clearly describe the method's API and expectations. If this is not the case, file a bug as this should be expected.  
-   _As there are new features and upgraded cryptographic primitives in OTRv4, upgrading will not be effortless. However it should be possible to do a basic conversion in a reasonable amount of time._  
+1.  Throw away existing imports and import types as _many of the existing types_ have moved to the `net.java.otr4j.api` package.
+1.  Extend your implementation of `net.java.otr4j.api.OtrEngineHost` with the additional methods that are now required.
+1.  Fix any other syntactic failures / build failures. The javadoc on the various methods should clearly describe the method's API and expectations. If this is not the case, file a bug as this should be expected.  
+    _As there are new features and upgraded cryptographic primitives in OTRv4, upgrading will not be effortless. However it should be possible to do a basic conversion in a reasonable amount of time._  
 
 ## Checklist
 
@@ -77,7 +79,7 @@ The checklist reflecting the considerations in the classifications _functional_,
 
 __Functionality__
 
-- General Off-the-record operation:
+- General Off-the-Record operation:
   - ☑ Maintain mixed OTRv2, OTRv3, OTRv4 sessions.
   - ☑ Persistent instance tags
   - ☑ 'Interactive DAKE' implemented as Message states i.s.o. AKE states.
@@ -131,9 +133,9 @@ __Functionality__
 - Socialist Millionaire's Protocol:
   - ☑ OTRv2/OTRv3
   - ☑ OTRv4
-- Client and PreKey Profiles:
+- Client and pre-key Profiles:
   - ☑ Client Profile support
-  - ☐ PreKey Profile support
+  - ☐ Pre-key Profile support
 - Extra Symmetric Key support:
   - ☑ OTRv3
   - ☑ OTRv4

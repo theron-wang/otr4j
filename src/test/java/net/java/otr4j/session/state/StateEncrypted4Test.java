@@ -24,6 +24,7 @@ import net.java.otr4j.io.Message;
 import net.java.otr4j.messages.DataMessage;
 import net.java.otr4j.messages.DataMessage4;
 import net.java.otr4j.session.ake.StateInitial;
+import net.java.otr4j.session.dake.DAKEInitial;
 import net.java.otr4j.util.Classes;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -80,7 +81,8 @@ public final class StateEncrypted4Test {
         final MixedSharedSecret sharedSecret = new MixedSharedSecret(RANDOM, ecdhKeyPair, dhKeyPair, theirECDHPublicKey,
                 theirDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, sharedSecret, rootKey);
-        new StateEncrypted4(CONTEXT, ssid, ratchet, myPublicKey, myForgingKey, theirProfile, StateInitial.instance());
+        new StateEncrypted4(CONTEXT, ssid, ratchet, myPublicKey, myForgingKey, theirProfile, StateInitial.instance(),
+                DAKEInitial.instance());
     }
 
     @Test(expected = NullPointerException.class)
@@ -100,7 +102,7 @@ public final class StateEncrypted4Test {
                 theirDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, sharedSecret, rootKey);
         new StateEncrypted4(CONTEXT, null, ratchet, myPublicKey, myForgingKey, theirProfile,
-                StateInitial.instance());
+                StateInitial.instance(), DAKEInitial.instance());
     }
 
     @Test(expected = NullPointerException.class)
@@ -120,7 +122,7 @@ public final class StateEncrypted4Test {
                 theirDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, sharedSecret, rootKey);
         new StateEncrypted4(CONTEXT, ssid, ratchet, null, myForgingKey, theirProfile,
-                StateInitial.instance());
+                StateInitial.instance(), DAKEInitial.instance());
     }
 
     @Test(expected = NullPointerException.class)
@@ -140,7 +142,7 @@ public final class StateEncrypted4Test {
                 theirDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, sharedSecret, rootKey);
         new StateEncrypted4(CONTEXT, ssid, ratchet, myPublicKey, null, theirProfile,
-                StateInitial.instance());
+                StateInitial.instance(), DAKEInitial.instance());
     }
 
     @Test(expected = NullPointerException.class)
@@ -157,7 +159,7 @@ public final class StateEncrypted4Test {
                 theirDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, sharedSecret, rootKey);
         new StateEncrypted4(CONTEXT, ssid, ratchet, myPublicKey, myForgingKey, null,
-                StateInitial.instance());
+                StateInitial.instance(), DAKEInitial.instance());
     }
 
     @Test(expected = NullPointerException.class)
@@ -178,7 +180,7 @@ public final class StateEncrypted4Test {
                 theirDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, sharedSecret, rootKey);
         new StateEncrypted4(null, ssid, ratchet, myPublicKey, myForgingKey, theirProfile, 
-                StateInitial.instance());
+                StateInitial.instance(), DAKEInitial.instance());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -199,7 +201,7 @@ public final class StateEncrypted4Test {
                 theirDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, sharedSecret, rootKey);
         final StateEncrypted4 state = new StateEncrypted4(CONTEXT, ssid, ratchet, myPublicKey, myForgingKey,
-                theirProfile, StateInitial.instance());
+                theirProfile, StateInitial.instance(), DAKEInitial.instance());
         state.handleDataMessage(CONTEXT, (DataMessage) null);
     }
 
@@ -221,7 +223,7 @@ public final class StateEncrypted4Test {
                 theirDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, sharedSecret, rootKey);
         final StateEncrypted4 state = new StateEncrypted4(CONTEXT, ssid, ratchet, myPublicKey, myForgingKey,
-                theirProfile, StateInitial.instance());
+                theirProfile, StateInitial.instance(), DAKEInitial.instance());
         state.handleDataMessage(CONTEXT, (DataMessage4) null);
     }
 
@@ -258,7 +260,7 @@ public final class StateEncrypted4Test {
         Classes.readField(ByteArrayOutputStream.class, ratchet, "reveals").write(artificialMACsToReveal, 0,
                 artificialMACsToReveal.length);
         final StateEncrypted4 state = new StateEncrypted4(context, ssid, ratchet, myPublicKey, myForgingKey,
-                theirProfile, StateInitial.instance());
+                theirProfile, StateInitial.instance(), DAKEInitial.instance());
         state.expire(context);
 
         // Verify that state is correct after expiring.
@@ -295,7 +297,7 @@ public final class StateEncrypted4Test {
                 theirDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(SENDING, sharedSecret, rootKey);
         final StateEncrypted4 current = new StateEncrypted4(context, ssid, ratchet, myPublicKey, myForgingKey,
-                theirProfile, StateInitial.instance());
+                theirProfile, StateInitial.instance(), DAKEInitial.instance());
         current.expire(context);
         verify(context, times(1)).transition(eq(current), isA(StateFinished.class));
     }
