@@ -80,7 +80,8 @@ abstract class AbstractState implements DAKEState {
      *
      * @param context the session context
      * @param message the Identity message to be processed
-     * @throws net.java.otr4j.messages.ValidationException In case of failure to validate received Identity message.
+     * @return the result after processing the Identity-message
+     * @throws ValidationException In case of failure to validate received Identity message.
      */
     @Nonnull
     protected Result handleIdentityMessage(final DAKEContext context, final IdentityMessage message) throws ValidationException {

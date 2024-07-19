@@ -81,8 +81,8 @@ public final class EncodedMessageParser {
                 final byte[] oldMacKeys = message.payload.readData();
                 // The data message can only be validated where the current session keys are accessible. MAC validation
                 // therefore happens in a later stage. For now we return an unvalidated data message instance.
-                return new DataMessage(message.version, flags, senderKeyID, recipientKeyID, nextDH, ctr, encryptedMessage, mac,
-                        oldMacKeys, message.senderTag, message.receiverTag);
+                return new DataMessage(message.version, flags, senderKeyID, recipientKeyID, nextDH, ctr,
+                        encryptedMessage, mac, oldMacKeys, message.senderTag, message.receiverTag);
             }
             case FOUR: {
                 final byte flags = message.payload.readByte();
@@ -96,9 +96,8 @@ public final class EncodedMessageParser {
                 final byte[] revealedMacs = message.payload.readData();
                 // We only verify the format of the data message, but do not perform the validation actions yet.
                 // Validation is delayed until a later point as we are missing context information for full validation.
-                return new DataMessage4(message.senderTag, message.receiverTag, flags, pn, i, j,
-                        ecdhPublicKey, dhPublicKey.equals(ZERO) ? null : dhPublicKey, ciphertext, authenticator,
-                        revealedMacs);
+                return new DataMessage4(message.senderTag, message.receiverTag, flags, pn, i, j, ecdhPublicKey,
+                        dhPublicKey.equals(ZERO) ? null : dhPublicKey, ciphertext, authenticator, revealedMacs);
             }
             default:
                 throw new UnsupportedOperationException("BUG: Future protocol versions are not supported. We should not have reached this state.");

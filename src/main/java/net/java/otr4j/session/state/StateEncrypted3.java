@@ -183,10 +183,9 @@ final class StateEncrypted3 extends AbstractOTRState implements StateEncrypted {
         case THREE:
             return handleEncodedMessage3(context, message);
         case FOUR:
-            // FIXME this would block all OTRv4 messages, including DAKE messages. Do we not allow OTRv4 negotiation as a way of making session "upgrading" possible?
-            this.logger.log(INFO, "Encountered message for protocol version 4. Ignoring because OTRv3 in-progress.",
-                    new Object[]{message.protocolVersion});
-            return new Result(STATUS, true, false, null);
+            // TODO consider if it is best to allow for OTRv4 DAKE messages to process, or strictly stick with OTRv3 messages only, when in `StateEncrypted3` (OTRv3 encrypted-messaging state)
+            this.logger.log(INFO, "Encountered message for protocol version 4. Handling, in case this involves DAKE initiation.");
+            return handleEncodedMessage4(context, message);
         default:
             throw new UnsupportedOperationException("BUG: Unsupported protocol version: " + message.protocolVersion);
         }
@@ -291,7 +290,8 @@ final class StateEncrypted3 extends AbstractOTRState implements StateEncrypted {
     @Nonnull
     @Override
     Result handleDataMessage(final Context context, final DataMessage4 message) {
-        throw new IllegalStateException("BUG: OTRv2/OTRv3 encrypted message state does not handle OTRv4 data messages.");
+        this.logger.log(FINE, "Received an OTRv4 data-message in OTRv3 session. This message cannot be decrypted. Ignoring.");
+        return new Result(STATUS, true, false, null);
     }
 
     @Override
