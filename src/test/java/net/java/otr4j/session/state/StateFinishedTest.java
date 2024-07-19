@@ -13,6 +13,7 @@ import net.java.otr4j.api.ClientProfileTestUtils;
 import net.java.otr4j.api.Event;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
+import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.SessionID;
 import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
@@ -323,6 +324,8 @@ public class StateFinishedTest {
         final Context context = mock(Context.class);
         final OtrEngineHost host = mock(OtrEngineHost.class);
         when(context.getHost()).thenReturn(host);
+        final OtrPolicy policy = new OtrPolicy(OtrPolicy.OPPORTUNISTIC);
+        when(context.getSessionPolicy()).thenReturn(policy);
         when(context.secureRandom()).thenReturn(RANDOM);
         when(context.getSenderInstanceTag()).thenReturn(SMALLEST_TAG);
         when(context.getReceiverInstanceTag()).thenReturn(HIGHEST_TAG);
