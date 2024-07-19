@@ -125,22 +125,9 @@ abstract class AbstractOTRState implements State {
                 || message instanceof SignatureMessage || message instanceof RevealSignatureMessage)) {
             throw new UnsupportedOperationException("Only OTRv2/OTRv3 AKE messages are supported.");
         }
-
         final SessionID sessionID = context.getSessionID();
         LOGGER.log(FINEST, "{0} received an AKE message from {1} through {2}.",
                 new Object[]{sessionID.getAccountID(), sessionID.getUserID(), sessionID.getProtocolName()});
-
-        // Verify that policy allows handling message according to protocol version.
-        final OtrPolicy policy = context.getSessionPolicy();
-        if (message.protocolVersion == Version.TWO && !policy.isAllowV2()) {
-            LOGGER.finest("ALLOW_V2 is not set, ignore this message.");
-            return null;
-        }
-        if (message.protocolVersion == Version.THREE && !policy.isAllowV3()) {
-            LOGGER.finest("ALLOW_V3 is not set, ignore this message.");
-            return null;
-        }
-
         // Verify that we received an AKE message using the previously agreed upon protocol version. Exception to this
         // rule for DH Commit message, as this message initiates a new AKE negotiation and thus proposes a new protocol
         // version corresponding to the message's intention.
@@ -150,7 +137,6 @@ abstract class AbstractOTRState implements State {
                     new Object[]{message.protocolVersion, this.authState.getVersion()});
             return null;
         }
-
         LOGGER.log(FINEST, "Handling AKE message in state {0}", this.authState.getClass().getName());
         try {
             final AuthState.Result result = this.authState.handle(context, message);
@@ -188,6 +174,17 @@ abstract class AbstractOTRState implements State {
                     new Object[]{sessionID.getAccountID(), sessionID.getUserID(), this.getClass().getName()});
             return handleDataMessage(context, (DataMessage) message);
         }
+        // Check if policy allows handling message according to protocol version. (Always allow handling data-message as
+        // not to interfere with ongoing sessions.)
+        final OtrPolicy policy = context.getSessionPolicy();
+        if (message.protocolVersion == Version.TWO && !policy.isAllowV2()) {
+            LOGGER.finest("ALLOW_V2 is not set, ignore this message.");
+            return new Result(getStatus(), true, false, null);
+        }
+        if (message.protocolVersion == Version.THREE && !policy.isAllowV3()) {
+            LOGGER.finest("ALLOW_V3 is not set, ignore this message.");
+            return new Result(getStatus(), true, false, null);
+        }
         // Anything that is not a Data message is some type of AKE message.
         final AbstractEncodedMessage reply = handleAKEMessage(context, message);
         if (reply != null) {
@@ -206,6 +203,13 @@ abstract class AbstractOTRState implements State {
             LOGGER.log(FINEST, "{0} received a data message (OTRv4) from {1}, handling in state {2}.",
                     new Object[]{sessionID.getAccountID(), sessionID.getUserID(), this.getClass().getName()});
             return handleDataMessage(context, (DataMessage4) message);
+        }
+        // Check policy before initiating OTRv4 DAKE. (For now, always handling data-message as a session may be in
+        // progress.)
+        final OtrPolicy policy = context.getSessionPolicy();
+        if (message.protocolVersion == Version.FOUR && !policy.isAllowV4()) {
+            LOGGER.finest("ALLOW_V4 is not set, ignore this message.");
+            return new Result(getStatus(), true, false, null);
         }
         // OTRv4 messages that are not data messages, should therefore be DAKE messages.
         final DAKEState.Result result = this.dakeState.handle(context, message);

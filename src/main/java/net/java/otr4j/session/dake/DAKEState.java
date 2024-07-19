@@ -20,7 +20,6 @@ import javax.annotation.Nullable;
 /**
  * Interface for OTRv4 DAKE state instances.
  */
-// FIXME need to check policy before initiating/handling protocol version 4 messages.
 public interface DAKEState {
 
     /**
