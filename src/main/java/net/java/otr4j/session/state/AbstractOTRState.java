@@ -50,7 +50,6 @@ import static net.java.otr4j.util.Objects.requireEquals;
  *
  * @author Danny van Heumen
  */
-// FIXME needs careful review to ensure that OTRv3 and OTRv4 are properly separated and individual states have ability to block OTRv3/OTRv4 messages at their own choice.
 abstract class AbstractOTRState implements State {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractOTRState.class.getName());
@@ -156,7 +155,6 @@ abstract class AbstractOTRState implements State {
         try {
             final AuthState.Result result = this.authState.handle(context, message);
             if (result.params != null) {
-                // FIXME how can we prevent transitioning to OTR3 encrypted state, if we are already in StateEncrypted4? (downgrade)
                 context.transition(this, new StateEncrypted3(context, this.authState, this.dakeState, result.params));
                 if (context.getSessionStatus() != ENCRYPTED) {
                     throw new IllegalStateException("Session failed to transition to ENCRYPTED. (OTRv2/OTRv3)");
@@ -184,7 +182,6 @@ abstract class AbstractOTRState implements State {
         }
         assert !message.receiverTag.equals(ZERO_TAG) || message instanceof DHCommitMessage
                 : "BUG: receiver instance should be set for anything other than the first AKE message.";
-        // TODO We've started replicating current authState in *all* cases where a new slave session is created. Is this indeed correct? Probably is, but needs focused verification.
         final SessionID sessionID = context.getSessionID();
         if (message instanceof DataMessage) {
             LOGGER.log(FINEST, "{0} received a data message (OTRv2/OTRv3) from {1}, handling in state {2}.",
@@ -223,6 +220,7 @@ abstract class AbstractOTRState implements State {
 
     @Override
     public void initiateAKE(final Context context, final Version version, final InstanceTag receiverTag) throws OtrException {
+        // TODO should we prevent this from even being called? (States can already decide whether they pass through OTRv2/3 messages.)
         LOGGER.log(Level.FINE, "Initiating AKE…");
         switch (version) {
         case ONE:
@@ -280,7 +278,7 @@ abstract class AbstractOTRState implements State {
      */
     final void handleUnreadableMessage(final Context context, final DataMessage message, final String error)
             throws OtrException {
-        if ((message.flags & FLAG_IGNORE_UNREADABLE) == FLAG_IGNORE_UNREADABLE) {
+        if ((message.flags & FLAG_IGNORE_UNREADABLE) != 0) {
             LOGGER.fine("Unreadable message received with IGNORE_UNREADABLE flag set. Ignoring silently.");
             return;
         }
@@ -298,7 +296,7 @@ abstract class AbstractOTRState implements State {
      */
     final void handleUnreadableMessage(final Context context, final DataMessage4 message, final String identifier,
             final String error) throws OtrException {
-        if ((message.flags & FLAG_IGNORE_UNREADABLE) == FLAG_IGNORE_UNREADABLE) {
+        if ((message.flags & FLAG_IGNORE_UNREADABLE) != 0) {
             // TODO consider detecting (and logging) whether revealed MAC-keys are non-empty. This concerns the issue with OTRv4 (also v3?) spec which mentions that when the other party receives a DISCONNECT-TLV, they end the session, but this means that they do not reveal present MAC keys to be revealed of our previous messages. Logging this allows us to check that the other party acts properly. That is, if we accept that as part of the spec.
             LOGGER.fine("Unreadable message received with IGNORE_UNREADABLE flag set. Ignoring silently.");
             return;

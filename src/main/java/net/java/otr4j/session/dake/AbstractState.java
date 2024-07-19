@@ -36,9 +36,17 @@ import static net.java.otr4j.messages.IdentityMessages.validate;
 import static net.java.otr4j.messages.MysteriousT4.Purpose.AUTH_R;
 import static net.java.otr4j.util.Objects.requireEquals;
 
+// TODO consider renaming to `AbstractDAKEState` for identifiability.
 abstract class AbstractState implements DAKEState {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractState.class.getName());
+
+    private final long timestamp = System.nanoTime();
+
+    @Override
+    public final long getTimestamp() {
+        return this.timestamp;
+    }
 
     @Nonnull
     @Override
@@ -75,7 +83,7 @@ abstract class AbstractState implements DAKEState {
      * @throws net.java.otr4j.messages.ValidationException In case of failure to validate received Identity message.
      */
     @Nonnull
-    Result handleIdentityMessage(final DAKEContext context, final IdentityMessage message) throws ValidationException {
+    protected Result handleIdentityMessage(final DAKEContext context, final IdentityMessage message) throws ValidationException {
         final ClientProfile theirClientProfile = message.clientProfile.validate(Instant.now());
         validate(message, theirClientProfile);
         final SecureRandom secureRandom = context.secureRandom();
@@ -93,8 +101,8 @@ abstract class AbstractState implements DAKEState {
         a.close();
         // Generate t value and calculate sigma based on known facts and generated t value.
         final ClientProfilePayload profile = context.getClientProfilePayload();
-        final SessionID sessionID = context.getSessionID();
         final EdDSAKeyPair longTermKeyPair = context.getLongTermKeyPair();
+        final SessionID sessionID = context.getSessionID();
         final byte[] phi = MysteriousT4.generatePhi(AUTH_R_PHI, context.getSenderInstanceTag(),
                 context.getReceiverInstanceTag(), ourFirstECDHKeyPair.publicKey(), ourFirstDHKeyPair.publicKey(),
                 message.firstECDHPublicKey, message.firstDHPublicKey, sessionID.getAccountID(), sessionID.getUserID());

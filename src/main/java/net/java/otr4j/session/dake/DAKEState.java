@@ -24,6 +24,16 @@ import javax.annotation.Nullable;
 public interface DAKEState {
 
     /**
+     * Creation timestamp for the instance.
+     * <p>
+     * The timestamp indicates when the instance was created. As we should always work with the most recent state, we
+     * can determine, based on the timestamp information, which is the most recent instance of DAKEState.
+     *
+     * @return Returns the creation timestamp.
+     */
+    long getTimestamp();
+
+    /**
      * Initiate a new interactive DAKE.
      *
      * @param context the session as context

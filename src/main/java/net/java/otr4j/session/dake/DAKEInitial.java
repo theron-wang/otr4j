@@ -28,6 +28,12 @@ public final class DAKEInitial extends AbstractState implements DAKEState {
 
     private static final DAKEInitial INSTANCE = new DAKEInitial();
 
+    DAKEInitial() {
+        // Note: allowing DAKE states to instantiate `DAKEInitial()` such that transitions back to initial state carry
+        // an updated timestamp. This is slightly inefficient, as we could have reused the shared `INSTANCE`.
+        super();
+    }
+
     /**
      * Acquire the (singleton) instance of DAKEInitial.
      *

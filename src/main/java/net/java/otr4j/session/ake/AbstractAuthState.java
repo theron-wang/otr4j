@@ -42,7 +42,7 @@ abstract class AbstractAuthState implements AuthState {
     private final long timestamp = System.nanoTime();
 
     @Override
-    public long getTimestamp() {
+    public final long getTimestamp() {
         return this.timestamp;
     }
 

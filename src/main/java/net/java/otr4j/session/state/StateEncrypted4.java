@@ -61,10 +61,15 @@ import static net.java.otr4j.util.ByteArrays.concatenate;
 
 /**
  * The OTRv4 ENCRYPTED_MESSAGES state.
+ * <p>
+ * Note: AbstractOTRState contains quite a bit of scaffolding for handling (D)AKE messages and transitioning states.
+ * However, all message arrive through {@link #handleEncodedMessage(Context, AbstractEncodedMessage)}, which is
+ * (supposed to be) implemented in each of the concrete states. Consequently, this is the single entry-point at which
+ * undesirable messages can be stopped, fully within control of each state. (E.g. stop all OTRv3 messages.) The
+ * scaffolding is there for internal (re)use.
  */
 // TODO write additional unit tests for StateEncrypted4
-// TODO decide whether or not we can drop the AuthState instance. Relies on fact that we need to know up to what point we should handle OTRv2/3 AKE messages.
-// FIXME need to ensure that transitioning to StateEncrypted3/OTR3-AKE is prohibited/prevented. (Maybe in `secure`.)
+// TODO consider showing an notification/error when an AKE is initiated (tried to) such that user is informed, even if this is a suspicious situation. (We can silently drop all OTRv3 messages, given that we already have an established encrypted state. However, we cannot invariably drop all AKE messages, because if counter-party loses their encrypted session, they need some way to (re)initiate an encrypted session.)
 final class StateEncrypted4 extends AbstractOTRState implements StateEncrypted {
 
     private static final SessionStatus STATUS = SessionStatus.ENCRYPTED;

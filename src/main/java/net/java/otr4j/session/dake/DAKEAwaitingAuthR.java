@@ -117,7 +117,7 @@ final class DAKEAwaitingAuthR extends AbstractState implements DAKEState {
 
     @Nonnull
     @Override
-    Result handleIdentityMessage(final DAKEContext context, final IdentityMessage message) throws ValidationException {
+    protected Result handleIdentityMessage(final DAKEContext context, final IdentityMessage message) throws ValidationException {
         final ClientProfile theirProfile = message.clientProfile.validate(Instant.now());
         IdentityMessages.validate(message, theirProfile);
         final BigInteger ourHashedB = new BigInteger(1, OtrCryptoEngine4.shake256(32,
@@ -172,7 +172,7 @@ final class DAKEAwaitingAuthR extends AbstractState implements DAKEState {
                 this.firstDHKeyPair, message.firstECDHPublicKey, message.firstDHPublicKey);
         final DoubleRatchet ratchet = DoubleRatchet.initialize(Purpose.RECEIVING, firstRatchetSecret,
                 kdf(ROOT_KEY_LENGTH_BYTES, FIRST_ROOT_KEY, k));
-        context.setDAKEState(DAKEInitial.instance());
+        context.setDAKEState(new DAKEInitial());
         return new Result(response, new SecurityParameters4(ssid, ratchet, ourClientProfile.getLongTermPublicKey(),
                 ourClientProfile.getForgingKey(), theirClientProfile));
     }

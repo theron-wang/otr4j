@@ -117,9 +117,9 @@ public interface State {
     /**
      * Handle the received encoded message.
      * <p>
-     * Note: avoid implementing this in any abstract state. Leave this main entry-point to the concrete implementations,
-     * such that they have full control over which messages are allowed processing and which are dropped. For example,
-     * drop OTRv3 (AKE) messages in {@link StateEncrypted4}.
+     * Note: avoid implementing this in any abstract state. Leave this entry-point to the concrete implementations, such
+     * that they have full control over which messages are allowed processing and which are dropped. For example, drop
+     * OTRv3 (AKE) messages in {@link StateEncrypted4}.
      *
      * @param context The message state context.
      * @param message the encoded message

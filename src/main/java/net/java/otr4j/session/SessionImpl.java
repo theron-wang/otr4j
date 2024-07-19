@@ -466,9 +466,12 @@ final class SessionImpl implements Session, Context {
         this.sessionState.setAuthState(state);
     }
 
+    @GuardedBy("masterSession")
     @Override
     public void setDAKEState(final DAKEState state) {
-        // FIXME need to check timestamp, see #setAuthState().
+        if (this.sessionState.getDAKEState().getTimestamp() > state.getTimestamp()) {
+            throw new IllegalArgumentException("BUG: we always expect to replace a state instance with a more recent state.");
+        }
         this.sessionState.setDAKEState(state);
     }
 
@@ -715,12 +718,21 @@ final class SessionImpl implements Session, Context {
                 }
             }
         } else if (checkAuthRMessage(message)) {
+            // REMARK why don't we check for `version == FOUR` like we do with DH-Key message above?
             assert this != this.masterSession : "We expected to be working inside a slave session instead of a master session.";
-            // Copy state to slave session, as this is the earliest moment that we know the instance tag of the other party.
-            // Note: this will *not* screw up the confidentiality guarantee, but only because we prevent messages from
-            // being sent in StateAwaitingAuthR and StateAwaitingAuthI.
+            // Check if the master-session contains a newer DAKE state. If so, copy it to the destined slave now. This
+            // solves a situation where we did not know the receiver-tag yet, so we sent the Identity-message to
+            // receiver-tag `0` and now that we receive a response we first discover the receiver-tag(s). Now to
+            // continue the DAKE where we left off on a specific instance, we need to copy the DAKE-state from master
+            // to specific instance (slave) and then continue processing the message on that instance.
+            // However, if the instance's DAKE-state is newer, it means that we most likely responded to a DAKE session
+            // that was initiated from the specific instance already.
             synchronized (this.masterSession.masterSession) {
-                this.sessionState = this.masterSession.sessionState;
+                final DAKEState slaveDAKEState = this.sessionState.getDAKEState();
+                final DAKEState masterDAKEState = this.masterSession.sessionState.getDAKEState();
+                if (slaveDAKEState.getTimestamp() < masterDAKEState.getTimestamp()) {
+                    this.sessionState.setDAKEState(masterDAKEState);
+                }
             }
         }
         try {

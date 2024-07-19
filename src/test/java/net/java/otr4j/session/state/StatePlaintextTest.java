@@ -11,11 +11,11 @@ package net.java.otr4j.session.state;
 
 import net.java.otr4j.api.ClientProfileTestUtils;
 import net.java.otr4j.api.Event;
-import net.java.otr4j.api.InstanceTag;
 import net.java.otr4j.api.OtrEngineHost;
 import net.java.otr4j.api.OtrException;
 import net.java.otr4j.api.OtrPolicy;
 import net.java.otr4j.api.SessionID;
+import net.java.otr4j.api.SessionStatus;
 import net.java.otr4j.api.Version;
 import net.java.otr4j.crypto.DHKeyPair;
 import net.java.otr4j.crypto.DHKeyPairOTR3;
@@ -62,6 +62,7 @@ import static net.java.otr4j.api.Version.THREE;
 import static net.java.otr4j.session.state.State.FLAG_IGNORE_UNREADABLE;
 import static net.java.otr4j.session.state.State.FLAG_NONE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -403,7 +404,10 @@ public class StatePlaintextTest {
                 dakeECDH.publicKey(), dakeDH.publicKey(), firstECDH.publicKey(), firstDH.publicKey());
 
         final State.Result result = state.handleEncodedMessage4(context, message);
-        // FIXME test: check result values
+        assertNull(result.content);
+        assertFalse(result.confidential);
+        assertFalse(result.rejected);
+        assertEquals(SessionStatus.PLAINTEXT, result.status);
 
         // Verify if correct return message was constructed, to a certain extent.
         final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
