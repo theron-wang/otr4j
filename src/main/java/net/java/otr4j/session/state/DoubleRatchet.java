@@ -250,9 +250,11 @@ public final class DoubleRatchet implements AutoCloseable {
     void evictExcessKeys() {
         final Iterator<MessageKeys> it = this.storedKeys.values().iterator();
         while (it.hasNext() && this.storedKeys.size() > MAX_STORED_MESSAGEKEYS) {
-            // FIXME we should generate and reveal MK_mac keys when clearing excess stored keys.
-            it.next().close();
+            final MessageKeys evicted = it.next();
             it.remove();
+            final MessageKeys.Result r = evicted.authenticate(new byte[0]);
+            this.reveals.write(r.mkMAC, 0, r.mkMAC.length);
+            evicted.close();
         }
     }
 

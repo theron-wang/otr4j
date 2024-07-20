@@ -31,7 +31,7 @@ import static net.java.otr4j.api.OtrEngineHosts.handleEvent;
 import static net.java.otr4j.util.Objects.requireNonNull;
 
 /**
- * Interface to the Message state.
+ * Interface to the (Session) Messaging-state.
  */
 public interface State {
 
