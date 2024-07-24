@@ -1,0 +1,1 @@
+[WARNING] /home/danny/dev/otr/otr4j/src/main/java/net/java/otr4j/messages/SignatureX.java:[54,34] [NullAway] read of @NonNull field signature before initialization
